@@ -1,0 +1,133 @@
+import { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../integrations/supabase/client';
+
+/**
+ * Shown after Google OAuth completes.
+ * If the user has no profile yet (first Google login), they pick parent or child role.
+ * If a profile already exists, navigation resolves automatically via AuthContext.
+ */
+export default function AuthCallbackScreen() {
+  const { t } = useTranslation();
+  const { user, profile, refreshProfile } = useAuth();
+  const [creating, setCreating] = useState(false);
+
+  // Show role selection when user exists but profile has no role set.
+  const needsRoleSelection = !!user && (!profile || !profile.role);
+
+  useEffect(() => {
+    // RootNavigator handles redirect once profile.role is set.
+  }, [user, profile]);
+
+  const createProfile = async (role: 'parent' | 'child') => {
+    if (!user) return;
+    setCreating(true);
+
+    try {
+      let familyId: string | null = profile?.family_id ?? null;
+
+      if (role === 'parent' && !familyId) {
+        const displayName = user.user_metadata?.full_name ?? user.email ?? 'Parent';
+        const { data: newFamily, error: familyError } = await supabase
+          .from('families')
+          .insert({ name: `${displayName}'s Family`, preferred_language: 'en' } as never)
+          .select()
+          .single();
+
+        if (familyError) {
+          Alert.alert('Error creating family');
+          return;
+        }
+        familyId = (newFamily as { id: string }).id;
+      }
+
+      if (profile) {
+        // Profile exists but role is missing — update it
+        const { error } = await supabase
+          .from('profiles')
+          .update({ role, ...(familyId ? { family_id: familyId } : {}) } as never)
+          .eq('user_id', user.id);
+        if (error) {
+          Alert.alert('Error updating profile');
+          return;
+        }
+      } else {
+        // No profile at all — insert
+        const displayName = user.user_metadata?.full_name ?? user.email ?? 'User';
+        const { error } = await supabase.from('profiles').insert({
+          user_id: user.id,
+          family_id: familyId,
+          display_name: displayName,
+          role,
+          marketing_consent: false,
+        } as never);
+        if (error) {
+          Alert.alert('Error creating profile');
+          return;
+        }
+      }
+
+      if (familyId && role === 'parent') {
+        await supabase.from('app_settings').insert({ family_id: familyId } as never);
+      }
+
+      await refreshProfile(user.id);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (!needsRoleSelection) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F1A' }}>
+        <ActivityIndicator size="large" color="#7C3AED" />
+      </View>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, backgroundColor: '#0F0F1A' }}>
+      <Text style={{ color: '#A78BFA', fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 }}>
+        {t('auth.iAm')}
+      </Text>
+      <Text style={{ color: '#6B7280', textAlign: 'center', marginBottom: 40 }}>
+        {t('auth.googleRoleSelection')}
+      </Text>
+
+      <TouchableOpacity
+        onPress={() => createProfile('parent')}
+        disabled={creating}
+        style={{
+          backgroundColor: '#7C3AED',
+          borderRadius: 16,
+          paddingVertical: 20,
+          alignItems: 'center',
+          marginBottom: 16,
+          opacity: creating ? 0.7 : 1,
+        }}
+      >
+        <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>{t('auth.parent')}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => createProfile('child')}
+        disabled={creating}
+        style={{
+          backgroundColor: '#1A1A2E',
+          borderRadius: 16,
+          paddingVertical: 20,
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: '#7C3AED',
+          opacity: creating ? 0.7 : 1,
+        }}
+      >
+        <Text style={{ color: '#A78BFA', fontSize: 20, fontWeight: '700' }}>{t('auth.teen')}</Text>
+      </TouchableOpacity>
+
+      {creating && <ActivityIndicator color="#A78BFA" style={{ marginTop: 24 }} />}
+    </View>
+  );
+}

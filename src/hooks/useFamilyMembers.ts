@@ -1,0 +1,80 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../integrations/supabase/client';
+import { useAuth } from '../contexts/AuthContext';
+
+export interface FamilyMember {
+  id: string;
+  userId: string;
+  displayName: string;
+  role: 'parent' | 'child';
+  createdAt: string;
+  avatar: string;
+}
+
+export function useFamilyMembers() {
+  const { familyId } = useAuth();
+  const [members, setMembers]   = useState<FamilyMember[]>([]);
+  const [loading, setLoading]   = useState(true);
+
+  const fetchMembers = useCallback(async () => {
+    if (!familyId) {
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('role', { ascending: false }) // parents first
+        .order('created_at');
+
+      if (error) {
+        console.error('Error fetching family members:', error);
+        return;
+      }
+
+      setMembers(
+        (data || []).map(p => ({
+          id:          p.id,
+          userId:      p.user_id,
+          displayName: p.display_name,
+          role:        p.role as 'parent' | 'child',
+          createdAt:   p.created_at,
+          avatar:      p.avatar || '🚀',
+        }))
+      );
+    } catch (err) {
+      console.error('Error fetching family members:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [familyId]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!familyId) return;
+
+    const channel = supabase
+      .channel('family-members')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles', filter: `family_id=eq.${familyId}` },
+        () => { fetchMembers(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [familyId, fetchMembers]);
+
+  const children = members.filter(m => m.role === 'child');
+  const parents  = members.filter(m => m.role === 'parent');
+
+  return { members, children, parents, loading, refetch: fetchMembers };
+}
