@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthhContext';
 import { Task } from '../types/task';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -383,7 +383,7 @@ export function useChildData(childId: string | null) {
         completed:    false,
         assignedTo:   data.assigned_to || undefined,
         strategyId:   data.strategy_id || undefined,
-        scheduleDays: data.schedule_days || [0, 1, 2, 3, 4],
+        scheduleDays: data.(Array.isArray(t.schedule_days) && t.schedule_days.length > 0) ? t.schedule_days : [0, 1, 2, 3, 4, 5, 6],
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId, childId]);
