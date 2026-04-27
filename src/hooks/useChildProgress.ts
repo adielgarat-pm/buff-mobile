@@ -262,7 +262,9 @@ export function useChildData(childId: string | null) {
         completedAt:  completedAtMap.has(t.id) ? new Date(completedAtMap.get(t.id)!) : undefined,
         assignedTo:   t.assigned_to || undefined,
         strategyId:   t.strategy_id || undefined,
-        scheduleDays: t.schedule_days || [0, 1, 2, 3, 4],
+        scheduleDays: (Array.isArray(t.schedule_days) && t.schedule_days.length > 0)
+                        ? t.schedule_days
+                        : [0, 1, 2, 3, 4, 5, 6], // default: every day
       }));
 
       setTasks(mappedTasks);
