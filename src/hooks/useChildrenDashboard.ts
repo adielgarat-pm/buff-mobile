@@ -15,6 +15,7 @@ export interface ChildSummary {
   childId:        string;
   displayName:    string;
   avatar:         string;
+  created_at:     string | null;
   tasksCompleted: number;
   tasksTotal:     number;
   totalBalance:   number;
@@ -28,6 +29,7 @@ export function useChildrenDashboard() {
   const [loading,  setLoading]  = useState(true);
 
   const fetch = useCallback(async () => {
+    setLoading(true);
     if (!familyId) {
       setChildren([]);
       setLoading(false);
@@ -38,12 +40,15 @@ export function useChildrenDashboard() {
       const todayKey = getTodayKey();
 
       // Step 1 — fetch children profiles by family_id + role (same as useFamilyMembers)
+      console.log('[Dashboard] fetching children for familyId:', familyId);
+
       const { data: profiles, error: profilesErr } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar')
+        .select('id, display_name, avatar, created_at')
         .eq('family_id', familyId)
         .eq('role', 'child');
 
+      console.log('[Dashboard] raw result:', JSON.stringify(profiles), 'error:', profilesErr?.message ?? null);
       console.log('[Dashboard] profiles rows:', profiles?.length ?? 0, 'error:', profilesErr?.message ?? 'none');
 
       if (profilesErr || !profiles || profiles.length === 0) {
@@ -64,7 +69,7 @@ export function useChildrenDashboard() {
               .from('tasks')
               .select('id')
               .eq('family_id', familyId)
-              .eq('child_id', child.id),
+              .eq('assigned_to', child.id),
             supabase
               .from('daily_progress')
               .select('task_id')
@@ -86,6 +91,7 @@ export function useChildrenDashboard() {
             childId:        child.id,
             displayName:    child.display_name ?? '—',
             avatar:         child.avatar       ?? '🚀',
+            created_at:     child.created_at   ?? null,
             tasksTotal:     tasks?.length ?? 0,
             tasksCompleted: (tasks ?? []).filter(t => completedIds.has(t.id)).length,
             totalBalance:   vault?.total_balance ?? 0,
@@ -105,8 +111,12 @@ export function useChildrenDashboard() {
 
   useEffect(() => {
     if (!familyId) return;
+    // Use a unique channel name each time to avoid "cannot add postgres_changes
+    // callbacks after subscribe()" — which happens when the old channel isn't
+    // fully removed before this effect re-runs (removeChannel is async).
+    const channelName = `children-dashboard-${Date.now()}`;
     const channel = supabase
-      .channel('children-dashboard')
+      .channel(channelName)
       // Re-fetch when a child profile is inserted (e.g. end of onboarding flow)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'profiles'       }, fetch)
       .on('postgres_changes', { event: '*',      schema: 'public', table: 'daily_progress' }, fetch)

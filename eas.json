@@ -1,0 +1,36 @@
+{
+  "cli": {
+    "version": ">= 18.6.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://gfrongfnyigxsexuofrg.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmcm9uZ2ZueWlneHNleHVvZnJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODQ0MDEsImV4cCI6MjA5MTM2MDQwMX0.74hGy67NJ_YemZK_lKa8LCZFk9VtVZkYa0h5Vs90qpc"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://gfrongfnyigxsexuofrg.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmcm9uZ2ZueWlneHNleHVvZnJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODQ0MDEsImV4cCI6MjA5MTM2MDQwMX0.74hGy67NJ_YemZK_lKa8LCZFk9VtVZkYa0h5Vs90qpc"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://gfrongfnyigxsexuofrg.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmcm9uZ2ZueWlneHNleHVvZnJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODQ0MDEsImV4cCI6MjA5MTM2MDQwMX0.74hGy67NJ_YemZK_lKa8LCZFk9VtVZkYa0h5Vs90qpc"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

@@ -163,7 +163,7 @@ export function useChildProgress() {
     if (!familyId) return;
 
     const channel = supabase
-      .channel('children-progress')
+      .channel(`children-progress-${familyId}-${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_progress'  }, () => fetchChildrenProgress())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => fetchChildrenProgress())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'credit_vault'    }, () => fetchChildrenProgress())
@@ -195,12 +195,30 @@ export function useChildData(childId: string | null) {
     }
 
     try {
-      const { data: tasksData } = await supabase
+      const { data: tasksData, error: tasksQueryErr } = await supabase
         .from('tasks')
         .select('*')
         .eq('family_id', familyId)
         .eq('assigned_to', childId)
         .order('time');
+
+      console.log(
+        '[useChildData] raw tasks from Supabase:',
+        'count=', tasksData?.length ?? 0,
+        'error=', tasksQueryErr?.message ?? 'none',
+        '\nrows=', JSON.stringify(
+          (tasksData ?? []).map(t => ({
+            id:            t.id,
+            title:         t.title,
+            time:          t.time,
+            category:      t.category,
+            schedule_days: t.schedule_days,
+            assigned_to:   t.assigned_to,
+            credits:       t.credits,
+          })),
+          null, 2
+        )
+      );
 
       const { data: progressData } = await supabase
         .from('daily_progress')
@@ -264,36 +282,71 @@ export function useChildData(childId: string | null) {
     fetchChildData();
   }, [fetchChildData]);
 
+  // ── Vault ─────────────────────────────────────────────────────────────────
+
+  const updateTotalBalance = useCallback(async (balance: number) => {
+    if (!familyId || !childId) return;
+
+    setTotalBalance(balance);
+
+    const { data: existing } = await supabase
+      .from('credit_vault')
+      .select('id')
+      .eq('family_id', familyId)
+      .eq('child_id', childId)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from('credit_vault').update({ total_balance: balance }).eq('id', existing.id);
+    } else {
+      await supabase.from('credit_vault').insert({ family_id: familyId, child_id: childId, total_balance: balance });
+    }
+  }, [familyId, childId]);
+
   // ── Task completion ───────────────────────────────────────────────────────
 
   const completeTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
 
     const now = new Date();
-    // Optimistic update
+    // Optimistic UI update
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, completed: true, completedAt: now } : t
     ));
 
-    await supabase.from('daily_progress').upsert(
+    const { error } = await supabase.from('daily_progress').upsert(
       { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: true },
       { onConflict: 'family_id,child_id,date,task_id' }
     );
-  }, [familyId, childId, todayKey]);
+
+    if (!error) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        await updateTotalBalance(totalBalance + task.credits);
+      }
+    }
+  }, [familyId, childId, todayKey, tasks, totalBalance, updateTotalBalance]);
 
   const uncompleteTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
 
-    // Optimistic update
+    // Optimistic UI update
     setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, completed: false, completedAt: undefined } : t
     ));
 
-    await supabase.from('daily_progress').upsert(
+    const { error } = await supabase.from('daily_progress').upsert(
       { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: false },
       { onConflict: 'family_id,child_id,date,task_id' }
     );
-  }, [familyId, childId, todayKey]);
+
+    if (!error) {
+      const task = tasks.find(t => t.id === taskId);
+      if (task) {
+        await updateTotalBalance(Math.max(0, totalBalance - task.credits));
+      }
+    }
+  }, [familyId, childId, todayKey, tasks, totalBalance, updateTotalBalance]);
 
   // ── Task CRUD ─────────────────────────────────────────────────────────────
 
@@ -354,27 +407,6 @@ export function useChildData(childId: string | null) {
     setTasks(prev => prev.filter(t => t.id !== taskId));
     await supabase.from('tasks').delete().eq('id', taskId);
   }, [familyId]);
-
-  // ── Vault ─────────────────────────────────────────────────────────────────
-
-  const updateTotalBalance = useCallback(async (balance: number) => {
-    if (!familyId || !childId) return;
-
-    setTotalBalance(balance);
-
-    const { data: existing } = await supabase
-      .from('credit_vault')
-      .select('id')
-      .eq('family_id', familyId)
-      .eq('child_id', childId)
-      .maybeSingle();
-
-    if (existing) {
-      await supabase.from('credit_vault').update({ total_balance: balance }).eq('id', existing.id);
-    } else {
-      await supabase.from('credit_vault').insert({ family_id: familyId, child_id: childId, total_balance: balance });
-    }
-  }, [familyId, childId]);
 
   return {
     tasks,

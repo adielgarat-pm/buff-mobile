@@ -19,7 +19,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep7_Phone'>;
 type Route = RouteProp<RootStackParamList, 'UStep7_Phone'>;
 
-const STEP = 6; const TOTAL = 6;
+const STEP = 5; const TOTAL = 6;
 
 export default function UStep7_Phone() {
   const navigation         = useNavigation<Nav>();
@@ -38,7 +38,6 @@ export default function UStep7_Phone() {
     const message = t('onboarding.step7.inviteMessage', {
       name: params.childName,
       code,
-      link: `buff://join/${code}`,
     });
     try {
       await Share.share({ message });
@@ -60,7 +59,7 @@ export default function UStep7_Phone() {
   const noPhone = () => {
     Alert.alert(
       t('onboarding.step7.noPhoneTipTitle'),
-      t('onboarding.step7.noPhoneTipBody'),
+      t('onboarding.step7.noPhoneTipBody', { name: params.childName }),
       [{ text: t('common.ok'), onPress: () => goNext(false) }]
     );
   };
@@ -92,7 +91,7 @@ export default function UStep7_Phone() {
         <Text style={styles.heading}>
           {t('onboarding.step7.title', { name: params.childName })}
         </Text>
-        <Text style={styles.sub}>{t('onboarding.step7.sub')}</Text>
+        <Text style={styles.sub}>{t('onboarding.step7.sub', { name: params.childName })}</Text>
 
         <TouchableOpacity style={[styles.option, styles.optionPrimary]} onPress={inviteNow} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>🚀</Text>

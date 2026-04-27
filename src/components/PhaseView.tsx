@@ -15,6 +15,8 @@ interface Props {
   isSchoolDay?:   boolean;
   onCompleteTask:   (id: string) => void;
   onUncompleteTask: (id: string) => void;
+  /** Passed through to PhaseTaskCard — disables haptics when false. */
+  hapticsEnabled?:  boolean;
 }
 
 export function PhaseView({
@@ -24,6 +26,7 @@ export function PhaseView({
   isSchoolDay     = true,
   onCompleteTask,
   onUncompleteTask,
+  hapticsEnabled  = true,
 }: Props) {
   const T           = useChildTheme();
   const phaseConfig = getPhaseConfig(phase);
@@ -67,6 +70,7 @@ export function PhaseView({
               phase={phaseConfig}
               onComplete={onCompleteTask}
               onUncomplete={onUncompleteTask}
+              hapticsEnabled={hapticsEnabled}
             />
           ))}
         </View>

@@ -156,6 +156,13 @@ export function useParentInsights(childId: string | null) {
         .in('date', dates)
         .or(`child_id.is.null,child_id.eq.${childId}`);
 
+      // No progress data yet (brand-new child) — insights would all show 0%,
+      // so return empty and let the dashboard show the "unlock after 3 days" card.
+      if (!progressData || progressData.length === 0) {
+        setLoading(false);
+        return;
+      }
+
       // Per-task completion rates
       const taskInsights: TaskInsight[] = tasksData.map(task => {
         const taskProgress   = progressData?.filter(p => p.task_id === task.id) || [];

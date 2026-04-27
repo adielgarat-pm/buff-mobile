@@ -23,16 +23,35 @@
 // i18n must be imported before any component that calls useTranslation()
 import './src/i18n';
 
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
-import { AuthProvider }                  from './src/contexts/AuthContext';
+import { AuthProvider, useAuth }         from './src/contexts/AuthContext';
 import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
 import RootNavigator                     from './src/navigation/RootNavigator';
+import { initRevenueCat }                from './src/services/purchaseService';
+
+/**
+ * RevenueCatInit — sits inside AuthProvider.
+ * Calls initRevenueCat whenever the signed-in user changes.
+ * Renders nothing; side-effect only.
+ */
+function RevenueCatInit() {
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user) {
+      initRevenueCat(user.id).catch(err =>
+        console.warn('[RevenueCat] init error (non-fatal):', err)
+      );
+    }
+  }, [user]);
+  return null;
+}
 
 /**
  * AppContent — lives inside all providers.
@@ -64,6 +83,7 @@ export default function App() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <LanguageProvider>
         <AuthProvider>
+          <RevenueCatInit />
           <ModeProvider>
             <ThemeProvider>
               <AppContent />

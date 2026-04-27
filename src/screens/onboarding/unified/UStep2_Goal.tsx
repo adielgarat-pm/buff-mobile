@@ -24,7 +24,7 @@ export default function UStep2_Goal() {
   const progress = (STEP + 1) / (TOTAL + 1);
 
   const select = (goalId: string) => {
-    navigation.navigate('UStep3_Challenges', { ...params, mainGoal: goalId });
+    navigation.navigate('UStep3_Challenges', { ...params, mainChallenge: goalId });
   };
 
   return (

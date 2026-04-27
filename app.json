@@ -5,23 +5,25 @@
     "scheme": "buff",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/BUFF_LOGO.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/BUFF_LOGO.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1a1636"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.buff.mobile"
     },
     "android": {
-      "package": "com.buff.mobile",
+      "package": "com.buffapp.mobile",
+      "versionCode": 1,
+      "supportsRTL": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/BUFF_LOGO.png",
+        "backgroundColor": "#1a1636"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -31,7 +33,14 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-localization"
-    ]
+      "expo-localization",
+      "@react-native-community/datetimepicker",
+      ["expo-image-picker", { "photosPermission": "BUFF uses your photo library for profile pictures." }]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8796128b-5e2d-4c0e-9c41-016e87c62ab7"
+      }
+    }
   }
 }

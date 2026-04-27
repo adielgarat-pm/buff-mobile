@@ -1,26 +1,23 @@
 /**
  * WelcomeScreen — first screen of the onboarding stack.
  *
- * Shown to authenticated parents who have not yet completed onboarding.
- * Creates anticipation and signals that the plan is personalised before
- * the user fills in any details.
+ * Layout (top → bottom):
+ *  1. BUFF logo (SVG lettermark) + "BUFF" wordmark
+ *  2. Headline (welcome.headline)
+ *  3. Three value cards with emoji icon, title, description
+ *  4. CTA button (welcome.cta)
+ *  5. Timer hint text below button (welcome.timer)
  *
- * Behaviour:
- *  - 5-second auto-advance countdown, shown BELOW the CTA button
- *  - Tapping CTA skips countdown and navigates immediately
- *  - Does NOT touch onboarding_complete — that is UStep8_Complete's job
+ * RTL: text alignment follows I18nManager.isRTL.
+ * Logo SVG wrapped in direction:"ltr" so the B lettermark is never mirrored.
  *
- * RTL:
- *  - Text alignment follows I18nManager.isRTL
- *  - Logo <Svg> wrapped in a direction:"ltr" View so the B lettermark
- *    is never mirrored by the OS RTL layout pass
+ * Logo: assets/BUFF_LOGO.png (80×80, resizeMode "contain").
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
-  View, Text, TouchableOpacity,
-  SafeAreaView, I18nManager, StyleSheet, Animated,
+  View, Text, Image, TouchableOpacity,
+  SafeAreaView, ScrollView, I18nManager, StyleSheet, Animated,
 } from 'react-native';
-import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -28,24 +25,33 @@ import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Welcome'>;
 
-// ── Design tokens ─────────────────────────────────────────────────────────────
-const BG        = '#5b21b6';
-const TEXT_CLR  = '#f5f0ff';
-const TIMER_CLR = '#6c5ce7';
-const COUNTDOWN = 5;
+// ── Design tokens ──────────────────────────────────────────────────────────────
+const BG          = '#ede8ff';
+const ACCENT      = '#5b21b6';
+const TEXT_DARK   = '#26215C';
+const TEXT_MUTED  = '#5a4e7a';
+const CARD_BG     = '#ffffff';
+const CARD_BORDER = '#c8bef5';
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Value card data ────────────────────────────────────────────────────────────
+const CARDS = [
+  { emoji: '🎮', titleKey: 'welcome.card1.title', descKey: 'welcome.card1.desc' },
+  { emoji: '🤝', titleKey: 'welcome.card2.title', descKey: 'welcome.card2.desc' },
+  { emoji: '🧠', titleKey: 'welcome.card3.title', descKey: 'welcome.card3.desc' },
+] as const;
+
+// ──────────────────────────────────────────────────────────────────────────────
 
 export default function WelcomeScreen() {
-  const navigation = useNavigation<Nav>();
-  const { t }      = useTranslation();
-  const isRTL      = I18nManager.isRTL;
+  const navigation   = useNavigation<Nav>();
+  const { t }        = useTranslation();
+  const isRTL        = I18nManager.isRTL;
+  const textAlign    = isRTL ? 'right' : 'left';
 
-  const [count, setCount]   = useState(COUNTDOWN);
-  const hasNavigated        = useRef(false);
-  const fadeAnim            = useRef(new Animated.Value(0)).current;
+  const hasNavigated = useRef(false);
+  const fadeAnim     = useRef(new Animated.Value(0)).current;
 
-  // ── Fade-in on mount ────────────────────────────────────────────────────────
+  // ── Fade-in on mount ─────────────────────────────────────────────────────────
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue:         1,
@@ -54,148 +60,165 @@ export default function WelcomeScreen() {
     }).start();
   }, [fadeAnim]);
 
-  // ── Navigate once (guard against double-fire) ───────────────────────────────
+  // ── Navigate once (guard against double-fire) ────────────────────────────────
   const goToOnboarding = useCallback(() => {
     if (hasNavigated.current) return;
     hasNavigated.current = true;
     navigation.navigate('UStep1');
   }, [navigation]);
 
-  // ── Countdown — tick once per second, navigate when it reaches 0 ───────────
-  useEffect(() => {
-    if (count <= 0) {
-      goToOnboarding();
-      return;
-    }
-    const id = setTimeout(() => setCount(c => c - 1), 1000);
-    return () => clearTimeout(id);
-  }, [count, goToOnboarding]);
-
-  // ── Layout ──────────────────────────────────────────────────────────────────
-  const align = isRTL ? 'right' : 'left';
-
   return (
     <SafeAreaView style={styles.safe}>
-      <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
-
-        {/* ── Logo ─────────────────────────────────────────────────────────
-            Wrap in a direction:"ltr" View so the RTL layout pass never
-            mirrors the B lettermark.
-        ──────────────────────────────────────────────────────────────────── */}
-        <View style={styles.logoLTRWrap}>
-          <Svg width={80} height={80} viewBox="0 0 80 80">
-            {/* Frosted-glass backing square */}
-            <Rect
-              x={0} y={0} width={80} height={80} rx={20}
-              fill="rgba(255,255,255,0.15)"
-            />
-            {/* B lettermark — textAnchor="middle" keeps it centred */}
-            <SvgText
-              x="40" y="58"
-              textAnchor="middle"
-              fontSize={52}
-              fontWeight="900"
-              fill={TEXT_CLR}
-            >
-              B
-            </SvgText>
-          </Svg>
-
-          <Text style={styles.logoWordmark}>BUFF</Text>
-        </View>
-
-        {/* ── Headline ─────────────────────────────────────────────────── */}
-        <Text style={[styles.heading, { textAlign: 'center' }]}>
-          {t('welcome.title')}
-        </Text>
-
-        {/* ── Subtitle ─────────────────────────────────────────────────── */}
-        <Text style={[styles.sub, { textAlign: 'center' }]}>
-          {t('welcome.sub')}
-        </Text>
-
-        {/* ── CTA button ───────────────────────────────────────────────── */}
-        <TouchableOpacity
-          style={styles.cta}
-          onPress={goToOnboarding}
-          activeOpacity={0.85}
+      <Animated.View style={[styles.animWrap, { opacity: fadeAnim }]}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.ctaText}>{t('welcome.letsGo')}</Text>
-        </TouchableOpacity>
 
-        {/* ── Timer — sits BELOW the button, never inside it ───────────── */}
-        <Text style={styles.timer}>
-          {t('welcome.timer', { count })}
-        </Text>
+          {/* ── 1. Logo ──────────────────────────────────────────────────────
+              direction:"ltr" wrapper prevents RTL OS pass from mirroring
+              the logo image.
+          ─────────────────────────────────────────────────────────────────── */}
+          <View style={styles.logoLTRWrap as object}>
+            <Image
+              source={require('../../../assets/BUFF_LOGO_LAVENDER.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.logoWordmark}>BUFF</Text>
+          </View>
 
+          {/* ── 2. Headline ──────────────────────────────────────────────── */}
+          <Text style={[styles.headline, { textAlign: 'center' }]}>
+            {t('welcome.headline')}
+          </Text>
+
+          {/* ── 3. Value cards ───────────────────────────────────────────── */}
+          <View style={styles.cardsWrap}>
+            {CARDS.map((card) => (
+              <View key={card.titleKey} style={styles.card}>
+                <Text style={styles.cardEmoji}>{card.emoji}</Text>
+                <View style={styles.cardText}>
+                  <Text style={[styles.cardTitle, { textAlign }]}>
+                    {t(card.titleKey)}
+                  </Text>
+                  <Text style={[styles.cardDesc, { textAlign }]}>
+                    {t(card.descKey)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {/* ── 4. CTA button ────────────────────────────────────────────── */}
+          <TouchableOpacity
+            style={styles.cta}
+            onPress={goToOnboarding}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.ctaText}>{t('welcome.cta')}</Text>
+          </TouchableOpacity>
+
+        </ScrollView>
       </Animated.View>
     </SafeAreaView>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   safe: {
     flex:            1,
     backgroundColor: BG,
   },
-  inner: {
-    flex:              1,
+  animWrap: {
+    flex: 1,
+  },
+  scroll: {
+    flexGrow:          1,
     justifyContent:    'center',
     alignItems:        'center',
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
+    paddingVertical:   32,
   },
 
-  // Logo block — forced LTR so B is never mirrored
+  // ── Logo ──────────────────────────────────────────────────────────────────
   logoLTRWrap: {
-    alignItems: 'center',
-    marginBottom: 36,
-    // direction is a valid RN style and prevents RTL mirroring of children
-    direction: 'ltr',
-  } as object, // cast: 'direction' is valid but not in all TS defs
-
+    alignItems:   'center',
+    marginBottom: 28,
+    direction:    'ltr', // valid RN style, prevents RTL mirroring
+  },
+  logoImage: {
+    width:  80,
+    height: 80,
+  },
   logoWordmark: {
-    color:       TEXT_CLR,
-    fontSize:    26,
-    fontWeight:  '900',
+    color:         ACCENT,
+    fontSize:      26,
+    fontWeight:    '900',
     letterSpacing: 8,
-    marginTop:   12,
+    marginTop:     10,
   },
 
-  heading: {
-    color:        TEXT_CLR,
-    fontSize:     30,
+  // ── Headline ──────────────────────────────────────────────────────────────
+  headline: {
+    color:        TEXT_DARK,
+    fontSize:     26,
     fontWeight:   '900',
-    marginBottom: 12,
-    lineHeight:   38,
+    lineHeight:   34,
+    marginBottom: 28,
+    paddingHorizontal: 4,
   },
 
-  sub: {
-    color:        'rgba(245,240,255,0.75)',
-    fontSize:     16,
-    lineHeight:   24,
-    marginBottom: 52,
+  // ── Value cards ───────────────────────────────────────────────────────────
+  cardsWrap: {
+    width:        '100%',
+    marginBottom: 32,
+    gap:          12,
+  },
+  card: {
+    flexDirection:  'row',
+    alignItems:     'flex-start',
+    backgroundColor: CARD_BG,
+    borderRadius:   10,
+    borderWidth:    1.5,
+    borderColor:    CARD_BORDER,
+    paddingVertical:   14,
+    paddingHorizontal: 16,
+    gap:            12,
+  },
+  cardEmoji: {
+    fontSize:  28,
+    lineHeight: 34,
+  },
+  cardText: {
+    flex: 1,
+  },
+  cardTitle: {
+    color:        TEXT_DARK,
+    fontSize:     15,
+    fontWeight:   '700',
+    marginBottom: 3,
+  },
+  cardDesc: {
+    color:      TEXT_MUTED,
+    fontSize:   13,
+    lineHeight: 19,
   },
 
+  // ── CTA ───────────────────────────────────────────────────────────────────
   cta: {
     width:           '100%',
-    backgroundColor: TEXT_CLR,
+    backgroundColor: '#5b21b6',
     borderRadius:    16,
     paddingVertical: 18,
     alignItems:      'center',
-    marginBottom:    14,
   },
   ctaText: {
-    color:      BG,
+    color:      '#f5f0ff',
     fontSize:   17,
     fontWeight: '900',
-  },
-
-  // Timer text — small, muted, below button
-  timer: {
-    color:     TIMER_CLR,
-    fontSize:  11,
-    textAlign: 'center',
   },
 });

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"C:\\\\Users\\\\adiel\\\\buff-mobile\\\\src\" -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"insert\\\\|select\\\\|update\\\\|delete\" {} \\\\;)",
+      "Bash(find \"C:\\\\Users\\\\adiel\\\\buff-mobile\\\\src\" -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -exec grep -l \"reward\" {} \\\\;)",
+      "Read(//c/Users/adiel/**)",
+      "Bash(npx tsc:*)",
+      "Bash(npx expo:*)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/react-native-purchases/package.json'\\).version\\)\")",
+      "Bash(eas build *)"
+    ]
+  }
+}

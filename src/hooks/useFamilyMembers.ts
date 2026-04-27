@@ -62,7 +62,7 @@ export function useFamilyMembers() {
     if (!familyId) return;
 
     const channel = supabase
-      .channel('family-members')
+      .channel(`family-members-${familyId}-${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles', filter: `family_id=eq.${familyId}` },

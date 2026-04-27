@@ -1,90 +1,353 @@
 /**
  * Parent Rewards — Zen Mode
- * Parents configure the reward catalog that children spend Buffs on.
- * Buff balances are real data from Supabase via useChildrenDashboard.
+ * Shows store_rewards per child, selected via the child tab selector.
+ * Parents can add new rewards via the "+ Add Reward" modal.
+ * Real data from Supabase — no mock data.
  */
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import {
+  View, Text, ScrollView, TouchableOpacity, StyleSheet,
+  ActivityIndicator, Modal, TextInput, Alert,
+  KeyboardAvoidingView, Platform,
+} from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../../theme';
-import { MOCK_REWARDS_PARENT } from '../../mock/data';
+import PhilosophyTip from '../../components/PhilosophyTip';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../integrations/supabase/client';
+
+interface StoreReward {
+  id: string;
+  title: string;
+  emoji: string;
+  size: string;
+  credits_needed: number;
+}
+
+type RewardSize = 'small' | 'medium' | 'large';
+
+const SIZE_OPTIONS: { value: RewardSize; labelKey: string; hintKey: string }[] = [
+  { value: 'small',  labelKey: 'parentRewards.size.small',  hintKey: 'parentRewards.sizeHint.small'  },
+  { value: 'medium', labelKey: 'parentRewards.size.medium', hintKey: 'parentRewards.sizeHint.medium' },
+  { value: 'large',  labelKey: 'parentRewards.size.large',  hintKey: 'parentRewards.sizeHint.large'  },
+];
+
+const DEFAULT_CREDITS: Record<RewardSize, number> = {
+  small: 100, medium: 300, large: 700,
+};
 
 export default function ParentRewardsScreen() {
-  const { children, loading } = useChildrenDashboard();
+  const { t } = useTranslation();
+  const { familyId } = useAuth();
+  const { children, loading: childrenLoading } = useChildrenDashboard();
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [rewards, setRewards] = useState<StoreReward[]>([]);
+  const [rewardsLoading, setRewardsLoading] = useState(false);
+
+  // Add-reward modal state
+  const [showModal, setShowModal]     = useState(false);
+  const [newTitle, setNewTitle]       = useState('');
+  const [newEmoji, setNewEmoji]       = useState('🎁');
+  const [newCredits, setNewCredits]   = useState('100');
+  const [newSize, setNewSize]         = useState<RewardSize>('small');
+  const [saving, setSaving]           = useState(false);
+
+  // Auto-select first child once list loads
+  useEffect(() => {
+    if (!selectedChildId && children.length > 0) {
+      setSelectedChildId(children[0].childId);
+    }
+  }, [children, selectedChildId]);
+
+  // Fetch rewards for selected child
+  const fetchRewards = useCallback(async (childId: string) => {
+    setRewardsLoading(true);
+    const { data, error } = await supabase
+      .from('store_rewards')
+      .select('id, title, emoji, size, credits_needed')
+      .eq('child_id', childId)
+      .eq('is_redeemed', false);
+    if (error) console.error('[ParentRewards] fetch error:', error.message);
+    setRewards(data ?? []);
+    setRewardsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedChildId) { setRewards([]); return; }
+    fetchRewards(selectedChildId);
+  }, [selectedChildId, fetchRewards]);
+
+  // Update credits default when size changes
+  const handleSizeSelect = (size: RewardSize) => {
+    setNewSize(size);
+    setNewCredits(String(DEFAULT_CREDITS[size]));
+  };
+
+  const openModal = () => {
+    setNewTitle('');
+    setNewEmoji('🎁');
+    setNewSize('small');
+    setNewCredits(String(DEFAULT_CREDITS.small));
+    setShowModal(true);
+  };
+
+  const handleAddReward = async () => {
+    if (!familyId || !selectedChildId) return;
+    const title = newTitle.trim();
+    if (!title) {
+      Alert.alert(t('parentRewards.errorMissingTitle'), t('parentRewards.errorMissingTitleMsg'));
+      return;
+    }
+    const credits = parseInt(newCredits, 10);
+    if (isNaN(credits) || credits < 1) {
+      Alert.alert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
+      return;
+    }
+
+    setSaving(true);
+    const { error } = await supabase.from('store_rewards').insert({
+      family_id:      familyId,
+      child_id:       selectedChildId,
+      title,
+      emoji:          newEmoji.trim() || '🎁',
+      credits_needed: credits,
+      size:           newSize,
+      is_redeemed:    false,
+    } as never);
+    setSaving(false);
+
+    if (error) {
+      console.error('[ParentRewards] insert error:', error.message);
+      Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+      return;
+    }
+
+    setShowModal(false);
+    fetchRewards(selectedChildId);
+  };
+
+  const selectedChild = children.find(c => c.childId === selectedChildId);
 
   return (
     <View style={[styles.container, { backgroundColor: T.bg }]}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: T.text }]}>Rewards</Text>
-        <TouchableOpacity style={[styles.addBtn, { backgroundColor: T.accent }]}>
-          <Text style={styles.addBtnText}>+ Add Reward</Text>
+        <Text style={[styles.title, { color: T.text }]}>{t('parentRewards.title')}</Text>
+        <TouchableOpacity
+          style={[styles.addBtn, { backgroundColor: T.accent }]}
+          onPress={openModal}
+          disabled={!selectedChildId}
+        >
+          <Text style={styles.addBtnText}>{t('parentRewards.addBtn')}</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={[styles.sub, { color: T.textMuted }]}>
-        Children spend Buffs here — collaborative goal-setting, not control.
-      </Text>
+      {/* Child selector */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.childSelector}>
+        {children.map((c) => {
+          const selected = c.childId === selectedChildId;
+          return (
+            <TouchableOpacity
+              key={c.childId}
+              onPress={() => setSelectedChildId(c.childId)}
+              style={[styles.childTab, selected && { backgroundColor: T.accent }]}
+            >
+              <Text style={styles.childTabEmoji}>{c.avatar}</Text>
+              <Text style={[styles.childTabName, { color: selected ? '#fff' : T.textMuted }]}>
+                {c.displayName}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {MOCK_REWARDS_PARENT.map((reward) => (
-          <View key={reward.id} style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-            <Text style={styles.rewardIcon}>{reward.icon}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.rewardTitle, { color: T.text }]}>{reward.title}</Text>
-              <Text style={[styles.rewardDesc, { color: T.textMuted }]}>{reward.description}</Text>
-            </View>
-            <View style={styles.rewardRight}>
-              <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
-                <Text style={[styles.costText, { color: T.accent }]}>{reward.cost} B</Text>
+      {/* Content */}
+      {childrenLoading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={T.accent} />
+        </View>
+      ) : children.length === 0 ? (
+        <View style={styles.centered}>
+          <Text style={{ color: T.textMuted }}>{t('parentRewards.noChildren')}</Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+
+          <PhilosophyTip tipKey="tips.dopamineBridge" />
+
+          {/* Buff balance for selected child */}
+          {selectedChild && (
+            <View style={[styles.balanceCard, { backgroundColor: T.accent }]}>
+              <Text style={styles.balanceEmoji}>{selectedChild.avatar}</Text>
+              <View>
+                <Text style={styles.balanceName}>{selectedChild.displayName}</Text>
+                <Text style={styles.balanceAmount}>
+                  {selectedChild.totalBalance.toLocaleString()}
+                  {' Buffs ⚡'}
+                </Text>
               </View>
-              <TouchableOpacity style={{ marginTop: 6 }}>
-                <Text style={{ color: T.textMuted, fontSize: 18 }}>⋯</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        ))}
+          )}
 
-        {/* Buff balances — real data */}
-        <View style={[styles.summaryCard, { backgroundColor: T.accent }]}>
-          <Text style={styles.summaryTitle}>⚡ Buff Balances</Text>
-          {loading ? (
-            <ActivityIndicator color="rgba(255,255,255,0.8)" />
-          ) : children.length === 0 ? (
-            <Text style={styles.summaryEmpty}>No children yet</Text>
+          {/* Rewards list */}
+          <Text style={[styles.sectionLabel, { color: T.textMuted }]}>{t('parentRewards.catalog')}</Text>
+
+          {rewardsLoading ? (
+            <ActivityIndicator color={T.accent} style={{ marginTop: 20 }} />
+          ) : rewards.length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+              <Text style={[styles.emptyText, { color: T.textMuted }]}>{t('parentRewards.empty')}</Text>
+            </View>
           ) : (
-            children.map(child => (
-              <View key={child.childId} style={styles.summaryRow}>
-                <Text style={styles.summaryEmoji}>{child.avatar}</Text>
-                <Text style={styles.summaryName}>{child.displayName}</Text>
-                <Text style={styles.summaryAmount}>{child.totalBalance.toLocaleString()} Buffs</Text>
+            rewards.map((reward) => (
+              <View key={reward.id} style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+                <Text style={styles.rewardIcon}>{reward.emoji}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.rewardTitle, { color: T.text }]}>{reward.title}</Text>
+                  <Text style={[styles.rewardDesc, { color: T.textMuted }]}>
+                    {t('parentRewards.rewardGoal', { size: t(`parentRewards.size.${reward.size as RewardSize}`) })}
+                  </Text>
+                </View>
+                <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
+                  <Text style={[styles.costText, { color: T.accent }]}>
+                    {reward.credits_needed.toLocaleString()} B
+                  </Text>
+                </View>
               </View>
             ))
           )}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
+
+      {/* ── Add Reward Modal ──────────────────────────────────────────────── */}
+      <Modal
+        visible={showModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowModal(false)} />
+          <View style={[styles.sheet, { backgroundColor: T.card }]}>
+            <Text style={[styles.sheetTitle, { color: T.text }]}>{t('parentRewards.modal.title')}</Text>
+            <Text style={[styles.sheetSub, { color: T.textMuted }]}>
+              {t('parentRewards.modal.for', { name: selectedChild?.displayName ?? '' })}
+            </Text>
+
+            {/* Emoji */}
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.emojiLabel')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={newEmoji}
+              onChangeText={setNewEmoji}
+              maxLength={4}
+              placeholder="🎁"
+              placeholderTextColor={T.textMuted}
+            />
+
+            {/* Title */}
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.titleLabel')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={newTitle}
+              onChangeText={setNewTitle}
+              placeholder={t('parentRewards.modal.titlePlaceholder')}
+              placeholderTextColor={T.textMuted}
+              maxLength={60}
+            />
+
+            {/* Size */}
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.sizeLabel')}</Text>
+            <View style={styles.sizeRow}>
+              {SIZE_OPTIONS.map(opt => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[
+                    styles.sizeBtn,
+                    { borderColor: T.cardBorder },
+                    newSize === opt.value && { backgroundColor: T.accent, borderColor: T.accent },
+                  ]}
+                  onPress={() => handleSizeSelect(opt.value)}
+                >
+                  <Text style={[styles.sizeBtnLabel, newSize === opt.value && { color: '#fff' }]}>
+                    {t(opt.labelKey)}
+                  </Text>
+                  <Text style={[styles.sizeBtnHint, { color: newSize === opt.value ? 'rgba(255,255,255,0.7)' : T.textMuted }]}>
+                    {t(opt.hintKey)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Credits */}
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.buffsNeeded')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={newCredits}
+              onChangeText={v => setNewCredits(v.replace(/[^0-9]/g, ''))}
+              keyboardType="number-pad"
+              maxLength={5}
+              selectTextOnFocus
+            />
+
+            {/* Confirm */}
+            <TouchableOpacity
+              style={[styles.confirmBtn, { backgroundColor: T.accent }, saving && { opacity: 0.6 }]}
+              onPress={handleAddReward}
+              disabled={saving || !newTitle.trim()}
+            >
+              {saving
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.confirmText}>{t('parentRewards.modal.save')}</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:    { flex: 1 },
-  header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 52, paddingBottom: 8 },
-  title:        { fontSize: 24, fontWeight: '700' },
-  addBtn:       { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
-  addBtnText:   { color: '#fff', fontWeight: '600', fontSize: 14 },
-  sub:          { paddingHorizontal: 20, fontSize: 13, marginBottom: 16 },
-  content:      { padding: 20, paddingTop: 8 },
-  rewardCard:   { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, gap: 12 },
-  rewardIcon:   { fontSize: 30 },
-  rewardTitle:  { fontSize: 15, fontWeight: '600', marginBottom: 3 },
-  rewardDesc:   { fontSize: 13 },
-  rewardRight:  { alignItems: 'flex-end' },
-  costBadge:    { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-  costText:     { fontWeight: '700', fontSize: 13 },
-  summaryCard:  { borderRadius: 16, padding: 16, marginTop: 8 },
-  summaryTitle: { color: '#fff', fontWeight: '700', fontSize: 15, marginBottom: 12 },
-  summaryEmpty: { color: 'rgba(255,255,255,0.7)', fontSize: 14, textAlign: 'center', paddingVertical: 8 },
-  summaryRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  summaryEmoji: { fontSize: 20, marginRight: 10 },
-  summaryName:  { color: 'rgba(255,255,255,0.8)', fontSize: 15, flex: 1 },
-  summaryAmount: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  container:     { flex: 1 },
+  header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 52, paddingBottom: 12 },
+  title:         { fontSize: 24, fontWeight: '700' },
+  addBtn:        { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
+  addBtnText:    { color: '#fff', fontWeight: '600', fontSize: 14 },
+  childSelector: { paddingHorizontal: 16, marginBottom: 12, maxHeight: 60 },
+  childTab:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 10, backgroundColor: '#F3F4F6', gap: 6 },
+  childTabEmoji: { fontSize: 16 },
+  childTabName:  { fontSize: 14, fontWeight: '600' },
+  centered:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  content:       { padding: 20, paddingTop: 4, paddingBottom: 32 },
+  balanceCard:   { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 20, gap: 14 },
+  balanceEmoji:  { fontSize: 36 },
+  balanceName:   { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 2 },
+  balanceAmount: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  sectionLabel:  { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
+  emptyCard:     { borderRadius: 14, padding: 20, borderWidth: 1, alignItems: 'center' },
+  emptyText:     { fontSize: 14, textAlign: 'center' },
+  rewardCard:    { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, gap: 12 },
+  rewardIcon:    { fontSize: 30 },
+  rewardTitle:   { fontSize: 15, fontWeight: '600', marginBottom: 3 },
+  rewardDesc:    { fontSize: 13 },
+  costBadge:     { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
+  costText:      { fontWeight: '700', fontSize: 13 },
+
+  // Modal
+  modalOverlay:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  sheet:         { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+  sheetTitle:    { fontSize: 20, fontWeight: '800', marginBottom: 2 },
+  sheetSub:      { fontSize: 13, marginBottom: 20 },
+  inputLabel:    { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  input:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16 },
+  sizeRow:       { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  sizeBtn:       { flex: 1, borderWidth: 1.5, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
+  sizeBtnLabel:  { fontSize: 13, fontWeight: '700', color: '#374151' },
+  sizeBtnHint:   { fontSize: 11, marginTop: 2 },
+  confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
+  confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

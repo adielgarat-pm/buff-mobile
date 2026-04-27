@@ -32,7 +32,7 @@ export default function ULoadingScreen() {
 
     // Navigate after animation completes
     const timer = setTimeout(() => {
-      navigation.navigate('UStep5_Mission', params);
+      navigation.navigate('UStep5_Preview', params);
     }, DURATION);
 
     return () => clearTimeout(timer);

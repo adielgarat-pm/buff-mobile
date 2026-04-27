@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Task, TaskCategory, CATEGORY_LABELS } from '../types/task';
 import { Phase, PhaseConfig } from '../types/phase';
 import { useChildTheme } from '../contexts/ThemeContext';
@@ -41,13 +42,15 @@ function formatTime(completedAt: Date | string): string {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
-  task:         Task;
-  phase:        PhaseConfig;
-  onComplete:   (id: string) => void;
-  onUncomplete: (id: string) => void;
+  task:              Task;
+  phase:             PhaseConfig;
+  onComplete:        (id: string) => void;
+  onUncomplete:      (id: string) => void;
+  /** When false, no haptic feedback fires. Defaults to true. */
+  hapticsEnabled?:   boolean;
 }
 
-export function PhaseTaskCard({ task, phase, onComplete, onUncomplete }: Props) {
+export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEnabled = true }: Props) {
   const T = useChildTheme();
   const [pressed, setPressed] = useState(false);
 
@@ -57,8 +60,10 @@ export function PhaseTaskCard({ task, phase, onComplete, onUncomplete }: Props) 
 
   const handlePress = () => {
     if (task.completed) {
+      if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onUncomplete(task.id);
     } else {
+      if (hapticsEnabled) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       onComplete(task.id);
     }
   };

@@ -3,50 +3,58 @@
  * Account, family management, mode switching, preferences.
  */
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { PARENT_THEME as T } from '../../theme';
+import type { RootStackParamList } from '../../navigation/types';
 
 interface SettingsRow {
   label: string;
   value?: string;
   onPress?: () => void;
   danger?: boolean;
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
 }
 
 export default function ParentSettingsScreen() {
+  const { t }        = useTranslation();
+  const navigation   = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { profile, familyShortCode, signOut } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { isSubscribed, isLifetimeAccess, isGracePeriod, simulateSubscribed, setSimulateSubscribed } = useSubscription();
 
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {
-      title: 'Account',
+      title: t('settings.sectionAccount'),
       rows: [
-        { label: 'Display name', value: profile?.display_name ?? '—' },
-        { label: 'Role',         value: 'Parent' },
-        { label: 'Family code',  value: familyShortCode ?? '—' },
+        { label: t('settings.rowDisplayName'), value: profile?.display_name ?? '—' },
+        { label: t('settings.rowRole'),         value: t('settings.rowRoleValue') },
+        { label: t('settings.rowFamilyCode'),  value: familyShortCode ?? '—' },
       ],
     },
     {
-      title: 'Family',
+      title: t('settings.sectionFamily'),
       rows: [
-        { label: 'Add a child', onPress: () => { /* navigates to PO flow */ } },
-        { label: 'Manage children' },
+        { label: t('settings.rowAddChild'), onPress: () => { /* navigates to onboarding flow */ } },
+        { label: t('settings.rowManageChildren') },
       ],
     },
     {
-      title: 'Preview',
+      title: t('settings.sectionPreview'),
       rows: [
-        { label: 'View as Child (Gamer Mode)', onPress: enterChildPreview },
+        { label: t('settings.rowViewAsChild'), onPress: enterChildPreview },
       ],
     },
     {
-      title: 'Subscription',
+      title: t('settings.sectionSubscription'),
       rows: [
         {
-          label: 'Status',
+          label: t('settings.rowStatus'),
           value: isLifetimeAccess
             ? '✅ Lifetime access'
             : isGracePeriod
@@ -58,16 +66,26 @@ export default function ParentSettingsScreen() {
       ],
     },
     {
-      title: 'Danger zone',
+      title: t('settings.sectionAbout'),
       rows: [
-        { label: 'Sign out', onPress: signOut, danger: true },
+        {
+          label:   t('settings.rowPhilosophy'),
+          icon:    'information-circle-outline' as const,
+          onPress: () => navigation.navigate('Philosophy'),
+        },
+      ],
+    },
+    {
+      title: t('settings.sectionDangerZone'),
+      rows: [
+        { label: t('settings.rowSignOut'), onPress: signOut, danger: true },
       ],
     },
   ];
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: T.bg }]} contentContainerStyle={styles.content}>
-      <Text style={[styles.pageTitle, { color: T.text }]}>Settings</Text>
+      <Text style={[styles.pageTitle, { color: T.text }]}>{t('settings.pageTitle')}</Text>
 
       {/* Avatar */}
       <View style={[styles.profileCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
@@ -107,6 +125,14 @@ export default function ParentSettingsScreen() {
                 onPress={row.onPress}
                 disabled={!row.onPress}
               >
+                {row.icon && (
+                  <Ionicons
+                    name={row.icon}
+                    size={20}
+                    color={T.accent}
+                    style={{ marginRight: 10 }}
+                  />
+                )}
                 <Text style={[styles.rowLabel, { color: row.danger ? '#EF4444' : T.text }]}>
                   {row.label}
                 </Text>

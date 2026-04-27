@@ -11,49 +11,69 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { StackNavigationProp, RouteProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguagePicker from '../../components/LanguagePicker';
 import type { RootStackParamList } from '../../navigation/types';
 
-type Nav = StackNavigationProp<RootStackParamList, 'Signup'>;
+type Nav   = StackNavigationProp<RootStackParamList, 'Signup'>;
+type Route = RouteProp<RootStackParamList, 'Signup'>;
 
 export default function SignupScreen() {
   const { t } = useTranslation();
   const { signUp, signInWithGoogle } = useAuth();
   const navigation = useNavigation<Nav>();
+  const route      = useRoute<Route>();
+
+  const initialRole = route.params?.initialRole ?? 'parent';
+  const roleLocked  = !!route.params?.initialRole;
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail]             = useState('');
+  const [username, setUsername]       = useState('');
   const [password, setPassword]       = useState('');
   const [familyCode, setFamilyCode]   = useState('');
-  const [role, setRole]               = useState<'parent' | 'child'>('parent');
+  const [role, setRole]               = useState<'parent' | 'child'>(initialRole);
   const [marketing, setMarketing]     = useState(false);
   const [loading, setLoading]         = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSignUp = async () => {
-    if (!displayName || !email || !password) {
-      Alert.alert(t('auth.fillAllFields'));
-      return;
+    if (role === 'child') {
+      if (!displayName || !username || !password) {
+        Alert.alert(t('auth.fillAllFields'));
+        return;
+      }
+      if (!familyCode) {
+        Alert.alert(t('auth.enterFamilyCode'));
+        return;
+      }
+    } else {
+      if (!displayName || !email || !password) {
+        Alert.alert(t('auth.fillAllFields'));
+        return;
+      }
     }
     if (password.length < 6) {
       Alert.alert(t('auth.passwordMinLength'));
       return;
     }
-    if (role === 'child' && !familyCode) {
-      Alert.alert(t('auth.enterFamilyCode'));
-      return;
-    }
 
+    const effectiveEmail = role === 'child' ? `${username.trim().toLowerCase()}@buff.app` : email;
     setLoading(true);
-    const { error } = await signUp(email, password, displayName, role, familyCode || undefined, marketing);
+    const { error } = await signUp(effectiveEmail, password, displayName, role, familyCode || undefined, marketing);
     setLoading(false);
 
     if (error) {
-      Alert.alert('Sign up failed', error.message);
+      const msg = error.message.toLowerCase();
+      const isDuplicate = msg.includes('already registered') || msg.includes('already exists');
+      if (isDuplicate && role === 'child') {
+        Alert.alert(t('auth.usernameTaken'));
+      } else {
+        Alert.alert('Sign up failed', error.message);
+      }
     }
     // On success, auth state change triggers navigation automatically via RootNavigator
   };
@@ -76,21 +96,25 @@ export default function SignupScreen() {
         <Text style={styles.logo}>BUFF</Text>
         <Text style={styles.subtitle}>{t('auth.createAccount')}</Text>
 
-        {/* Role toggle */}
-        <Text style={styles.label}>{t('auth.iAm')}</Text>
-        <View style={styles.roleRow}>
-          {(['parent', 'child'] as const).map((r) => (
-            <TouchableOpacity
-              key={r}
-              onPress={() => setRole(r)}
-              style={[styles.roleBtn, role === r && styles.roleBtnActive]}
-            >
-              <Text style={[styles.roleBtnText, role === r && styles.roleBtnTextActive]}>
-                {r === 'parent' ? t('auth.parent') : t('auth.teen')}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        {/* Role toggle — hidden when role is pre-selected from RoleSelectionScreen */}
+        {!roleLocked && (
+          <>
+            <Text style={styles.label}>{t('auth.iAm')}</Text>
+            <View style={styles.roleRow}>
+              {(['parent', 'child'] as const).map((r) => (
+                <TouchableOpacity
+                  key={r}
+                  onPress={() => setRole(r)}
+                  style={[styles.roleBtn, role === r && styles.roleBtnActive]}
+                >
+                  <Text style={[styles.roleBtnText, role === r && styles.roleBtnTextActive]}>
+                    {r === 'parent' ? t('auth.parent') : t('auth.teen')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Inputs */}
         <TextInput
@@ -100,16 +124,28 @@ export default function SignupScreen() {
           value={displayName}
           onChangeText={setDisplayName}
         />
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.email')}
-          placeholderTextColor="#6B7280"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        {role === 'child' ? (
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.username')}
+            placeholderTextColor="#6B7280"
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        ) : (
+          <TextInput
+            style={styles.input}
+            placeholder={t('auth.email')}
+            placeholderTextColor="#6B7280"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+        )}
         <TextInput
           style={styles.input}
           placeholder={t('auth.password')}
@@ -119,19 +155,20 @@ export default function SignupScreen() {
           secureTextEntry
         />
 
-        {/* Family code (only for children) */}
+        {/* Family code (only for children) — prominent */}
         {role === 'child' && (
           <>
+            <Text style={styles.familyCodeLabel}>{t('auth.familyCodeLabel')}</Text>
             <TextInput
-              style={styles.input}
+              style={styles.familyCodeInput}
               placeholder={t('auth.familyCodePlaceholder')}
               placeholderTextColor="#6B7280"
               value={familyCode}
               onChangeText={(v) => setFamilyCode(v.toUpperCase())}
               autoCapitalize="characters"
+              autoCorrect={false}
               maxLength={6}
             />
-            <Text style={styles.hint}>{t('auth.familyCodeHint')}</Text>
           </>
         )}
 
@@ -202,6 +239,8 @@ const styles = StyleSheet.create({
   roleBtnTextActive: { color: '#fff' },
   input:             { backgroundColor: '#1A1A2E', color: '#E5E7EB', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 12, borderWidth: 1, borderColor: '#374151' },
   hint:              { color: '#6B7280', fontSize: 12, marginBottom: 12 },
+  familyCodeLabel:   { color: '#A78BFA', fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 8, marginBottom: 8 },
+  familyCodeInput:   { backgroundColor: '#1A1A2E', color: '#E5E7EB', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 20, marginBottom: 12, borderWidth: 2, borderColor: '#7C3AED', fontSize: 28, fontWeight: '700', textAlign: 'center', letterSpacing: 6 },
   checkRow:          { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20, gap: 10 },
   checkbox:          { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: '#374151', alignItems: 'center', justifyContent: 'center' },
   checkboxChecked:   { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },

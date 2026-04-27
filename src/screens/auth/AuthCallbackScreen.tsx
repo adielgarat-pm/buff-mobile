@@ -50,20 +50,26 @@ export default function AuthCallbackScreen() {
           .update({ role, ...(familyId ? { family_id: familyId } : {}) } as never)
           .eq('user_id', user.id);
         if (error) {
+          console.error('[AuthCallback] Error updating profile:', JSON.stringify(error, null, 2));
           Alert.alert('Error updating profile');
           return;
         }
       } else {
         // No profile at all — insert
         const displayName = user.user_metadata?.full_name ?? user.email ?? 'User';
-        const { error } = await supabase.from('profiles').insert({
+        const insertPayload = {
           user_id: user.id,
           family_id: familyId,
           display_name: displayName,
           role,
           marketing_consent: false,
-        } as never);
+        };
+        console.log('[AuthCallback] Upserting profile:', JSON.stringify(insertPayload, null, 2));
+        const { error } = await supabase
+          .from('profiles')
+          .upsert(insertPayload as never, { onConflict: 'user_id', ignoreDuplicates: true });
         if (error) {
+          console.error('[AuthCallback] Error creating profile:', JSON.stringify(error, null, 2));
           Alert.alert('Error creating profile');
           return;
         }

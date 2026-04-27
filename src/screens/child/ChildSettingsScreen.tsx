@@ -3,14 +3,21 @@
  * Pet customisation, theme picker, sound, sign-out.
  */
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useTheme, useChildTheme, CHILD_THEMES, type ChildThemeName } from '../../contexts/ThemeContext';
 import { useRTLStyles } from '../../contexts/LanguageContext';
+import { useSubscription } from '../../hooks/useSubscription';
 import { MOCK_MY_CHILD, PET_STAGES } from '../../mock/data';
+import type { RootStackParamList } from '../../navigation/types';
 
-const PET_SKINS = ['🐶', '🐱', '🐰', '🐼', '🐉', '🦄', '🐯', '🦊', '🦈', '🦁'];
+type Nav = StackNavigationProp<RootStackParamList>;
+
+const PET_SKINS = ['🐶', '🐱', '🐰', '🐼', '🐉', '🦄', '🐯', '🦊', '🦈', '🦁', '🦫'];
 
 const THEME_OPTIONS: { name: ChildThemeName; label: string; emoji: string; desc: string }[] = [
   { name: 'mint',  label: 'Mint',  emoji: '🌿', desc: 'Light & playful' },
@@ -18,16 +25,30 @@ const THEME_OPTIONS: { name: ChildThemeName; label: string; emoji: string; desc:
 ];
 
 export default function ChildSettingsScreen() {
-  const { profile, familyShortCode, signOut } = useAuth();
+  const navigation  = useNavigation<Nav>();
+  const { profile } = useAuth();
   const { isChildPreview, exitChildPreview } = useMode();
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
+  const { isSubscribed } = useSubscription();
 
   const child = MOCK_MY_CHILD;
   const petCfg = PET_STAGES[child.petStage];
-  const [soundOn, setSoundOn]         = useState(true);
+  const [hapticsOn, setHapticsOn]       = useState(true);
   const [selectedSkin, setSelectedSkin] = useState('🐉');
+
+  // Load persisted haptics preference on mount
+  useEffect(() => {
+    AsyncStorage.getItem('hapticsOn').then(v => {
+      if (v !== null) setHapticsOn(v === 'true');
+    });
+  }, []);
+
+  const handleHapticsToggle = (value: boolean) => {
+    setHapticsOn(value);
+    AsyncStorage.setItem('hapticsOn', String(value));
+  };
 
   return (
     <ScrollView
@@ -104,7 +125,12 @@ export default function ChildSettingsScreen() {
       </View>
 
       {/* ── Pet skin ───────────────────────────────────────────────────────── */}
-      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Pet Skin</Text>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Pet Skin</Text>
+        {!isSubscribed && (
+          <Text style={[styles.premiumBadge, { color: T.accent }]}>✨ Premium</Text>
+        )}
+      </View>
       <View style={[styles.skinGrid, { backgroundColor: T.card, borderColor: T.border }]}>
         {PET_SKINS.map((skin) => (
           <TouchableOpacity
@@ -116,41 +142,33 @@ export default function ChildSettingsScreen() {
                 backgroundColor: selectedSkin === skin ? T.muted : 'transparent',
               },
             ]}
-            onPress={() => setSelectedSkin(skin)}
+            onPress={() => {
+              if (!isSubscribed) {
+                navigation.navigate('Paywall', {
+                  childName: profile?.display_name ?? undefined,
+                });
+                return;
+              }
+              setSelectedSkin(skin);
+            }}
           >
-            <Text style={styles.skinEmoji}>{skin}</Text>
+            <Text style={[styles.skinEmoji, !isSubscribed && styles.skinLocked]}>{skin}</Text>
+            {!isSubscribed && <Text style={styles.lockOverlay}>🔒</Text>}
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* ── Sound toggle ───────────────────────────────────────────────────── */}
+      {/* ── Haptics toggle ─────────────────────────────────────────────────── */}
       <View style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}>
-        <Text style={[styles.settingLabel, { color: T.foreground }]}>🔊 Sound Effects</Text>
+        <Text style={[styles.settingLabel, { color: T.foreground }]}>📳 Completion Haptics</Text>
         <Switch
-          value={soundOn}
-          onValueChange={setSoundOn}
+          value={hapticsOn}
+          onValueChange={handleHapticsToggle}
           trackColor={{ false: T.border, true: T.primary }}
           thumbColor={T.card}
         />
       </View>
 
-      {/* ── Family code ────────────────────────────────────────────────────── */}
-      {familyShortCode && (
-        <View style={[styles.codeRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}>
-          <Text style={[styles.settingLabel, { color: T.foreground }]}>Family Code</Text>
-          <Text style={[styles.codeValue, { color: T.primary, letterSpacing: 4 }]}>
-            {familyShortCode}
-          </Text>
-        </View>
-      )}
-
-      {/* ── Sign out ───────────────────────────────────────────────────────── */}
-      <TouchableOpacity
-        style={[styles.signOutBtn, { borderColor: T.border }]}
-        onPress={signOut}
-      >
-        <Text style={[styles.signOutText, { color: T.mutedForeground }]}>Sign Out</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -179,14 +197,14 @@ const styles = StyleSheet.create({
   themeActiveBadge:    { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4 },
   themeActiveBadgeText: { fontSize: 10, fontWeight: '700' },
 
+  sectionHeaderRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  premiumBadge:        { fontSize: 12, fontWeight: '700' },
   skinGrid:            { flexDirection: 'row', flexWrap: 'wrap', borderRadius: 14, padding: 12, marginBottom: 20, borderWidth: 1, gap: 8 },
-  skinBtn:             { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  skinBtn:             { width: 44, height: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center', borderWidth: 1, position: 'relative' },
   skinEmoji:           { fontSize: 26 },
+  skinLocked:          { opacity: 0.4 },
+  lockOverlay:         { position: 'absolute', bottom: 0, right: 0, fontSize: 10 },
 
   settingRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1 },
   settingLabel:        { fontSize: 15 },
-  codeRow:             { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: 12, padding: 16, marginBottom: 20, borderWidth: 1 },
-  codeValue:           { fontSize: 18, fontWeight: '800' },
-  signOutBtn:          { borderRadius: 12, borderWidth: 1, paddingVertical: 14, alignItems: 'center' },
-  signOutText:         { fontWeight: '600', fontSize: 15 },
 });

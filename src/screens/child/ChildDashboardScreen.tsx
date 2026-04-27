@@ -4,18 +4,26 @@
  */
 import { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { useSubscription } from '../../hooks/useSubscription';
 import { PetDisplay } from '../../components/PetDisplay';
+import type { RootStackParamList } from '../../navigation/types';
+
+type Nav = StackNavigationProp<RootStackParamList>;
 
 export default function ChildDashboardScreen() {
+  const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview } = useMode();
+  const { isChildPreview, exitChildPreview, previewChildId } = useMode();
   const T = useChildTheme();
+  const { isSubscribed } = useSubscription();
 
-  const childId = profile?.id ?? null;
+  const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, dailyGoal, loading } = useChildData(childId);
 
   const [justCompletedTask, setJustCompletedTask] = useState(false);
@@ -95,15 +103,34 @@ export default function ChildDashboardScreen() {
         </View>
       </View>
 
-      {/* Virtual pet */}
+      {/* Virtual pet — Premium gate */}
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
-        <PetDisplay
-          childName={isChildPreview ? 'Preview' : (profile?.display_name ?? undefined)}
-          justCompletedTask={justCompletedTask}
-          onTaskCompletionAck={() => setJustCompletedTask(false)}
-          completedToday={doneTasks}
-          totalToday={totalTasks}
-        />
+        {isSubscribed ? (
+          <PetDisplay
+            childName={isChildPreview ? 'Preview' : (profile?.display_name ?? undefined)}
+            justCompletedTask={justCompletedTask}
+            onTaskCompletionAck={() => setJustCompletedTask(false)}
+            completedToday={doneTasks}
+            totalToday={totalTasks}
+          />
+        ) : (
+          <TouchableOpacity
+            style={styles.lockedPet}
+            onPress={() => navigation.navigate('Paywall', {
+              childName: isChildPreview ? undefined : (profile?.display_name ?? undefined),
+            })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.lockedPetEmoji}>🥚</Text>
+            <Text style={[styles.lockedPetTitle, { color: T.foreground }]}>Buddy locked 🔒</Text>
+            <Text style={[styles.lockedPetSub, { color: T.mutedForeground }]}>
+              Unlock BUFF Premium to hatch your pet
+            </Text>
+            <View style={[styles.lockedPetCta, { backgroundColor: T.primary }]}>
+              <Text style={[styles.lockedPetCtaText, { color: T.primaryForeground }]}>Unlock ✨</Text>
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Quick stat tiles */}
@@ -150,7 +177,13 @@ const styles = StyleSheet.create({
   goalRow:       { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 4 },
   goalLine:      { position: 'absolute', top: -14, bottom: 0, width: 1, borderLeftWidth: 1, borderStyle: 'dashed' },
   goalHint:      { fontSize: 12 },
-  petCard:       { borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1 },
+  petCard:         { borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1 },
+  lockedPet:       { alignItems: 'center', paddingVertical: 12 },
+  lockedPetEmoji:  { fontSize: 52, marginBottom: 10 },
+  lockedPetTitle:  { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  lockedPetSub:    { fontSize: 13, textAlign: 'center', marginBottom: 16, lineHeight: 18 },
+  lockedPetCta:    { borderRadius: 10, paddingHorizontal: 20, paddingVertical: 8 },
+  lockedPetCtaText: { fontSize: 13, fontWeight: '700' },
   statsRow:      { flexDirection: 'row', gap: 10 },
   statCard:      { flex: 1, borderRadius: 12, padding: 14, borderWidth: 1, alignItems: 'center' },
   statEmoji:     { fontSize: 22, marginBottom: 6 },

@@ -106,7 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
-      if (fetchingProfile.current) return profile;
+      // Do NOT guard on fetchingProfile.current here — explicit refresh calls
+      // (e.g. end of onboarding) must always succeed and update state.
       fetchingProfile.current = true;
 
       try {
@@ -125,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchingProfile.current = false;
       }
     },
-    [fetchFamilyShortCode, fetchProfile, profile]
+    [fetchFamilyShortCode, fetchProfile]
   );
 
   // ── Deep-link OAuth callback handler ──────────────────────────────────────
@@ -318,10 +319,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const shortCodeRegex = /^[A-Z0-9]{6}$/;
 
       if (shortCodeRegex.test(trimmedCode)) {
+        console.log('[signUp] Looking up family with code:', JSON.stringify(familyCode));
         const { data: family, error: lookupError } = await supabase
           .from('families')
           .select('id')
-          .eq('short_code', trimmedCode)
+          .ilike('short_code', trimmedCode)
           .single();
 
         if (lookupError || !family) {

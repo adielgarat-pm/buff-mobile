@@ -15,7 +15,8 @@ export type ViewMode = 'parent' | 'child';
 interface ModeContextType {
   viewMode: ViewMode;
   isChildPreview: boolean; // true when a parent is in child-preview mode
-  enterChildPreview: () => void;
+  previewChildId: string | null;
+  enterChildPreview: (childId: string) => void;
   exitChildPreview: () => void;
 }
 
@@ -24,6 +25,7 @@ const ModeContext = createContext<ModeContextType | undefined>(undefined);
 export function ModeProvider({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
   const [isChildPreview, setIsChildPreview] = useState(false);
+  const [previewChildId, setPreviewChildId] = useState<string | null>(null);
 
   // Natural mode follows the profile role; falls back to 'parent' while loading
   const naturalMode: ViewMode = profile?.role === 'child' ? 'child' : 'parent';
@@ -32,14 +34,20 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   const viewMode: ViewMode =
     naturalMode === 'parent' && isChildPreview ? 'child' : naturalMode;
 
-  const enterChildPreview = () => {
-    if (profile?.role === 'parent') setIsChildPreview(true);
+  const enterChildPreview = (childId: string) => {
+    if (profile?.role === 'parent') {
+      setPreviewChildId(childId);
+      setIsChildPreview(true);
+    }
   };
 
-  const exitChildPreview = () => setIsChildPreview(false);
+  const exitChildPreview = () => {
+    setIsChildPreview(false);
+    setPreviewChildId(null);
+  };
 
   return (
-    <ModeContext.Provider value={{ viewMode, isChildPreview, enterChildPreview, exitChildPreview }}>
+    <ModeContext.Provider value={{ viewMode, isChildPreview, previewChildId, enterChildPreview, exitChildPreview }}>
       {children}
     </ModeContext.Provider>
   );

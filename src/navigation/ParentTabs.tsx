@@ -1,12 +1,14 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import type { ParentTabsParamList } from './types';
 import { PARENT_THEME } from '../theme';
 
 import ParentDashboardScreen from '../screens/parent/ParentDashboardScreen';
 import ParentTasksScreen from '../screens/parent/ParentTasksScreen';
 import ParentRewardsScreen from '../screens/parent/ParentRewardsScreen';
+import ParentTimetableScreen from '../screens/parent/TimetableScreen';
 import ParentSettingsScreen from '../screens/parent/ParentSettingsScreen';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -15,16 +17,18 @@ const Tab = createBottomTabNavigator<ParentTabsParamList>();
 
 const TAB_CONFIG: Record<
   keyof ParentTabsParamList,
-  { label: string; icon: IconName; iconActive: IconName }
+  { labelKey: string; icon: IconName; iconActive: IconName }
 > = {
-  ParentDashboard: { label: 'Dashboard', icon: 'home-outline',     iconActive: 'home' },
-  ParentTasks:     { label: 'Tasks',     icon: 'checkbox-outline', iconActive: 'checkbox' },
-  ParentRewards:   { label: 'Rewards',   icon: 'star-outline',     iconActive: 'star' },
-  ParentSettings:  { label: 'Settings',  icon: 'settings-outline', iconActive: 'settings' },
+  ParentDashboard: { labelKey: 'tabs.parent.dashboard',  icon: 'home-outline',     iconActive: 'home' },
+  ParentTasks:     { labelKey: 'tabs.parent.tasks',      icon: 'checkbox-outline', iconActive: 'checkbox' },
+  ParentRewards:   { labelKey: 'tabs.parent.rewards',    icon: 'star-outline',     iconActive: 'star' },
+  ParentTimetable: { labelKey: 'timetable.tabLabel',     icon: 'calendar-outline', iconActive: 'calendar' },
+  ParentSettings:  { labelKey: 'tabs.parent.settings',   icon: 'settings-outline', iconActive: 'settings' },
 };
 
 export default function ParentTabs() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -32,6 +36,7 @@ export default function ParentTabs() {
         const cfg = TAB_CONFIG[route.name as keyof ParentTabsParamList];
         return {
           headerShown: false,
+          lazy: true,
           tabBarActiveTintColor: PARENT_THEME.accent,
           tabBarInactiveTintColor: PARENT_THEME.textMuted,
           tabBarStyle: {
@@ -49,14 +54,15 @@ export default function ParentTabs() {
               color={color}
             />
           ),
-          tabBarLabel: cfg.label,
+          tabBarLabel: t(cfg.labelKey),
         };
       }}
     >
-      <Tab.Screen name="ParentDashboard" component={ParentDashboardScreen} />
-      <Tab.Screen name="ParentTasks"     component={ParentTasksScreen} />
-      <Tab.Screen name="ParentRewards"   component={ParentRewardsScreen} />
-      <Tab.Screen name="ParentSettings"  component={ParentSettingsScreen} />
+      <Tab.Screen name="ParentDashboard"  component={ParentDashboardScreen} />
+      <Tab.Screen name="ParentTasks"      component={ParentTasksScreen} />
+      <Tab.Screen name="ParentRewards"    component={ParentRewardsScreen} />
+      <Tab.Screen name="ParentTimetable"  component={ParentTimetableScreen} />
+      <Tab.Screen name="ParentSettings"   component={ParentSettingsScreen} />
     </Tab.Navigator>
   );
 }

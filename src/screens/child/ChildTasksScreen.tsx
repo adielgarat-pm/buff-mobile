@@ -5,13 +5,16 @@
  * The active tab defaults to the current time-of-day phase via getSmartPhaseForTime.
  * Each tab renders a PhaseView with the phase-filtered task list.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Phase, PHASES, getSmartPhaseForTime } from '../../types/phase';
 import { PhaseView } from '../../components/PhaseView';
 import { useChildTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 
 /** Derive the current phase from the clock + school config. */
@@ -31,9 +34,11 @@ function isWeekday(): boolean {
 
 export default function ChildTasksScreen() {
   const T = useChildTheme();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
+  const { previewChildId } = useMode();
 
-  const childId = profile?.id ?? null;
+  const childId = previewChildId ?? profile?.id ?? null;
   const {
     tasks,
     totalBalance,
@@ -47,9 +52,31 @@ export default function ChildTasksScreen() {
   const resolvedSchoolEndTime = schoolEndTime ?? '14:00';
   const isSchoolDay           = schoolQuestEnabled && isWeekday();
 
+  // Read haptics preference persisted by ChildSettingsScreen
+  const [hapticsOn, setHapticsOn] = useState(true);
+  useEffect(() => {
+    AsyncStorage.getItem('hapticsOn').then(v => {
+      if (v !== null) setHapticsOn(v === 'true');
+    });
+  }, []);
+
   const [activePhase, setActivePhase] = useState<Phase>(() =>
     getCurrentSmartPhase(resolvedSchoolEndTime, isSchoolDay)
   );
+
+  // Debug: log tasks once loaded to diagnose missing missions after onboarding
+  useEffect(() => {
+    if (loading) return;
+    console.log('[ChildTasks] childId:', childId, '| tasks count:', tasks.length, '| activePhase:', activePhase);
+    console.log('[ChildTasks] today (getDay):', new Date().getDay(), '| isSchoolDay:', isSchoolDay, '| schoolEndTime:', resolvedSchoolEndTime);
+    if (tasks.length > 0) {
+      console.log('[ChildTasks] raw tasks:', JSON.stringify(
+        tasks.map(t => ({ id: t.id, title: t.title, time: t.time, scheduleDays: t.scheduleDays }))
+      ));
+      console.log('[ChildTasks] schedule_days[0]:', tasks[0]?.scheduleDays);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, childId]);
 
   const earned = useMemo(
     () => tasks.filter(t => t.completed).reduce((s, t) => s + t.credits, 0),
@@ -72,7 +99,7 @@ export default function ChildTasksScreen() {
     <SafeAreaView style={[styles.root, { backgroundColor: T.background }]} edges={['top']}>
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <Text style={[styles.heading, { color: T.primary }]}>Missions</Text>
+        <Text style={[styles.heading, { color: T.primary }]}>{t('child.heading.quests')}</Text>
         <View style={[styles.buffBadge, { backgroundColor: T.card, borderColor: T.border }]}>
           <Text style={[styles.buffEarned, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
           <Text style={[styles.buffSep,    { color: T.mutedForeground }]}> ⚡ Buffs</Text>
@@ -100,7 +127,7 @@ export default function ChildTasksScreen() {
                   { color: isActive ? T.primary : T.mutedForeground },
                 ]}
               >
-                {p.shortLabel}
+                {i18n.language === 'he' ? p.shortLabelHe : p.shortLabel}
               </Text>
             </TouchableOpacity>
           );
@@ -120,6 +147,7 @@ export default function ChildTasksScreen() {
           isSchoolDay={isSchoolDay}
           onCompleteTask={completeTask}
           onUncompleteTask={uncompleteTask}
+          hapticsEnabled={hapticsOn}
         />
       </ScrollView>
     </SafeAreaView>

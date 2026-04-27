@@ -23,9 +23,11 @@ type UWithPhone       = UWithPreview    & { hasPhone: boolean };
 
 export type RootStackParamList = {
   // ── Auth ──────────────────────────────────────────────────────────────
-  Login:        undefined;
-  Signup:       undefined;
-  AuthCallback: undefined;
+  RoleSelection: undefined;
+  Login:         undefined;
+  Signup:        { initialRole?: 'parent' | 'child' } | undefined;
+  ChildJoin:     undefined;
+  AuthCallback:  undefined;
 
   // ── Unified onboarding flow ───────────────────────────────────────────
   Welcome:             undefined;        // First screen — shown before UStep1
@@ -44,12 +46,16 @@ export type RootStackParamList = {
 
   // ── Premium paywall (accessible from both parent and child app) ──────
   Paywall: { childName?: string } | undefined;
+
+  // ── Philosophy / About ───────────────────────────────────────────────
+  Philosophy: undefined;
 };
 
 export type ParentTabsParamList = {
   ParentDashboard: undefined;
   ParentTasks:     undefined;
   ParentRewards:   undefined;
+  ParentTimetable: undefined;
   ParentSettings:  undefined;
 };
 

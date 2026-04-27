@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ChildTabsParamList } from './types';
 import { useChildTheme } from '../contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { useMode } from '../contexts/ModeContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -18,17 +19,18 @@ const Tab = createBottomTabNavigator<ChildTabsParamList>();
 
 const TAB_CONFIG: Record<
   keyof ChildTabsParamList,
-  { label: string; icon: IconName; iconActive: IconName }
+  { labelKey: string; icon: IconName; iconActive: IconName }
 > = {
-  ChildDashboard: { label: 'HQ',       icon: 'game-controller-outline', iconActive: 'game-controller' },
-  ChildTasks:     { label: 'Missions', icon: 'rocket-outline',           iconActive: 'rocket' },
-  ChildRewards:   { label: 'Shop',     icon: 'bag-outline',              iconActive: 'bag' },
-  ChildSettings:  { label: 'Menu',     icon: 'menu-outline',             iconActive: 'menu' },
+  ChildDashboard: { labelKey: 'tabs.child.hq',     icon: 'game-controller-outline', iconActive: 'game-controller' },
+  ChildTasks:     { labelKey: 'tabs.child.quests', icon: 'rocket-outline',           iconActive: 'rocket' },
+  ChildRewards:   { labelKey: 'tabs.child.shop',   icon: 'bag-outline',              iconActive: 'bag' },
+  ChildSettings:  { labelKey: 'tabs.child.menu',   icon: 'menu-outline',             iconActive: 'menu' },
 };
 
 export default function ChildTabs() {
   const T               = useChildTheme();
   const insets          = useSafeAreaInsets();
+  const { t }           = useTranslation();
   const { isChildPreview, exitChildPreview } = useMode();
   const { profile }     = useAuth();
 
@@ -41,9 +43,9 @@ export default function ChildTabs() {
           activeOpacity={0.85}
         >
           <Text style={banner.text}>
-            👁 Viewing as parent — {profile?.display_name ?? 'Parent'}
+            {t('childTabs.previewBanner', { name: profile?.display_name ?? '' })}
           </Text>
-          <Text style={banner.exit}>✕ Exit</Text>
+          <Text style={banner.exit}>{t('childTabs.exitPreview')}</Text>
         </TouchableOpacity>
       )}
 
@@ -69,7 +71,7 @@ export default function ChildTabs() {
               color={color}
             />
           ),
-          tabBarLabel: cfg.label,
+          tabBarLabel: t(cfg.labelKey),
         };
       }}
     >
