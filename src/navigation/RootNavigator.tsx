@@ -43,22 +43,6 @@ import PhilosophyScreen from '../screens/parent/PhilosophyScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-// UStep screens registered as modals inside the parent main-app stack so parents
-// can add a second child without leaving the app.
-function ParentOnboardingModals() {
-  return (
-    <>
-      <Stack.Screen name="UStep1"              component={UStep1_ChildProfile} options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="UStep2_Goal"         component={UStep2_Goal}         options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="UStep3_Challenges"   component={UStep3_Challenges}   options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="UStep4_Motivator"    component={UStep4_Motivator}    options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="ULoadingScreen"      component={ULoadingScreen}      options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="UStep5_Preview"      component={UStep5_Preview}      options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="UStep7_Phone"        component={UStep7_Phone}        options={{ presentation: 'modal', headerShown: false }} />
-      <Stack.Screen name="UStep8_Complete"     component={UStep8_Complete}     options={{ presentation: 'modal', headerShown: false }} />
-    </>
-  );
-}
 
 export default function RootNavigator() {
   const { user, profile, loading } = useAuth();
@@ -143,7 +127,16 @@ export default function RootNavigator() {
               component={PhilosophyScreen}
               options={{ headerShown: false }}
             />
-            <ParentOnboardingModals />
+            <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
+              <Stack.Screen name="UStep1"            component={UStep1_ChildProfile} />
+              <Stack.Screen name="UStep2_Goal"       component={UStep2_Goal} />
+              <Stack.Screen name="UStep3_Challenges" component={UStep3_Challenges} />
+              <Stack.Screen name="UStep4_Motivator"  component={UStep4_Motivator} />
+              <Stack.Screen name="ULoadingScreen"    component={ULoadingScreen} />
+              <Stack.Screen name="UStep5_Preview"    component={UStep5_Preview} />
+              <Stack.Screen name="UStep7_Phone"      component={UStep7_Phone} />
+              <Stack.Screen name="UStep8_Complete"   component={UStep8_Complete} />
+            </Stack.Group>
           </>
 
         ) : (

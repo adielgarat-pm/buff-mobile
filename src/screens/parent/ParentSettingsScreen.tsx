@@ -47,7 +47,7 @@ export default function ParentSettingsScreen() {
     {
       title: t('settings.sectionPreview'),
       rows: [
-        { label: t('settings.rowViewAsChild'), onPress: enterChildPreview },
+        { label: t('settings.rowViewAsChild'), onPress: () => enterChildPreview(profile?.id ?? '') },
       ],
     },
     {

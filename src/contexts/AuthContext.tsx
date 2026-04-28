@@ -151,7 +151,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (access_token && refresh_token) {
       await supabase.auth.setSession({ access_token, refresh_token });
-      // onAuthStateChange fires next → profile fetch + navigation happen automatically
     }
   }, []);
 
@@ -261,7 +260,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Google OAuth via Expo AuthSession — opens in-app browser, returns tokens via deep link
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
     try {
-      const redirectUri = makeRedirectUri({ scheme: 'buff' });
+      // Must include path so the URL matches handleDeepLink's buff://auth/callback check
+      const redirectUri = makeRedirectUri({ scheme: 'buff', path: 'auth/callback' });
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -276,9 +276,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUri);
 
       if (result.type === 'success') {
-        const url = new URL(result.url);
-        const params = new URLSearchParams(url.hash.slice(1));
-        const access_token = params.get('access_token');
+        const resultUrl = (result as { url: string }).url;
+
+        // Check for error redirect (e.g. wrong client secret → server_error)
+        const queryPart = resultUrl.split('?')[1]?.split('#')[0] ?? '';
+        const queryParams = new URLSearchParams(queryPart);
+        const oauthError = queryParams.get('error');
+        const oauthErrorDesc = queryParams.get('error_description');
+        if (oauthError) {
+          console.log('[Google OAuth] error from provider:', oauthError, oauthErrorDesc);
+          return { error: new Error(oauthErrorDesc ?? oauthError) };
+        }
+
+        const hash   = resultUrl.split('#')[1] ?? '';
+        const params = new URLSearchParams(hash);
+        const access_token  = params.get('access_token');
         const refresh_token = params.get('refresh_token');
 
         if (access_token && refresh_token) {
@@ -289,6 +301,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return { error: sessionError };
         }
       }
+
+      // Android: Chrome Custom Tab may return 'dismiss' — handled by handleDeepLink via Linking
 
       return { error: null };
     } catch (err) {

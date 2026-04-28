@@ -12,7 +12,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import type { StackNavigationProp, RouteProp } from '@react-navigation/stack';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguagePicker from '../../components/LanguagePicker';

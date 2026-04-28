@@ -19,9 +19,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import * as DocumentPicker from 'expo-document-picker';
-import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system';
 
 import { PARENT_THEME as T } from '../../theme';
@@ -111,6 +108,8 @@ export default function TimetableScreen() {
 
   const handleExcel = useCallback(async () => {
     try {
+      // Dynamic import — avoids crashing when native module isn't in the dev client build
+      const DocumentPicker = await import('expo-document-picker');
       const result = await DocumentPicker.getDocumentAsync({
         type: [
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -156,6 +155,12 @@ export default function TimetableScreen() {
 
   const handleImage = useCallback(async () => {
     try {
+      // Dynamic imports — avoids crashing when native modules aren't in the dev client build
+      const [ImagePicker, ImageManipulator] = await Promise.all([
+        import('expo-image-picker'),
+        import('expo-image-manipulator'),
+      ]);
+
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
         Alert.alert('', 'Photo library permission required');
