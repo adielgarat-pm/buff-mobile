@@ -202,7 +202,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error('Auth initialization error:', err);
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) { console.log('[Auth] setLoading(false)'); setLoading(false); }
       }
     };
 
@@ -238,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             } finally {
               fetchingProfile.current = false;
-              if (isMounted) setLoading(false);
+              if (isMounted) { console.log('[Auth] setLoading(false)'); setLoading(false); }
             }
           }, 0);
         }
