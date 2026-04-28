@@ -1,8 +1,8 @@
-—/**
+/**
  * UStep5_Preview — "[name]'s plan is ready!"
  *
  * On mount (saveAll):
- *   1. INSERT child profile into profiles → get back childProfileId
+    . INSERT child profile into profiles → get back childProfileId
  *   2. INSERT tasks using childProfileId
  *   3. INSERT rewards into store_rewards using childProfileId
  *      (non-fatal if table doesn't exist yet)
