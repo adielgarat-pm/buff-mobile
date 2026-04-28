@@ -73,7 +73,7 @@ export default function ChildTasksScreen() {
       console.log('[ChildTasks] raw tasks:', JSON.stringify(
         tasks.map(t => ({ id: t.id, title: t.title, time: t.time, scheduleDays: t.scheduleDays }))
       ));
-      console.log('[ChildTasks] schedule_days[0]:', tasks[0]?.scheduleDays);
+      console.log('[ChildTasks] tasks passing day filter:', todayTasks.length, 'for day', today);    } else {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, childId]);
