@@ -383,7 +383,7 @@ export function useChildData(childId: string | null) {
         completed:    false,
         assignedTo:   data.assigned_to || undefined,
         strategyId:   data.strategy_id || undefined,
-        scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],(Array.isArray(t.schedule_days) && t.schedule_days.length > 0) ? t.schedule_days : [0, 1, 2, 3, 4, 5, 6],
+        scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],(Array.isArray(t.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId, childId]);
