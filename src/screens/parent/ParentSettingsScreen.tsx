@@ -3,6 +3,7 @@
  * Account, family management, mode switching, preferences.
  */
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -19,6 +20,8 @@ interface SettingsRow {
   onPress?: () => void;
   danger?: boolean;
   icon?: React.ComponentProps<typeof Ionicons>['name'];
+  copyable?: boolean;
+  copied?: boolean;
 }
 
 export default function ParentSettingsScreen() {
@@ -27,6 +30,7 @@ export default function ParentSettingsScreen() {
   const { profile, familyShortCode, signOut } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { isSubscribed, isLifetimeAccess, isGracePeriod, simulateSubscribed, setSimulateSubscribed } = useSubscription();
+  const [codeCopied, setCodeCopied] = useState(false);
 
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {
@@ -34,7 +38,18 @@ export default function ParentSettingsScreen() {
       rows: [
         { label: t('settings.rowDisplayName'), value: profile?.display_name ?? '—' },
         { label: t('settings.rowRole'),         value: t('settings.rowRoleValue') },
-        { label: t('settings.rowFamilyCode'),  value: familyShortCode ?? '—' },
+        {
+          label: t('settings.rowFamilyCode'),
+          value: familyShortCode ?? '—',
+          onPress: familyShortCode ? async () => {
+            const Clipboard = await import('expo-clipboard');
+            await Clipboard.setStringAsync(familyShortCode);
+            setCodeCopied(true);
+            setTimeout(() => setCodeCopied(false), 2000);
+          } : undefined,
+          copyable: true,
+          copied: codeCopied,
+        },
       ],
     },
     {
@@ -141,7 +156,15 @@ export default function ParentSettingsScreen() {
                     {row.value}
                   </Text>
                 )}
-                {row.onPress && !row.danger && (
+                {row.copyable && (
+                  <Ionicons
+                    name={row.copied ? 'checkmark' : 'copy-outline'}
+                    size={18}
+                    color={row.copied ? '#10B981' : T.textMuted}
+                    style={{ marginLeft: 6 }}
+                  />
+                )}
+                {row.onPress && !row.danger && !row.copyable && (
                   <Text style={[styles.chevron, { color: T.textMuted }]}>›</Text>
                 )}
               </TouchableOpacity>

@@ -7,7 +7,7 @@
  * FIX 4  — Bonus modal (amount + note → credit_vault + bonus_log)
  *           Send Sticker → Alert placeholder
  */
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, KeyboardAvoidingView,
@@ -25,6 +25,8 @@ import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
+import LinkChildModal from '../../components/LinkChildModal';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -39,6 +41,44 @@ export default function ParentDashboardScreen() {
   const { enterChildPreview }              = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
   const { isSubscribed }                   = useSubscription();
+  const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
+  const [linkTarget, setLinkTarget]        = useState<typeof unlinked[0] | null>(null);
+  const autoLinkedRef                      = useRef(false);
+
+  // Auto-link when possible; show modal only if no match found
+  useEffect(() => {
+    if (autoLinkedRef.current || unlinked.length === 0 || linkable.length === 0) return;
+
+    const child = unlinked[0];
+
+    // 1. Exact 1:1 match
+    if (linkable.length === 1) {
+      autoLinkedRef.current = true;
+      linkChild(child, linkable[0].id).then(({ error }) => {
+        if (!error) refetch();
+        else autoLinkedRef.current = false;
+      });
+      return;
+    }
+
+    // 2. Multiple profiles — try name match (case-insensitive)
+    const childName = child.displayName.trim().toLowerCase();
+    const nameMatch = linkable.find(p =>
+      p.displayName.trim().toLowerCase() === childName
+    );
+
+    if (nameMatch) {
+      autoLinkedRef.current = true;
+      linkChild(child, nameMatch.id).then(({ error }) => {
+        if (!error) refetch();
+        else autoLinkedRef.current = false;
+      });
+      return;
+    }
+
+    // 3. No match — open modal for parent to choose
+    setLinkTarget(child);
+  }, [unlinked, linkable, linkChild, refetch]);
 
   const firstName = profile?.display_name && !profile.display_name.includes('@')
     ? profile.display_name.split(' ')[0]
@@ -202,6 +242,20 @@ export default function ParentDashboardScreen() {
         <PhilosophyTip tipKey="tips.breakItDown" dismissible />
       )}
 
+      {/* ── Unlinked children banner ───────────────────────────────────── */}
+      {unlinked.map(child => (
+        <TouchableOpacity
+          key={child.id}
+          style={styles.unlinkBanner}
+          onPress={() => setLinkTarget(child)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.unlinkBannerText}>
+            👋 <Text style={{ fontWeight: '700' }}>{child.displayName}</Text> הצטרף למשפחה — לחץ לחיבור
+          </Text>
+        </TouchableOpacity>
+      ))}
+
       {/* ── Children section header + Add Child ────────────────────────── */}
       <View style={styles.sectionRow}>
         <Text style={[styles.sectionTitle, { color: T.textMuted }]}>
@@ -277,6 +331,18 @@ export default function ParentDashboardScreen() {
           );
         })
       )}
+
+      {/* ── Link child modal ─────────────────────────────────────────── */}
+      <LinkChildModal
+        unlinkedChild={linkTarget}
+        linkable={linkable}
+        onLink={async (child, targetId) => {
+          const result = await linkChild(child, targetId);
+          if (!result.error) refetch();
+          return result;
+        }}
+        onDismiss={() => setLinkTarget(null)}
+      />
 
       {/* ── Info modal (replaces Alert.alert) ────────────────────────── */}
       <AppModal
@@ -405,6 +471,10 @@ const styles = StyleSheet.create({
   insightLabel:  { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   insightDesc:   { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 10 },
   insightTip:    { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontStyle: 'italic' },
+
+  // Unlinked child banner
+  unlinkBanner:     { backgroundColor: '#EDE9FE', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1.5, borderColor: T.accent },
+  unlinkBannerText: { color: T.accent, fontSize: 14, lineHeight: 20 },
 
   // Section row (title + Add Child)
   sectionRow:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },

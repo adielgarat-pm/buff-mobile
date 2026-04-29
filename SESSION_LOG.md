@@ -14,6 +14,8 @@
 >
 > - [x] Missions not showing for new child — fixed (28.4)
 > - [ ] RTL inconsistent across screens
+> - [ ] AuthCallbackScreen flickers briefly after child joins (race condition — profile loads after SIGNED_IN event)
+> - [ ] Child who joins via code has no tasks — parent must set up this child via onboarding first. Need to decide on empty state with guidance to parent.
 >
 > ## Done
 >
@@ -26,6 +28,8 @@
 > - [x] TypeScript errors — RouteProp, todayTasks, enterChildPreview type, syntax error in useChildProgress (28.4)
 > - [x] Google OAuth — buff://auth/callback scheme, Google Cloud Console + Supabase provider configured (28.4)
 > - [x] Missions bug root cause — ParentOnboardingModals navigator crash + scheduleDays (28.4)
+> - [x] expo-clipboard — converted to dynamic import (29.4)
+> - [x] Child join flow — keyboard fix (KeyboardAvoidingView), email confirm disabled, rate limit workaround (29.4)
 >
 > ## Backlog
 >
@@ -39,6 +43,14 @@
 > - [ ] Capybara skin
 >
 > ## Sessions
+>
+> ### April 29 2026
+> - Fixed expo-clipboard crash: converted to dynamic import in ParentSettingsScreen
+> - Added copy button to Family Code row in Settings (copy icon → checkmark feedback)
+> - Fixed ChildJoinScreen keyboard issue on Android: KeyboardAvoidingView behavior undefined on Android
+> - Fixed child signup: disabled Supabase email confirmation (children use fake @buff.app emails)
+> - Tested child join flow end-to-end: child joined family KWYEL5, landed in ChildTabs
+> - Identified: child joined via code has no tasks until parent sets them up via onboarding
 >
 > ### April 28 2026
 > - Set up Claude Code (CLI) — עובד ב-VS Code terminal

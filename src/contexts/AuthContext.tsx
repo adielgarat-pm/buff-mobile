@@ -340,6 +340,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .ilike('short_code', trimmedCode)
           .single();
 
+        console.log('[signUp] family lookup result:', JSON.stringify({ family, lookupError }));
+
         if (lookupError || !family) {
           return { error: new Error('קוד משפחה לא נמצא') };
         }
@@ -367,6 +369,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       display_name: displayName,
       role,
       marketing_consent: marketingConsent ?? false,
+      pro_settings: (role === 'child' && familyCode) ? { source: 'child_signup' } : {},
     } as never);
 
     if (profileError) return { error: profileError };

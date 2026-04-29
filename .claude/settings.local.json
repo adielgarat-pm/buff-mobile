@@ -7,7 +7,15 @@
       "Bash(npx tsc:*)",
       "Bash(npx expo:*)",
       "Bash(node -e \"console.log\\(require\\('./node_modules/react-native-purchases/package.json'\\).version\\)\")",
-      "Bash(eas build *)"
+      "Bash(eas build *)",
+      "Bash(curl -s -X POST \"http://localhost:8081/reload\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('expo',{}\\), indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); deps=d.get\\('dependencies',{}\\); [print\\(k,v\\) for k,v in deps.items\\(\\) if any\\(x in k for x in ['auth','web-browser','linking','google']\\)]\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(python3 *)",
+      "Bash(node *)"
     ]
   }
 }
