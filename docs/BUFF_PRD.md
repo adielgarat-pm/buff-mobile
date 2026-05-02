@@ -16,7 +16,7 @@ Version 1.0  |  MVP Release
 
 ## 1. Executive Summary
 
-BUFF is a gamified routine and habit app for children with ADHD aged 6–15, designed around a core philosophical belief: children do not need to be managed — they need to be empowered. Built on positive coaching principles, BUFF scaffolds independence so that over time, children no longer need the app.
+BUFF is a gamified routine and habit app for children with ADHD aged 6–18, designed around a core philosophical belief: children do not need to be managed — they need to be empowered. Built on positive coaching principles, BUFF scaffolds independence so that over time, children no longer need the app.
 
 Unlike competitor Joon (500K users, $6.4M raised), which relies on extrinsic rewards (virtual pet coins tied to a game), BUFF builds intrinsic motivation through real rewards the child chooses, a buddy character that grows with the child, and a teen interface built for autonomy. BUFF defines success at 70% — not 100% — because demanding perfection causes ADHD children to not start at all. BUFF is the only app in this space that explicitly plans for the child to outgrow it.
 
@@ -49,7 +49,7 @@ From surveys and interviews with BUFF beta users (183 families, Israel & interna
 
 Joon solves the 'get tasks done today' problem with extrinsic motivation. No app in the market solves:
 
-- Long-term independence building (ages 6–15 in one continuous product)
+- Long-term independence building (ages 6–18 in one continuous product)
 - Disruption recovery (pause and resume without losing progress)
 - Teen-specific interface built for autonomy, not compliance
 - Child-initiated tasks (ownership of their own routine)
@@ -68,7 +68,7 @@ BUFF is the app that grows with your child — from the chaos of morning routine
 
 | Joon | BUFF |
 |---|---|
-| Ages 6–12 only | Ages 6–15, two distinct UIs |
+| Ages 6–12 only | Ages 6–18, two distinct UIs |
 | Extrinsic: coins for game access | Intrinsic: buddy grows with child's success |
 | Parent controls everything | Child proposes tasks & rewards (real-life) |
 | No disruption recovery | Pause mode — resume without rebuilding |
@@ -82,7 +82,7 @@ Tagline: "Joon is for kids. BUFF is for your family."
 
 ### 4.1 Primary Customer (Paying)
 
-Parent of a child with ADHD, age 6–15
+Parent of a child with ADHD, age 6–18
 
 - Profile: Parent who has already been exposed to positive discipline or coaching approaches
 - Pain: Daily conflict around routines — morning, homework, bedtime
@@ -95,7 +95,7 @@ Parent of a child with ADHD, age 6–15
 Child with ADHD, two distinct segments:
 
 
-|  | Child (6–12) | Teen (13–15) |
+|  | Child (6–12) | Teen (13–18) |
 |---|---|---|
 | UI | Buddy character, gamified, visual | Dashboard, goals, deal-making with parent |
 | Motivation | Buddy growth, skins, real rewards child chose, 70% = success | Self-proposed rewards, autonomy, streaks |
@@ -208,7 +208,7 @@ Child Interface — Ages 6–12 (Buddy UI)
 - Daily Vibe Check — child rates energy level 1-5 at start of day. For children: emoji faces. For teens: energy bars. If level ≤2: Low Power Mode activates (reduced task list), SOS button to parent, and Instant Buff option. Already fully implemented in current codebase.
 - Rest Tickets — child earns 1 ticket per 5 completed tasks. Ticket skips a day without hurting 70% goal. Already implemented. This is the daily disruption mechanism.
 - Push notifications: buddy waiting, task reminder, streak notification
-Child Interface — Ages 13–15 (Teen Dashboard UI)
+Child Interface — Ages 13–18 (Teen Dashboard UI)
 
 - Clean dashboard without buddy character
 - Goals view — weekly and monthly

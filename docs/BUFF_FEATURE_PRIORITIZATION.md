@@ -26,7 +26,7 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | ONBOARDING | ONBOARDING | ONBOARDING | ONBOARDING | ONBOARDING | ONBOARDING | ONBOARDING |
 | F-001 | Parent registration (email/Google) | Parent | Must Have | S | MVP | Cannot use app without account |
 | F-002 | Child profile setup | Parent | Must Have | S | MVP | Core unit of the product |
-| F-003 | UI mode auto-selection by age | Parent | Must Have | S | MVP | 6-12 buddy, 13-15 dashboard |
+| F-003 | UI mode auto-selection by age | Parent | Must Have | S | MVP | 6-12 buddy, 13-18 dashboard |
 | F-004 | Timetable / schedule entry | Parent | Must Have | M | MVP | Enables bag packing feature |
 | F-005 | Equipment list per subject | Parent | Must Have | M | MVP | Core daily utility value |
 | F-006 | Beta user migration from PWA | System | Must Have | M | MVP | Retain existing users and data |
@@ -60,9 +60,9 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-040 | Offline mode (read-only task list) | Child | Should Have | M | MVP | Requested by users; no WiFi at school |
 | F-041 | Streak display and celebration | Child | Should Have | M | MVP | Week-level retention |
 | F-042 | Mini games for buddy (offline) | Child | Nice to Have | XL | Phase 2 | Requested; complex; not blocking |
-| TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) |
+| TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) |
 | F-043 | Child + Teen | Daily Vibe Check — energy level 1-5 at start of day. Kids: emoji faces. Teens: energy bars. Level ≤2 activates Low Power Mode (reduced tasks), SOS to parent, Instant Buff. Already fully implemented in current codebase. | Fully implemented in PWA | Must Have | S | MVP | Existing feature — carry over to React Native. This is the daily disruption mechanism + daily emotional check-in. |
-| TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) | TEEN UI — DASHBOARD MODE (13-15) |
+| TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) | TEEN UI — DASHBOARD MODE (13-18) |
 | F-050 | Clean dashboard (no buddy) | Teen | Must Have | M | MVP | Teens reject childish UI |
 | F-051 | Goals and streak view | Teen | Must Have | M | MVP | Autonomy and self-tracking |
 | F-052 | Deal-making with parent (propose task+reward) | Teen | Must Have | S | MVP | Core teen differentiator |

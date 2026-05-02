@@ -1,5 +1,13 @@
 # BUFF — Buddy System Design
 
+> **Spec Status:** Target spec — V0.5 (post-2.5.2026 redesign).
+> Current code: partial implementation of an earlier, simpler buddy spec
+> (4 evolution stages + skins, no friendship levels, no boosters, no EOD trigger).
+> Reconciliation between this doc and the codebase is deferred to the
+> BUDDY implementation session, where we'll do an explicit code audit
+> and decide what to keep / replace / migrate.
+> **Until then:** treat this doc as the *target*, not the *current* state.
+
 **מטרה:** עיצוב מערכת BUDDY ב-BUFF — דמות, רמות חברות, מתנות (Boosters), ו-UI placement.
 
 **עודכן:** 2 במאי 2026 (אחרי תשובות Itay + סשן עיצוב Stitch + תובנות אמי)
@@ -79,7 +87,7 @@ BUFF הוא לא משחק — הוא כלי אימון. אבל ילד עם ADHD 
 
 ---
 
-## Children Mode (6-12) vs Teen Mode (13-15)
+## Children Mode (6-12) vs Teen Mode (13-18)
 
 ### Children Mode (6-12)
 
@@ -91,7 +99,7 @@ BUFF הוא לא משחק — הוא כלי אימון. אבל ילד עם ADHD 
 - **דמויות:** capybara, panda, unicorn, וכו' (קיים בקוד)
 - **אסתטיקה:** בעתיד ייתכן theme alternative (pastel) בנוסף ל-neon — לא ב-MVP
 
-### Teen Mode (13-15) — **מערכת onboarding choice**
+### Teen Mode (13-18) — **מערכת onboarding choice**
 
 **ב-onboarding ראשון, המתבגר נשאל:**
 > "Want a Buddy character on your home screen?"

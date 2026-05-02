@@ -74,7 +74,7 @@ Terminology note: Credits = Buffs (באפים) throughout all documents. The rew
 | C-16 | Child | Propose new mission to parent | NOT in app | New feature | Child ownership — key differentiator |
 | C-17 | Child | Propose new reward to parent | NOT in app | New feature | Child autonomy mechanic |
 | C-18 | Child | Offline mode: task list visible without internet | NOT in app | New feature | Requested by users; school has no WiFi |
-| TEEN FEATURES (Ages 13-15 — Dashboard Mode) | TEEN FEATURES (Ages 13-15 — Dashboard Mode) | TEEN FEATURES (Ages 13-15 — Dashboard Mode) | TEEN FEATURES (Ages 13-15 — Dashboard Mode) | TEEN FEATURES (Ages 13-15 — Dashboard Mode) | TEEN FEATURES (Ages 13-15 — Dashboard Mode) |
+| TEEN FEATURES (Ages 13-18 — Dashboard Mode) | TEEN FEATURES (Ages 13-18 — Dashboard Mode) | TEEN FEATURES (Ages 13-18 — Dashboard Mode) | TEEN FEATURES (Ages 13-18 — Dashboard Mode) | TEEN FEATURES (Ages 13-18 — Dashboard Mode) | TEEN FEATURES (Ages 13-18 — Dashboard Mode) |
 | T-01 | Teen | Clean dashboard UI (no buddy character) | Partial | Keep + Expand | Needs dedicated design — currently minimal |
 | T-02 | Teen | Goals view (weekly, monthly) | Partial | Keep + Expand | Teen needs goal-setting, not just tasks |
 | T-03 | Teen | Deal-making: propose task + reward bundle to parent | NOT in app | New feature | Core teen differentiator |

@@ -105,7 +105,7 @@ spacing:
 
 ## Brand & Style
 
-The brand personality is high-energy, focused, and utilitarian, designed to command the attention of a 13-15 year old demographic without patronizing them. The design system leverages a **Gaming-Inspired Minimalism** style, combining the aggressive visual language of tactical HUDs with the clean execution of modern fintech apps. 
+The brand personality is high-energy, focused, and utilitarian, designed to command the attention of a 13-18 year old demographic without patronizing them. The design system leverages a **Gaming-Inspired Minimalism** style, combining the aggressive visual language of tactical HUDs with the clean execution of modern fintech apps. 
 
 The aesthetic is characterized by high-contrast interfaces, "void-black" environments, and neon signaling. It avoids soft gradients or playful illustrations, opting instead for structural precision and rhythmic motion. The goal is to provide a "flow state" environment that reduces cognitive load for users with ADHD by using clear visual hierarchies and rewarding interactions that feel like unlocking achievements.
 

@@ -12,9 +12,9 @@ This document defines all user stories for the BUFF MVP, organized by persona. E
 
 | ID | Persona | Role | Key motivation |
 |---|---|---|---|
-| PARENT | Parent of ADHD child (6-15) | Paying customer | Stop nagging, build child's independence |
+| PARENT | Parent of ADHD child (6-18) | Paying customer | Stop nagging, build child's independence |
 | CHILD | Child with ADHD, ages 6-12 | Primary user (buddy UI) | Feel capable, earn rewards, grow buddy |
-| TEEN | Teen with ADHD, ages 13-15 | Primary user (dashboard UI) | Autonomy, own goals, deal-making |
+| TEEN | Teen with ADHD, ages 13-18 | Primary user (dashboard UI) | Autonomy, own goals, deal-making |
 
 
 ## Parent Stories — Onboarding
@@ -22,7 +22,7 @@ This document defines all user stories for the BUFF MVP, organized by persona. E
 
 | US-P01 | As a parent, I want to create a family account and set up my child's profile so that I can personalize BUFF for my family's specific needs |
 |---|---|
-| Acceptance Criteria | Parent can register with email or Google / Parent can add family name, child name, and child age / Child UI mode is automatically suggested based on age (6-12 = buddy, 13-15 = teen) / Onboarding completes in under 5 minutes / Parent cannot skip child setup — at least one child required before accessing dashboard |
+| Acceptance Criteria | Parent can register with email or Google / Parent can add family name, child name, and child age / Child UI mode is automatically suggested based on age (6-12 = buddy, 13-18 = teen) / Onboarding completes in under 5 minutes / Parent cannot skip child setup — at least one child required before accessing dashboard |
 | Priority / Effort | Must Have  \|  Effort: M |
 
 
@@ -122,7 +122,7 @@ This document defines all user stories for the BUFF MVP, organized by persona. E
 | Priority / Effort | Should Have  \|  Effort: M |
 
 
-## Teen Stories — Dashboard UI (Ages 13-15)
+## Teen Stories — Dashboard UI (Ages 13-18)
 
 
 | US-T01 | As a teen, I want to see a clean dashboard with my goals and tasks — no baby buddy so that I feel respected and not patronized by the app |
