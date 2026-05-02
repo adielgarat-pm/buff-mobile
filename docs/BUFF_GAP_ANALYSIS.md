@@ -2,7 +2,7 @@
 
 **מסמך:** השוואה בין מה שתוכנן (PRD/Feature Audit) למה שקיים בקוד `buff-mobile` היום + החלטות מהשיחות.
 
-**עודכן:** 2 במאי 2026 (אחרי תשובות Itay והחלטות Adi)
+**עודכן:** 2 במאי 2026 (אחרי סשן Stitch + תובנות אמי)
 
 **איך לקרוא:**
 
@@ -14,29 +14,30 @@
 | 🆕 | קיים בקוד אבל **לא** ב-PRD המקורי |
 | ⚠️ | סתירה בין PRD להחלטות |
 | 🎯 | החלטה ב-2.5 — שונה מ-PRD המקורי |
+| 🎨 | עוצב ב-Stitch ב-2.5 |
 
 ---
 
 ## סיכום מנהלים
 
-יותר מ-50% מ-MVP כבר קיים בקוד. לאחר החלטות עם Itay (2.5), נוספו פיצ'רים ל-MVP מעבר ל-PRD המקורי.
-
 | קטגוריה | כמות |
 |---|---|
 | ✅ קיים ועובד | 7 |
 | 🟡 קיים חלקית | 6 |
-| ❌ לא קיים — Must-Have ל-MVP | 10 |
+| ❌ לא קיים — Must-Have ל-MVP | 11 |
 | 🆕 קיים בקוד / לא ב-PRD | 4 |
-| 🎯 החלטות חדשות מ-2.5 | 14 |
+| 🎯 החלטות חדשות מ-2.5 | 24 |
+| 🎨 מסכים שעוצבו ב-Stitch | 6 (מתוך 8) |
 
-**הפיצ'רים הקריטיים שעדיין חסרים ל-MVP:**
-- Teen UI (קטגוריה שלמה)
+**הפיצ'רים הקריטיים לפני MVP:**
+- Teen UI (6 מסכים מעוצבים, 2 חסרים ב-Stitch)
 - Buddy System V0.5 (רמות + Boosters)
 - Daily Vibe Check
-- **Pause Mode** (חזר ל-MVP — D-2026-05-02-14)
+- Pause Mode
 - UI לבחירת Pet Skin
 - Daily Win Bonus — חיבור (Bonus Modal קיים)
 - Empty state לילד-עם-קוד
+- Wolf STORMY skin להוסיף ל-HEROIC_SKINS
 
 **נדחה ל-1.1 / Phase 2:**
 - Child-proposed tasks/rewards
@@ -45,6 +46,7 @@
 - Calendar heat-map
 - AI Insights
 - Reward pricing guidance
+- **Children Mode design pass עם אמי + Pastel theme**
 
 ---
 
@@ -52,16 +54,12 @@
 
 | ID | פיצ'ר | PRD | מובייל | הערות |
 |---|---|---|---|---|
-| O-01 | V2 Onboarding | Keep as-is | 🟡 שונה | Unified 7-step flow (UStep1-8) |
-| O-02 | Language selection at start | Keep as-is | 🟡 חלקי | i18n קיים (1,036 keys), בחירה לפני Welcome — לא נבדק |
+| O-01 | V2 Onboarding | Keep as-is | 🟡 שונה | Unified 7-step flow |
+| O-02 | Language selection at start | Keep as-is | 🟡 חלקי | i18n קיים |
 | O-03 | Classic 6-step | Legacy | ❌ הוסר | תקין |
 | O-04 | Family Code invite | Keep as-is | ✅ EXISTS | |
-| O-05 | Starter Packs | Keep as-is | 🟡 שונה | STARTER_TASKS_BY_CHALLENGE קיים. ⚠️ timing 08:00/16:00/20:00 לכולם — לא תואם Stage |
-
-**החלטות פתוחות:**
-- timing של משימות סטרטר לפי Stage
-- האם motivators צריכים להשפיע על משימות
-- Empty state לילד-עם-קוד
+| O-05 | Starter Packs | Keep as-is | 🟡 שונה | timing 08:00/16:00/20:00 לכולם — לא תואם Stage |
+| **O-06** | **Teen Buddy Choice screen** | 🎯 חדש | ❌ NOT EXISTS | 🎨 לעצב ב-Stitch (מסך 8) |
 
 ---
 
@@ -74,15 +72,15 @@
 | P-03 | Stage-based scheduling | Keep as-is | 🟡 חלקי | timing לא תואם |
 | P-04 | Timetable | Keep as-is | ✅ EXISTS | |
 | P-05 | My Gear / Bag Prep | Keep as-is | 🟡 PARTIAL | equipment בתוך Timetable |
-| P-06 | The Shop | Keep + Expand | ✅ EXISTS | store_rewards + REWARD_PICKS |
-| P-07 | Daily Win Bonus | Keep as-is | 🟡 PARTIAL | **Bonus Modal קיים** + i18n + DB. חסר branding כ-"Daily Win" |
-| P-08 | View as Child | Keep as-is | ✅ EXISTS | ModeContext מלא |
-| P-09 | Stickers | Keep as-is | 🟡 PARTIAL | i18n מלא + Alert placeholder. חסר picker |
+| P-06 | The Shop | Keep + Expand | ✅ EXISTS | |
+| P-07 | Daily Win Bonus | Keep as-is | 🟡 PARTIAL | Bonus Modal קיים. חסר branding |
+| P-08 | View as Child | Keep as-is | ✅ EXISTS | |
+| P-09 | Stickers | Keep as-is | 🟡 PARTIAL | i18n מלא + Alert placeholder |
 | P-10 | Approve / reject completions | Keep as-is | ✅ EXISTS | |
 | P-11 | Auto-approve trusted | Keep as-is | ❓ לא נבדק | |
 | P-12 | Child-proposed missions | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | P-13 | Child-proposed rewards | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
-| P-14 | **PAUSE MODE** | Must Have | ❌ NOT EXISTS | **🎯 חוזר ל-MVP (D-2026-05-02-14)** |
+| P-14 | **PAUSE MODE** | Must Have | ❌ NOT EXISTS | **🎯 MVP** (D-2026-05-02-14) |
 | P-15 | Reward pricing guidance | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | P-16 | Weekly Ignition Analysis | Keep as-is | 🟡 PARTIAL | useParentInsights קיים |
 | P-17 | Trend Detector | Keep as-is | ❌ NOT EXISTS | |
@@ -92,7 +90,7 @@
 
 ---
 
-## חלק ג' — Child Features (Buddy Mode, 6-12)
+## חלק ג' — Children Features (Buddy Mode, 6-12)
 
 | ID | פיצ'ר | PRD | מובייל | הערות |
 |---|---|---|---|---|
@@ -100,12 +98,12 @@
 | C-02 | Stage-based task flow | Keep as-is | 🟡 חלקי | |
 | C-03 | Mission completion + buddy animation | Keep as-is | ❓ לא נבדק | |
 | C-04 | Focus Fuel Meter | Keep as-is | ❓ לא נבדק | |
-| C-05 | **Buddy Evolution (4 stages)** | Keep as-is | ✅ EXISTS | egg/hatchling/scout/guardian @ 0/3/7/13 ימים |
-| C-06 | **Pet Skins** | Keep as-is | 🟡 PARTIAL | סכמה+תרגומים. חסר UI לבחירה |
+| C-05 | Buddy Evolution (4 stages) | Keep as-is | ✅ EXISTS | egg/hatchling/scout/guardian |
+| C-06 | **Pet Skins** | Keep as-is | 🟡 PARTIAL | סכמה+תרגומים. **חסר UI לבחירה. צריך להוסיף Wolf** |
 | C-07 | Command Center | Keep as-is | ❓ לא נבדק | |
 | C-08 | The Shop (redeem) | Keep as-is | ✅ EXISTS | |
 | C-09 | My Progress + ticket wallet | Keep as-is | ❓ לא נבדק | |
-| C-10 | Rest Tickets | Keep + Expand | ❌ NOT EXISTS | **דחוי ל-1.1** (D-2026-05-02-10) |
+| C-10 | Rest Tickets | Keep + Expand | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | C-11 | My Gear / Bag Prep | Keep as-is | 🟡 PARTIAL | |
 | C-12 | Cognitive Strategy Library | Keep as-is | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | C-13 | Day-Type Logic | Keep as-is | ❓ לא נבדק | |
@@ -115,65 +113,56 @@
 | C-17 | Propose reward | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | C-18 | Offline mode | Should Have | ❌ NOT EXISTS | |
 
+**הערה לעתיד:** Children Mode design pass עם אמי + Pastel theme — דחוי ל-1.1.
+
 ---
 
-## חלק ד' — Teen Features (Dashboard Mode, 13-15) — 🎯 הוחלט: ב-MVP
+## חלק ד' — Teen Features (13-15) — 🎨 6 מסכים עוצבו ב-Stitch
 
-**שינוי משמעותי:** Teen UI הוכלל ב-MVP (D-2026-05-02-05). **תיקון נוסף (D-2026-05-02-13):** Buddy ב-Teen Mode הוא **default on, dismissible**.
+| ID | פיצ'ר | PRD | מובייל | סטיץ' מסך | הערות |
+|---|---|---|---|---|---|
+| T-01 | Clean dashboard | Keep + Expand | ❌ | ✅ 01 + 02 | 2 גרסאות: with buddy + without |
+| T-02 | Goals view | Keep + Expand | ❌ | 🟡 חלקי | חלק ממסך Profile (07) |
+| T-03 | Deal-making | Must Have | ❌ | 🟡 חלקי | "Suggest a reward" קיים במסך 06 |
+| T-04 | Streak tracker + grace | Keep + Expand | ❓ | — | **שונה** — Itay: streaks לא חשוב. Winning Streak (70%+) בלבד |
+| T-05 | Calendar heat-map | Should Have | ❌ | — | **דחוי ל-1.1** |
 
-| ID | פיצ'ר | PRD | מובייל | החלטה 2.5 |
-|---|---|---|---|---|
-| T-01 | Clean dashboard | Keep + Expand | ❌ | 🎯 **MVP** — צבעים: ירוק ניאון על שחור. Buddy default on, dismissible |
-| T-02 | Goals view | Keep + Expand | ❌ | 🎯 **MVP** |
-| T-03 | Deal-making | Must Have | ❌ | 🎯 **MVP** |
-| T-04 | Streak tracker + grace | Keep + Expand | ❓ | 🎯 **שונה** — Itay: "streaks לא חשוב, רק מפריע." מוחלף ב-Winning Streak (70%+) בלבד |
-| T-05 | Calendar heat-map | Should Have | ❌ | **דחוי ל-1.1** |
+### מסכי Stitch שעוצבו (2.5.2026)
 
-**Teen UI Design Principles (מ-Itay):**
-- ירוק ניאון על שחור (השראה: Spotify)
-- מינימליסטי, נקי, "אין ילדותי"
-- חלוקה לפי חלקי יום
-- **Buddy default on, dismissible** (D-2026-05-02-13)
-- Notifications: 2 ביום, צהריים + ערב, **לא בוקר**
+| מסך | נושא | סטטוס |
+|---|---|---|
+| 01 | Dashboard with Buddy (Wolf STORMY) | ✅ Approved by Itay |
+| 02 | Dashboard without Buddy (stat cards) | ✅ Approved by Itay |
+| 03 | Buddy Toggle Modal | ✅ Approved |
+| 04 | Tasks Detail (Today's Plan) | ✅ Approved |
+| 05A | Me & Buddy (with character) | ✅ Approved |
+| 05B | My Stats (without character) | ✅ Approved + **Itay's preferred** |
+| 06 | Rewards Shop (FROM PARENT + FROM BUDDY) | ✅ Approved |
+| 07 | Settings | ⏳ Not yet designed |
+| 08 | Teen Onboarding Choice | ⏳ Not yet designed (חדש) |
 
-**Sort order:** מיקוד ביום נוכחי + click to navigate (D-2026-05-02-16) — **כבר ממומש בקוד**, אין עבודה חדשה.
+**מיקום קבצים:** `docs/teen-ui-design/[01-08]/` — code.html + DESIGN.md + screen.png + design-notes.md
 
 ---
 
 ## חלק ה' — Buddy System V0.5 — 🎯 חדש מ-2.5
 
-**מערכת חדשה שלא הייתה ב-PRD המקורי.** ראה BUFF_BUDDY_SYSTEM.md למפרט מלא.
-
 | רכיב | סטטוס | הערות |
 |---|---|---|
-| 🎯 Friendship Levels (5 רמות) | ❌ NOT EXISTS | חדש. דורש DB schema |
-| 🎯 Boosters (6 סוגים) | ❌ NOT EXISTS | חדש. כל אחד דורש לוגיקה משלו |
-| 🎯 Me & Buddy screen | ❌ NOT EXISTS | חדש. UI חדש |
-| 🎯 Tap on buddy → screen | ❌ NOT EXISTS | חדש. trigger ב-Home |
-| 🎯 Toast notification on level up | ❌ NOT EXISTS | חדש |
-| 🎯 buddy_relationships table | ❌ NOT EXISTS | DB |
-| 🎯 buddy_gifts_history table | ❌ NOT EXISTS | DB |
-| 🎯 buddy_daily_check table | ❌ NOT EXISTS | DB |
-| 🎯 EOD trigger לעדכון successful_days_count | ❌ NOT EXISTS | logic |
-| 🎯 Hide/Show Buddy (Teen) | ❌ NOT EXISTS | UI + preference saved (D-2026-05-02-13) |
-| 🎯 Welcome Back screen (3+ days absence) | ❌ NOT EXISTS | logic + UI (D-2026-05-02-17) |
-| 🎯 Pause Mode | ❌ NOT EXISTS | DB + Parent UI + Resume (D-2026-05-02-14) |
-
-**העיקרון:** "לא קוסמטיקה. קשר." BUDDY נותן Boosters לפי **ימים מוצלחים מצטברים** (70%+), לא רצופים.
-
-**MVP scope (Phase 1):**
-- 3 רמות ראשונות + לוגיקה
-- 2 Boosters בסיסיים: Custom Theme Color, ×2 Buffs
-- מסך Me & Buddy בסיסי
-- Toast on level up
-- Hide/Show Buddy (Teen)
-- Welcome Back screen
-- Pause Mode
-
-**Phase 2 (אחרי MVP, לפני 1.1):**
-- Skip Token, Buddy Mood Pack, הנחת פרס
-- 5 רמות מלאות
-- Push notifications לרמות
+| Friendship Levels (5 רמות) | ❌ NOT EXISTS | חדש. דורש DB schema |
+| Boosters (6 סוגים) | ❌ NOT EXISTS | חדש |
+| Me & Buddy / My Stats screen | 🎨 עוצב | מסכים 5A + 5B ב-Stitch |
+| Tap on buddy → screen | ❌ NOT EXISTS | חדש |
+| Toast on level up | ❌ NOT EXISTS | חדש |
+| buddy_relationships table | ❌ NOT EXISTS | DB |
+| buddy_gifts_history table | ❌ NOT EXISTS | DB |
+| buddy_daily_check table | ❌ NOT EXISTS | DB |
+| EOD trigger | ❌ NOT EXISTS | logic |
+| Hide/Show Buddy (Teen) | ❌ NOT EXISTS | UI + preference (D-13 v2) |
+| Welcome Back screen | ❌ NOT EXISTS | logic + UI |
+| Pause Mode | ❌ NOT EXISTS | DB + Parent UI + Resume |
+| **Wolf STORMY skin** | ❌ NOT EXISTS | להוסיף ל-HEROIC_SKINS |
+| **Teen Onboarding Buddy choice** | ❌ NOT EXISTS | מסך חדש (08 ב-Stitch) |
 
 ---
 
@@ -181,13 +170,13 @@
 
 | ID | פיצ'ר | PRD | מובייל | הערות |
 |---|---|---|---|---|
-| S-01 | Push Notifications (FCM) | Must Have | ❌ NOT EXISTS | 🎯 **MVP** — עם הבחנה ילדים/teens (D-2026-05-02-12) |
+| S-01 | Push Notifications (FCM) | Must Have | ❌ NOT EXISTS | 🎯 **MVP** — הבחנה ילדים/teens |
 | S-02 | Notification messages library | Keep as-is | ❓ לא נבדק | |
 | S-03 | 15-Minute Rule | Keep as-is | ❓ לא נבדק | |
 | S-04 | Dopamine Bridge | Keep as-is | 🟡 PARTIAL | |
 | S-05 | Parent Bonus +20 Buffs | Keep as-is | 🟡 PARTIAL | זהה ל-P-07 |
-| S-06 | PWA Install | Remove | ✅ הוסר | תואם תוכנית |
-| S-07 | **Daily Vibe Check** | Keep as-is | ❌ NOT EXISTS | **🎯 MVP** (D-2026-05-02-10) |
+| S-06 | PWA Install | Remove | ✅ הוסר | |
+| S-07 | **Daily Vibe Check** | Keep as-is | ❌ NOT EXISTS | **🎯 MVP** |
 
 ---
 
@@ -195,7 +184,7 @@
 
 | פיצ'ר | מקור |
 |---|---|
-| 🆕 RevenueCat (purchaseService, useSubscription, PaywallScreen) | מומש בקוד |
+| 🆕 RevenueCat | מומש בקוד |
 | 🆕 Google OAuth | SESSION_LOG 28.4 |
 | 🆕 LinkChildModal + useUnlinkedChildren | SESSION_LOG 29.4 |
 | 🆕 simulateSubscribed dev flag | useSubscription |
@@ -209,45 +198,49 @@
 | ⚠️ DB | Single Supabase + migrate | שני DBs נפרדים | **D-2026-05-01-01** |
 | ⚠️ Beta migration | Free-for-life לפי קריטריון | מתחילים נקי | **D-2026-05-01-02** |
 | ⚠️ Pricing | $0/$9/$19, ילדים 1/3/∞ | **פתוח** | להחלטה |
-| ⚠️ Founding Members | Beta users שעמדו בקריטריון | משתמשי 49 emails | **D-2026-05-01-03** |
+| ⚠️ Founding Members | Beta users | משתמשי 49 emails | **D-2026-05-01-03** |
 | 🎯 BUDDY scope | 4 stages + 10 skins | **V0.5 — מערכת רמות + Boosters** | **D-2026-05-02-08** |
 | 🎯 Teen UI timing | "Phase 2" (1.5) | **MVP** (2.5) | **D-2026-05-02-05** |
 | 🎯 Streaks | Streak grace mechanic | בוטל. רק Winning Streak | **D-2026-05-02-07** |
 | 🎯 Vibe Check vs Rest Tickets | שניהם Must Have | Vibe Check ב-MVP, Rest ל-1.1 | **D-2026-05-02-10** |
 | 🎯 Pause Mode | Must Have | (1.5: ל-1.1) → (2.5: חזר ל-MVP) | **D-2026-05-02-14** |
-| 🎯 Teen Buddy | "no buddy" | **default on, dismissible** | **D-2026-05-02-13** |
+| 🎯 Teen Buddy | "no buddy" | **Onboarding choice** | **D-2026-05-02-13 v2** |
 
 ---
 
-## הצעדים הבאים — תוכנית עבודה ל-3-4 שבועות
+## הצעדים הבאים — תוכנית עבודה
+
+### חסר לפני התחלת קוד
+- [ ] מסך 07 — Settings ב-Stitch
+- [ ] מסך 08 — Teen Onboarding Choice ב-Stitch (חדש בעקבות D-13 v2)
 
 ### שבוע 1
-| יום | משימה | זמן |
-|---|---|---|
-| 1 | עיצוב Stitch — Teen UI (4 מסכים) | 1 |
-| 2 | Stitch סיום + תיקוני Onboarding | 1 |
-| 3 | Empty state ילד-עם-קוד + Daily Win connection | 1 |
-| 4 | Pet Skin UI + שפה מעצימה | 1 |
-| 5 | Buddy System V0.5 — DB schema + EOD trigger | 1 |
+| יום | משימה |
+|---|---|
+| 1 | סיום Stitch (מסכים 7+8) + תיקוני Onboarding |
+| 2 | Empty state ילד-עם-קוד + Daily Win connection |
+| 3 | Pet Skin UI + Wolf skin להוסיף + שפה מעצימה |
+| 4 | Buddy System V0.5 — DB schema + EOD trigger |
+| 5 | Buddy System — Friendship Levels logic + 2 Boosters |
 
 ### שבוע 2
-| יום | משימה | זמן |
-|---|---|---|
-| 6 | Buddy System — Friendship Levels logic + 2 Boosters | 1 |
-| 7 | Buddy System — Me & Buddy screen + Toast | 1 |
-| 8 | **Pause Mode** (DB + Parent UI + Child UI + Resume) | 1 |
-| 9 | Daily Vibe Check (start) | 1 |
-| 10 | Daily Vibe Check (end) | 1 |
+| יום | משימה |
+|---|---|
+| 6 | Buddy System — Me & Buddy + My Stats screens |
+| 7 | Toast notifications + Hide/Show Buddy logic |
+| 8 | Pause Mode (DB + Parent UI + Child UI + Resume) |
+| 9 | Daily Vibe Check (start) |
+| 10 | Daily Vibe Check (end) |
 
 ### שבוע 3
-| יום | משימה | זמן |
-|---|---|---|
-| 11 | Teen UI מימוש — Dashboard (with/without Buddy versions) | 1 |
-| 12 | Teen UI — Goals + Deal-making | 1 |
-| 13 | Teen UI — Boosters in Teen mode + Hide Buddy + סיום styling | 1 |
-| 14 | Stickers picker + Push Notifications setup | 1 |
-| 15 | Welcome Back screen + Build + העלאה ל-Internal Testing | 1 |
-| 16-17 | בדיקה + תיקונים | 2 |
+| יום | משימה |
+|---|---|
+| 11 | Teen UI מימוש — Dashboard (with/without Buddy) + Onboarding choice |
+| 12 | Teen UI — Tasks Detail + Settings |
+| 13 | Teen UI — Rewards Shop + Boosters integration |
+| 14 | Stickers picker + Push Notifications setup |
+| 15 | Welcome Back + Build + Internal Testing |
+| 16-17 | בדיקה + תיקונים |
 
 **סך הכל: 17 ימי עבודה = 3-4 שבועות**
 
@@ -255,31 +248,36 @@
 
 ## קריטריון "מוכן לפרודקשן"
 
-**אחרי בילד Internal Testing, Adi + Itay מתקינים ובודקים:**
+**Adi + Itay מתקינים ובודקים:**
 
 1. ✅ הורה חדש מוריד → אונבורדינג → רואה משימות הגיוניות
 2. ✅ ילד 6-12 פותח → Buddy מציג, משימות ברורות
-3. ✅ Teen פותח → Dashboard עם Buddy by default
-4. ✅ Teen לוחץ Hide Buddy → preference נשמר → dashboard נקי
-5. ✅ הורה נותן Daily Win Bonus → ילד רואה
-6. ✅ ילד מצליח 3 ימים מוצלחים → BUDDY מציע Theme Color (Booster ראשון)
-7. ✅ ילד פותח Vibe Check → Low Power Mode מופעל אם נמוך
-8. ✅ הורה מפעיל Pause Mode → באנר מוצג לילד → resume עובד
-9. ✅ ילד לא נכנס 3+ ימים → Welcome Back screen מופיע
-10. ✅ ילד מקבל פרס מההורה → מסך חוגג
+3. ✅ Teen פותח → **Onboarding שואל** "with or without Buddy?"
+4. ✅ Teen בחר "without" → Dashboard נקי בסגנון 5B
+5. ✅ Teen בחר "with" → Dashboard עם Wolf STORMY בסגנון 5A
+6. ✅ Teen מ-Settings יכול לשנות בין השניים
+7. ✅ הורה נותן Daily Win Bonus → ילד רואה
+8. ✅ ילד מצליח 3 ימים מוצלחים → BUDDY מציע Theme Color (Booster ראשון)
+9. ✅ ילד פותח Vibe Check → Low Power Mode מופעל אם נמוך
+10. ✅ הורה מפעיל Pause Mode → באנר מוצג לילד → resume עובד
+11. ✅ ילד לא נכנס 3+ ימים → Welcome Back screen
+12. ✅ ילד מקבל פרס מההורה → מסך חוגג
 
-אם 10 הזרימות עוברות = מוכן ל-Closed Testing → Production.
+12 הזרימות = מוכן ל-Closed Testing → Production.
 
 ---
 
 ## שאלות פתוחות
 
-1. ⏳ **תאריך יצירת ה-PRD** — לא ידוע (April 2026)
+1. ⏳ **תאריך יצירת ה-PRD** — לא ידוע
 2. ⏳ **Pricing סופי** — $9/$19 (PRD) או לעדכן לישראלי?
-3. ⏳ **בחירת Theme Colors** — בדיוק 4 צבעים (ירוק ברירת מחדל + 3 נוספים)
+3. ⏳ **בחירת Theme Colors** — בדיוק 4 צבעים
 4. ⏳ **השפה של BUDDY** — Adi כותב? AI? תבנית?
-5. ⏳ **התנהגות BUDDY אם הילד לא הצליח 7 ימים** — קלי / משתתף / מתעלם?
-6. ⏳ **Pause Mode — ילד יכול לבקש?** — או רק ההורה? (בינתיים: רק ההורה)
+5. ⏳ **התנהגות BUDDY אם הילד לא הצליח 7 ימים** — ?
+6. ⏳ **Pause Mode — ילד יכול לבקש?** — בינתיים: רק ההורה
+7. ⏳ **שם ה-Buddy** — STORMY default או הילד בוחר?
+8. ⏳ **Pet skins quality images** — לדייק במהלך implementation
+9. ⏳ **Children Mode design + Pastel theme** — דחוי ל-1.1 (אמי תהיה co-designer)
 
 ---
 

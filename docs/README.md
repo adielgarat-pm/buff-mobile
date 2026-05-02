@@ -2,7 +2,10 @@
 
 תיקייה זו מכילה את **source-of-truth** של מוצר BUFF.
 
-**צוות:** Adi Elgarat German (founder, PM) + Itay (co-creator, מתבגר עם ADHD, בן 15)
+**צוות:**
+- **Adi Elgarat German** (founder, PM)
+- **Itay** (co-creator של Teen UI, מתבגר עם ADHD, בן 15)
+- **Emi** (פרסונה עתידית של Children Mode, בת 9)
 
 ---
 
@@ -10,20 +13,47 @@
 
 | קובץ | תוכן | מתי לקרוא |
 |---|---|---|
-| `BUFF_PRD.md` | Product Requirements Document — חזון, קהל יעד, מודל עסקי, scope של MVP | בתחילת החלטות אסטרטגיות |
-| `BUFF_FEATURE_AUDIT.md` | רשימת פיצ'רים מקיפה עם החלטה לכל אחד | לפני בניית פיצ'ר |
+| `BUFF_PRD.md` | Product Requirements Document | בתחילת החלטות אסטרטגיות |
+| `BUFF_FEATURE_AUDIT.md` | רשימת פיצ'רים מקיפה | לפני בניית פיצ'ר |
 | `BUFF_FEATURE_PRIORITIZATION.md` | פיצ'רים מתועדפים | תכנון סדר עבודה |
-| `BUFF_USER_STORIES.md` | סיפורי משתמש עם acceptance criteria | לפני כתיבת קוד |
-| **`BUFF_GAP_ANALYSIS.md`** ⭐ | **השוואה PRD ↔ קוד הקיים + תוכנית עבודה** | תמיד — לפני החלטות חדשות |
-| **`BUFF_DECISIONS_LOG.md`** ⭐ | **תיעוד החלטות עם תאריך ונימוק** | תמיד — להבין למה דברים כפי שהם |
-| **`BUFF_BUDDY_SYSTEM.md`** ⭐ | **מערכת BUDDY — רמות, Boosters, UI, Pause Mode, Welcome Back** | בעבודה על BUDDY/Teen UI |
-| `README.md` | זה — אינדקס + פרוטוקול תחילת שיחה | תחילת שיחה |
+| `BUFF_USER_STORIES.md` | סיפורי משתמש | לפני כתיבת קוד |
+| **`BUFF_GAP_ANALYSIS.md`** ⭐ | **PRD ↔ קוד + תוכנית עבודה** | תמיד — לפני החלטות |
+| **`BUFF_DECISIONS_LOG.md`** ⭐ | **תיעוד החלטות עם תאריך ונימוק** | תמיד |
+| **`BUFF_BUDDY_SYSTEM.md`** ⭐ | **מערכת BUDDY מלאה** | בעבודה על BUDDY/Teen |
+| `teen-ui-design/` | **Mockups של Stitch + design notes** | בעבודה על Teen UI |
+| `README.md` | זה — אינדקס + פרוטוקול | תחילת שיחה |
+
+---
+
+## תיקיית `teen-ui-design/`
+
+מכילה את 6 המסכים המעוצבים ב-Stitch (2.5.2026):
+
+```
+teen-ui-design/
+├── 01-dashboard-with-buddy/        ✅ Approved
+│   ├── code.html
+│   ├── DESIGN.md
+│   ├── screen.png
+│   └── design-notes.md
+├── 02-dashboard-no-buddy/          ✅ Approved
+├── 03-buddy-toggle-flow/           ✅ Approved
+├── 04-tasks-detail/                ✅ Approved
+├── 05-me-and-buddy/
+│   ├── 5a-with-buddy/              ✅ Approved
+│   └── 5b-my-stats/                ✅ Approved + Itay's preferred
+├── 06-rewards-shop/                ✅ Approved
+│   ├── 6a-from-parent/
+│   └── 6b-from-buddy/
+├── 07-settings/                    ⏳ Not yet designed
+└── 08-teen-onboarding-choice/      ⏳ Not yet designed (חדש)
+```
 
 ---
 
 ## פרוטוקול תחילת שיחה עם Claude (claude.ai)
 
-**ל-Claude אין זיכרון בין שיחות.** כדי להבטיח continuity, יש להדביק את ההודעה הבאה בתחילת כל שיחה חדשה:
+**ל-Claude אין זיכרון בין שיחות.** הדביקי את ההודעה הבאה בתחילת כל שיחה חדשה:
 
 ```
 היי קלוד, אני עדי. אני עובדת על BUFF — אפליקציית מובייל לילדים ומתבגרים עם ADHD.
@@ -31,30 +61,28 @@
 הפרויקט: C:\Users\adiel\buff-mobile
 GitHub: github.com/adielgarat-pm/buff-mobile
 
-הצוות: אני (PM/founder) + הבן שלי Itay (קו-יוצר, בן 15, מתבגר עם ADHD).
+הצוות:
+- אני (PM/founder)
+- Itay, בני (קו-יוצר Teen UI, בן 15, מתבגר עם ADHD)
+- Emi, בתי (פרסונה עתידית של Children Mode, בת 9)
 
-לפני שתענה על כל דבר, תקרא את המסמכים הבאים בסדר הזה:
+לפני שתענה, תקרא את המסמכים הבאים בסדר:
 
 1. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_DECISIONS_LOG.md
-   (מה הוחלט עד כה ולמה)
-
 2. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_GAP_ANALYSIS.md
-   (איפה הקוד עומד מול ה-PRD + תוכנית עבודה)
-
 3. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_BUDDY_SYSTEM.md
-   (מערכת BUDDY — חשוב להבין לפני כל החלטה הקשורה ל-BUDDY/Teen UI)
-
 4. https://github.com/adielgarat-pm/buff-mobile/blob/main/SESSION_LOG.md
-   (יומן הסשנים האחרונים)
-
-5. אם השאלה דורשת ירידה לפרטי PRD מלא — גם:
+5. אם דרוש — גם:
    https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_PRD.md
 
+אם השיחה היא על Teen UI, תסתכל גם על המסכים ב-Stitch:
+   https://github.com/adielgarat-pm/buff-mobile/tree/main/docs/teen-ui-design
+
 אחרי שקראת, תגיד לי בקצרה (3-5 שורות):
-- מה הסטטוס הנוכחי של הפרויקט
-- באיזה שלב בתוכנית העבודה אנחנו (מתוך BUFF_GAP_ANALYSIS.md סעיף "הצעדים הבאים")
+- מה הסטטוס הנוכחי
+- באיזה שלב בתוכנית העבודה אנחנו
 - השאלה הפתוחה הכי דחופה
-- האם יש משהו במסמכים שלא ברור או נראה לא עדכני
+- האם משהו במסמכים לא ברור או נראה לא עדכני
 
 ואז נמשיך מאיפה שעצרנו.
 ```
@@ -65,49 +93,40 @@ GitHub: github.com/adielgarat-pm/buff-mobile
 
 ### במהלך שיחה
 - כשמתקבלת החלטה חדשה → Claude יציע "תעדכני ב-`BUFF_DECISIONS_LOG.md`?"
-- כשנגלה פער או ממצא חדש → Claude יציע "תעדכני ב-`BUFF_GAP_ANALYSIS.md`?"
+- כשנגלה פער → Claude יציע "תעדכני ב-`BUFF_GAP_ANALYSIS.md`?"
 - כשעולה רעיון BUDDY/Teen UI → Claude יציע "תעדכני ב-`BUFF_BUDDY_SYSTEM.md`?"
-- **בלי "אישור עדכון" — לא מעדכנים.** החלטות בכוונה, לא בטעות.
+- **בלי "אישור עדכון" — לא מעדכנים.**
 
 ### בסוף שיחה
-1. עדכון `SESSION_LOG.md` (יומן יומי)
+1. עדכון `SESSION_LOG.md`
 2. עדכון מסמכים רלוונטיים
 3. Git commit ו-push
 
 ### בתחילת שיחה
 - Claude קורא את 3 המסמכים העיקריים
 - Claude מסכם את הסטטוס
-- אם יש סתירה — Claude מציף לפני שמתקדמים
+- אם יש סתירה — מציף לפני שמתקדמים
 
 ---
 
-## מתי לעדכן את ה-PRD המקורי
+## מצב נוכחי (עדכן בסיום סשן)
 
-ה-PRD (`BUFF_PRD.md`) נשאר **כפי שנכתב במקור**. שינויים מתועדים ב-`DECISIONS_LOG.md` ומשתקפים ב-`GAP_ANALYSIS.md`.
+**שלב נוכחי:** סוף שלב עיצוב Stitch (6 מתוך 8 מסכים)
 
-**יוצא מהכלל:** אחת ל-3 חודשים, או לפני אבני דרך משמעותיות (בילד פרודקשן, גיוס משקיעים), נכתבת גרסה חדשה של PRD שמשלבת החלטות.
+**מה הושלם בסשן 2.5.2026 ערב:**
+- ✅ 6 מסכי Teen UI מעוצבים ב-Stitch
+- ✅ Itay בחר no-buddy (D-13 גרסה 2)
+- ✅ אמי אישרה את ה-base aesthetic, רוצה pastel בעתיד
+- ✅ עדכון מערכתי של 3 מסמכי docs
 
----
+**הצעדים הבאים:**
+1. מסך 07 ב-Stitch — Settings
+2. מסך 08 ב-Stitch — Teen Onboarding Choice (חדש)
+3. תיקוני Onboarding בקוד (Claude Code)
+4. התחלת מימוש Buddy System V0.5
 
-## מצב נוכחי בתוכנית העבודה
-
-(עדכן בכל סיום סשן)
-
-**שלב נוכחי:** שלב 0 — תכנון לפני קוד  
-**מה נשאר לפני בילד:** 17 ימי עבודה (3-4 שבועות) — ראה `BUFF_GAP_ANALYSIS.md` סעיף "הצעדים הבאים"
-
-**הצעד הבא הקרוב:**
-1. שאלון Itay הסופי הוא לא דרוש — את כל התשובות שצריך כבר יש לנו
-2. עיצוב Teen UI ב-Stitch (Adi + Itay)
-3. בכפיפה — תיקוני Onboarding בקוד (Claude Code)
-
-**החלטות מהיום (2.5) שעדיין צריכות מימוש:**
-- Pause Mode (חזר ל-MVP)
-- Teen Buddy default-on, dismissible
-- Welcome Back screen
-- Boosters terminology (החלפת "Power-Ups")
-- Daily Vibe Check ב-MVP
+**מה נשאר לפני בילד:** 17 ימי עבודה (3-4 שבועות)
 
 ---
 
-**עודכן לאחרונה:** 2 במאי 2026, אחרי תשובות Itay והחלטות Adi
+**עודכן לאחרונה:** 2 במאי 2026 ערב, אחרי סשן עיצוב Stitch

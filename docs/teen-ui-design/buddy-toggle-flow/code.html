@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BUFF - Confirmation Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&amp;family=Manrope:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#79ff5b",
+                        "on-primary-fixed": "#022100",
+                        "surface-container-high": "#222d1e",
+                        "surface-container": "#182214",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-error": "#690005",
+                        "surface-bright": "#323c2d",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#053900",
+                        "surface-variant": "#2d3828",
+                        "surface-container-lowest": "#071105",
+                        "on-surface": "#dae6d0",
+                        "primary": "#efffe3",
+                        "on-secondary-container": "#b6b5b4",
+                        "secondary-fixed": "#e4e2e1",
+                        "on-primary-fixed-variant": "#095300",
+                        "secondary-container": "#474746",
+                        "surface-tint": "#2ae500",
+                        "primary-fixed-dim": "#2ae500",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-primary-container": "#107100",
+                        "inverse-primary": "#106e00",
+                        "surface-container-highest": "#2d3828",
+                        "on-tertiary-container": "#606162",
+                        "background": "#0c1609",
+                        "secondary": "#c8c6c5",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "inverse-on-surface": "#293324",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-surface-variant": "#baccb0",
+                        "outline": "#85967c",
+                        "inverse-surface": "#dae6d0",
+                        "surface": "#0c1609",
+                        "surface-container-low": "#141e11",
+                        "on-background": "#dae6d0",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary-container": "#dddddd",
+                        "primary-container": "#39ff14",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-tertiary": "#2f3131",
+                        "error": "#ffb4ab",
+                        "tertiary": "#f9fafa",
+                        "error-container": "#93000a",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "outline-variant": "#3c4b35",
+                        "surface-dim": "#0c1609",
+                        "on-secondary": "#303030"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "md": "16px",
+                        "margin": "20px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Space Grotesk"],
+                        "headline-xl": ["Space Grotesk"],
+                        "body-md": ["Manrope"],
+                        "label-sm": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "label-bold": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-xl": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-bold": ["14px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #0c1609; color: #dae6d0; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .fill-icon { font-variation-settings: 'FILL' 1; }
+        
+        /* Dashboard Background Styles (from previous screens) */
+        .bg-dashboard { background-color: #0A0A0A; }
+        .text-neon { color: #39FF14; }
+        .bg-surface-card { background-color: #1A1A1A; }
+        .border-neon { border-color: #39FF14; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="flex items-center justify-center min-h-screen bg-black">
+<!-- Mobile Device Container -->
+<div class="relative w-[393px] h-[852px] bg-dashboard overflow-hidden shadow-2xl">
+<!-- DASHBOARD BACKGROUND (Dimmed by overlay later) -->
+<div class="absolute inset-0 flex flex-col pt-10 px-margin z-0">
+<!-- Top Bar -->
+<div class="flex justify-between items-center mb-lg">
+<div class="flex items-center gap-2 text-neon font-headline-lg text-headline-lg">
+<span>Hey, Itay</span>
+<span class="material-symbols-outlined fill-icon text-[24px]">wb_sunny</span>
+</div>
+<div class="flex gap-4 text-white/70">
+<span class="material-symbols-outlined text-[28px]">notifications</span>
+<span class="material-symbols-outlined text-[28px]">settings</span>
+</div>
+</div>
+<!-- Buddy Section -->
+<div class="flex flex-col items-center justify-center py-6 mb-lg">
+<div class="relative w-32 h-32 rounded-full border-4 border-[#39FF14] p-1 glow-ring flex items-center justify-center mb-4" style="box-shadow: 0 0 20px rgba(57,255,20,0.3);">
+<img class="w-full h-full rounded-full object-cover" data-alt="A striking digital illustration of a wolf avatar in a high-contrast dark mode setting. The wolf has glowing, stylized features and is surrounded by a vibrant neon green ring. The aesthetic is tactical and futuristic, set against a void-black background with sharp neon accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMzlrU0av5-pxoRgcZcFmCUHhqDt5ofNhw--9VxKzeap6dhVFWyFFdQRoaOtmPRLG2EnfMo_6cFr81g7vQ25ijp85IhQ7C0Mj16pS0f8o2zGf3uFBvELMxPXjbWu_y06IuxS_7baVUMSA0heEQ9tw4ddK8no-mUfEz1wKhvs2VskqH6VnOi68lll_sDWG9KniMNgXJB6GO_QAOSup-ZMQ6NqxBQ2DZSqg6fQwi4t_-N18wvvgBWZLcz5rOC_J3KCCluozybI34c1Ub"/>
+</div>
+<div class="bg-surface-card px-4 py-2 rounded-full border border-white/10 flex items-center gap-2">
+<span class="font-label-bold text-label-bold text-white tracking-widest">BEST FRIENDS</span>
+<div class="flex gap-1 text-neon">
+<span class="material-symbols-outlined fill-icon text-[14px]">favorite</span>
+<span class="material-symbols-outlined fill-icon text-[14px]">favorite</span>
+<span class="material-symbols-outlined fill-icon text-[14px]">favorite</span>
+<span class="material-symbols-outlined text-[14px] text-white/30">favorite</span>
+<span class="material-symbols-outlined text-[14px] text-white/30">favorite</span>
+</div>
+</div>
+</div>
+<!-- Time Period Pills -->
+<div class="flex justify-between gap-2 mb-lg overflow-x-hidden">
+<div class="px-4 py-2 rounded-full bg-surface-card border border-white/10 text-white/50 font-label-bold text-[10px] tracking-widest">MORNING</div>
+<div class="px-4 py-2 rounded-full bg-surface-card border border-white/10 text-white/50 font-label-bold text-[10px] tracking-widest">NOON</div>
+<div class="px-4 py-2 rounded-full bg-primary-container text-black font-label-bold text-[10px] tracking-widest">AFTERNOON</div>
+<div class="px-4 py-2 rounded-full bg-surface-card border border-white/10 text-white/50 font-label-bold text-[10px] tracking-widest">EVENING</div>
+</div>
+<!-- Task List Skeleton -->
+<div class="flex flex-col gap-4">
+<div class="bg-surface-card p-4 rounded-xl border-l-4 border-l-[#39FF14] flex justify-between items-center opacity-80">
+<div>
+<div class="font-headline-lg text-[18px] text-white mb-1">Math Homework</div>
+<div class="font-body-md text-label-sm text-white/50">45 mins focused block</div>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-white/20"></div>
+</div>
+<div class="bg-surface-card p-4 rounded-xl border-l-4 border-l-white/20 flex justify-between items-center opacity-80">
+<div>
+<div class="font-headline-lg text-[18px] text-white mb-1">Clean Room</div>
+<div class="font-body-md text-label-sm text-white/50">15 mins quick tidy</div>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-white/20"></div>
+</div>
+</div>
+</div>
+<!-- DIMMING OVERLAY -->
+<div class="absolute inset-0 bg-black/70 z-40 backdrop-blur-sm"></div>
+<!-- BOTTOM MODAL -->
+<div class="absolute bottom-0 left-0 w-full bg-[#1A1A1A] z-50 rounded-t-[24px] flex flex-col items-center px-margin pb-10 pt-4" style="height: 60%; box-shadow: 0 -4px 24px rgba(0,0,0,0.5); transform: translateY(0);">
+<!-- Handle -->
+<div class="w-[40px] h-[4px] bg-white/20 rounded-full mb-12"></div>
+<!-- Content -->
+<div class="w-full flex flex-col items-center flex-grow">
+<!-- Title -->
+<h2 class="font-headline-lg text-[24px] text-white mb-4 text-center tracking-tight">Hide Buddy?</h2>
+<!-- Subtitle -->
+<p class="font-body-md text-[14px] text-[#999999] text-center px-4 mb-8 leading-relaxed">
+                    Your Buddy keeps helping you in the background.<br/>You'll still earn Boosters and level up.
+                </p>
+<!-- Info List -->
+<div class="w-full pl-6 flex flex-col gap-4 mb-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#39FF14] text-[20px] font-bold">check</span>
+<span class="font-body-md text-[14px] text-white/90">Boosters still arrive</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#39FF14] text-[20px] font-bold">check</span>
+<span class="font-body-md text-[14px] text-white/90">Friendship levels still progress</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#39FF14] text-[20px] font-bold">check</span>
+<span class="font-body-md text-[14px] text-white/90">Show Buddy again anytime in Settings</span>
+</div>
+</div>
+</div>
+<!-- Buttons -->
+<div class="w-full flex gap-[12px] mt-6">
+<button class="flex-1 h-[48px] rounded-lg border-[1.5px] border-[#39FF14] text-[#39FF14] font-headline-lg text-[16px] flex items-center justify-center tracking-wide active:scale-95 transition-transform">
+                    Keep Buddy
+                </button>
+<button class="flex-1 h-[48px] rounded-lg bg-[#39FF14] text-black font-headline-lg text-[16px] font-bold flex items-center justify-center tracking-wide active:scale-95 transition-transform">
+                    Hide Buddy
+                </button>
+</div>
+</div>
+<!-- Navigation Shell (Behind overlay, visible at bottom) -->
+<!-- Suppressed per rules, but showing contextually behind overlay as requested by BACKGROUND specs -->
+<div class="fixed bottom-0 left-0 w-[393px] z-30 flex justify-around items-center px-4 pb-6 pt-2 bg-[#0A0A0A]/90 backdrop-blur-md border-t border-white/10 rounded-t-xl opacity-40">
+<div class="flex flex-col items-center justify-center text-[#39FF14] bg-[#1A1A1A] rounded-lg py-2 px-4 border border-[#39FF14]/30">
+<span class="material-symbols-outlined fill-icon text-[24px]">home_max</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-1">HOME</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 py-2 px-4">
+<span class="material-symbols-outlined text-[24px]">bolt</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-1">BOOSTERS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 py-2 px-4">
+<span class="material-symbols-outlined text-[24px]">workspace_premium</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-1">REWARDS</span>
+</div>
+<div class="flex flex-col items-center justify-center text-zinc-500 py-2 px-4">
+<span class="material-symbols-outlined text-[24px]">person_filled</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-1">PROFILE</span>
+</div>
+</div>
+</div>
+</body></html>

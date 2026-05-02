@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Me &amp; Buddy - BUFF</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&amp;family=Manrope:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#0c1609",
+                        "on-primary": "#053900",
+                        "surface-container-highest": "#2d3828",
+                        "on-tertiary": "#2f3131",
+                        "on-primary-fixed": "#022100",
+                        "tertiary-container": "#dddddd",
+                        "surface": "#0c1609",
+                        "secondary": "#c8c6c5",
+                        "on-secondary-container": "#b6b5b4",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "primary-fixed-dim": "#2ae500",
+                        "on-surface": "#dae6d0",
+                        "primary": "#efffe3",
+                        "surface-tint": "#2ae500",
+                        "inverse-primary": "#106e00",
+                        "surface-container-high": "#222d1e",
+                        "on-tertiary-container": "#606162",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#474746",
+                        "error": "#ffb4ab",
+                        "surface-container-low": "#141e11",
+                        "tertiary": "#f9fafa",
+                        "outline": "#85967c",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-dim": "#0c1609",
+                        "tertiary-fixed": "#e2e2e2",
+                        "on-primary-fixed-variant": "#095300",
+                        "on-surface-variant": "#baccb0",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "secondary-container": "#474746",
+                        "surface-container-lowest": "#071105",
+                        "error-container": "#93000a",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#dae6d0",
+                        "surface-container": "#182214",
+                        "surface-bright": "#323c2d",
+                        "on-primary-container": "#107100",
+                        "surface-variant": "#2d3828",
+                        "outline-variant": "#3c4b35",
+                        "on-secondary": "#303030",
+                        "primary-container": "#39ff14",
+                        "on-error": "#690005",
+                        "on-background": "#dae6d0",
+                        "secondary-fixed": "#e4e2e1",
+                        "primary-fixed": "#79ff5b",
+                        "inverse-on-surface": "#293324",
+                        "on-tertiary-fixed-variant": "#454747"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "unit": "4px",
+                        "lg": "24px",
+                        "margin": "20px",
+                        "gutter": "16px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-xl": ["Space Grotesk"],
+                        "body-md": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "label-bold": ["Space Grotesk"],
+                        "label-sm": ["Manrope"],
+                        "headline-lg": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-xl": ["32px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "label-bold": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "1.0", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .neon-glow { box-shadow: 0 0 15px 2px #39ff14; }
+        .neon-text-glow { text-shadow: 0 0 8px rgba(57, 255, 20, 0.6); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen pb-20">
+<!-- TopAppBar JSON Source Match -->
+<header class="fixed top-0 left-0 w-full flex justify-between items-center px-4 h-16 bg-zinc-950/90 backdrop-blur-md z-50 border-b border-white/10 no-shadows">
+<button class="text-[#39FF14] hover:bg-zinc-800/50 transition-colors p-2 rounded-full active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Space_Grotesk'] font-bold tracking-tighter uppercase text-on-background text-[18px]">Me &amp; Buddy</h1>
+<button class="text-zinc-400 hover:text-[#39FF14] hover:bg-zinc-800/50 transition-colors p-2 rounded-full active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<main class="pt-16 max-w-md mx-auto">
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-b from-[#0A2010] to-[#0A0A0A] pt-xl pb-lg flex flex-col items-center justify-center text-center px-margin border-b border-white/5">
+<div class="relative mb-lg mt-md">
+<div class="w-32 h-32 rounded-full p-[2px] bg-primary-container neon-glow">
+<img alt="Wolf avatar" class="w-full h-full rounded-full object-cover border-4 border-background" data-alt="A highly stylized, low-poly 3D render of a fierce but loyal cybernetic wolf companion. The wolf is rendered in deep charcoal greys and void blacks, illuminated by stark, striking neon green accents (#39FF14) tracing its geometric edges. The background is a pure, pitch-black void to emphasize the glowing details, matching a tactical, high-energy gaming HUD aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAC2VMrLHIPc0ctgJ72lhYZ4sKKU9OG3nY8aZxdPJbZzzK6RA1APvAYVlZjw5GkJ_lH7qV8XajfQDo7KbcvnPojZ3ge5AashA7J-Bui_RoAUuxb2YI-DbFC5XEZBveLPFRUN2N8RNjJA94gF_15CrlGJpR9ccce3vTAN8xEU_c9wANLJitfKpHgnSoPSxkWpuyuikvYHCipN15ZCDHd1vsfQU54V-NCTJbNa5d9Wbbmg44hdsCMIELEyHa_SVdNa98j7W9Y7U2ou05V"/>
+</div>
+</div>
+<h2 class="font-headline-xl text-on-background uppercase tracking-widest mb-sm">STORMY</h2>
+<div class="bg-surface-variant px-md py-sm rounded-full flex items-center gap-2 border border-outline-variant">
+<span class="font-label-bold text-on-surface-variant uppercase text-[10px] tracking-wider">Best Friends</span>
+<div class="flex gap-1 text-[12px]">
+<span class="text-primary-container">❤</span>
+<span class="text-primary-container">❤</span>
+<span class="text-primary-container">❤</span>
+<span class="text-primary-container">❤</span>
+<span class="text-surface-bright">❤</span>
+</div>
+</div>
+</section>
+<!-- Stats Grid -->
+<section class="px-margin py-xl">
+<div class="grid grid-cols-3 gap-gutter">
+<div class="bg-surface-container-high rounded-xl p-md flex flex-col items-center justify-center border border-white/5 text-center">
+<span class="font-headline-xl text-primary-container mb-xs neon-text-glow text-[28px]">47</span>
+<span class="font-label-sm text-on-surface-variant uppercase text-[10px] leading-tight">Days<br/>Together</span>
+</div>
+<div class="bg-surface-container-high rounded-xl p-md flex flex-col items-center justify-center border border-white/5 text-center">
+<span class="font-headline-xl text-on-background mb-xs text-[28px]">32</span>
+<span class="font-label-sm text-on-surface-variant uppercase text-[10px] leading-tight">Successful<br/>Days</span>
+</div>
+<div class="bg-surface-container-high rounded-xl p-md flex flex-col items-center justify-center border border-white/5 text-center">
+<span class="font-headline-xl text-on-background mb-xs text-[28px]">184</span>
+<span class="font-label-sm text-on-surface-variant uppercase text-[10px] leading-tight">Tasks<br/>Completed</span>
+</div>
+</div>
+</section>
+<!-- Progress Card -->
+<section class="px-margin pb-xl">
+<div class="bg-[#1A1A1A] rounded-xl p-lg border border-white/5">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-label-bold text-on-background uppercase tracking-wider">Progress to Forever Friends</h3>
+<span class="font-label-sm text-primary-container">80%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden mb-sm border border-white/5">
+<div class="h-full bg-primary-container w-[80%] neon-glow rounded-full"></div>
+</div>
+<p class="font-label-sm text-on-surface-variant">3 more successful days until your next level!</p>
+</div>
+</section>
+<!-- Boosters History -->
+<section class="pb-xl">
+<div class="px-margin mb-md">
+<h3 class="font-headline-lg text-on-background text-[20px] mb-xs">Boosters Buddy gave you</h3>
+<p class="font-body-md text-on-surface-variant text-[14px]">Tap to use a Booster</p>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar gap-gutter px-margin pb-sm">
+<!-- Card 1 -->
+<div class="min-w-[140px] bg-surface-container-high rounded-xl p-md border border-white/5 opacity-50 shrink-0">
+<div class="text-2xl mb-sm">💚</div>
+<h4 class="font-label-bold text-on-background mb-xs">Theme Color</h4>
+<p class="font-label-sm text-on-surface-variant">Used Day 5</p>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[140px] bg-surface-container-high rounded-xl p-md border border-white/5 opacity-50 shrink-0">
+<div class="text-2xl mb-sm">✨</div>
+<h4 class="font-label-bold text-on-background mb-xs">x2 Buffs</h4>
+<p class="font-label-sm text-on-surface-variant">Used Day 14</p>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[140px] bg-[#1A1A1A] rounded-xl p-md border-2 border-primary-container shrink-0 relative overflow-hidden">
+<div class="absolute inset-0 bg-primary-container/5"></div>
+<div class="text-2xl mb-sm relative z-10">🎟️</div>
+<h4 class="font-label-bold text-on-background mb-xs relative z-10">Skip Token</h4>
+<p class="font-label-sm text-primary-container relative z-10">Available now</p>
+</div>
+<!-- Card 4 -->
+<div class="min-w-[140px] bg-surface-container-high rounded-xl p-md border border-white/5 opacity-40 shrink-0 relative">
+<span class="material-symbols-outlined absolute top-md right-md text-on-surface-variant text-[16px]">lock</span>
+<div class="text-2xl mb-sm grayscale">🎁</div>
+<h4 class="font-label-bold text-on-background mb-xs">Reward Discount</h4>
+<p class="font-label-sm text-on-surface-variant text-[10px] leading-tight mt-1">Unlock at Forever Friends</p>
+</div>
+</div>
+</section>
+</main>
+</body></html>

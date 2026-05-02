@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>My Stats - BUFF</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#293324",
+                        "tertiary-container": "#dddddd",
+                        "primary-container": "#39ff14",
+                        "on-secondary-fixed-variant": "#474746",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-container-low": "#141e11",
+                        "on-background": "#dae6d0",
+                        "surface": "#0c1609",
+                        "outline": "#85967c",
+                        "inverse-surface": "#dae6d0",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-surface-variant": "#baccb0",
+                        "outline-variant": "#3c4b35",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "tertiary": "#f9fafa",
+                        "error-container": "#93000a",
+                        "on-tertiary": "#2f3131",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#303030",
+                        "surface-dim": "#0c1609",
+                        "surface-container-high": "#222d1e",
+                        "primary-fixed": "#79ff5b",
+                        "on-primary-fixed": "#022100",
+                        "surface-variant": "#2d3828",
+                        "surface-container-lowest": "#071105",
+                        "on-primary": "#053900",
+                        "surface-bright": "#323c2d",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container": "#182214",
+                        "secondary-fixed": "#e4e2e1",
+                        "on-primary-fixed-variant": "#095300",
+                        "on-secondary-container": "#b6b5b4",
+                        "primary": "#efffe3",
+                        "on-surface": "#dae6d0",
+                        "secondary": "#c8c6c5",
+                        "on-secondary-fixed": "#1b1c1c",
+                        "background": "#0c1609",
+                        "surface-container-highest": "#2d3828",
+                        "on-tertiary-container": "#606162",
+                        "primary-fixed-dim": "#2ae500",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "on-primary-container": "#107100",
+                        "inverse-primary": "#106e00",
+                        "surface-tint": "#2ae500",
+                        "secondary-container": "#474746"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "md": "16px",
+                        "margin": "20px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Space Grotesk"],
+                        "label-sm": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "headline-xl": ["Space Grotesk"],
+                        "body-md": ["Manrope"],
+                        "headline-lg": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["14px", { "lineHeight": "1.0", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "1.0", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "headline-xl": ["32px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400" }],
+                        "headline-lg": ["24px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
+        }
+        .box-glow {
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+        }
+        .glass-edge {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .bg-hero-gradient {
+            background: linear-gradient(to bottom, rgba(10, 32, 16, 1) 0%, rgba(10, 10, 10, 1) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen font-body-md antialiased pb-24">
+<!-- TopAppBar -->
+<header class="docked full-width top-0 border-b border-white/10 bg-[#0A0A0A] dark:bg-[#0A0A0A] z-40 sticky">
+<div class="flex justify-between items-center w-full px-5 py-4">
+<button class="text-primary-container active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">arrow_back</span>
+</button>
+<h1 class="text-primary-container font-headline-lg tracking-tighter uppercase text-xl font-black">MY STATS</h1>
+<button class="text-on-surface hover:text-primary-container active:scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">settings</span>
+</button>
+</div>
+</header>
+<main class="w-full max-w-3xl mx-auto">
+<!-- Hero Section -->
+<section class="bg-hero-gradient pt-xl pb-lg px-margin flex flex-col items-center justify-center relative">
+<div class="w-48 h-48 mb-6 relative flex items-center justify-center">
+<img alt="Geometric Pattern" class="w-full h-full object-cover rounded-full box-glow glass-edge opacity-80 mix-blend-screen" data-alt="A striking digital abstract geometric pattern resembling a complex hexagonal grid or sound wave. Rendered in bright neon green against a void-black void background. The shape emits a subtle, pulsing glow, embodying a kinetic cyberpunk aesthetic. The lighting is focused and precise, highlighting the sharp structural lines of the design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAskC7Cry1CGZOISNslGNnbJCON52Ulm2KuDYCPIxPRClpVfqRARIimQpfuNafhY1fYlDc1JhhZFK9yv10GIMc4QbtWC34h9jOYarJJ7Mdayd3yomwg-9NtqlGoSJIiN457i-jaRPsl2sVn5vrFFjNHsPSCNitFOEkBFoFsEMwxUzkbn-bZ5H5Twsf2MWWr72g6uXFAheyg-7NbrGgI4jk1Ih1fLml-4PhT68jvjUuvcBFraKSepDTRyYpgEqrvXLcaT6_bt1gct-f5"/>
+</div>
+<div class="bg-surface-container-high rounded-full px-6 py-3 flex items-center gap-3 glass-edge">
+<span class="font-label-bold text-label-bold text-on-surface uppercase">LEVEL 4</span>
+<div class="flex gap-1">
+<div class="w-2 h-2 rounded-full bg-primary-container box-glow"></div>
+<div class="w-2 h-2 rounded-full bg-primary-container box-glow"></div>
+<div class="w-2 h-2 rounded-full bg-primary-container box-glow"></div>
+<div class="w-2 h-2 rounded-full bg-primary-container box-glow"></div>
+<div class="w-2 h-2 rounded-full border border-primary-container/50"></div>
+</div>
+</div>
+</section>
+<!-- Stats Grid -->
+<section class="px-margin mb-xl">
+<div class="grid grid-cols-3 gap-md">
+<div class="bg-surface-container-high rounded-xl p-4 flex flex-col items-center justify-center glass-edge">
+<span class="font-headline-xl text-headline-xl text-primary-container neon-glow mb-1">47</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase text-center">DAYS ACTIVE</span>
+</div>
+<div class="bg-surface-container-high rounded-xl p-4 flex flex-col items-center justify-center glass-edge">
+<span class="font-headline-xl text-headline-xl text-on-surface mb-1">32</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase text-center">SUCCESSFUL DAYS</span>
+</div>
+<div class="bg-surface-container-high rounded-xl p-4 flex flex-col items-center justify-center glass-edge">
+<span class="font-headline-xl text-headline-xl text-on-surface mb-1">184</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase text-center">TASKS COMPLETED</span>
+</div>
+</div>
+</section>
+<!-- Progress Bar -->
+<section class="px-margin mb-xl">
+<div class="bg-surface-container-high rounded-xl p-lg glass-edge">
+<div class="flex justify-between items-end mb-sm">
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase">PROGRESS TO LEVEL 5</h2>
+</div>
+<div class="w-full bg-surface-container-lowest h-4 rounded-full overflow-hidden mb-sm border border-white/5">
+<div class="bg-primary-container h-full w-[80%] rounded-full box-glow"></div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">3 more successful days until you level up!</p>
+</div>
+</section>
+<!-- Boosters History -->
+<section class="pl-margin mb-xl">
+<div class="pr-margin mb-md">
+<h2 class="font-headline-lg text-headline-lg text-on-surface uppercase mb-xs">Your Boosters</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Tap to use</p>
+</div>
+<div class="flex gap-md overflow-x-auto pb-4 snap-x pr-margin hide-scrollbar" style="scrollbar-width: none;">
+<!-- Used 1 -->
+<div class="snap-start shrink-0 w-32 bg-surface-container-lowest border border-white/10 rounded-xl p-4 opacity-50 flex flex-col items-center justify-center gap-2">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant" style="font-variation-settings: 'FILL' 1;">palette</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Theme Color</span>
+</div>
+<!-- Used 2 -->
+<div class="snap-start shrink-0 w-32 bg-surface-container-lowest border border-white/10 rounded-xl p-4 opacity-50 flex flex-col items-center justify-center gap-2">
+<span class="material-symbols-outlined text-3xl text-on-surface-variant" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">x2 Buffs</span>
+</div>
+<!-- Available -->
+<div class="snap-start shrink-0 w-32 bg-surface-container-high border-2 border-primary-container rounded-xl p-4 box-glow flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl text-primary-container" style="font-variation-settings: 'FILL' 1;">fast_forward</span>
+<span class="font-label-sm text-label-sm text-primary-container text-center font-bold">Skip Token</span>
+</div>
+<!-- Locked -->
+<div class="snap-start shrink-0 w-32 bg-surface-container-lowest border border-white/10 rounded-xl p-4 relative flex flex-col items-center justify-center gap-2 overflow-hidden">
+<div class="absolute inset-0 bg-black/60 z-10 flex items-center justify-center backdrop-blur-[2px]">
+<span class="material-symbols-outlined text-on-surface" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<span class="material-symbols-outlined text-3xl text-on-surface-variant" style="font-variation-settings: 'FILL' 1;">sell</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Reward Discount</span>
+</div>
+</div>
+</section>
+</main>
+</body></html>

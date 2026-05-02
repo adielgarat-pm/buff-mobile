@@ -6,211 +6,199 @@
 
 ---
 
-## 2 במאי 2026 — סשן עם Itay (קו-יוצר)
+## 2 במאי 2026 — סשן עיצוב Stitch עם Itay
 
-### D-2026-05-02-04: Itay כשותף עיצוב פורמלי של Teen UI ו-Buddy System
+### D-2026-05-02-18: 6 מסכי Teen UI עוצבו ב-Stitch ואושרו ע"י Itay
 
-**ההחלטה:** Itay (בנה של Adi, בן 15, עם ADHD) הוא שותף עיצוב פורמלי של Teen UI ושל מערכת BUDDY.
+**ההחלטה:** הבאים אושרו על-ידי Itay כעיצוב Teen UI ל-MVP:
 
-**סיבה:**
-- Itay הוא היזם של BUFF יחד עם Adi
-- הוא המשתמש המרכזי של Teen UI
-- עיצוב על-בסיס הנחות PM/Designer בלי קלט שלו = מוצר לא מתאים
-- נכס שיווקי — "BUFF for Teens, designed by a teenager with ADHD"
+| מסך | תיאור | אישור |
+|---|---|---|
+| 01 — Dashboard with Buddy | Wolf "STORMY" + neon green + hearts | ✅ |
+| 02 — Dashboard without Buddy | Stat cards (32/7) במקום buddy | ✅ |
+| 03 — Buddy Toggle Modal | אין אייקון, רק typography + buttons | ✅ |
+| 04 — Tasks Detail | 4 stages, current highlighted, next-up indicator | ✅ |
+| 05A — Me & Buddy | Wolf hero + 3 stats + Boosters horizontal scroll | ✅ |
+| 05B — My Stats | Sound wave hero + LEVEL 4 + dots | ✅ |
+| 06 — Rewards Shop | 2 tabs (FROM PARENT / FROM BUDDY) | ✅ |
 
-**מסמכים מושפעים:** BUFF_TEEN_UI_BRIEF.md, BUFF_BUDDY_SYSTEM.md
+**הקבצים:** `docs/teen-ui-design/[01-06]/` — כל מסך עם code.html + DESIGN.md + screen.png
+
+**פתוחים לסשן הבא:**
+- מסך 07 — Settings
+- מסך 08 — Teen Onboarding Choice (חדש — בעקבות D-13 גרסה 2)
 
 ---
+
+### D-2026-05-02-13 (revised, evening 2.5.2026): BUDDY ב-Teen Mode — Choose at Onboarding
+
+**ההחלטה (גרסה מתוקנת מהבוקר):**
+
+ב-Teen Mode (13-15), ה-onboarding **שואל** את המתבגר:
+> "Want a Buddy character on your home screen?"
+
+שתי אפשרויות עם preview ויזואלי:
+- **Yes, with Buddy** → מסך 5A style (wolf, hearts, name)
+- **No, keep it clean** → מסך 5B style (stat cards, abstract pattern)
+
+ההעדפה נשמרת. ניתן לשנות מ-Settings בכל זמן.
+
+**מבטל את ההחלטה הקודמת מ-2.5 בוקר ש-Default = With Buddy.**
+
+**סיבה לתיקון:**
+Itay (קו-יוצר, target user) ראה את שתי הגרסאות ב-Stitch ובחר מסך 5B
+(without buddy) במפורש. זה תואם את מה שאמר בשאלון המקורי
+("לא משנה לי / בלי דמות בכלל") — שאני (Adi) ו-Claude לא לקחנו ברצינות
+מספיק בהתחלה.
+
+**העיקרון:** מתבגרים מקבלים **בחירה**, לא ברירת מחדל שמישהו אחר קבע.
+זה תואם "Be the Coach, Not the Boss" + "BUFF for ages 13-15: built for autonomy."
+
+**ל-Children Mode (6-12):** Buddy תמיד מוצג — אין שאלה. אופציה להסתיר תוסף ל-1.1.
+
+**מסמכים מושפעים:**
+- BUFF_BUDDY_SYSTEM.md (סעיף Teen Mode)
+- BUFF_GAP_ANALYSIS.md (Teen UI requires onboarding choice screen)
+- צריך מסך 8 חדש: Teen Onboarding — Buddy choice
+
+---
+
+### D-2026-05-02-19: Hearts ב-Buddy בירוק במקום אדום
+
+**ההחלטה:** Friendship Level hearts יוצגו בירוק ניאון (#39FF14) במקום אדום.
+
+**סיבה:** Stitch ייצר את מסך 5A עם hearts ירוקים (במקום הצעת המקור באדום), והתוצאה הייתה consistent יותר עם design system. Adi אישרה.
+
+**ההשלכה:** במסך 1 (Dashboard with Buddy) שעובד עם hearts אדומים — לעדכן לירוקים במימוש.
+
+---
+
+### D-2026-05-02-20: Wolf "STORMY" — דמות BUDDY ראשונה ל-Teen
+
+**ההחלטה:** ה-Buddy הראשון בעיצוב הוא **זאב עם hoodie**, שם "STORMY". זה ה-default ל-Teen Mode (אם הילד בחר With Buddy).
+
+**סיבה:**
+- Itay אישר באיטרציה הראשונה של Stitch
+- מתאים לאסתטיקה Teen (gaming, edgy, לא חמוד-מדי)
+- שונה מהדמויות הקיימות בקוד (capybara/panda/unicorn) — מבדיל את Teen Mode
+
+**ההשלכה ל-implementation:** צריך להוסיף Wolf skin לקטלוג Skins בקוד (יש כבר HEROIC_SKINS — להוסיף להם).
+
+**שאלות פתוחות:** האם השם "STORMY" יישאר default או שהילד יבחר את שמו?
+
+---
+
+### D-2026-05-02-21: Sort order של משימות — current period only + click to navigate
+
+**אישור:** המסך הראשי מציג את חלק היום הנוכחי בלבד (Morning/Noon/Afternoon/Evening), עם pills למעבר לחלק יום אחר. **כפי שכבר ממומש בקוד.**
+
+**עיבוד:** מסך "Today's Plan" (04) מציג את **כל היום** עם 4 stages — נגיש דרך swipe או button "View all."
+
+**סיבה:** Itay אמר "עדיף מיקוד ביום ובקליק לעבור."
+
+---
+
+### D-2026-05-02-22: Visual indicator למשימה הבאה (next-up)
+
+**ההחלטה:** המשימה הבאה (next undone task in current stage) מסומנת ב-2 דרכים:
+1. **Green border** סביב הקארד
+2. **Vertical green bar** בקצה השמאלי של הקארד
+
+**סיבה:** Stitch הוסיף את שני הסימנים במסכים 1 ו-4. עוזר לילד לזהות מיד מה הצעד הבא בלי לחפש.
+
+**ההשלכה:** במימוש, זה לא רק styling — צריך לוגיקה שמזהה "next undone task in current stage."
+
+---
+
+### D-2026-05-02-23: 3-dot menu (⋮) על משימה — opt-in
+
+**ההחלטה:** Menu של 3 נקודות אנכיות ליד שם המשימה (כפי ש-Stitch הוסיף במסך 4) **לא חובה ב-MVP**. אם נכנס — האפשרויות הן:
+- Edit task (אם child-proposed)
+- Skip (משתמש ב-Skip Token Booster)
+- Mark not for today
+
+**ההמלצה:** דחוי ל-1.1. במ-MVP — tap ארוך על הקארד יספיק.
+
+---
+
+### D-2026-05-02-24: אמי (בת 9, בת של Adi, אחותו של Itay) — פרסונה עתידית ל-Children Mode
+
+**ההחלטה:** אמי תהיה **co-designer של Children Mode (גילאים 6-12) בעדכון עתידי**, לא ב-MVP הנוכחי.
+
+**מה אמי כבר נתנה:**
+- ראתה את 6 מסכי ה-Teen UI שעוצבו ע"י Itay
+- הגיבה שהם "סבבה" — מאשרת את ה-base aesthetic
+- לא ביקשה שינויים בשלב זה
+
+**מה צריך לעשות במהלך:**
+- **לדייק את התמונות של BUDDY** — Wolf STORMY מתאים ל-Teen, אבל ה-Children Mode דורש שיווי משקל אחר (capybara/panda/unicorn קיימים בקוד — לעצב את ה-states שלהם בצורה ויזואלית עקבית)
+
+**מה דחוי לעתיד:**
+- Children Mode design pass עם אמי כ-co-designer
+- ייתכן שיתווסף **theme alternative** (pastel, cute) בנוסף ל-neon — אבל לא כברירת מחדל
+- שאלון נפרד לאמי — בעתיד, כשהיא תשתמש באפליקציה בפועל
+
+**עיקרון:** שני קו-יוצרים בני 15 ו-9 = שני קולות שונים. כרגע נבנה לפי Itay (Teen) ונשמור את אמי לסיבוב הבא של עיצוב ה-Children Mode.
+
+---
+
+## 2 במאי 2026 — סשן עם Itay (בוקר)
+
+### D-2026-05-02-04: Itay כשותף עיצוב פורמלי
+
+Itay (בנה של Adi, בן 15, עם ADHD) הוא שותף עיצוב פורמלי של Teen UI ושל מערכת BUDDY.
 
 ### D-2026-05-02-05: Teen UI — Must Have ל-MVP
 
-**ההחלטה:** Teen UI (T-01 עד T-04) ייכלל ב-MVP.
-
-**סיבה:**
-- Itay הוא teen — בלי Teen UI, MVP לא רלוונטי לו
-- 49 emails מהלוובל כוללים הורים שיש להם ילדים בני 13+
-- מתבגר שיוריד את האפליקציה ויראה buddy childish יינטוש מיידית
-
-**זמן עבודה:** 5-7 ימים מימוש (אחרי עיצוב ב-Stitch)
-
----
+Teen UI (T-01 עד T-04) ייכלל ב-MVP, לא יידחה ל-1.1.
 
 ### D-2026-05-02-06: Teen UI Design Language — ירוק ניאון על שחור
 
-**ההחלטה:** Teen UI יעוצב במשפחה ויזואלית של Spotify/gaming/cyberpunk:
-- צבע ראשי: ירוק ניאון (#39FF14 או דומה)
-- רקע: שחור עמוק (#0A0A0A)
-- מינימליסטי, נקי, "אין ילדותי"
-- חלוקה לפי חלקי יום
-
-**סיבה:** Itay אמר שהוא אוהב "ירוק ניאון ושחור." Spotify/Instagram/WhatsApp הם 3 האפליקציות שלו.
-
----
+Spotify/gaming/cyberpunk inspired. צבע ראשי: ירוק ניאון (#39FF14). רקע: שחור עמוק (#0A0A0A).
 
 ### D-2026-05-02-07: ביטול Streaks רגילים — רק Winning Streak
 
-**ההחלטה:** Streak רגיל יבוטל מ-MVP. נשמר רק "Winning Streak" — רצף ימים של 70%+.
+Streak רגיל (1 יום בלי השלמה = שובר) יבוטל. נשמר רק "Winning Streak" — רצף ימים של 70%+.
 
-**סיבה:** Itay אמר במפורש: "לא חשוב ואפילו לא ברור, רק מפריע." Streak 100% מתנגד לפילוסופיה של 70% Goal.
+### D-2026-05-02-08: Buddy System V0.5 — מערכת רמות + Boosters
 
----
+5 רמות חברות: Buddy Buddies / Good Friends / Close Friends / Best Friends / Forever Friends.
+6 Boosters: Custom Theme Color, ×2 Buffs, Skip Token, הנחת פרס, Buddy Mood Pack, Skin חדש.
+יום מוצלח = 70%+ השלמה. ימים מצטברים, לא רצופים.
 
-### D-2026-05-02-08: Buddy System V0.5 — מערכת רמות חברות + Boosters
+### D-2026-05-02-09: Tap על BUDDY → Me & Buddy screen
 
-**ההחלטה:** מערכת BUDDY מורחבת בהרבה ממה שהוחלט ב-1.5, מבוססת על Pokémon GO Buddy Adventure.
+Tap על דמות BUDDY במסך הראשי → פותח "Me & Buddy" (Itay's idea).
+3 דרכים נגישות: Tap on buddy + Sub-tab in Profile + Toast on level up.
 
-**רמות חברות:**
-| רמה | שם | טריגר |
-|---|---|---|
-| 1 | Buddy Buddies | יום 1 |
-| 2 | Good Friends | 3 ימים מוצלחים מצטברים |
-| 3 | Close Friends | 10 ימים מוצלחים מצטברים |
-| 4 | Best Friends | 30 ימים מוצלחים מצטברים |
-| 5 | Forever Friends | 100 ימים מוצלחים מצטברים |
+### D-2026-05-02-10: Daily Vibe Check ב-MVP, Rest Tickets ל-1.1
 
-**יום מוצלח = 70%+ השלמה.** מצטברים, לא רצופים.
-
-**Boosters — לא חנות:**
-- Custom Theme Color (4 צבעים)
-- ×2 Buffs (חד-פעמי)
-- Skip Token
-- הנחת פרס (50→25 buffs)
-- Buddy Mood Pack
-- Skin חדש
-
-**עקרון מנחה: "לא קוסמטיקה. קשר."**
-
-**Scaffold That Fades:** ברמות 1-2 BUDDY בוחר את המתנה. ברמות 3-5 הילד בוחר.
-
-**מסמכים מושפעים:** BUFF_BUDDY_SYSTEM.md (חדש), BUFF_GAP_ANALYSIS.md
-
----
-
-### D-2026-05-02-09: Tap על BUDDY במסך הראשי → פותח Me & Buddy
-
-**ההחלטה:** הילד יכול לטאפ על דמות BUDDY במסך הראשי. גישה כפולה:
-1. Tap על BUDDY (intuitive)
-2. Sub-tab ב-Profile (מסודר)
-3. Toast notification ברגעי שיא
-
-**גם:** טאפ על buddy ביום רגיל → BUDDY מגיב במשהו קטן (animation/חיוך).
-
-**סיבה:** Itay הציע. פותר את הדילמה "שקט בברירת מחדל אבל מעניין לחזור."
-
----
-
-### D-2026-05-02-10: Daily Vibe Check נשאר ב-MVP — Rest Tickets ל-1.1
-
-**ההחלטה:**
-- Daily Vibe Check ייכלל ב-MVP (2-3 ימי עבודה)
-- Rest Tickets יידחו ל-1.1
-
-**סיבה:** Vibe Check משפיע על כל יום (השפעה רחבה). Rest Tickets — על יום בכמה ימים (השפעה צרה).
-
-**הערה:** D-2026-05-02-14 (Pause Mode חוזר ל-MVP) משלימה את התמונה — Vibe Check ל-disruption יומי, Pause Mode ל-disruption מתוכנן.
-
----
+Vibe Check משפיע על כל יום (השפעה רחבה). Rest Tickets — צרה. שניהם חשובים, רק אחד דחוף.
 
 ### D-2026-05-02-11: עיצוב ב-Stitch לפני קוד
 
-**ההחלטה:** Teen UI יעוצב ראשית ב-Google Stitch ע"י Adi + Itay. רק אחרי mockups, Claude Code יבנה קוד.
-
-**זמן הערכה:** 1-2 ימים עיצוב + 5-7 ימים מימוש.
-
----
+Teen UI יעוצב ראשית ב-Google Stitch ע"י Adi + Itay. רק אחרי mockups, Claude Code יבנה.
 
 ### D-2026-05-02-12: Notifications לפי קטגוריית גיל
 
-**ההחלטה:** מערכת FCM Notifications:
-- ילד 6-12: ההורה בוחר שעות
-- מתבגר 13-15: הילד בוחר שעות. Default: צהריים + ערב, לא בוקר. **מקסימום 2 ביום.**
-
-**סיבה:** Itay אמר במפורש: "לא מוגזמות, גג 2 ביום, צהריים + ערב, לא בוקר כשאני בביה"ס."
-
----
-
-### D-2026-05-02-13: BUDDY ב-Teen Mode — Default On, Dismissible
-
-**ההחלטה:** ב-Teen Mode (13-15):
-- **Default = With Buddy** (buddy מוצג)
-- כפתור "Hide Buddy" זמין במסך הראשי + ב-Settings
-- ההעדפה נשמרת (preference persisted)
-- אחרי הסתרה: framing משתנה מ-"Buddy gave you" ל-"You earned"
-- המערכת רצה ברקע גם בלי buddy מוצג — Boosters עדיין מצטברים
-
-**סיבה (Adi):**
-- מתבגרים עם ADHD מצליחים מ-body doubling וירטואלי בכל גיל
-- Itay בעצמו אמר "לא משנה לי" אבל בעצם רצה buddy
-- Default Yes משדר חמימות. מי שלא רוצה — בלחיצה אחת זה הולך
-- Default No עלול להחמיץ מתבגרים שירוויחו אבל לא יודעים לבקש
-
-**מבטל את ההצעה הקודמת ש-Teen UI = no buddy by default.**
-
-**מסמכים מושפעים:** BUFF_BUDDY_SYSTEM.md (סעיף Teen Mode), BUFF_GAP_ANALYSIS.md
-
----
+ילד 6-12: ההורה בוחר שעות. מתבגר 13-15: הילד בוחר. Default: צהריים + ערב, לא בוקר. Max 2 ביום.
 
 ### D-2026-05-02-14: Pause Mode חוזר ל-MVP
 
-**ההחלטה:** Pause Mode (P-14) ייכלל ב-MVP, לא יידחה ל-1.1 כפי שהוחלט ב-1.5.
-
-**סיבה (Adi):**
-- Israel-specific: חופשים (סוכות, פסח, חופש גדול), מצבי קיצון (מלחמה)
-- Global: יציאה משגרה, מחלה, טראומה
-- בלי Pause Mode הילד "יכשל" בכל יום של הפסקה מתוכננת
-- ההורה צריך לקבוע, לא הילד (Be the Coach principle)
-- משלים את התמונה: Vibe Check ל-disruption יומי, Pause Mode ל-disruption מתוכנן
-
-**מנגנון:**
-- שדה `pause_mode_active` + `pause_until` ב-`app_settings` (קיים ב-PRD)
-- ההורה מפעיל מהגדרות
-- במהלך Pause: אין notifications, streaks/successful_days מוקפאים
-- ילד פותח: באנר "BUFF is paused — see you on [date]"
-- Resume: warm Welcome Back message
-
-**זמן עבודה:** 1-2 ימים
-
-**מסמכים מושפעים:** BUFF_GAP_ANALYSIS.md (P-14: ❌→Must MVP)
-
----
+לחופשים, יציאה משגרה, מצבי קיצון. שדה `pause_mode_active` + `pause_until` ב-`app_settings`. ההורה מפעיל.
 
 ### D-2026-05-02-15: "Boosters" — שם רשמי לקטגוריה
 
-**ההחלטה:** המתנות הפונקציונליות מ-BUDDY נקראות "Boosters" (לא Power-Ups, לא Gifts, לא Perks).
+Itay בחר. קצר, אנרגטי, לא ילדותי, מתאים לכל גיל, ניטרלי מבחינת gender.
 
-**סיבה (Itay):**
-- קצר
-- אנרגטי
-- לא ילדותי
-- מתאים לכל גיל
-- ניטרלי מבחינת gender
+### D-2026-05-02-16: Sort order של משימות — אישר Itay
 
-**מסמכים מושפעים:** BUFF_BUDDY_SYSTEM.md (החלפת שם בכל מקום)
-
----
-
-### D-2026-05-02-16: Sort order של משימות — מיקוד ביום נוכחי + click to navigate
-
-**ההחלטה (Itay):** המסך הראשי מציג את חלק היום הנוכחי בלבד. בלחיצה על חלק יום אחר — מעבר. **כפי שכבר ממומש בקוד.**
-
-**סיבה:** "עדיף מיקוד ביום ובקליק לעבור כמו שממומש עכשיו" (Itay).
-
-**ההשלכה:** אין צורך בעבודה על sort order — נשאר as-is.
-
----
+מיקוד ביום נוכחי + click to navigate (כפי שכבר ממומש).
 
 ### D-2026-05-02-17: Welcome Back Behavior — חיבוק בלי האשמה
 
-**ההחלטה (Itay):** אחרי 3+ ימים בלי כניסה, ה-app מציג BUDDY שמחבק עם הודעה כמו:
-> "Hey, you're back! Let's start fresh today. No pressure — just one task at a time."
-
-**מה לא יקרה:**
-- אין שאלה "איפה היית"
-- אין סטטיסטיקה של ימים שפספס
-- אין הצגת streak שנשבר
-- אין reset
-
-**סיבה:** עקרון Safe Harbor — חיזוק חיובי בלבד. Itay אישר אפשרות א מבין 4 שהוצעו.
+אחרי 3+ ימים בלי כניסה: BUDDY מחבק עם "Hey, you're back! Let's start fresh today."
+אין שאלות, אין סטטיסטיקה של ימים שפספס, אין reset.
 
 ---
 
@@ -218,25 +206,15 @@
 
 ### D-2026-05-02-01: יצירת תיקיית `docs/` כ-source-of-truth
 
-**ההחלטה:** מסמכי המוצר ישבו בתיקייה `docs/` בריפו `buff-mobile`, בפורמט Markdown.
-
-**סיבה:** Claude Code יכול לערוך, היסטוריית Git, נגיש ל-Adi וגם ל-Claude (claude.ai דרך GitHub).
-
----
+מסמכי המוצר ישבו בתיקייה `docs/` בריפו `buff-mobile`, בפורמט Markdown.
 
 ### D-2026-05-02-02: Continuity protocol בין שיחות
 
-**ההחלטה:** בתחילת כל שיחה ב-claude.ai, Adi מדביקה הודעה סטנדרטית שמכוונת את Claude לקרוא את DECISIONS_LOG, GAP_ANALYSIS, BUDDY_SYSTEM, ו-SESSION_LOG.
-
-**סיבה:** Claude אין לו זיכרון בין שיחות. מסמכים = continuity layer.
-
----
+בתחילת כל שיחה ב-claude.ai, Adi מדביקה הודעה סטנדרטית שמכוונת לקרוא DECISIONS_LOG, GAP_ANALYSIS, BUDDY_SYSTEM, ו-SESSION_LOG.
 
 ### D-2026-05-02-03: PRD באנגלית, שאר התיעוד בעברית
 
-**ההחלטה:** PRD ו-User Stories באנגלית. Gap Analysis, Decisions Log, Buddy System, סיכומי סשן בעברית.
-
-**סיבה:** PRD למשקיעים/שותפים. שיחה פנימית — עברית.
+PRD ו-User Stories באנגלית. Gap Analysis, Decisions Log, Buddy System, סיכומי סשן בעברית.
 
 ---
 
@@ -244,69 +222,43 @@
 
 ### D-2026-05-01-01: שני Supabase projects נפרדים — לא ממזגים
 
-**ההחלטה:** לוובל ומובייל ימשיכו עם DB-ים נפרדים. אין מיגרציה.
-
-**סיבה:** אין גישה ל-DB של הלוובל. אין משתמשים פעילים שצריך להעביר. ביטא = הוכחת יכולת.
-
-**מסמכים מושפעים:** PRD section 9.2 — לא תקף
-
----
+Lovable ומובייל ימשיכו עם DB-ים נפרדים. אין מיגרציה. ביטא של Lovable = הוכחת יכולת.
 
 ### D-2026-05-01-02: Lovable יישאר חי עד פרודקשן + landing page אחר כך
 
-**ההחלטה:** הלוובל יוחלף ב-landing page ביום עליית המובייל. אחרי שכולם עברו, ה-Supabase של הלוובל יימחק.
-
-**סיבה:** 49 community subscribers + 86 הורים. Launch list יקר.
-
----
+Landing page ביום עליית המובייל. אחרי שכולם עברו, ה-Supabase של Lovable יימחק. 49 emails שמורים.
 
 ### D-2026-05-01-03: Founding Members — מי שיעבור מהלוובל
 
-**ההחלטה:** משתמשים שיעברו מהלוובל יקבלו `is_lifetime_access = true`. אין קודים.
-
-**סיבה:** השדה כבר קיים ונקרא ב-`useSubscription.ts:81`.
-
----
+`is_lifetime_access = true` כברירת מחדל. השדה כבר קיים ונקרא ב-`useSubscription.ts:81`.
 
 ### D-2026-05-01-04: BUDDY V0 — נדחה לעיון מחודש
 
-**ההחלטה (1.5):** "BUDDY V0 = visual פשוט"
-
-**תיקון 2.5 (D-2026-05-02-08):** Audit חשף ש-Buddy Evolution + Skins כבר קיימים. ההחלטה מ-1.5 הייתה מבוססת על חוסר מידע. **התיקון:** Buddy System V0.5 מלא ל-MVP.
-
----
+החלטה מ-1.5 ("BUDDY V0 = visual פשוט") הוחלפה ע"י **D-2026-05-02-08** (Buddy System V0.5 מלא ל-MVP).
 
 ### D-2026-05-01-05: RevenueCat מוגדר ועובד
 
-**מצב:**
-- Android API key אמיתי: `goog_JXENrpCCcYObBesSjSeFGoKvuaA`
-- iOS key: לא קיים — Android-only ל-MVP
-- Entitlement: "BUFF Premium"
-- App User ID: Supabase user.id
-
----
+Android API key אמיתי: `goog_JXENrpCCcYObBesSjSeFGoKvuaA`. iOS key: לא קיים. Entitlement: "BUFF Premium".
 
 ### D-2026-05-01-06: Build path נדחה
 
-**ההחלטה:** Build path (EAS / GitHub Actions / Local) דחוי.
-
-**סטטוס:** Keystore גובה. סיסמאות שמורות. אפשר לבחור build path בכל רגע.
+Keystore גובה. סיסמאות שמורות. אפשר לבחור build path בכל רגע.
 
 ---
 
 ## 28-29 באפריל 2026
 
 ### D-2026-04-28: Google OAuth מוגדר וחתום
-**פעולה שבוצעה:** OAuth 2.0 client + Supabase provider + buff://auth/callback. עובד ב-Pixel_7 AVD.
+OAuth 2.0 client + Supabase provider + buff://auth/callback. עובד ב-Pixel_7 AVD.
 
 ### D-2026-04-28: ParentOnboardingModals — תיקון crash
-**הבעיה:** custom component בתוך Stack.Navigator → תוקן ל-Stack.Group.
+custom component בתוך Stack.Navigator → תוקן ל-Stack.Group.
 
 ### D-2026-04-29: ChildJoinScreen — תיקון keyboard ב-Android
-**הבעיה:** KeyboardAvoidingView behavior undefined → undefined ב-Android.
+KeyboardAvoidingView behavior undefined → undefined ב-Android.
 
 ### D-2026-04-29: Email confirmation — מבוטל
-**ההחלטה:** ילדים משתמשים ב-fake @buff.app emails — Supabase email confirmation מבוטל.
+ילדים משתמשים ב-fake @buff.app emails. Supabase email confirmation מבוטל.
 
 ---
 
