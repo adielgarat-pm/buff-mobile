@@ -40,5 +40,10 @@ yarn-error.*
 /ios
 /android
   
-# Claude Code  
-.claude/ 
+# Claude Code
+.claude/
+
+# Documentation artifacts (zips downloaded from claude.ai)
+buff_docs.zip
+files.zip
+
