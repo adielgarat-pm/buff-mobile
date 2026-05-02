@@ -2,7 +2,7 @@
 
 **מסמך:** השוואה בין מה שתוכנן (PRD/Feature Audit) למה שקיים בקוד `buff-mobile` היום + החלטות מהשיחות.
 
-**עודכן:** 2 במאי 2026 (אחרי סשן עם Itay)
+**עודכן:** 2 במאי 2026 (אחרי תשובות Itay והחלטות Adi)
 
 **איך לקרוא:**
 
@@ -25,25 +25,26 @@
 |---|---|
 | ✅ קיים ועובד | 7 |
 | 🟡 קיים חלקית | 6 |
-| ❌ לא קיים — Must-Have ל-MVP | 9 |
+| ❌ לא קיים — Must-Have ל-MVP | 10 |
 | 🆕 קיים בקוד / לא ב-PRD | 4 |
-| 🎯 החלטות חדשות מ-2.5 | 9 |
+| 🎯 החלטות חדשות מ-2.5 | 14 |
 
 **הפיצ'רים הקריטיים שעדיין חסרים ל-MVP:**
-- Teen UI (קטגוריה שלמה) — **הוחלט להכליל ב-MVP**
-- Buddy System V0.5 (רמות + Power-Ups) — **חדש, החלטה מ-2.5**
+- Teen UI (קטגוריה שלמה)
+- Buddy System V0.5 (רמות + Boosters)
 - Daily Vibe Check
+- **Pause Mode** (חזר ל-MVP — D-2026-05-02-14)
 - UI לבחירת Pet Skin
 - Daily Win Bonus — חיבור (Bonus Modal קיים)
 - Empty state לילד-עם-קוד
 
 **נדחה ל-1.1 / Phase 2:**
-- Pause Mode
 - Child-proposed tasks/rewards
 - Cognitive Strategy Library
 - Rest Tickets
 - Calendar heat-map
 - AI Insights
+- Reward pricing guidance
 
 ---
 
@@ -81,9 +82,9 @@
 | P-11 | Auto-approve trusted | Keep as-is | ❓ לא נבדק | |
 | P-12 | Child-proposed missions | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | P-13 | Child-proposed rewards | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
-| P-14 | PAUSE MODE | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
+| P-14 | **PAUSE MODE** | Must Have | ❌ NOT EXISTS | **🎯 חוזר ל-MVP (D-2026-05-02-14)** |
 | P-15 | Reward pricing guidance | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
-| P-16 | Weekly Ignition Analysis | Keep as-is | 🟡 PARTIAL | useParentInsights קיים. Weekly Ignition הספציפי — לא |
+| P-16 | Weekly Ignition Analysis | Keep as-is | 🟡 PARTIAL | useParentInsights קיים |
 | P-17 | Trend Detector | Keep as-is | ❌ NOT EXISTS | |
 | P-18 | Stage Performance | Keep as-is | ❓ לא נבדק | |
 | P-19 | Reflection Log | Keep as-is | ❓ לא נבדק | |
@@ -118,11 +119,11 @@
 
 ## חלק ד' — Teen Features (Dashboard Mode, 13-15) — 🎯 הוחלט: ב-MVP
 
-**שינוי משמעותי מההחלטה ב-1.5:** Teen UI הוכלל ב-MVP. ראה D-2026-05-02-05 ו-D-2026-05-02-06.
+**שינוי משמעותי:** Teen UI הוכלל ב-MVP (D-2026-05-02-05). **תיקון נוסף (D-2026-05-02-13):** Buddy ב-Teen Mode הוא **default on, dismissible**.
 
 | ID | פיצ'ר | PRD | מובייל | החלטה 2.5 |
 |---|---|---|---|---|
-| T-01 | Clean dashboard (no buddy) | Keep + Expand | ❌ | 🎯 **MVP** — צבעים: ירוק ניאון על שחור |
+| T-01 | Clean dashboard | Keep + Expand | ❌ | 🎯 **MVP** — צבעים: ירוק ניאון על שחור. Buddy default on, dismissible |
 | T-02 | Goals view | Keep + Expand | ❌ | 🎯 **MVP** |
 | T-03 | Deal-making | Must Have | ❌ | 🎯 **MVP** |
 | T-04 | Streak tracker + grace | Keep + Expand | ❓ | 🎯 **שונה** — Itay: "streaks לא חשוב, רק מפריע." מוחלף ב-Winning Streak (70%+) בלבד |
@@ -132,10 +133,10 @@
 - ירוק ניאון על שחור (השראה: Spotify)
 - מינימליסטי, נקי, "אין ילדותי"
 - חלוקה לפי חלקי יום
-- ללא BUDDY במסך הראשי
+- **Buddy default on, dismissible** (D-2026-05-02-13)
 - Notifications: 2 ביום, צהריים + ערב, **לא בוקר**
 
-**מסמך מפורט:** BUFF_TEEN_UI_BRIEF.md (יבנה אחר כך — אחרי שאלון Itay)
+**Sort order:** מיקוד ביום נוכחי + click to navigate (D-2026-05-02-16) — **כבר ממומש בקוד**, אין עבודה חדשה.
 
 ---
 
@@ -146,7 +147,7 @@
 | רכיב | סטטוס | הערות |
 |---|---|---|
 | 🎯 Friendship Levels (5 רמות) | ❌ NOT EXISTS | חדש. דורש DB schema |
-| 🎯 Power-Ups (6 סוגים) | ❌ NOT EXISTS | חדש. כל אחד דורש לוגיקה משלו |
+| 🎯 Boosters (6 סוגים) | ❌ NOT EXISTS | חדש. כל אחד דורש לוגיקה משלו |
 | 🎯 Me & Buddy screen | ❌ NOT EXISTS | חדש. UI חדש |
 | 🎯 Tap on buddy → screen | ❌ NOT EXISTS | חדש. trigger ב-Home |
 | 🎯 Toast notification on level up | ❌ NOT EXISTS | חדש |
@@ -154,19 +155,25 @@
 | 🎯 buddy_gifts_history table | ❌ NOT EXISTS | DB |
 | 🎯 buddy_daily_check table | ❌ NOT EXISTS | DB |
 | 🎯 EOD trigger לעדכון successful_days_count | ❌ NOT EXISTS | logic |
+| 🎯 Hide/Show Buddy (Teen) | ❌ NOT EXISTS | UI + preference saved (D-2026-05-02-13) |
+| 🎯 Welcome Back screen (3+ days absence) | ❌ NOT EXISTS | logic + UI (D-2026-05-02-17) |
+| 🎯 Pause Mode | ❌ NOT EXISTS | DB + Parent UI + Resume (D-2026-05-02-14) |
 
-**העיקרון:** "לא קוסמטיקה. קשר." BUDDY נותן Power-Ups לפי **ימים מוצלחים מצטברים** (70%+), לא רצופים.
+**העיקרון:** "לא קוסמטיקה. קשר." BUDDY נותן Boosters לפי **ימים מוצלחים מצטברים** (70%+), לא רצופים.
 
 **MVP scope (Phase 1):**
 - 3 רמות ראשונות + לוגיקה
-- 2 Power-Ups בסיסיים: Custom Theme Color, ×2 Buffs
+- 2 Boosters בסיסיים: Custom Theme Color, ×2 Buffs
 - מסך Me & Buddy בסיסי
 - Toast on level up
+- Hide/Show Buddy (Teen)
+- Welcome Back screen
+- Pause Mode
 
 **Phase 2 (אחרי MVP, לפני 1.1):**
 - Skip Token, Buddy Mood Pack, הנחת פרס
 - 5 רמות מלאות
-- Push notifications
+- Push notifications לרמות
 
 ---
 
@@ -174,13 +181,13 @@
 
 | ID | פיצ'ר | PRD | מובייל | הערות |
 |---|---|---|---|---|
-| S-01 | Push Notifications (FCM) | Must Have | ❌ NOT EXISTS | 🎯 **MVP** — עם הבחנה בין ילדים (הורה בוחר) ל-teens (ילד בוחר, max 2/day) |
+| S-01 | Push Notifications (FCM) | Must Have | ❌ NOT EXISTS | 🎯 **MVP** — עם הבחנה ילדים/teens (D-2026-05-02-12) |
 | S-02 | Notification messages library | Keep as-is | ❓ לא נבדק | |
 | S-03 | 15-Minute Rule | Keep as-is | ❓ לא נבדק | |
 | S-04 | Dopamine Bridge | Keep as-is | 🟡 PARTIAL | |
 | S-05 | Parent Bonus +20 Buffs | Keep as-is | 🟡 PARTIAL | זהה ל-P-07 |
 | S-06 | PWA Install | Remove | ✅ הוסר | תואם תוכנית |
-| S-07 | **Daily Vibe Check** | Keep as-is | ❌ NOT EXISTS | **PRD: "fully implemented" — לא נכון. 🎯 MVP** (D-2026-05-02-10) |
+| S-07 | **Daily Vibe Check** | Keep as-is | ❌ NOT EXISTS | **🎯 MVP** (D-2026-05-02-10) |
 
 ---
 
@@ -203,90 +210,76 @@
 | ⚠️ Beta migration | Free-for-life לפי קריטריון | מתחילים נקי | **D-2026-05-01-02** |
 | ⚠️ Pricing | $0/$9/$19, ילדים 1/3/∞ | **פתוח** | להחלטה |
 | ⚠️ Founding Members | Beta users שעמדו בקריטריון | משתמשי 49 emails | **D-2026-05-01-03** |
-| 🎯 BUDDY scope | 4 stages + 10 skins | **V0.5 — מערכת רמות + Power-Ups** | **D-2026-05-02-08** |
+| 🎯 BUDDY scope | 4 stages + 10 skins | **V0.5 — מערכת רמות + Boosters** | **D-2026-05-02-08** |
 | 🎯 Teen UI timing | "Phase 2" (1.5) | **MVP** (2.5) | **D-2026-05-02-05** |
 | 🎯 Streaks | Streak grace mechanic | בוטל. רק Winning Streak | **D-2026-05-02-07** |
 | 🎯 Vibe Check vs Rest Tickets | שניהם Must Have | Vibe Check ב-MVP, Rest ל-1.1 | **D-2026-05-02-10** |
+| 🎯 Pause Mode | Must Have | (1.5: ל-1.1) → (2.5: חזר ל-MVP) | **D-2026-05-02-14** |
+| 🎯 Teen Buddy | "no buddy" | **default on, dismissible** | **D-2026-05-02-13** |
 
 ---
 
-## הצעדים הבאים — תוכנית עבודה ל-2-3 שבועות
+## הצעדים הבאים — תוכנית עבודה ל-3-4 שבועות
 
-### שלב 1: עיצוב Teen UI ב-Stitch (1-2 ימים)
+### שבוע 1
+| יום | משימה | זמן |
+|---|---|---|
+| 1 | עיצוב Stitch — Teen UI (4 מסכים) | 1 |
+| 2 | Stitch סיום + תיקוני Onboarding | 1 |
+| 3 | Empty state ילד-עם-קוד + Daily Win connection | 1 |
+| 4 | Pet Skin UI + שפה מעצימה | 1 |
+| 5 | Buddy System V0.5 — DB schema + EOD trigger | 1 |
 
-- Adi + Itay עובדים יחד
-- 7 מסכים ראשונים: Dashboard, Tasks Detail, Power-Ups Shop (כתחנה ב-"Me & Buddy"), Rewards Shop, Propose to Parent, Settings, Insights
-- Output: screenshots + brief לכל מסך
+### שבוע 2
+| יום | משימה | זמן |
+|---|---|---|
+| 6 | Buddy System — Friendship Levels logic + 2 Boosters | 1 |
+| 7 | Buddy System — Me & Buddy screen + Toast | 1 |
+| 8 | **Pause Mode** (DB + Parent UI + Child UI + Resume) | 1 |
+| 9 | Daily Vibe Check (start) | 1 |
+| 10 | Daily Vibe Check (end) | 1 |
 
-**שאלון המשך ל-Itay לפני התחלה:**
-- שמות הרמות בגרסת Teen — להשאיר או לשנות?
-- ה-default sort של המשימות — Stage או "All for today"?
-- שם ל-Power-Ups Shop?
+### שבוע 3
+| יום | משימה | זמן |
+|---|---|---|
+| 11 | Teen UI מימוש — Dashboard (with/without Buddy versions) | 1 |
+| 12 | Teen UI — Goals + Deal-making | 1 |
+| 13 | Teen UI — Boosters in Teen mode + Hide Buddy + סיום styling | 1 |
+| 14 | Stickers picker + Push Notifications setup | 1 |
+| 15 | Welcome Back screen + Build + העלאה ל-Internal Testing | 1 |
+| 16-17 | בדיקה + תיקונים | 2 |
 
----
-
-### שלב 2: תיקונים מהירים בקוד (1-2 ימים, במקביל לעיצוב)
-
-- ✅ Timing של משימות לפי Stage (לא 08:00/16:00/20:00 קבוע)
-- ✅ Empty state לילד-עם-קוד (Edge Function או UI)
-- ✅ שפה מעצימה למשימות
-- ✅ "Homework & grades" → "Homework & focus"
-- ✅ אופציות כפולות בין שלבים 2 ו-3
-- ✅ Section B + ScrollView ב-Step 3
-- ✅ Dashboard children fix
-- ✅ Daily Win Bonus — חיבור Bonus Modal הקיים + branding
-- ✅ Stickers — picker UI + UI לילד
-
----
-
-### שלב 3: Buddy System V0.5 — Phase 1 (3-4 ימים)
-
-- DB schema (3 טבלאות חדשות)
-- EOD trigger
-- מסך Me & Buddy בסיסי
-- Toast notifications
-- 2 Power-Ups בסיסיים: Custom Theme Color, ×2 Buffs
-- UI לבחירת Pet Skin (השלמת UI שחסר ל-Pet Skins הקיימים)
+**סך הכל: 17 ימי עבודה = 3-4 שבועות**
 
 ---
 
-### שלב 4: Daily Vibe Check (2-3 ימים)
+## קריטריון "מוכן לפרודקשן"
 
-- מסך כניסה יומי עם 5 emojis/bars
-- Low Power Mode logic
-- SOS button להורה
-- Instant Buff option
+**אחרי בילד Internal Testing, Adi + Itay מתקינים ובודקים:**
 
----
+1. ✅ הורה חדש מוריד → אונבורדינג → רואה משימות הגיוניות
+2. ✅ ילד 6-12 פותח → Buddy מציג, משימות ברורות
+3. ✅ Teen פותח → Dashboard עם Buddy by default
+4. ✅ Teen לוחץ Hide Buddy → preference נשמר → dashboard נקי
+5. ✅ הורה נותן Daily Win Bonus → ילד רואה
+6. ✅ ילד מצליח 3 ימים מוצלחים → BUDDY מציע Theme Color (Booster ראשון)
+7. ✅ ילד פותח Vibe Check → Low Power Mode מופעל אם נמוך
+8. ✅ הורה מפעיל Pause Mode → באנר מוצג לילד → resume עובד
+9. ✅ ילד לא נכנס 3+ ימים → Welcome Back screen מופיע
+10. ✅ ילד מקבל פרס מההורה → מסך חוגג
 
-### שלב 5: Teen UI מימוש (5-7 ימים)
-
-- מבוסס על mockups מ-Stitch
-- מסך אחר מסך
-- כולל T-01, T-02, T-03 (T-04 משתנה ל-Winning Streak)
-
----
-
-### שלב 6: בילד + Internal Testing (1 יום)
-
-- EAS build (יש 30 חינמיים מ-1.5)
-- Play Console Internal Testing
-- Adi + Itay מתקינים, עוברים על כל מסך, רושמים פערים
-
----
-
-**זמן כולל:** 12-17 ימי עבודה = **2-3 שבועות**
+אם 10 הזרימות עוברות = מוכן ל-Closed Testing → Production.
 
 ---
 
 ## שאלות פתוחות
 
-1. ⏳ **תאריך יצירת ה-PRD** — לא ידוע (April 2026). חשוב לדעת אם החלטות מאוחרות עוברות אליהם
+1. ⏳ **תאריך יצירת ה-PRD** — לא ידוע (April 2026)
 2. ⏳ **Pricing סופי** — $9/$19 (PRD) או לעדכן לישראלי?
-3. ⏳ **שמות רמות BUDDY בגרסת Teen** — Itay יבחר
-4. ⏳ **בחירת Theme Colors** — בדיוק 4 צבעים (ירוק ברירת מחדל + 3 נוספים)
-5. ⏳ **השפה של BUDDY** — Adi כותב? AI? תבנית?
-6. ⏳ **התנהגות BUDDY אם הילד לא הצליח 7 ימים** — קלי / משתתף / מתעלם?
+3. ⏳ **בחירת Theme Colors** — בדיוק 4 צבעים (ירוק ברירת מחדל + 3 נוספים)
+4. ⏳ **השפה של BUDDY** — Adi כותב? AI? תבנית?
+5. ⏳ **התנהגות BUDDY אם הילד לא הצליח 7 ימים** — קלי / משתתף / מתעלם?
+6. ⏳ **Pause Mode — ילד יכול לבקש?** — או רק ההורה? (בינתיים: רק ההורה)
 
 ---
 
