@@ -12,7 +12,7 @@
 הפרויקט: C:\Users\adiel\buff-mobile
 GitHub: github.com/adielgarat-pm/buff-mobile
 פלטפורמה: Windows, React Native + Expo + Supabase
-Editor: VS Code + Claude Code לפעולות בקוד
+Editor: File Explorer / Notepad + Claude Code לפעולות בקוד
 
 הצוות:
 - אני (PM/founder)
