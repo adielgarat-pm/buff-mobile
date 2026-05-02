@@ -44,6 +44,5 @@ yarn-error.*
 .claude/
 
 # Documentation artifacts (zips downloaded from claude.ai)
-buff_docs.zip
-files.zip
+docs/*.zip
 
