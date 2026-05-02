@@ -43,6 +43,6 @@ yarn-error.*
 # Claude Code
 .claude/
 
-# Documentation artifacts (zips downloaded from claude.ai)
-docs/*.zip
+# Documentation artifacts (zips downloaded from claude.ai or Stitch)
+docs/**/*.zip
 
