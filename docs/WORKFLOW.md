@@ -332,6 +332,41 @@ Now read the task below and produce a detailed plan.
 
 ---
 
+## Snapshots — Adi / Claude.ai / CC handoff
+
+### Snapshot Prompt Template (Claude.ai → CC)
+
+Claude.ai must use this template instead of free-form "give me a summary":
+
+```
+SNAPSHOT REQUEST — [date]
+
+Files to read:
+- [list with paths]
+
+Output format:
+1. HEADER: files read + line counts + files requested-but-not-read with reason
+2. VERBATIM SECTIONS: copy-paste these passages exactly (no rewording)
+   - [list specific sections, e.g. "last 6 entries of DECISIONS_LOG", "GAP_ANALYSIS executive summary table", "open FLAGs from INTEGRATION_LEARNINGS"]
+3. ❌/🟡 ROWS: every row from GAP_ANALYSIS marked ❌ or 🟡, copied verbatim
+4. UNVERIFIED CLAIMS: anything you'd write that you can't anchor to a specific file:line
+5. VOLUME CHECK: produced X items vs Y requested
+6. CONFLICTS: any contradictions between sources, both copied verbatim, no resolution
+```
+
+### Claude.ai Verification Gate (binding)
+
+Before building any recommendation on a CC snapshot:
+
+1. Tag every claim: `[CC-claim, anchored to file:line]` or `[CC-claim, unverified]`
+2. Block on unverified — ask Adi to confirm, OR ask CC to re-run with anchor required
+3. Cross-check critical claims — anything driving package sequencing or scope MUST be anchored
+4. **Pushback rule:** Claude.ai must NOT issue strong pushback (changing package order, redirecting strategy) based on a claim that has not passed the gate
+
+Violating this rule was the root cause of incident 2026-05-03.
+
+---
+
 ## טיפול בהפתעות
 
 > "INTEGRATION_LEARNINGS" הוא הזיכרון ארוך הטווח של הפרויקט.

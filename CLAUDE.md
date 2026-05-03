@@ -64,6 +64,42 @@ In this order, every time:
 
 ---
 
+## Read-only Snapshot Protocol
+
+When asked for a snapshot, summary, status report, or read-only digest:
+
+### Rule 1 — No synthesis without anchor
+Every claim must have a source anchor:
+- **Verbatim:** `> "exact text"` — `file.md §X` or line range
+- **Citation only:** `file.md §X` (paraphrasing structure, not content)
+- **Unanchorable:** under `UNVERIFIED CLAIMS` with reason
+
+### Rule 2 — Volume warning
+If asked for N items and produced < N/2, prepend:
+`VOLUME WARNING: produced X of Y requested. Reasons: [...]`
+
+### Rule 3 — Conflicts not resolved
+Two sources contradict → list both verbatim under `CONFLICTS`. Do not resolve, pick, or interpret. Resolution is Adi's call.
+
+### Rule 4 — No interpretive framing
+No "urgently", "critical", "blocker", "needed", "expired", "behind schedule" unless the source uses those words verbatim. "Deadline May 1, today is May 3" is fine. "Deadline missed" is not.
+
+### Rule 5 — Header inventory
+Every snapshot opens with:
+```
+SNAPSHOT — [date]
+Files read: [list + line counts]
+Files requested but not read: [list + reason]
+```
+
+### Applies to
+Any task with "snapshot", "summary", "status of", "where are we", "what's done", "what's left", or any digest of >1 file.
+
+### Does NOT apply to
+Direct factual questions with anchored answers, or phase execution under an existing plan.
+
+---
+
 ## Environment
 
 - **OS:** Windows 11
