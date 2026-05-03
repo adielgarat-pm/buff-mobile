@@ -6,7 +6,117 @@
 
 ---
 
-## 2 במאי 2026 — שינוי טווח גילאים
+## 2 במאי 2026 — Workflow setup, Values, ושינוי טווח גילאים
+
+### D-2026-05-02-29: לא להשתמש במונח "Cog Fun" / "קוגפאן" עד שיש קלינאית שותפה
+
+**ההחלטה:** המונחים **"Cog Fun"** ו-**"קוגפאן"** לא יופיעו בשום מסמך, קוד, אתר, או תוכן שיווקי של BUFF, אלא אם יום אחד תצטרף קלינאית מקצועית שתסכים להיות חתומה על האפליקציה.
+
+**הקשר:** Cog-Fun הוא מודל טיפולי ממוסד של פרופ' אדינה מאיר (אוניברסיטת העברית והדסה), עבר RCT, יש לו גרסה למתבגרים (Teen Cog-Fun) וגרסה למבוגרים (Cog-Fun A). השם והמודל הם IP מוגן.
+
+**סיבה:** סיכון IP. שימוש במונח בלי הסכמה מקצועית פורמלית עלול להציג את BUFF כיישום של המודל בלי שיש לכך בסיס.
+
+**מה כן מותר:**
+- להשתמש ב**עקרונות הגנריים** של התחום (תפקודים ניהוליים, חיזוק חיובי, התאמה לחיי היומיום, מודעות עצמית)
+- מונחים מקצועיים תקניים: "Executive Function" (כבר ב-buffadhd.com), "ADHD support", "self-regulation"
+- כל המונחים שב-BUFF_VALUES.md (Intrinsic Motivation, Positive Coaching, Independence-Building)
+
+**אם בעתיד תצטרף קלינאית:** נחזור להחלטה הזו, נבחן יחד עם הקלינאית את האפשרות לקשר רשמי למודל — או לא.
+
+**מסמכים מושפעים:** BUFF_VALUES.md (כבר נבנה ללא המונח); כל תוכן שיווקי עתידי.
+
+---
+
+### D-2026-05-02-28: VS Code + Claude Code Extension כסביבת עבודה רשמית
+
+**ההחלטה:** סביבת העבודה הרשמית של Adi לפיתוח BUFF היא **VS Code** עם **Claude Code Extension** הרשמי של Anthropic. החלפנו את הסביבה הקודמת (File Explorer + Notepad + טרמינל ישיר של Claude Code).
+
+**סיבה:**
+1. **בעיית clipboard עם עברית** — פרומפטים ארוכים בעברית נחתכים והופכים RTL כשמועברים מ-Claude.ai לטרמינל. ה-Extension של VS Code פותר את זה כי הוא קורא טקסט נקי, לא מ-clipboard.
+2. **Plans, diffs, ואישורים ויזואליים** — ה-extension מציג תוכניות לפני ביצוע, diffs בצבעים, ואישור/דחייה בלחיצה. זה תואם את עיקרון Plan Mode.
+3. **עריכת קבצים** — VS Code הוא עורך טקסט/קוד אמיתי, לא Notepad. גם בלי קלוד קוד זה שדרוג חוויית עבודה.
+
+**מה הותקן ב-2.5.2026:**
+- Visual Studio Code (https://code.visualstudio.com)
+- Extension: "Claude Code for VS Code" (publisher: Anthropic, verified ✓)
+
+**שינוי תפעולי:**
+- כל פעולת CC מחר ואילך מבוצעת דרך VS Code, **לא** דרך טרמינל.
+- במקרי קצה (פעולות bash מהירות, debug) — אפשר להשתמש בטרמינל הפנימי של VS Code, או טרמינל חיצוני.
+
+**מסמכים מושפעים:** CONVERSATION_STARTER.md (עודכן ב-D-28); WORKFLOW.md (יבנה מחר ויפנה ל-VS Code).
+
+---
+
+### D-2026-05-02-27: BUFF_VALUES.md — שלושת עמודי המוצר כמסמך עוגן
+
+**ההחלטה:** נוצר מסמך חדש `docs/BUFF_VALUES.md` המקבץ את שלושת עמודי הערכים של המוצר במקום אחד עם checklist פעולתי.
+
+**שלושת העמודים:**
+1. **Intrinsic Motivation / מוטיבציה פנימית** — הילד עושה את המשימה כי הוא רוצה את מה שמחכה בסוף, לא כי האפליקציה שיחקה אותו
+2. **Positive Coaching / אימון חיובי** — חיזוק חיובי בלבד, אין sad buddy, אין השוואה, אין שיים
+3. **Independence-Building / בניית עצמאות** — המטרה: שהילד לא יזדקק ל-BUFF
+
+**מקור:** הערכים כבר נוסחו ב-PRD §1, §3.2, §6.1, §6.3 — אבל היו פזורים. המסמך החדש מקבץ + מוסיף checklist פעולתי (3 שאלות per pillar = 9 שאלות שכל פיצ'ר חייב לעבור).
+
+**Workflow integration:**
+- כל `SPEC.md` של חבילת שיפור עתידית כולל סעיף **`Values Check`** — תשובה מנומקת ל-9 השאלות
+- כל `TESTS.md` של פאזה כולל check אחד קבוע: `[ ] Values check passed for this phase`
+- ה-universal preamble של פרומפטים לקלוד קוד דורש קריאה של `docs/BUFF_VALUES.md` בתחילת כל סשן
+
+**שינוי כיוון מהפסיכי:** במקום שלכל חבילה יהיה PRINCIPLES.md משלה (כמו ב-workflow של Tomer), אצלנו **PRINCIPLES.md הוא רק לעקרונות ספציפיים לחבילה** (אם בכלל). הערכים הקבועים יושבים ב-BUFF_VALUES.md וחלים על כל החבילות.
+
+**סיבה:** הכאב #4 שזיהינו — "אני לא רגועה שאתה זוכר שכל פיצר שאנחנו מעדכנים וכותבים צריך להיות ברוח... ולאמן את הילדים והנערים למסוגלות אישית". המסמך הזה הופך את הערכים מ"דבר שאני מקווה שזוכרים" ל"שער שאי אפשר לעבור בלעדיו".
+
+**מסמכים מושפעים:** docs/BUFF_VALUES.md (חדש — ב-main); CONVERSATION_STARTER.md (יעודכן בעדכון נוכחי כדי לכלול קריאה חובה); WORKFLOW.md (יבנה מחר); _template/SPEC.md (יבנה מחר — יכלול Values Check).
+
+---
+
+### D-2026-05-02-26: אימוץ Workflow תלת-צדדי (Adi / Claude.ai / Claude Code)
+
+**ההחלטה:** BUFF מאמצת מתודולוגיית עבודה תלת-צדדית, מבוססת על המודל המוכח של Tomer ב-Admilio, עם התאמות ל-React Native / Expo / Windows.
+
+**שלושת התפקידים:**
+1. **Adi** — Product Owner, Reviewer, Tester. מאשרת scope, סוקרת תוכניות של CC, מריצה בדיקות ידניות באמולטור.
+2. **Claude.ai (פה, בצ'אט)** — Designer, Reviewer, Coordinator. עוצבת חבילות שיפור (session folders), מנתחת logs, מתאמת spec sync. **לא** כותבת קוד מימוש.
+3. **Claude Code (CC) ב-VS Code** — Implementer. עובד ב-Plan Mode, כותב קוד, מעדכן docs, רץ tests.
+
+**הלולאה:**
+1. **Adi + Claude.ai** מעצבים חבילת שיפור → תיקייה ב-`docs/sessions/{slug}/` עם SPEC, ROADMAP, TESTS, SPEC_SYNC, STATUS
+2. Adi מקומיטה את התיקייה
+3. **Adi + CC** מבצעים פאזות ברצף, פאזה אחרי פאזה
+4. **Adi + Claude.ai** עושים log analysis או spec sync לפי הצורך
+5. סגירה: git tag, STATUS.md closeout checklist הושלם
+
+**כללים קבועים:**
+- CC עובד תמיד ב-Plan Mode
+- אסור self-approved decisions — CC מציף אי-בהירות, לא פותר אותה לבד
+- Inspect actual code לפני הצעות — spec docs יכולים להיות מיושנים
+- Plan שולח chunk-by-chunk, סקירת diff אחרי כל אחד
+- STATUS.md ועדכוני canonical docs הם חלק מאותו commit כמו הקוד, לא צעד נפרד
+
+**הבדלים מ-Admilio:**
+- **VS Code Extension** במקום טרמינל ישיר (D-28)
+- **BUFF_VALUES.md** כעוגן ערכי קבוע (D-27) — ב-Admilio אין מקבילה
+- **PROMPTS.md לכל חבילה — בוטל**. הפרומפטים נמסרים ב-chat מ-Claude.ai עם universal preamble inlined, כי הם מתעדכנים תוך כדי החבילה והקובץ מתיישן.
+- **Capability Check** mode — בתחילת כל חבילה Claude.ai מוודאה במפורש מה היא יכולה / מה CC יעשה / מה Adi חייבת לעשות בעצמה. תוצרת ב-SPEC.md.
+
+**מסמכים מושפעים:**
+- `docs/WORKFLOW.md` (יבנה מחר) — המסמך המגדיר של הלולאה
+- `docs/sessions/_template/` (תבנית חבילה — תיבנה מחר)
+- `docs/INTEGRATION_LEARNINGS.md` (חדש — יוקם מחר)
+- `CLAUDE.md` בשורש הריפו (יוקם מחר — חוקי הפרויקט לקלוד קוד)
+- BUFF_DECISIONS_LOG.md (זה המסמך — D-26)
+- CONVERSATION_STARTER.md (עדכון נוכחי)
+
+**הסיבה:** הכאבים שזוהו היום:
+- "לא עבדנו לפי האפיון המקורי שלנו וכתבנו סתם קוד של סתירות" — דורש מבנה SPEC.md מחייב
+- "אתה לא אומר לי תמיד מה אתה יכול ולא יכול" — דורש Capability Check מבני
+- "אני לא רגועה שאתה זוכר את הרוח" — דורש Values Check מבני (D-27)
+
+**הסטטוס:** המסמכים הספציפיים (WORKFLOW.md, _template/, INTEGRATION_LEARNINGS.md, CLAUDE.md) ייבנו מחר. ההחלטה הזו מתעדת את **כיוון העבודה** שאומץ.
+
+---
 
 ### D-2026-05-02-25: Teen Mode מורחב ל-13-18 (במקום 13-15)
 
