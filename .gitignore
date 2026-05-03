@@ -42,6 +42,7 @@ yarn-error.*
   
 # Claude Code
 .claude/
+.claude/settings.local.json
 
 # Documentation artifacts (zips downloaded from claude.ai or Stitch)
 docs/**/*.zip

@@ -13,13 +13,17 @@
 
 | קובץ | תוכן | מתי לקרוא |
 |---|---|---|
+| **`WORKFLOW.md`** ⭐ | **המסמך המגדיר של ה-workflow התלת-צדדי** | **תמיד — בתחילת כל סשן** |
+| **`BUFF_VALUES.md`** ⭐ | **שלושת עמודי המוצר + Values Check** | **תמיד — לפני כל פיצ'ר** |
 | `BUFF_PRD.md` | Product Requirements Document | בתחילת החלטות אסטרטגיות |
 | `BUFF_FEATURE_AUDIT.md` | רשימת פיצ'רים מקיפה | לפני בניית פיצ'ר |
 | `BUFF_FEATURE_PRIORITIZATION.md` | פיצ'רים מתועדפים | תכנון סדר עבודה |
 | `BUFF_USER_STORIES.md` | סיפורי משתמש | לפני כתיבת קוד |
 | **`BUFF_GAP_ANALYSIS.md`** ⭐ | **PRD ↔ קוד + תוכנית עבודה** | תמיד — לפני החלטות |
 | **`BUFF_DECISIONS_LOG.md`** ⭐ | **תיעוד החלטות עם תאריך ונימוק** | תמיד |
+| `INTEGRATION_LEARNINGS.md` | זיכרון ארוך טווח, FLAGs פתוחים | במהלך כל סשן (קריאה + הוספה) |
 | **`BUFF_BUDDY_SYSTEM.md`** ⭐ | **מערכת BUDDY מלאה** | בעבודה על BUDDY/Teen |
+| `sessions/_template/` | תבנית חבילת שיפור — להעתקה לכל חבילה חדשה | בתחילת חבילה חדשה |
 | `teen-ui-design/` | **Mockups של Stitch + design notes** | בעבודה על Teen UI |
 | `README.md` | זה — אינדקס + פרוטוקול | תחילת שיחה |
 
