@@ -98,6 +98,28 @@
 
 ---
 
+## Lessons
+
+### Lesson 2026-05-03 — Snapshot fabrication + recommendation cascade
+
+**Symptom:** CC produced a 6-bullet snapshot containing *"RevenueCat: grace period expired May 1 — payment system needed urgently."* Claude.ai accepted the claim and built a pushback recommending RevenueCat go-live instead of the planned DevEx package.
+
+**Root cause:** Three layers failed simultaneously.
+1. **Loose prompt (Claude.ai):** "10-15 key points" invited synthesis instead of extraction.
+2. **No anchor protocol (CC):** "grace period expired" + "needed urgently" had no source. Actual source `BUFF_DECISIONS_LOG.md` D-2026-05-01-05 says only "RevenueCat מוגדר ועובד" — no grace period, no urgency.
+3. **No verification gate (Claude.ai):** Used unverified claim as basis for sequencing change. BUFF skill Rule 8 (verification, not memory) was bypassed.
+
+**Mitigation (snapshot-protocol package, this commit series):**
+- Read-only Snapshot Protocol → `CLAUDE.md`
+- Snapshot Prompt Template + Verification Gate → `docs/WORKFLOW.md`
+- This entry as canonical incident reference
+
+**Pattern to watch:** When a CC-produced claim "sounds right" or fits a narrative, both CC and Claude.ai are tempted to skip anchoring. The verification gate makes the skip impossible.
+
+**FLAGs opened:** None — process fix, not code FLAG.
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
