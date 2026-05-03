@@ -81,22 +81,20 @@
 - **סטטוס:** `deferred` — Reconciliation תיעשה ב-BUDDY implementation session, אז ייעשה code audit מפורש.
 - **קשור ל:** Spec Status header נוסף ב-2.5.2026 ל-BUDDY_SYSTEM.md
 
----
-
-### F-2026-05-03-06: `.claude/settings.local.json` — file noise
-
-- **תאריך:** 3.5.2026
-- **מקור:** sessions של 2.5.2026 ו-3.5.2026 (מופיע כ-modified בכל git status)
-- **תיאור:** קובץ הגדרות מקומי של Claude Code Extension משתנה בכל סשן. לא קריטי, אבל יוצר רעש ב-`git status`.
-- **השפעה:** קוסמטי. עלול להיות מקומיט בטעות.
-- **סטטוס:** `open` — לטיפול קל: הוספה ל-`.gitignore` בסשן הבא.
-- **קשור ל:** D-2026-05-02-28
-
----
-
 ## רשומות שנפתרו (Resolved)
 
-> *(ריק כרגע — נמלא ככל שFLAGs נפתרים)*
+### F-2026-05-03-06 (RESOLVED 2026-05-03): `.claude/settings.local.json` — file noise
+
+- **תאריך פתיחה:** 3.5.2026
+- **תאריך סגירה:** 3.5.2026 (אותו יום)
+- **מקור הגילוי:** sessions של 2.5.2026 ו-3.5.2026 (מופיע כ-modified בכל git status)
+- **תיאור מקורי:** קובץ הגדרות מקומי של Claude Code Extension משתנה בכל סשן. יוצר רעש ב-`git status`.
+- **ההשפעה שהייתה:** קוסמטי. עלול היה להיות מקומיט בטעות.
+- **איך נפתר:** ב-PR `workflow-foundation` (commit 5d374b3 ב-main):
+  1. הוספה של `.claude/settings.local.json` ל-`.gitignore`
+  2. `git rm --cached .claude/settings.local.json` — ניתוק הקובץ מ-tracking (CC זיהה ש-`.gitignore` לבד לא מספיק לקבצים שכבר tracked)
+- **קשור ל:** D-2026-05-02-28 (VS Code Extension), D-2026-05-03-30 (Workflow Foundation)
+- **לקח להמשך:** קבצי הגדרות מקומיים של כלים שלא צריכים להיות בריפו — לוודא בכל הוספת dependency חדשה / כלי חדש שהם ב-`.gitignore` *לפני* commit ראשון.
 
 ---
 

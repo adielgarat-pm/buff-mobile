@@ -6,6 +6,33 @@
 
 ---
 
+## 3 במאי 2026 — Workflow Foundation
+
+### D-2026-05-03-30: ה-Workflow Foundation חי ב-main
+
+**ההחלטה:** ה-workflow תלת-צדדי (D-26) קיבל היום את התשתית המלאה שלו ב-`main`, וזה הופך אותו מ"כיוון מוסכם" ל"מתודולוגיה אכיפה".
+
+**מה נוסף ב-`main` (PR `workflow-foundation`, merge 5d374b3):**
+- `CLAUDE.md` (שורש הריפו) — חוקי הפרויקט שCC קורא ראשון בכל סשן
+- `docs/WORKFLOW.md` — המסמך המגדיר של הלולאה (472 שורות, 14 סעיפים)
+- `docs/INTEGRATION_LEARNINGS.md` — זיכרון ארוך טווח, 6 FLAGs פתוחים מתועדים
+- `docs/sessions/_template/` — 7 קבצים: README, SPEC (כולל Capability Check + Values Check), PRINCIPLES, ROADMAP, TESTS, SPEC_SYNC, STATUS
+- עדכוני `docs/README.md` ו-`.gitignore`
+
+**מה זה אומר בפועל:**
+- כל חבילת שיפור עתידית מועתקת מ-`docs/sessions/_template/` לתיקייה חדשה ב-`docs/sessions/{slug}/`
+- כל סשן CC מתחיל בקריאת `CLAUDE.md` → `WORKFLOW.md` → `BUFF_VALUES.md` → SPEC של החבילה
+- 5 modes של Claude.ai (Package Design / Log Analysis / Spec Sync + sub-modes Capability Check ו-Values Check) פועלים אוטומטית לפי זיהוי הסיטואציה
+- spec drift, FLAGs פתוחים, וצומתי החלטה כולם מתועדים במבנה אחיד
+
+**הסשן הבא (כשיהיה זמן):** Improvement Package ראשון — **DevEx: Expo build + Android emulator hookup**. מטופל בדיוק לפי המתודולוגיה החדשה, ומשמש גם test case ל-workflow עצמו.
+
+**מסמכים מושפעים:** ראי commit 5d374b3 (13 קבצים).
+
+**מסכם וסוגר:** D-2026-05-02-26 (אימוץ workflow), D-2026-05-02-27 (BUFF_VALUES כעוגן), D-2026-05-02-28 (VS Code).
+
+---
+
 ## 2 במאי 2026 — Workflow setup, Values, ושינוי טווח גילאים
 
 ### D-2026-05-02-29: לא להשתמש במונח "Cog Fun" / "קוגפאן" עד שיש קלינאית שותפה
