@@ -7,7 +7,7 @@
 
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 1 | _pending_ | — | — | — | — |
+| 1 | _passed_ | 2026-05-03 | TBD | grep ×2 passed | — |
 | 2 | _pending_ | — | — | — | — |
 | 3 | _pending_ | — | — | — | — |
 
