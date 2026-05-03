@@ -7,8 +7,8 @@
 
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 1 | _passed_ | 2026-05-03 | TBD | grep ×2 passed | — |
-| 2 | _pending_ | — | — | — | — |
+| 1 | _passed_ | 2026-05-03 | 726d3e6 | grep ×2 passed | — |
+| 2 | _passed_ | 2026-05-03 | TBD | grep ×3 passed | — |
 | 3 | _pending_ | — | — | — | — |
 
 ## Legend
