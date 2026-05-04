@@ -100,6 +100,59 @@ Direct factual questions with anchored answers, or phase execution under an exis
 
 ---
 
+## Verify-Before-Delete Protocol
+
+Before deleting any branch (local or origin), CC must verify that the branch's content is present in `main`. This protocol is binding regardless of any verbal "merged" confirmation.
+
+### Rule 1 — Verbal "merged" is not sufficient
+A verbal confirmation from Adi (e.g., "merged", "done", "you can clean up") triggers the verification protocol. It does NOT directly authorize deletion.
+
+### Rule 2 — Required verification before deletion
+Before running any branch deletion command, CC must run and report:
+
+```
+git checkout main
+git pull origin main
+git log --all --oneline | grep "<branch-name>" | head -5
+```
+
+CC must then run a content verification specific to the package:
+- For docs-only packages: `grep` for at least one unique string from each modified canonical file
+- For code packages: verify file exists at expected path
+
+If any verification fails: STOP. Do not delete. Report to Adi.
+
+### Rule 3 — Both verifications must pass
+Both the merge commit AND the content presence must be confirmed in `main` before deletion. A merge commit with no content (e.g., empty merge) still requires content verification.
+
+### Rule 4 — Order of operations
+The correct sequence after a "merged" confirmation:
+1. `git checkout main && git pull origin main`
+2. Run verifications (Rule 2)
+3. Report results to Adi
+4. Wait for explicit "verified, clean up" instruction
+5. Only then run `git branch -d` and `git push origin --delete`
+
+### Rule 5 — Force delete (`-D`) is forbidden
+Never use `git branch -D` (force delete) without explicit approval from Adi for that specific deletion. The capital `-D` bypasses git's built-in merge protection and contributed to the 2026-05-04 incident.
+
+### Applies to
+All branch deletion operations, including:
+- Package cleanup after merge
+- Removing recovery branches
+- Removing experimental branches
+- Any `git branch -d`, `git branch -D`, or `git push origin --delete` command
+
+### Does NOT apply to
+- Reading branch state (`git branch -a`, `git log <branch>`)
+- Creating branches (`git checkout -b`)
+- Pushing to existing branches
+
+### Reference
+Incident 2026-05-04 (see `docs/INTEGRATION_LEARNINGS.md` § Lesson 2026-05-04).
+
+---
+
 ## Environment
 
 - **OS:** Windows 11
