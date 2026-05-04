@@ -7,7 +7,7 @@
 
 | פאזה | תיאור | מצב | תאריך | Commit | Tests | Learnings |
 |---|---|---|---|---|---|---|
-| 1 | AUDIT — Lovable codebase | _passed_ | 2026-05-04 | TBD | file exists, 273 lines, 7 sections | — |
+| 1 | AUDIT — Lovable codebase | _passed_ | 2026-05-04 | bb18adc | file exists, 273 lines, 7 sections | — |
 | 2 | Workspace setup | _pending_ | — | — | — | — |
 | 3 | Auth foundation | _pending_ | — | — | — | — |
 | 4 | Layout + tabs | _pending_ | — | — | — | — |
@@ -28,6 +28,8 @@
 - `_blocked_` — מחכה לחיצוני
 
 ## Closeout
+
+**Note (Phase 1 complete 2026-05-04):** Ready for design discussion with Adi based on AUDIT findings. Key decision needed: do the 6 admin RPCs exist in mobile Supabase? See AUDIT.md § Section 7.
 
 - [ ] כל הפאזות עברו לפי TESTS.md
 - [ ] INTEGRATION_LEARNINGS.md עודכן עבור הפתעות
