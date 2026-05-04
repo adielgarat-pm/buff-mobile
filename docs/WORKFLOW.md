@@ -367,6 +367,45 @@ Violating this rule was the root cause of incident 2026-05-03.
 
 ---
 
+## EOD Protocol — סגירת יום
+
+### מי כותב את ה-EOD
+
+Claude.ai (לא CC) כותבת את תוכן ה-EOD ישירות בסוף הסשן. הסיבה:
+1. EOD הוא סיכום של דיון בין Adi ל-Claude.ai — Claude.ai מחזיקה את ההקשר המלא
+2. אין צורך לעבור דרך CC רק כדי לכתוב טקסט סטטי
+3. CC נכנס רק לפעולות ה-git (branch, commit, push, merge)
+
+### Workflow
+
+1. **Claude.ai יוצרת את הקובץ** באמצעות `create_file` ומגישה אותו דרך `present_files`
+2. **Adi מורידה את הקובץ** ושומרת ב-`docs/sessions/{relevant-package}/EOD_CLOSING_YYYY-MM-DD.md`
+   - אם ה-EOD שייך לחבילה ספציפית — תחת תיקיית החבילה
+   - אם זה EOD יומי בלי חבילה — `docs/sessions/_eod/EOD_CLOSING_YYYY-MM-DD.md`
+3. **CC מעבר דרך branch + PR + merge** כמו כל שינוי docs אחר. **אין חריג ל-Rule 7.** EOD ב-`main` תמיד דרך PR.
+
+### למה לא direct commit ל-main
+
+Rule 7 (NO direct commits to main) חל על EOD. הסיבה:
+- חריגים שוחקים את הכלל
+- Branch + PR ל-EOD לוקח 2 דקות נוספות
+- מבטיח שכל שינוי ב-`main` עובר אותו gate
+
+### תוכן EOD סטנדרטי
+
+| חלק | תוכן |
+|---|---|
+| 1 | מה הושלם היום (חבילות, commits, FLAGs חדשים) |
+| 2 | פתוח למחר (החלטות אסטרטגיות, שאלות פתוחות, סדר עבודה מוצע) |
+| 3 | איך לפתוח את הסשן הבא (starter prompt, רשימת קבצים לקרוא) |
+| 4 | הערות מפתח (תהליכי + מוצרי) |
+
+### תקרית 2026-05-03
+
+ב-2026-05-03 נוצר EOD הראשון אבל הוא נדחף ישירות ל-main בלי PR (commit `b86dd2f`). זה היה חריגה לא מכוונת ל-Rule 7. החל מסשן 2026-05-04 — כל EOD עובר branch + PR.
+
+---
+
 ## טיפול בהפתעות
 
 > "INTEGRATION_LEARNINGS" הוא הזיכרון ארוך הטווח של הפרויקט.
