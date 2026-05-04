@@ -7,8 +7,8 @@
 | פאזה | תיאור | מצב | תאריך | Commit | Tests | Learnings |
 |---|---|---|---|---|---|---|
 | 1 | Lesson → INTEGRATION_LEARNINGS.md | _passed_ | 2026-05-04 | d35cfac | grep ×2 passed | — |
-| 2 | Verify-Before-Delete Protocol → CLAUDE.md | _passed_ | 2026-05-04 | TBD | grep ×2 passed | — |
-| 3 | Cleanup Procedure → WORKFLOW.md | _pending_ | — | — | — | — |
+| 2 | Verify-Before-Delete Protocol → CLAUDE.md | _passed_ | 2026-05-04 | 73e49e0 | grep ×2 passed | — |
+| 3 | Cleanup Procedure → WORKFLOW.md | _passed_ | 2026-05-04 | TBD | grep ×2 passed | — |
 | 4 | Close STATUS | _pending_ | — | — | — | — |
 
 ## Legend

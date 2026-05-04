@@ -406,6 +406,50 @@ Rule 7 (NO direct commits to main) חל על EOD. הסיבה:
 
 ---
 
+## Cleanup Procedure — אחרי merge ל-main
+
+### למה נדרש פרוטוקול ייעודי
+
+תקרית 2026-05-04 חשפה ש-cleanup branches יכול להיכשל בשקט אם המ-merge בעצם לא קרה. הפרוטוקול הזה מבטל את הסיכון.
+
+### השלבים אחרי שAdi אומרת "merged"
+
+1. **CC לא מוחק כלום עדיין.** במקום זאת, מבצע verification:
+   - `git checkout main`
+   - `git pull origin main`
+   - `git log --oneline -5` — לראות שיש merge commit חדש
+   - בדיקת תוכן spezificit ל-package (grep על strings ייחודיים מהקבצים שהשתנו)
+
+2. **CC מציג ל-Adi את תוצאות ה-verification.** דוגמה:
+```
+   ✓ main updated: e76d30e Merge pull request #3
+   ✓ Content present: F-2026-05-03-07 found in INTEGRATION_LEARNINGS.md (count: 2)
+   ✓ Content present: EOD Protocol found in WORKFLOW.md (count: 1)
+   Ready for cleanup. Awaiting "verified, clean up" instruction.
+```
+
+3. **Adi בודקת ומאשרת:** "verified, clean up"
+
+4. **רק אחרי אישור מפורש** — CC מבצע:
+```
+   git branch -d <branch-name>
+   git push origin --delete <branch-name>
+```
+
+### מה לעשות אם verification נכשל
+
+- **Merge commit לא נמצא:** ה-merge לא קרה ב-GitHub. Adi צריכה לחזור ל-PR ולעשות merge.
+- **Merge commit נמצא אבל תוכן חסר:** מצב חריג — אולי merge בוצע על branch שגוי. STOP, חקירה.
+- **חלק מהתוכן נמצא וחלק לא:** Partial merge / cherry-pick partial. STOP, חקירה.
+
+בכל מקרה של failure: **לא למחוק שום branch.** לחקור עם Adi.
+
+### Reference
+- CLAUDE.md § Verify-Before-Delete Protocol (binding rules)
+- INTEGRATION_LEARNINGS.md § Lesson 2026-05-04 (incident reference)
+
+---
+
 ## טיפול בהפתעות
 
 > "INTEGRATION_LEARNINGS" הוא הזיכרון ארוך הטווח של הפרויקט.
