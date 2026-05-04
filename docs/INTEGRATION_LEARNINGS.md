@@ -81,6 +81,38 @@
 - **סטטוס:** `deferred` — Reconciliation תיעשה ב-BUDDY implementation session, אז ייעשה code audit מפורש.
 - **קשור ל:** Spec Status header נוסף ב-2.5.2026 ל-BUDDY_SYSTEM.md
 
+---
+
+### F-2026-05-03-07: שתי קולקציות עיצוב Buddy מקבילות
+
+**מה:** ה-Pets הקיימים (capybara, panda, unicorn) ו-skins חדשים שתוכננו (Wolf STORMY, Dragon, +) משתייכים לשתי משפחות עיצוב שונות:
+- **Pastel / Cute collection** — חמוד, רך, צבעים פסטליים
+- **Gaming / Edgy collection** — ניאון, חזק, אסתטיקה גיימינג
+
+**עיקרון:** כל קולקציה תיווצר באותה תוכנה ובאותו סגנון פרומפט, כדי לשמור על קו ויזואלי אחיד בתוך כל קולקציה. שתיהן ניטרליות מגדרית.
+
+**השפעה:** קוסמטית, לא חוסם MVP. אבל ייראה לא מקצועי כשיש skin selector שמציג שני סגנונות שונים מאותה קולקציה.
+
+**טיפול:**
+1. בחירת תוכנה ליצירה (דיון עתידי — Stitch/Midjourney/DALL-E/אחר)
+2. יצירת קולקציה Pastel חדשה (החלפת capybara/panda/unicorn הקיימים)
+3. יצירת קולקציה Gaming (Wolf, Dragon, +)
+4. הילד בוחר בקולקציה במהלך onboarding (חלק מ-Package B עתידי)
+
+**סטטוס:** open — דרוש דיון תוכנה + סשן יצירת assets לפני pet-skin-picker.
+
+---
+
+### F-2026-05-03-08: סשן Stitch ל-Pastel UI alternative
+
+**מה:** חלק מהילדים יעדיפו UI פסטלי על-פני neon הנוכחי (D-2026-05-02-24 רמז לכך כ-"theme alternative … לא כברירת מחדל").
+
+**טיפול:** סשן Stitch עתידי עם Adi (אולי עם אמי כ-co-designer) — יוגדר כחבילה עצמאית כשנגיע אליה. מתחבר ל-F-2026-05-03-07 (שתי קולקציות).
+
+**סטטוס:** open — לעתיד אחרי MVP.
+
+---
+
 ## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-03-06 (RESOLVED 2026-05-03): `.claude/settings.local.json` — file noise
