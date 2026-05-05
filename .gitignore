@@ -50,6 +50,9 @@ docs/**/*.zip
 # admin-web build output
 admin-web/dist/
 
+# admin-web local env (contains real Supabase keys — never commit)
+admin-web/.env.local
+
 # === repo-state-recovery (2026-05-05) ===
 # Supabase CLI dynamic state — not relevant to version control
 supabase/.temp/
