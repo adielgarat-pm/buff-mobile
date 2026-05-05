@@ -33,14 +33,22 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 
 -- =====================================================
--- SECTION 3: Self-validating read policy on admin_users
--- (Only users already in admin_users can read admin_users)
+-- SECTION 3: Read policy on admin_users
+-- Uses is_admin() SECURITY DEFINER to avoid infinite recursion.
+-- DO NOT use a self-referencing USING clause here (e.g. auth.uid() IN (SELECT user_id FROM admin_users))
+-- — that causes PG error 42P17 infinite recursion in policy for relation "admin_users".
+-- is_admin() has SECURITY DEFINER, so it executes as the function owner and bypasses
+-- the RLS check on admin_users itself, breaking the cycle.
 -- =====================================================
 
 CREATE POLICY "Admins can read admin_users"
   ON public.admin_users
   FOR SELECT
-  USING (auth.uid() IN (SELECT user_id FROM public.admin_users));
+  USING (public.is_admin());
+
+-- NOTE: If re-running after the recursive policy was already created, use:
+-- DROP POLICY IF EXISTS "Admins can read admin_users" ON public.admin_users;
+-- then re-run the CREATE POLICY above.
 
 -- =====================================================
 -- SECTION 4: Helper function is_admin()
