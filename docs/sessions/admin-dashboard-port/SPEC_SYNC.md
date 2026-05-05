@@ -10,6 +10,8 @@
 | `docs/BUFF_GAP_ANALYSIS.md` | 11 (Polish) | עדכון סטטוס admin dashboard מ-❌ ל-✅ כשנשלח |
 | `docs/sessions/admin-dashboard-port/AUDIT.md` | 1 | קובץ חדש — ממצאי Lovable audit |
 | `supabase/migrations/` | 3 | הוספת migrations: admin_users + is_admin function |
+| `package.json` (root) | 2 | Added `"workspaces": ["admin-web"]` — npm workspace declaration |
+| `admin-web/` (new subtree) | 2 | New Vite + React 19 + TypeScript + Tailwind 3.4 + shadcn scaffold (placeholder hello-world) |
 
 ## Note — No drift yet
 
