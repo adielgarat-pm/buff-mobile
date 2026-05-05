@@ -47,3 +47,6 @@ yarn-error.*
 # Documentation artifacts (zips downloaded from claude.ai or Stitch)
 docs/**/*.zip
 
+# admin-web build output
+admin-web/dist/
+

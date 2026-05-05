@@ -113,6 +113,40 @@
 
 ---
 
+### F-2026-05-05-01: Pre-existing expo-doctor failures in buff-mobile
+
+- **תאריך:** 2026-05-05 (discovered during admin-dashboard-port Phase 2)
+- **מקור:** CC — during Chunk 2 of pkg/admin-dashboard-port-phase-2
+- **תיאור:** `npx expo-doctor` reports 4 failures in the root buff-mobile project. Verified as pre-existing on main (before workspace addition) by running expo-doctor on both main and the phase-2 branch — same failures on both:
+  1. `app.json` schema: `android.supportsRTL` is an unknown field
+  2. Missing peer dependency: `expo-font` (required by `@expo/vector-icons`)
+  3. Duplicate `expo-font` (55.0.6 vs 14.0.11) + duplicate `expo-constants` (same version ×3, harmless)
+  4. `babel-preset-expo` major mismatch (expected ~54, found 55.0.15) + 8 patch-version mismatches across Expo packages
+- **השפעה:** Not blocking current work (Metro starts, app runs). May cause unexpected build errors in EAS Build. Patch mismatches are minor; babel-preset-expo major mismatch is more significant.
+- **סטטוס:** `open` — to address in a dedicated "expo-health" Improvement Package before EAS Build submission.
+- **קשור ל:** admin-dashboard-port Phase 2 (discovered), pkg/admin-dashboard-port-phase-2
+
+---
+
+### F-2026-05-05-02: admin-dashboard-port Phase 2 execution notes (deferred items)
+
+- **תאריך:** 2026-05-05
+- **מקור:** CC — pkg/admin-dashboard-port-phase-2 execution
+- **תיאור:** Four in-flight decisions made during Phase 2 that deviate from SPEC/AUDIT or defer work:
+
+  **React 19 (deviation from SPEC §3.1 / AUDIT §4):** SPEC and AUDIT referenced Lovable's React 18.3.1 stack. Root buff-mobile runs React 19.1.0. Decision (Adi, 2026-05-05): use React 19 in admin-web to match root and eliminate monorepo version drift. admin-web/package.json uses `react: ^19.1.0, react-dom: ^19.1.0`.
+
+  **nohoist clarification 2026-05-05:** Phase 2 prompt specified nohoist for Expo packages, but nohoist is a Yarn workspaces feature, not npm. With React 19 matching root and admin-web having no RN/Expo dependencies, npm workspaces' default hoisting did not break Metro. CLAUDE.md § Tech Stack — Known Constraints will be updated in a plan-review-checklist package to reflect: monorepo isolation in npm workspaces relies on package.json deps separation, not nohoist.
+
+  **`@types/node` addition (beyond AUDIT §4 list):** Required for `path.resolve(__dirname, ...)` in vite.config.ts. Pre-approved in chat 2026-05-05. Added as `@types/node: ^22.0.0` in admin-web devDependencies.
+
+  **`@radix-ui/react-slot` deferred:** Phase 2 Button component omits asChild prop (requires @radix-ui/react-slot). Smoke test only — full Button functionality + other Radix-based shadcn primitives (Dialog, Dropdown, Portal, etc.) deferred to Phase 4 of admin-dashboard-port port work, where they will be added as a coordinated set.
+
+- **סטטוס:** `deferred` — items noted, no action needed in Phase 2. Phase 4 picks up Radix deps; expo-health package picks up npm/expo issues.
+- **קשור ל:** F-2026-05-05-01 (expo-doctor), admin-dashboard-port Phase 4
+
+---
+
 ## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-03-06 (RESOLVED 2026-05-03): `.claude/settings.local.json` — file noise
