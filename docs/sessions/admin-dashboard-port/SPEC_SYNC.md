@@ -12,6 +12,7 @@
 | `supabase/migrations/` | 3 | הוספת migrations: admin_users + is_admin function |
 | `package.json` (root) | 2 | Added `"workspaces": ["admin-web"]` — npm workspace declaration |
 | `admin-web/` (new subtree) | 2 | New Vite + React 19 + TypeScript + Tailwind 3.4 + shadcn scaffold (placeholder hello-world) |
+| `docs/sessions/admin-dashboard-port/DEPLOYMENT.md` | 10 (ref) | Phase 10 (Vercel deploy) planning doc — authored by Claude.ai 2026-05-04, saved to disk but not committed. Recovered to version control 2026-05-05 via repo-state-recovery package. |
 
 ## Note — No drift yet
 
