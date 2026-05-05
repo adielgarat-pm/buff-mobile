@@ -34,13 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
+      setIsLoading(false) // unblock spinner immediately; isAdmin resolves after
       if (session) {
         const admin = await checkIsAdmin()
         setIsAdmin(admin)
       } else {
         setIsAdmin(false)
       }
-      setIsLoading(false)
     })
 
     return () => subscription.unsubscribe()
