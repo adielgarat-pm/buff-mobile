@@ -6,10 +6,10 @@
 
 | פאזה | תיאור | מצב | תאריך | Commit | Tests | Learnings |
 |---|---|---|---|---|---|---|
-| 1 | Commit BUFF_VALUES.md | _pending_ | — | — | — | — |
-| 2 | Commit DEPLOYMENT.md + SPEC_SYNC | _pending_ | — | — | — | — |
-| 3 | Delete 4 garbage files | _pending_ | — | n/a (untracked) | — | — |
-| 4 | Update .gitignore + close STATUS | _pending_ | — | — | — | — |
+| 1 | Commit BUFF_VALUES.md | _passed_ | 2026-05-05 | e8cc591 | git ls-files ✅, 169 lines ✅ | — |
+| 2 | Commit DEPLOYMENT.md + SPEC_SYNC | _passed_ | 2026-05-05 | 2986f78 | git ls-files ✅, SPEC_SYNC row ✅ | — |
+| 3 | Delete 4 garbage files | _passed_ | 2026-05-05 | n/a (untracked) | all 4 gone ✅ | — |
+| 4 | Update .gitignore + close STATUS | _passed_ | 2026-05-05 | TBD | git status clean ✅ | — |
 
 ## Legend
 

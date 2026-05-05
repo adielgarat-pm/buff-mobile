@@ -50,3 +50,17 @@ docs/**/*.zip
 # admin-web build output
 admin-web/dist/
 
+# === repo-state-recovery (2026-05-05) ===
+# Supabase CLI dynamic state — not relevant to version control
+supabase/.temp/
+
+# Historical source materials kept on disk for Adi's reference but not in version control
+docs/UPDATES_2026-05-02.md
+docs/EOD_CLOSING_2026-05-02.md
+
+# Personal folders (Hebrew-named)
+איך לדבר עם קלוד/
+
+# Zip exports at root level
+/*.zip
+
