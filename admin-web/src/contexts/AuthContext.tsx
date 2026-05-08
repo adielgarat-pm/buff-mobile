@@ -20,27 +20,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Initial session check
-    supabase.auth.getSession().then(({ data }) => {
+    // Initial session check — await checkIsAdmin before clearing isLoading
+    // so RequireAdmin never renders with stale isAdmin=false
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session)
       if (data.session) {
-        checkIsAdmin().then(setIsAdmin)
+        const admin = await checkIsAdmin()
+        setIsAdmin(admin)
       }
       setIsLoading(false)
     })
 
     // Subscribe to auth state changes (Magic Link callback, sign-out, etc.)
+    // Same pattern: await checkIsAdmin before clearing isLoading when session exists.
+    // Safe now that the RLS recursion bug (baa431e) is resolved — checkIsAdmin completes quickly.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
-      setIsLoading(false) // unblock spinner immediately; isAdmin resolves after
       if (session) {
         const admin = await checkIsAdmin()
         setIsAdmin(admin)
       } else {
         setIsAdmin(false)
       }
+      setIsLoading(false)
     })
 
     return () => subscription.unsubscribe()

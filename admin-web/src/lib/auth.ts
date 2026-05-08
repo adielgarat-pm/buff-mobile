@@ -19,7 +19,11 @@ export async function getSession() {
 }
 
 export async function checkIsAdmin(): Promise<boolean> {
-  const { data, error } = await supabase.rpc('is_admin')
+  const { data: sessionData } = await supabase.auth.getSession()
+  if (!sessionData.session) return false
+  const { data, error } = await supabase.rpc('is_admin', {
+    uid: sessionData.session.user.id,
+  })
   if (error) {
     console.error('is_admin check failed:', error)
     return false
