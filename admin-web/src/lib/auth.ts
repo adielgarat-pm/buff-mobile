@@ -18,21 +18,41 @@ export async function getSession() {
   return data.session
 }
 
-// userId: pass the user.id directly from the session already in hand.
-// Do NOT call getSession() internally — when invoked from onAuthStateChange,
-// the fresh session may not yet be in storage, causing getSession() to return
-// null and the RPC to be skipped (zero network requests, isAdmin stays false).
-export async function checkIsAdmin(userId?: string): Promise<boolean> {
+export async function checkIsAdmin(userId?: string, accessToken?: string): Promise<boolean> {
+  // If userId/token not provided, try to get them from supabase
+  // (this only works when client isn't locked)
   let uid = userId
-  if (!uid) {
-    const { data: sessionData } = await supabase.auth.getSession()
-    if (!sessionData.session) return false
-    uid = sessionData.session.user.id
+  let token = accessToken
+  if (!uid || !token) {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      uid = uid ?? sessionData.session?.user?.id
+      token = token ?? sessionData.session?.access_token
+    } catch (e) {
+      console.error('checkIsAdmin: getSession failed', e)
+    }
   }
-  const { data, error } = await supabase.rpc('is_admin', { uid })
-  if (error) {
-    console.error('is_admin check failed:', error)
+  if (!uid || !token) return false
+
+  try {
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/is_admin`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ uid }),
+    })
+    if (!response.ok) {
+      console.error('is_admin check failed:', response.status, await response.text())
+      return false
+    }
+    const data = await response.json()
+    return data === true
+  } catch (err) {
+    console.error('is_admin check error:', err)
     return false
   }
-  return data === true
 }

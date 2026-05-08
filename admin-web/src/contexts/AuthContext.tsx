@@ -20,12 +20,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Pass userId directly — do not call getSession() again inside checkIsAdmin,
-    // as the session object here is already authoritative.
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session)
       if (data.session) {
-        const admin = await checkIsAdmin(data.session.user.id)
+        const admin = await checkIsAdmin(data.session.user.id, data.session.access_token)
         setIsAdmin(admin)
       }
       setIsLoading(false)
@@ -36,10 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       if (session) {
-        // Pass session.user.id directly — avoids a second getSession() call inside
-        // checkIsAdmin that would race with Supabase writing the session to storage,
-        // causing getSession() to return null and the RPC to be skipped entirely.
-        const admin = await checkIsAdmin(session.user.id)
+        // Pass both userId and access_token directly — avoids any call into
+        // the supabase-js client, which enters a deadlock after Magic Link commit.
+        const admin = await checkIsAdmin(session.user.id, session.access_token)
         setIsAdmin(admin)
       } else {
         setIsAdmin(false)
