@@ -153,6 +153,35 @@ Incident 2026-05-04 (see `docs/INTEGRATION_LEARNINGS.md` § Lesson 2026-05-04).
 
 ---
 
+## Delegation: CC-First Investigation
+
+Adi's time is the bottleneck, not CC's. Default to giving CC autonomous tasks rather than walking Adi through manual steps.
+
+### Route through CC (don't ask Adi):
+- Reading files, running commands (`npm`, `git`, `build`, `grep`, `ps`, `kill`)
+- Editing code, applying fixes, committing
+- Killing/restarting dev servers, finding zombie processes
+- Searching `node_modules`, configs, logs, env vars
+- SQL via Supabase MCP (when connected)
+- Adding/removing diagnostic logs
+
+### Ask Adi only for things only she can do:
+- Browser interactions and UI screenshots (final verification only)
+- GitHub UI (merge button, PR review when no `gh` CLI)
+- Supabase Dashboard manual SQL (when MCP unavailable)
+- Strategic / product decisions
+- Account-bound operations (email, payments, etc.)
+
+### Anti-pattern detector
+If Claude.ai is about to send Adi a 3+ step procedure involving terminals, file viewers, or DevTools — STOP. Write a CC prompt instead.
+
+### CC prompt template
+
+### Origin
+2026-05-08 Phase 3 debug session. Claude.ai over-routed through Adi for ~3 hours during the supabase-js deadlock investigation (running SQL queries, F12 navigation, screenshots, manual button clicks) instead of delegating to CC. Adi explicitly redirected: "תמיד דרך CC לכל דבר שהוא יכול מבלי לשאול אותי קודם". Rule extracted same session.
+
+---
+
 ## Environment
 
 - **OS:** Windows 11
