@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|---|
 | 1 | AUDIT — Lovable codebase | _passed_ | 2026-05-04 | bb18adc | file exists, 273 lines, 7 sections | — |
 | 2 | Workspace setup | _passed_ | 2026-05-05 | 0cd16f7 | build + dev verified by Adi | F-2026-05-05-01, F-2026-05-05-02 |
-| 3 | Auth foundation | _pending_ | — | — | — | — |
+| 3 | Auth foundation | _in_progress_ | 2026-05-05 | — | — | — |
 | 4 | Layout + tabs | _pending_ | — | — | — | — |
 | 5 | Funnel + KPIs | _pending_ | — | — | — | — |
 | 6 | Attention Needed | _pending_ | — | — | — | — |
