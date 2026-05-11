@@ -18,15 +18,41 @@ ADHD support app for kids and teens (ages 6-18). React Native (Expo) on Android,
 
 ## Required Reading at Session Start
 
-In this order, every time:
+### Always — every session, in order
 
 1. **`CLAUDE.md`** (this file)
 2. **`docs/WORKFLOW.md`** — three-party loop, Plan Mode rules, exit deliverables
 3. **`docs/BUFF_VALUES.md`** — three product pillars + Values Check (mandatory before any feature work)
-4. **`docs/sessions/{slug}/SPEC.md`** — target state for the active package
-5. **`docs/sessions/{slug}/SPEC_SYNC.md`** — which canonical docs to update per phase
+4. **`docs/sessions/{slug}/SPEC.md`** — target state for the active package (if a session is active)
+5. **`docs/sessions/{slug}/SPEC_SYNC.md`** — which canonical docs to update per phase (if a session is active)
 6. **`docs/BUFF_DECISIONS_LOG.md`** — recent decisions that may affect this work
-7. Relevant docs for the task (BUFF_BUDDY_SYSTEM.md, BUFF_GAP_ANALYSIS.md, etc.)
+
+### Conditionally — based on session intent
+
+7. **Feature / code sessions** — also load:
+   - **`docs/BUFF_PRD.md`** — what the product is
+   - **`docs/BUFF_BUDDY_SYSTEM.md`** — BUDDY mechanics (when touching BUDDY/Teen flows)
+   - **`docs/BUFF_GAP_ANALYSIS.md`** — PRD ↔ code gaps
+   - **`docs/INTEGRATION_LEARNINGS.md`** — long-term memory, open FLAGs
+
+8. **Marketing / brand / copy / pitch / forum-reply sessions** — also load the **brand family**:
+   - **`docs/BUFF_BRAND.md`** — identity, tagline hierarchy, tone of voice, visual identity
+   - **`docs/BUFF_PERSONAS.md`** — 9 personas + emotional jobs mapping
+   - **`docs/BUFF_MESSAGING.md`** — pitch library, hooks, forum replies, Reels & AI video prompts, Play Store copy
+   - **`docs/BUFF_COMPETITORS.md`** — landscape map + forum reply ammunition
+   - **`docs/BUFF_FAQ.md`** — canonical answers across all channels (when created)
+   - **`docs/BUFF_FOUNDER_STORY.md`** — Adi/Itay/Emi origin (when created)
+   - **`docs/BUFF_TESTIMONIALS.md`** — curated testimonial board (when created)
+
+### How to recognize session intent (heuristic)
+
+- **Marketing/brand session:** prompt mentions ads, social, Play Store, Reels, copy, persona, hooks, pitch, taglines, forum/Reddit/Facebook reply, brand, voice, founder story, testimonials, competitors. Load tier 8.
+- **Feature/code session:** prompt mentions a feature name, a file path, a bug, a SPEC, a Phase, BUDDY, Onboarding, Vibe Check, etc. Load tier 7.
+- **Hybrid (rare):** if both, load both. Loading is cheap; assumption errors aren't.
+
+### Conflict rule (unchanged)
+
+If a conflict arises between this file and a session's SPEC.md, surface it to Adi — don't resolve silently.
 
 ---
 

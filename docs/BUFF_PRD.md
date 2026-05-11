@@ -60,7 +60,7 @@ Joon solves the 'get tasks done today' problem with extrinsic motivation. No app
 
 ### 3.1 Vision Statement
 
-BUFF is the app that grows with your child — from the chaos of morning routines at age 6, to the independence of managing their own schedule at 15. We win when the child doesn't need us anymore.
+BUFF is the app that grows with your child — from the chaos of morning routines at age 6, to the independence of managing their own schedule at 18. We win when the child doesn't need us anymore.
 
 
 ### 3.2 Positioning
@@ -68,7 +68,7 @@ BUFF is the app that grows with your child — from the chaos of morning routine
 
 | Joon | BUFF |
 |---|---|
-| Ages 6–12 only | Ages 6–18, two distinct UIs |
+| Ages 6–12 only | Ages 6–18, two child aesthetics (Pastel & Gamer) — kid picks |
 | Extrinsic: coins for game access | Intrinsic: buddy grows with child's success |
 | Parent controls everything | Child proposes tasks & rewards (real-life) |
 | No disruption recovery | Pause mode — resume without rebuilding |
@@ -92,14 +92,21 @@ Parent of a child with ADHD, age 6–18
 
 ### 4.2 Primary User (Child)
 
-Child with ADHD, two distinct segments:
+Child with ADHD, ages 6–18. The product has **three modes** — one for the buying parent, two for the kid as aesthetic choices. The kid picks their aesthetic at first launch, with the parent's device or a shared desktop being the typical context (per §2.2 — 65% of beta users share a device). The kid can switch modes anytime in Settings, no parent approval required.
 
+**Mode structure:**
 
-|  | Child (6–12) | Teen (13–18) |
-|---|---|---|
-| UI | Buddy character, gamified, visual | Dashboard, goals, deal-making with parent |
-| Motivation | Buddy growth, skins, real rewards child chose, 70% = success | Self-proposed rewards, autonomy, streaks |
-| Cooperation | High — responds quickly to buddy/rewards | Conditional — needs ownership and respect |
+|  | Parent Mode | Pastel Mode | Gamer Mode |
+|---|---|---|---|
+| For | Buying parent | Kid who prefers softer aesthetic | Kid who prefers dashboard / dark aesthetic |
+| Default for | All parents | Kid ages 6–8 if no choice made; age 9+ default suggested but kid picks | Kid age 9+ when they choose it |
+| BUDDY character | N/A | Default on (kid can turn off) | Default off (kid can turn on) |
+| Visual feel | Light, soft violet, friendly | Dark canvas, neon-leaning, dashboard-style |  |
+| Motivation | Approval queue, dashboard | Buddy growth, skins, real rewards child chose, 70% = success | Self-proposed tasks/rewards, deal-making, autonomy, real rewards |
+| Cooperation | N/A | High — responds quickly to buddy/rewards | Conditional — needs ownership and respect |
+| Vibe Check display | N/A | Emoji faces | Energy bars |
+
+**Rationale for aesthetic-based modes** (not age-gated): kid agency is Pillar 3 (Independence-Building). Age is a heuristic, not a value — Itay (15) and Emi (9) both made individual choices that happened to match stereotypes, but at scale many won't. Gender is never used as a default (reputational + Pillar-3 risk). See D-2026-05-11-01.
 
 
 ### 4.3 Geographic Market
@@ -196,26 +203,31 @@ Parent Interface
 - PAUSE MODE (new, critical) — single button to freeze all tasks without deleting progress
 - Resume from pause with 'Welcome back' experience
 - Family dashboard — task completion overview
-Child Interface — Ages 6–12 (Buddy UI)
+Child Interface — Pastel Mode (default for 6–8 fallback; chosen by kid age 9+)
 
-- Buddy character that evolves from egg to full character
+- Buddy character that evolves from egg to full character (default on; kid can toggle off)
 - Buddy skins (unlockable)
 - Daily task view — one task at a time, clear and unambiguous
 - Task completion marking
-- Points and credits accumulation
+- Points and credits accumulation (BUFFs balance)
 - Reward redemption
 - Ability to propose a new task to parent (new)
-- Daily Vibe Check — child rates energy level 1-5 at start of day. For children: emoji faces. For teens: energy bars. If level ≤2: Low Power Mode activates (reduced task list), SOS button to parent, and Instant Buff option. Already fully implemented in current codebase.
+- Daily Vibe Check — kid rates energy level 1-5 at start of day. In Pastel Mode: emoji faces. If level ≤2: Low Power Mode activates (reduced task list), SOS button to parent, and Instant Buff option. Already fully implemented in current codebase.
 - Rest Tickets — child earns 1 ticket per 5 completed tasks. Ticket skips a day without hurting 70% goal. Already implemented. This is the daily disruption mechanism.
-- Push notifications: buddy waiting, task reminder, streak notification
-Child Interface — Ages 13–18 (Teen Dashboard UI)
+- Push notifications: buddy waiting, task reminder, progress notification
+- Visual: lighter violet palette, soft accents, friendly tone
 
-- Clean dashboard without buddy character
+Child Interface — Gamer Mode (chosen by kid; recommended default for age 13+ unless kid picks otherwise)
+
+- Buddy character default off (kid can opt in)
+- Clean dashboard-style layout
 - Goals view — weekly and monthly
 - Task list with self-initiation emphasis
 - Deal-making interface — propose tasks and rewards for parent approval
-- Streak tracker
+- Daily Vibe Check — same mechanic, but UI uses energy bars instead of emoji faces
+- BUFFs balance + real-reward proximity prominent
 - Push notifications: task reminders, goal progress
+- Visual: dark violet canvas, gaming-tactical aesthetic, lime-green signaling (consistent with BUFF_BRAND.md §7)
 Technical Infrastructure
 
 - React Native app — Android first, iOS architecture ready
