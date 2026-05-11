@@ -72,14 +72,26 @@ GitHub: github.com/adielgarat-pm/buff-mobile
 
 לפני שתענה, תקרא את המסמכים הבאים בסדר:
 
-1. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_DECISIONS_LOG.md
-2. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_GAP_ANALYSIS.md
-3. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_BUDDY_SYSTEM.md
-4. https://github.com/adielgarat-pm/buff-mobile/blob/main/SESSION_LOG.md
-5. אם דרוש — גם:
-   https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_PRD.md
+**תמיד:**
 
-אם השיחה היא על Teen UI, תסתכל גם על המסכים ב-Stitch:
+1. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_VALUES.md
+2. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_DECISIONS_LOG.md
+3. https://github.com/adielgarat-pm/buff-mobile/blob/main/SESSION_LOG.md
+
+**אם השיחה היא feature / code / SPEC — תקרא בנוסף:**
+
+4. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_GAP_ANALYSIS.md
+5. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_PRD.md
+6. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_BUDDY_SYSTEM.md (אם נוגעים ב-BUDDY/Teen)
+
+**אם השיחה היא marketing / brand / ad / Reels / Play Store / forum reply / persona / pitch — תקרא בנוסף:**
+
+7. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_BRAND.md
+8. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_PERSONAS.md
+9. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_MESSAGING.md
+10. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_COMPETITORS.md
+
+**אם השיחה היא Teen UI — תסתכל גם על המסכים ב-Stitch:**
    https://github.com/adielgarat-pm/buff-mobile/tree/main/docs/teen-ui-design
 
 אחרי שקראת, תגיד לי בקצרה (3-5 שורות):
