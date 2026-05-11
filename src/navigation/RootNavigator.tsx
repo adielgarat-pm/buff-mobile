@@ -16,6 +16,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMode } from '../contexts/ModeContext';
 import { useChildrenDashboard } from '../hooks/useChildrenDashboard';
 import type { RootStackParamList } from './types';
+import { linking } from './linking';
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 import RoleSelectionScreen from '../screens/auth/RoleSelectionScreen';
@@ -82,7 +83,7 @@ export default function RootNavigator() {
   console.log('[RootNavigator] role:', profile?.role, 'onboardingComplete:', onboardingComplete, 'hasChildren:', hasChildren);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
 
         {!user ? (
