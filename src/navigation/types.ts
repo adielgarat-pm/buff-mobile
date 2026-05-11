@@ -47,6 +47,9 @@ export type RootStackParamList = {
   // ── Premium paywall (accessible from both parent and child app) ──────
   Paywall: { childName?: string } | undefined;
 
+  // ── Founding 100 (lifetime tier offer screen) ────────────────────────
+  FoundingHundred: undefined;
+
   // ── Philosophy / About ───────────────────────────────────────────────
   Philosophy: undefined;
 };

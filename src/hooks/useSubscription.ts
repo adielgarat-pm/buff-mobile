@@ -18,9 +18,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamilyMembers } from './useFamilyMembers';
 import {
   getIsSubscribed,
+  getIsFoundingMember,
   purchaseMonthly  as rcPurchaseMonthly,
   purchaseYearly   as rcPurchaseYearly,
+  purchaseLifetime as rcPurchaseLifetime,
   restorePurchases as rcRestorePurchases,
+  type FoundingTier,
 } from '../services/purchaseService';
 
 export const GRACE_PERIOD_END = new Date('2026-05-01T23:59:59');
@@ -35,9 +38,10 @@ export function useSubscription() {
   const { children } = useFamilyMembers();
 
   const [simulateSubscribed, setSimulateSubscribedState] = useState(false);
-  const [rcSubscribed,  setRcSubscribed]  = useState(false);
-  const [customerInfo,  setCustomerInfo]  = useState<CustomerInfo | null>(null);
-  const [rcLoading,     setRcLoading]     = useState(true);
+  const [rcSubscribed,    setRcSubscribed]    = useState(false);
+  const [rcFounding,      setRcFounding]      = useState(false);
+  const [customerInfo,    setCustomerInfo]    = useState<CustomerInfo | null>(null);
+  const [rcLoading,       setRcLoading]       = useState(true);
 
   // ── Load dev toggle ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -54,11 +58,13 @@ export function useSubscription() {
   // ── Fetch RC status on mount ───────────────────────────────────────────────
   const refreshRC = useCallback(async (): Promise<void> => {
     try {
-      const [subscribed, info] = await Promise.all([
+      const [subscribed, founding, info] = await Promise.all([
         getIsSubscribed(),
+        getIsFoundingMember(),
         Purchases.getCustomerInfo(),
       ]);
       setRcSubscribed(subscribed);
+      setRcFounding(founding);
       setCustomerInfo(info);
     } catch (err) {
       console.warn('[useSubscription] RC refresh error (non-fatal):', err);
@@ -78,15 +84,23 @@ export function useSubscription() {
   }, [refreshRC]);
 
   // ── Derived subscription status ────────────────────────────────────────────
-  const isLifetimeAccess = profile?.is_lifetime_access ?? false;
-  const isGracePeriod    = new Date() < GRACE_PERIOD_END;
-  const isLifetime       = isLifetimeAccess;
+  const isLifetimeAccess     = profile?.is_lifetime_access ?? false;
+  const isLifetimeFounding   = profile?.is_lifetime_founding ?? false;
+  const foundingMemberNumber = profile?.founding_member_number ?? null;
+  const isGracePeriod        = new Date() < GRACE_PERIOD_END;
+  const isLifetime           = isLifetimeAccess;
+  // Founding state is true if either the DB flag OR the RC entitlement says
+  // so. The DB flag is set by the webhook (eventually consistent); the RC
+  // entitlement is immediate on purchase. Either is sufficient to consider
+  // the user a Founding Member.
+  const isFoundingMember     = isLifetimeFounding || rcFounding;
 
   const isSubscribed =
     isLifetimeAccess ||
     isGracePeriod    ||
     simulateSubscribed ||
-    rcSubscribed;
+    rcSubscribed     ||
+    rcFounding;
 
   const childCount   = children.length;
   const needsUpgrade = !isSubscribed && childCount >= FREE_CHILD_LIMIT;
@@ -106,6 +120,16 @@ export function useSubscription() {
     return result;
   }, [refreshRC, refreshProfile, user]);
 
+  const purchaseLifetime = useCallback(async (tier: FoundingTier) => {
+    const result = await rcPurchaseLifetime(tier);
+    await refreshRC();
+    // The is_lifetime_founding flag + founding_member_number are set by the
+    // rc-webhook edge function. Refresh the profile so the UI picks them up
+    // — there may be a brief lag between purchase complete and webhook fired.
+    if (user) await refreshProfile(user.id);
+    return result;
+  }, [refreshRC, refreshProfile, user]);
+
   const restorePurchases = useCallback(async () => {
     const result = await rcRestorePurchases();
     await refreshRC();
@@ -118,6 +142,8 @@ export function useSubscription() {
     isSubscribed,
     isLifetime,
     isLifetimeAccess,
+    isFoundingMember,
+    foundingMemberNumber,
     isGracePeriod,
     needsUpgrade,
     isLoading: rcLoading,
@@ -132,6 +158,7 @@ export function useSubscription() {
     // Purchase actions
     purchaseMonthly,
     purchaseYearly,
+    purchaseLifetime,
     restorePurchases,
     refresh: refreshRC,
   };

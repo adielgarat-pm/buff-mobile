@@ -36,10 +36,11 @@ import UStep7_Phone        from '../screens/onboarding/unified/UStep7_Phone';
 import UStep8_Complete     from '../screens/onboarding/unified/UStep8_Complete';
 
 // ── Main app tab navigators ───────────────────────────────────────────────────
-import ParentTabs       from './ParentTabs';
-import ChildTabs        from './ChildTabs';
-import PaywallScreen    from '../screens/PaywallScreen';
-import PhilosophyScreen from '../screens/parent/PhilosophyScreen';
+import ParentTabs            from './ParentTabs';
+import ChildTabs             from './ChildTabs';
+import PaywallScreen         from '../screens/PaywallScreen';
+import FoundingHundredScreen from '../screens/FoundingHundredScreen';
+import PhilosophyScreen      from '../screens/parent/PhilosophyScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -106,6 +107,11 @@ export default function RootNavigator() {
               component={PaywallScreen}
               options={{ presentation: 'modal', headerShown: false }}
             />
+            <Stack.Screen
+              name="FoundingHundred"
+              component={FoundingHundredScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
           </>
 
         ) : parentOnboarded ? (
@@ -120,6 +126,11 @@ export default function RootNavigator() {
             <Stack.Screen
               name="Paywall"
               component={PaywallScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="FoundingHundred"
+              component={FoundingHundredScreen}
               options={{ presentation: 'modal', headerShown: false }}
             />
             <Stack.Screen
