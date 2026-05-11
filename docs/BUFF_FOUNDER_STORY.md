@@ -73,14 +73,18 @@
 **HE:** *עדי אלגרט גרמן היא המייסדת של BUFF. היא מנהלת מוצר ואמא של נער עם ADHD. היא בנתה את BUFF כי אף אפליקציה בשוק לא נתנה מענה גם לבת הצעירה וגם לבן המתבגר.*
 
 **Extended bio for press / podcast / investor decks:**
-> `[NEEDS INPUT: short professional history — current/past role, company, how long in product, any ADHD-adjacent credentials (parenting coaching certifications, ADHD advocacy work)?]`
+> *Adi is a senior product manager and mentor to other PMs. She's based in Israel and is building BUFF as founder. The combination of senior-PM craft + first-hand ADHD parenting + active mentor identity is the credibility BUFF leads with — not generic "founder energy" but specific product-management discipline applied to her own family's daily reality.*
+>
+> **LinkedIn:** https://www.linkedin.com/in/adi-elgarat-german
+> `[NEEDS INPUT: specific past companies/products she wants named on the record — verify with Adi which to include]`
 
 **What Adi is comfortable being public about:**
 - Being the founder
 - Being a mom of a teen with ADHD
 - Being Israeli, building for international market
-- Background as a product manager
-- `[NEEDS INPUT: anything else Adi wants in / wants out?]`
+- Background as a **senior product manager**
+- **Mentoring other PMs** — this is both an authority signal and a channel asset (see [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) §2.4 PM-community channel)
+- `[NEEDS INPUT: specific past employers/products she wants on/off the record?]`
 
 **What Adi is NOT comfortable being public about:**
 - `[NEEDS INPUT: anything off-limits? Specific employers, specific personal details, family circumstances, etc.]`
