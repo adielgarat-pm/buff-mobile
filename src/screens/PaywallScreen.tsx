@@ -143,6 +143,21 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
           </View>
         )}
 
+        {/* Founding 100 CTA — only shown while spots are available.
+            See FoundingHundredScreen for the full offer + live counter. */}
+        <TouchableOpacity
+          style={styles.foundingBanner}
+          onPress={() => navigation.navigate('FoundingHundred' as never)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.foundingBannerLeft}>
+            <Text style={styles.foundingBannerEyebrow}>FOUNDING 100</Text>
+            <Text style={styles.foundingBannerTitle}>One-time payment · Lifetime</Text>
+            <Text style={styles.foundingBannerSub}>From $99 · Limited to first 100</Text>
+          </View>
+          <Text style={styles.foundingBannerArrow}>›</Text>
+        </TouchableOpacity>
+
         {/* Yearly card (best value — shown first) */}
         {yearlyLabel ? (
           <TouchableOpacity
@@ -237,6 +252,29 @@ const styles = StyleSheet.create({
     width: '100%', backgroundColor: T.card, borderRadius: 16,
     padding: 18, marginBottom: 24, borderWidth: 1, borderColor: T.cardBorder,
   },
+
+  foundingBanner: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1636',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#A8E63E',
+  },
+  foundingBannerLeft: { flex: 1 },
+  foundingBannerEyebrow: {
+    color: '#A8E63E',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+  foundingBannerTitle: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  foundingBannerSub: { color: '#A78BFA', fontSize: 12, marginTop: 2 },
+  foundingBannerArrow: { color: '#A8E63E', fontSize: 28, fontWeight: '300', marginLeft: 8 },
   featureRow:  { flexDirection: 'row', alignItems: 'center', paddingVertical: 7 },
   featureEmoji: { fontSize: 20, width: 30 },
   featureText:  { flex: 1, color: T.text, fontSize: 14, fontWeight: '500' },
