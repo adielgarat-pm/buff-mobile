@@ -24,6 +24,8 @@ export interface Profile {
   role: 'parent' | 'child';
   is_pro: boolean;
   is_lifetime_access: boolean;
+  is_lifetime_founding: boolean;
+  founding_member_number: number | null;
   pro_settings: Record<string, unknown>;
 }
 
