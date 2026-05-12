@@ -9,7 +9,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "i18n:check": "node scripts/i18n-key-check.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
