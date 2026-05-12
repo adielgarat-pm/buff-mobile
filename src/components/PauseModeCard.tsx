@@ -76,7 +76,7 @@ export default function PauseModeCard() {
             const { error } = await togglePause(durationToPauseDuration(selectedDuration));
             setBusy(false);
             if (error) {
-              Alert.alert(t('common.errorTitle'), error.message);
+              Alert.alert(t('common.error'), error.message);
             }
           },
         },
@@ -90,7 +90,7 @@ export default function PauseModeCard() {
     const { error } = await resumePause();
     setBusy(false);
     if (error) {
-      Alert.alert(t('common.errorTitle'), error.message);
+      Alert.alert(t('common.error'), error.message);
     }
   };
 
