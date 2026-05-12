@@ -11,7 +11,10 @@ import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useAppSettings } from '../../hooks/useAppSettings';
 import { PetDisplay } from '../../components/PetDisplay';
+import PauseEmptyState from '../../components/PauseEmptyState';
+import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -25,6 +28,8 @@ export default function ChildDashboardScreen() {
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, dailyGoal, loading } = useChildData(childId);
+  const { isPauseActive } = useAppSettings();
+  const welcomeBack = useWelcomeBack();
 
   const [justCompletedTask, setJustCompletedTask] = useState(false);
 
@@ -74,13 +79,66 @@ export default function ChildDashboardScreen() {
         </View>
       </View>
 
-      {/* Buffs total (from credit_vault) */}
+      {/* Buffs total (from credit_vault) — visible even during pause to reassure */}
       <View style={[styles.buffsCard, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
         <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>TOTAL BUFFS</Text>
         <Text style={[styles.buffsCount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
         <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>Spend them in the Shop →</Text>
       </View>
 
+      {/* Pause state — short-circuits the rest of the dashboard */}
+      {isPauseActive ? (
+        <>
+          <PauseEmptyState />
+          <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
+        </>
+      ) : (
+        <>
+          <DashboardActiveContent
+            T={T}
+            doneTasks={doneTasks}
+            totalTasks={totalTasks}
+            fuelPct={fuelPct}
+            atGoal={atGoal}
+            isSubscribed={isSubscribed}
+            isChildPreview={isChildPreview}
+            profileName={profile?.display_name ?? undefined}
+            justCompletedTask={justCompletedTask}
+            setJustCompletedTask={setJustCompletedTask}
+            totalBalance={totalBalance}
+            navigation={navigation}
+          />
+          <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
+        </>
+      )}
+    </ScrollView>
+  );
+}
+
+// Extracted active dashboard sub-component so the top-level render stays readable
+// after the pause-state branching. Renders the original fuel meter, pet card, and
+// stats row. Pure presentational — no hooks of its own.
+interface DashboardActiveContentProps {
+  T: ReturnType<typeof useChildTheme>;
+  doneTasks: number;
+  totalTasks: number;
+  fuelPct: number;
+  atGoal: boolean;
+  isSubscribed: boolean;
+  isChildPreview: boolean;
+  profileName: string | undefined;
+  justCompletedTask: boolean;
+  setJustCompletedTask: (v: boolean) => void;
+  totalBalance: number;
+  navigation: Nav;
+}
+
+function DashboardActiveContent({
+  T, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildPreview,
+  profileName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
+}: DashboardActiveContentProps) {
+  return (
+    <>
       {/* Focus fuel meter */}
       <View style={[styles.fuelCard, { backgroundColor: T.card, borderColor: T.border }]}>
         <View style={styles.fuelHeader}>
@@ -107,7 +165,7 @@ export default function ChildDashboardScreen() {
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
         {isSubscribed ? (
           <PetDisplay
-            childName={isChildPreview ? 'Preview' : (profile?.display_name ?? undefined)}
+            childName={isChildPreview ? 'Preview' : profileName}
             justCompletedTask={justCompletedTask}
             onTaskCompletionAck={() => setJustCompletedTask(false)}
             completedToday={doneTasks}
@@ -117,7 +175,7 @@ export default function ChildDashboardScreen() {
           <TouchableOpacity
             style={styles.lockedPet}
             onPress={() => navigation.navigate('Paywall', {
-              childName: isChildPreview ? undefined : (profile?.display_name ?? undefined),
+              childName: isChildPreview ? undefined : profileName,
             })}
             activeOpacity={0.8}
           >
@@ -149,7 +207,7 @@ export default function ChildDashboardScreen() {
           </View>
         ))}
       </View>
-    </ScrollView>
+    </>
   );
 }
 

@@ -1402,5 +1402,30 @@
   "timetable.noLessonsManual": "יש להזין לפחות שיעור אחד",
   "timetable.equipment": "ציוד",
   "timetable.lessonPlaceholder": "שם המקצוע...",
-  "timetable.timePlaceholder": "HH:MM"
+  "timetable.timePlaceholder": "HH:MM",
+
+  "common.cancel": "ביטול",
+
+  "pause.parentCardTitle": "לקחת הפסקה",
+  "pause.parentCardSubtitle": "השהיית המשימות למשפחה. שום דבר לא נמחק — אפשר לחזור בכל זמן.",
+  "pause.statusTitle": "BUFF בהשהיה",
+  "pause.duration.today": "רק היום",
+  "pause.duration.threeDays": "3 ימים",
+  "pause.duration.oneWeek": "שבוע",
+  "pause.duration.indefinite": "עד שאחזיר",
+  "pause.pauseButton": "השהה את BUFF",
+  "pause.resumeButton": "חזרה עכשיו",
+  "pause.statusActive": "מושהה עד {{date}}",
+  "pause.statusActiveIndefinite": "מושהה ללא הגבלה",
+  "pause.dashboardBanner": "האפליקציה מושהית. המשימות מוסתרות מהילדים.",
+  "pause.confirmTitle": "להשהות את BUFF למשפחה?",
+  "pause.confirmMessage": "המשימות יוסתרו מהילדים ({{duration}}). ההתקדמות וה-BUFFs שמורים. אפשר לחזור בכל רגע.",
+  "pause.confirmAction": "כן, להשהות",
+  "pause.childEmptyTitle": "אנחנו בהפסקה",
+  "pause.childEmptySubtitle.withDate": "נתראה כשנחזור — {{date}}",
+  "pause.childEmptySubtitle.indefinite": "נתראה כשנחזור!",
+
+  "welcomeBack.title": "היי, חזרת!",
+  "welcomeBack.subtitle": "בוא נתחיל מחדש היום.",
+  "welcomeBack.cta": "יאללה"
 }

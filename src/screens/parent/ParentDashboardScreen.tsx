@@ -27,6 +27,7 @@ import { useParentInsights } from '../../hooks/useParentInsights';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
 import LinkChildModal from '../../components/LinkChildModal';
+import PauseBanner from '../../components/PauseBanner';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -188,6 +189,9 @@ export default function ParentDashboardScreen() {
       style={[styles.container, { backgroundColor: T.bg }]}
       contentContainerStyle={styles.content}
     >
+      {/* ── Pause banner (only renders when paused) ─────────────────────── */}
+      <PauseBanner />
+
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={styles.header}>
         <View>
