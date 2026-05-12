@@ -1360,6 +1360,21 @@
   "childRewards.claimTitle": "🎉 Claimed!",
   "childRewards.claimMsg": "\"{{title}}\" is yours! Your parent will get notified.",
 
+  "gamerRewards.title": "REWARDS",
+  "gamerRewards.subtitle": "Spend your buffs",
+  "gamerRewards.tab.parent": "FROM PARENT",
+  "gamerRewards.tab.buddy": "FROM BUDDY",
+  "gamerRewards.parentSectionTitle": "Things you can earn",
+  "gamerRewards.parentSectionSubtitle": "Save up Buffs to unlock rewards your parent set",
+  "gamerRewards.redeem": "REDEEM",
+  "gamerRewards.toGo": "{{count}} to go",
+  "gamerRewards.suggestReward": "Suggest a reward to your parent",
+  "gamerRewards.emptyParentTitle": "No rewards yet",
+  "gamerRewards.emptyParentSubtitle": "Ask your parent to add some rewards to the shop.",
+  "gamerRewards.boostersTitle": "Boosters from Buddy",
+  "gamerRewards.boostersSubtitle": "Earn boosters by keeping your streak alive. They give you in-app perks like extra hearts or task skips.",
+  "gamerRewards.comingSoon": "Coming Soon",
+
   "childTabs.previewBanner": "👁 Viewing as parent — {{name}}",
   "childTabs.exitPreview": "✕ Exit",
 
