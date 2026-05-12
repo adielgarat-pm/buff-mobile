@@ -79,10 +79,11 @@ export const SWEET_SKINS: Record<string, PetSkinDef> = {
   unicorn:    { type: 'emoji', emoji: '🦄', nameKey: 'pet.skin.unicorn',    unlockAt: 100, path: 'sweet' },
 };
 
-/** Action Heroes path — default for Gamer theme */
+/** Action Heroes path — default for Gamer theme.
+ * Wolf is the day-0 default per BUFF_BUDDY_SYSTEM.md (Wolf "STORMY"). */
 export const HEROIC_SKINS: Record<string, PetSkinDef> = {
-  tiger:       { type: 'emoji', emoji: '🐯', nameKey: 'pet.skin.tiger',       unlockAt: 0,  path: 'heroic' },
-  wolf:        { type: 'emoji', emoji: '🐺', nameKey: 'pet.skin.wolf',        unlockAt: 5,  path: 'heroic' },
+  wolf:        { type: 'emoji', emoji: '🐺', nameKey: 'pet.skin.wolf',        unlockAt: 0,  path: 'heroic' },
+  tiger:       { type: 'emoji', emoji: '🐯', nameKey: 'pet.skin.tiger',       unlockAt: 5,  path: 'heroic' },
   shark:       { type: 'emoji', emoji: '🦈', nameKey: 'pet.skin.shark',       unlockAt: 15, path: 'heroic' },
   epic_dragon: { type: 'emoji', emoji: '🐉', nameKey: 'pet.skin.epic_dragon', unlockAt: 30, path: 'heroic' },
 };
@@ -92,9 +93,24 @@ export const PET_SKINS: Record<string, PetSkinDef> = {
   ...HEROIC_SKINS,
 };
 
-/** First skin unlocked for a given theme */
+/** First skin unlocked for a given theme.
+ * Gamer = Wolf (default BUDDY "STORMY" per BUFF_BUDDY_SYSTEM.md).
+ * Mint  = Puppy (the sweet-path day-0 default). */
 export function getDefaultSkin(theme: ChildThemeName): string {
-  return theme === 'gamer' ? 'tiger' : 'puppy';
+  return theme === 'gamer' ? 'wolf' : 'puppy';
+}
+
+/** Returns all skins for a given theme path, in unlock order. */
+export function getSkinsForTheme(theme: ChildThemeName): PetSkinDef[] {
+  const map = theme === 'gamer' ? HEROIC_SKINS : SWEET_SKINS;
+  return Object.entries(map)
+    .map(([id, def]) => ({ ...def, id } as PetSkinDef & { id: string }))
+    .sort((a, b) => a.unlockAt - b.unlockAt);
+}
+
+/** True when the child has earned this skin (evolution_days_count >= unlockAt). */
+export function isSkinUnlocked(skin: PetSkinDef, evolutionDays: number): boolean {
+  return evolutionDays >= skin.unlockAt;
 }
 
 // ─── Stage visuals (theme-aware) ─────────────────────────────────────────────
