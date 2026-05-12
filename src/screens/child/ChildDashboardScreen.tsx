@@ -1,5 +1,8 @@
 /**
- * Child Dashboard — Gamer/Mint Mode (HQ)
+ * Child Dashboard — router that picks the right layout per theme.
+ *   Gamer theme → GamerDashboardScreen (Stitch-designed, BUFF re-skinned)
+ *   Mint theme  → existing Pastel layout in this file
+ *
  * Real data from Supabase via useChildData.
  */
 import { useState } from 'react';
@@ -8,18 +11,31 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
-import { useChildTheme } from '../../contexts/ThemeContext';
+import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { PetDisplay } from '../../components/PetDisplay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
+import GamerDashboardScreen from './GamerDashboardScreen';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
 export default function ChildDashboardScreen() {
+  const { themeName } = useTheme();
+
+  // Route by aesthetic mode — Gamer gets the Stitch-designed dashboard,
+  // Mint (Pastel) gets the existing layout below.
+  if (themeName === 'gamer') {
+    return <GamerDashboardScreen />;
+  }
+
+  return <PastelChildDashboard />;
+}
+
+function PastelChildDashboard() {
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
   const { isChildPreview, exitChildPreview, previewChildId } = useMode();
