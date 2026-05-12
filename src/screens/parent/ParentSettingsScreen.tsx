@@ -13,6 +13,7 @@ import { useMode } from '../../contexts/ModeContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
+import PauseModeCard from '../../components/PauseModeCard';
 
 interface SettingsRow {
   label: string;
@@ -125,6 +126,9 @@ export default function ParentSettingsScreen() {
           thumbColor="#fff"
         />
       </View>
+
+      {/* Pause Mode — parent control */}
+      <PauseModeCard />
 
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>

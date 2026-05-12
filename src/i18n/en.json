@@ -1402,5 +1402,30 @@
   "timetable.noLessonsManual": "Add at least one lesson",
   "timetable.equipment": "Equipment",
   "timetable.lessonPlaceholder": "Subject name...",
-  "timetable.timePlaceholder": "HH:MM"
+  "timetable.timePlaceholder": "HH:MM",
+
+  "common.cancel": "Cancel",
+
+  "pause.parentCardTitle": "Take a break",
+  "pause.parentCardSubtitle": "Pause tasks for the family. Nothing is lost — resume any time.",
+  "pause.statusTitle": "BUFF is paused",
+  "pause.duration.today": "Just today",
+  "pause.duration.threeDays": "3 days",
+  "pause.duration.oneWeek": "1 week",
+  "pause.duration.indefinite": "Until I resume",
+  "pause.pauseButton": "Pause BUFF",
+  "pause.resumeButton": "Resume now",
+  "pause.statusActive": "Paused until {{date}}",
+  "pause.statusActiveIndefinite": "Paused indefinitely",
+  "pause.dashboardBanner": "App is paused. Tasks hidden from kids.",
+  "pause.confirmTitle": "Pause BUFF for the family?",
+  "pause.confirmMessage": "Tasks will be hidden from the kids ({{duration}}). Their progress and BUFFs are safe. You can resume any time.",
+  "pause.confirmAction": "Yes, pause",
+  "pause.childEmptyTitle": "We're on a break",
+  "pause.childEmptySubtitle.withDate": "See you when we're back — {{date}}",
+  "pause.childEmptySubtitle.indefinite": "See you when we're back!",
+
+  "welcomeBack.title": "Hey, you're back!",
+  "welcomeBack.subtitle": "Let's start fresh today.",
+  "welcomeBack.cta": "Let's go"
 }
