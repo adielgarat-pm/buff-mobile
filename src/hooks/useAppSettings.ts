@@ -19,6 +19,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
+import { isPauseActive as derivePauseActive } from '../utils/pauseUtils';
 
 export interface AppSettings {
   id: string;
@@ -107,18 +108,9 @@ export function useAppSettings() {
   }, [familyId]);
 
   // ── Derived: is pause currently active? ───────────────────────────────────
-  // True when:
-  //   pause_mode_active = true
-  //   AND (pause_until IS NULL OR pause_until > now())
-  //
-  // If pause_until is in the past, treat as auto-resumed — the next
-  // togglePause or refetch will clean up the stale state. Until then,
-  // the UI behaves as resumed (no pause empty state shown).
-  const isPauseActive = (() => {
-    if (!settings?.pause_mode_active) return false;
-    if (!settings.pause_until) return true; // indefinite pause
-    return new Date(settings.pause_until) > new Date();
-  })();
+  // Pure logic extracted to src/utils/pauseUtils.ts so it's testable.
+  // See that file for the full rule set and test coverage.
+  const isPauseActive = derivePauseActive(settings);
 
   // ── Actions ───────────────────────────────────────────────────────────────
 

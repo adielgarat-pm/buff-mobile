@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { PET_SKINS, STAGE_VISUALS, getDefaultSkin } from '../types/pet';
 import { usePetState } from '../hooks/usePetState';
 import { useTheme, useChildTheme } from '../contexts/ThemeContext';
+import PetSkinPicker from './PetSkinPicker';
 
 // ─── Greeting pool (mirrors web GREETING_KEYS) ───────────────────────────────
 
@@ -74,8 +75,11 @@ export function PetDisplay({
   const T             = useChildTheme();
 
   const defaultSkin = getDefaultSkin(themeName);
-  const { petState, isResting, loading, onTaskCompleted, recordInteraction, evolutionProgress } =
+  const { petState, isResting, loading, onTaskCompleted, recordInteraction, changeSkin, evolutionProgress } =
     usePetState(defaultSkin);
+
+  // ── Skin picker state ────────────────────────────────────────────────────
+  const [skinPickerVisible, setSkinPickerVisible] = useState(false);
 
   // ── UI state ──────────────────────────────────────────────────────────────
   const [greetingText,    setGreetingText]    = useState('');
@@ -224,6 +228,8 @@ export function PetDisplay({
       {/* ── Pet body ─────────────────────────────────────────────────────── */}
       <TouchableOpacity
         onPress={handleTap}
+        onLongPress={() => !isResting && setSkinPickerVisible(true)}
+        delayLongPress={400}
         disabled={isResting}
         activeOpacity={0.85}
         style={styles.petTouchable}
@@ -348,6 +354,14 @@ export function PetDisplay({
         </Text>
       </Animated.View>
 
+      {/* Skin picker modal (opened by long-press on pet) */}
+      <PetSkinPicker
+        visible={skinPickerVisible}
+        onClose={() => setSkinPickerVisible(false)}
+        currentSkin={petState.current_skin}
+        evolutionDays={petState.evolution_days_count}
+        onSelect={changeSkin}
+      />
     </View>
   );
 }
