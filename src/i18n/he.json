@@ -1390,6 +1390,21 @@
   "childRewards.claimTitle": "🎉 נתבע!",
   "childRewards.claimMsg": "\"{{title}}\" שלך! ההורה שלך יקבל התראה.",
 
+  "gamerRewards.title": "פרסים",
+  "gamerRewards.subtitle": "החליפי באף לתגמולים",
+  "gamerRewards.tab.parent": "מההורים",
+  "gamerRewards.tab.buddy": "מהבאדי",
+  "gamerRewards.parentSectionTitle": "מה אפשר להרוויח",
+  "gamerRewards.parentSectionSubtitle": "צברי באפים כדי לפתוח פרסים שההורה הגדיר",
+  "gamerRewards.redeem": "מימוש",
+  "gamerRewards.toGo": "עוד {{count}}",
+  "gamerRewards.suggestReward": "הציעי פרס להורה",
+  "gamerRewards.emptyParentTitle": "אין פרסים עדיין",
+  "gamerRewards.emptyParentSubtitle": "בקשי מההורה להוסיף פרסים לחנות.",
+  "gamerRewards.boostersTitle": "בוסטרים מהבאדי",
+  "gamerRewards.boostersSubtitle": "צברי בוסטרים על שמירת רצף. הם נותנים יתרונות בתוך האפליקציה כמו לבבות נוספים או דילוג על משימות.",
+  "gamerRewards.comingSoon": "בקרוב",
+
   "childTabs.previewBanner": "👁 צופה כהורה — {{name}}",
   "childTabs.exitPreview": "✕ יציאה",
 

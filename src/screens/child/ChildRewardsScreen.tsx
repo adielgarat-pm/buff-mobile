@@ -1,18 +1,26 @@
 /**
- * Child Rewards — Gamer/Mint Mode (Shop)
+ * Child Rewards (Shop) — top-level theme router.
+ *
+ *   themeName === 'gamer' → GamerRewardsScreen (Stitch design 06, BUFF re-skin)
+ *   themeName === 'mint'  → PastelChildRewards (existing implementation)
+ *
+ * The mint implementation lives below as PastelChildRewards and is preserved
+ * verbatim from the pre-Teen-UI version of this file.
+ *
  * Fetches store_rewards for the current child from Supabase.
  * Gated behind BUFF Premium — shows PaywallContent if not subscribed.
  */
 import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useChildTheme } from '../../contexts/ThemeContext';
+import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { supabase } from '../../integrations/supabase/client';
 import { PaywallContent } from '../PaywallScreen';
+import GamerRewardsScreen from './GamerRewardsScreen';
 
 interface StoreReward {
   id: string;
@@ -23,7 +31,19 @@ interface StoreReward {
   is_redeemed: boolean;
 }
 
+// ─── Top-level router ────────────────────────────────────────────────────────
+
 export default function ChildRewardsScreen() {
+  const { themeName } = useTheme();
+  if (themeName === 'gamer') {
+    return <GamerRewardsScreen />;
+  }
+  return <PastelChildRewards />;
+}
+
+// ─── Pastel (mint theme) implementation ──────────────────────────────────────
+
+function PastelChildRewards() {
   const { t } = useTranslation();
   const T = useChildTheme();
   const { profile } = useAuth();
