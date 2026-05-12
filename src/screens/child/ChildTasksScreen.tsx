@@ -1,9 +1,12 @@
 /**
  * Child Tasks — Missions tab.
  *
- * Four phase tabs: Morning → School → Afternoon → Evening.
- * The active tab defaults to the current time-of-day phase via getSmartPhaseForTime.
- * Each tab renders a PhaseView with the phase-filtered task list.
+ * Top-level theme router:
+ *   - themeName === 'gamer' → GamerTasksScreen (Stitch design 04, BUFF re-skin)
+ *   - themeName === 'mint'  → PastelChildTasks (the existing 4-phase-tab UI)
+ *
+ * The mint implementation lives below as `PastelChildTasks` and is preserved
+ * verbatim from the pre-Teen-UI version of this file.
  */
 import { useState, useMemo, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
@@ -12,10 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Phase, PHASES, getSmartPhaseForTime } from '../../types/phase';
 import { PhaseView } from '../../components/PhaseView';
-import { useChildTheme } from '../../contexts/ThemeContext';
+import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import GamerTasksScreen from './GamerTasksScreen';
 
 /** Derive the current phase from the clock + school config. */
 function getCurrentSmartPhase(schoolEndTime: string, isSchoolDay: boolean): Phase {
@@ -30,9 +34,19 @@ function isWeekday(): boolean {
   return day >= 1 && day <= 5;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Top-level router ────────────────────────────────────────────────────────
 
 export default function ChildTasksScreen() {
+  const { themeName } = useTheme();
+  if (themeName === 'gamer') {
+    return <GamerTasksScreen />;
+  }
+  return <PastelChildTasks />;
+}
+
+// ─── Pastel (mint theme) implementation ──────────────────────────────────────
+
+function PastelChildTasks() {
   const T = useChildTheme();
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
