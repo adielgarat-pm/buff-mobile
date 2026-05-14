@@ -161,10 +161,10 @@
 
   4. **Adina Maeir (Cog-Fun) outreach decision** — special case per D-2026-05-02-29. Pursuing her would unlock the Cog-Fun question. Pitch is fundamentally different from routine outreach — partnership conversation, not advisor email. Adi to decide separately.
 
-  5. **🆕 Domain email setup** (`adi@buffadhd.com`) — **IN PROGRESS 2026-05-14**, Adi setting up Google Workspace ($6/mo Business Starter). Until live, all outreach uses `buff.parenting@gmail.com` (her actual working inbox; references in BUFF_ADVISOR_OUTREACH_KIT, BUFF_FOUNDING_100_KIT, and founding-100-payment session files corrected). Once `adi@buffadhd.com` is live, switch back for credibility signal on Tier 1 outreach.
+  5. ✅ **Domain email setup** (`adi@buffadhd.com`) — **RESOLVED 2026-05-14**. Adi set up Google Workspace ($6/mo Business Starter) and has `adi@buffadhd.com` working. Additional addresses can be added if needed. All references in BUFF_ADVISOR_OUTREACH_KIT, BUFF_FOUNDING_100_KIT, and founding-100-payment session files reverted to canonical `adi@buffadhd.com`.
 
-- **השפעה:** Marketing rollout depends on these. Wave 1 (`/philosophy` + meta data) ✅ shipped to PR; awaits merge to actually deploy. Wave 3 (blog) is independent but compounds slowly. Email setup unlocks higher-tier outreach.
-- **סטטוס:** `open` — items 2, 3, 4 still pending Adi prioritization; item 5 in progress; item 1 ✅ resolved (shipped to PR)
+- **השפעה:** Marketing rollout depends on these. Wave 1 (`/philosophy` + meta data) ✅ shipped to PR; awaits merge to actually deploy. Wave 3 (blog) is independent but compounds slowly. Email infrastructure ✅ ready for Tier 1 outreach.
+- **סטטוס:** `open` — items 2, 3, 4 still pending Adi prioritization; items 1 + 5 ✅ resolved
 - **קשור ל:** [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) Phase 2 / D-2026-05-02-29 / [BUFF_MARKETING_BACKLOG.md §7](BUFF_MARKETING_BACKLOG.md) / Wave 1 PR `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`
 
 ---
