@@ -200,19 +200,18 @@
 
 ---
 
-### F-2026-05-14-02: Extract Lovable reviews → BUFF_TESTIMONIALS (queued task)
+## רשומות שנפתרו (Resolved)
 
-- **תאריך:** 2026-05-14
-- **מקור:** Claude Code — Lovable parity discussion with Adi (refined F-071)
-- **תיאור:** Lovable has a `reviews` table with user-submitted, admin-approved reviews of BUFF (full submit→moderate→public flow). The mobile app does NOT have a reviews mechanism (decision: Play Store ratings cover MVP, see F-071). The existing Lovable reviews are valuable testimonials and should be extracted, translated to English (Lovable already has `translate-review` edge function — Google Gemini Flash Lite, on-demand), and added to `BUFF_TESTIMONIALS.md` matching its existing schema (ID T###, Quote, Translation, Speaker, Geo, Date, Consent).
-- **What's needed to execute:** Lovable Supabase access — either (a) project ref + service role key for direct query via Supabase MCP, or (b) Adi exports the `reviews` table from Lovable admin/dashboard manually (filter `status='approved'`) and shares the CSV. Once data is in hand, CC can produce a draft of new BUFF_TESTIMONIALS.md entries in ~10 minutes.
-- **השפעה:** F-074 (Static landing) and broader marketing materials need social proof. Without this, the value of real beta-period user words is lost. Also feeds into BUFF_MARKETING_BACKLOG and `/philosophy` pages on buffadhd.com.
-- **סטטוס:** `open` — queued, blocked on Lovable data access (Adi to provide credentials or CSV export)
-- **קשור ל:** F-071 (in-app reviews — Out), F-074 (Static landing), F-075 (Sunset Lovable), [BUFF_TESTIMONIALS.md](BUFF_TESTIMONIALS.md), D-2026-05-14, `pkg/lovable-parity-and-backlog`
+### F-2026-05-14-02 (RESOLVED 2026-05-14): Extract Lovable reviews → BUFF_TESTIMONIALS
+
+- **תאריך פתיחה:** 2026-05-14
+- **תאריך סגירה:** 2026-05-14 (אותו יום)
+- **תיאור מקורי:** Lovable has a `reviews` table with user-submitted, admin-approved reviews of BUFF. Existing reviews are valuable testimonials but blocked on Lovable data access.
+- **ההשפעה שהייתה:** F-074 (Static landing) and marketing materials lacked social proof. Beta-period user words were unused.
+- **איך נפתר:** Adi exported the `reviews` table from Lovable admin (3 approved entries — Shani, Noa Morag long-form, Kelly). All reviews already had English translations produced by Lovable's `translate-review` edge function (Gemini Flash Lite). CC imported as T002, T003, T004 in `BUFF_TESTIMONIALS.md §2A` (PR `pkg/lovable-testimonials-import`). Consent for paid ads / Play Store still pending — captured as new Open Action Item in `BUFF_TESTIMONIALS.md §8`.
+- **קשור ל:** F-071 (in-app reviews — Out), F-074 (Static landing), F-075 (Sunset Lovable), [BUFF_TESTIMONIALS.md](BUFF_TESTIMONIALS.md), D-2026-05-14, `pkg/lovable-parity-and-backlog` → `pkg/lovable-testimonials-import`
 
 ---
-
-## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-03-06 (RESOLVED 2026-05-03): `.claude/settings.local.json` — file noise
 

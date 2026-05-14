@@ -85,13 +85,92 @@ Strength rating: 5/5
 
 ---
 
+## 2A. Imported from Lovable Beta (T002–T004)
+
+עדויות שנאספו ב-Lovable beta דרך flow של submit→admin-approve (Mar 2026). כולן עברו admin moderation; **consent לשימוש מעבר ל-Lovable Landing (paid ads, Play Store, FB ads) דורש אימות נפרד עם כל אחד.**
+
+מקור: Lovable Supabase `reviews` table → exported ע"י Adi 2026-05-14 (3 approved). תרגומים לאנגלית בוצעו אוטומטית ב-Lovable דרך `translate-review` edge function (Google Gemini Flash Lite).
+
+### T002 — Shani
+
+```
+ID: T002
+Quote (HE, original): "✅ המשימות הושלמו, 🌙 הולכים לישון בקלות, 💤 התארגנות רגועה בערב, ✍️ למידה בלי ויכוחים"
+Quote (EN, translated by Lovable): "✅ Tasks completed, 🌙 sleeping easily, 💤 relaxed evening routine, ✍️ learning without arguments"
+Speaker:
+  - First name: Shani
+  - Role: parent (kid age unspecified)
+  - Geo: IL
+Date collected: 2026-03-16 (via Lovable reviews flow)
+Consent status:
+  - ⚠ VERIFY: submitted via Lovable submit→admin-approve flow. Admin moderation ≠ consent for paid ads / Play Store. Reach out before public use beyond what Lovable Landing already showed.
+Persona tag: P1 (Exhausted Morning Parent)
+Pillar tag: Positive Coaching ("learning without arguments" — friction-reduction language)
+Pain it speaks to: "Daily friction at home" + "Mornings are battles" (BUFF_MESSAGING §4)
+Where it's used:
+  - Currently: Lovable Landing TestimonialsSection
+  - Recommended: Reels Format (emoji bullets work as text-on-screen)
+Strength rating: 4/5 — concrete + specific, but emoji format limits formal/press use
+```
+
+### T003 — Noa Morag (long-form, complement to T001)
+
+```
+ID: T003
+Quote (HE, original): "🌙 הולכים לישון בקלות, ✅ המשימות הושלמו, 💤 התארגנות רגועה בערב, 🔥 מוטיבציה! — האפליקציה עוזרת מאוד למיקוד ועזרה בביצוע המשימות השונות במשך היום, היא עושה את זה בצורה התורמת לתחושת המסוגלות ומחזקת את תחושת הערך העצמית.
+
+העובדה שהיא בנויה בצורה המזכירה משחק המאפשר זכיה בבונוסים ופרסים תורמת להצלחה שלו וגורמת לילד לרצות להשתמש באפליקציה."
+Quote (EN, translated by Lovable): "🌙 Easy bedtime, ✅ Tasks completed, 💤 Relaxed evening routine, 🔥 Motivation! — The app is very helpful for focus and assisting with completing various tasks throughout the day. It contributes to a sense of capability and strengthens self-esteem.
+
+The fact that it's designed like a game, allowing for bonuses and rewards, contributes to its success and makes children want to use the app."
+Speaker:
+  - First name: Noa
+  - Last name: Morag (per PRD §2.2 — same speaker as T001)
+  - Role: parent of ADHD child
+  - Geo: IL
+Date collected: 2026-03-15 (via Lovable reviews flow)
+Consent status:
+  - Same caveat as T001 — assume public attribution OK (PRD §2.2 references her), but VERIFY for paid ads.
+Persona tag: P1 (Exhausted Morning Parent)
+Pillar tag: Intrinsic Motivation (explicit: "sense of capability", "self-esteem") + Positive Coaching
+Pain it speaks to: Focus difficulty + low self-esteem (BUFF_MESSAGING §4)
+Where it's used:
+  - Currently: Lovable Landing
+  - Recommended: Press / podcast / pitch decks (long-form), Pillar 1 ad copy ("internal motivation"), About page beneath T001
+Strength rating: 5/5 — long-form, validates 2 pillars by name, from canonical user (T001 speaker)
+```
+
+### T004 — Kelly
+
+```
+ID: T004
+Quote (EN, original): "🚀 Zero Friction — BUFF has been a complete game-changer for our family. My child finally has that internal motivation to get things done without the constant nagging. Our evenings have shifted from power struggles to a calm, confident start"
+Translation: N/A (original EN)
+Speaker:
+  - First name: Kelly
+  - Role: parent (kid age unspecified)
+  - Geo: unknown (likely US/UK based on EN as L1)
+Date collected: 2026-03-15 (via Lovable reviews flow)
+Consent status:
+  - ⚠ VERIFY same as T002.
+Persona tag: P1 (Exhausted Morning Parent)
+Pillar tag: Intrinsic Motivation (uses the EXACT phrase "internal motivation" — directly Pillar 1 wording)
+Pain it speaks to: "I'm tired of nagging" + power struggles
+Where it's used:
+  - Currently: Lovable Landing
+  - Recommended: **Play Store description** (EN-native, 5-star, short enough), **Pillar 1 hero copy on /philosophy**, US-targeted FB ads
+Strength rating: 5/5 — EN-native (geo diversity asset!), uses Pillar 1 vocabulary, "Zero Friction" and "complete game-changer" are headline-grade phrases
+```
+
+---
+
 ## 3. Slots to Fill — חיפוש פעיל לעדויות חסרות
 
 המסמך מקיף **9 פרסונות** ו-**3 פילרים**, אבל יש לנו עדות אחת. הטבלה למטה היא רשימת ה-gaps. כל gap הוא קמפיין שיווקי חסר נשק.
 
 | Persona | Pillar — Intrinsic | Pillar — Positive Coaching | Pillar — Independence |
 |---|---|---|---|
-| P1 Exhausted Morning | — | T001 ✅ | — |
+| P1 Exhausted Morning | T003, T004 ✅ | T001, T002, T003 ✅ | — |
 | P2 Post-Diagnosis | `[NEED]` | `[NEED]` | `[NEED]` |
 | P3 Tried Everything | `[NEED]` | `[NEED]` | `[NEED]` |
 | P4 Teen-Lost-Control | `[NEED]` | `[NEED]` | `[NEED]` |
@@ -210,6 +289,7 @@ Open-ended question to ask:
 - [ ] לאסוף 8-11 עדויות נוספות, אחת לכל cell בטבלת §3
 - [ ] לקבוע ב-CLAUDE.md / WORKFLOW.md מתי לאסוף עדויות חדשות (אחרי X שימוש?)
 - [ ] לעדכן את `<TestimonialsSection />` consent logic אם חסר
+- [ ] לאמת consent מ-Shani (T002), Kelly (T004), ו-Noa Morag (T003 — ציטוט long-form שונה מ-T001) לפני שימוש מעבר ל-Lovable Landing (paid ads, Play Store, FB ads)
 
 ---
 
