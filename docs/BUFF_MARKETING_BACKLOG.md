@@ -28,8 +28,8 @@
 | **A** | ADHD parenting groups outreach (FB / Reddit / WhatsApp / forums) | 1 | Templates ב-[MESSAGING §3](BUFF_MESSAGING.md), reply ב-[FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md) | Templates ready, execution not started |
 | **B** | In-app marketing prompts (rating ask, share, referral) | 1.5 (engineering ticket) | פיצ'ר הנדסי — נדרש SPEC (Package Design mode) | Not started, needs Values Check before SPEC |
 | **C** | Blog content for SEO + persona reach | 2 | [BUFF_BLOG_CONTENT_MAP.md](BUFF_BLOG_CONTENT_MAP.md) | 30-post plan saved, infra not built |
-| **D** | Meta data + technical SEO for buffadhd.com | 2 | בקצרה ב-§5 פה. אין deep doc. | Not started — requires audit |
-| **E** | `/philosophy` page on buffadhd.com (publishing BUFF_VALUES) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | Not started — **highest leverage / lowest effort** |
+| **D** | Meta data + technical SEO for buffadhd.com (T6 title, D6 description, Schema.org JSON-LD, canonical fix) | 2 | בקצרה ב-§5 פה. אין deep doc. | ✅ **Wave 1 PR opened 2026-05-14** — same PR as Track E (`pkg/philosophy-pillars-and-meta-fixes`). Awaits merge + deploy. |
+| **E** | `/philosophy` page on buffadhd.com — 3-Principles hero (WHY/WHAT framing) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | ✅ **Wave 1 PR opened 2026-05-14** — `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`. Awaits merge + deploy. |
 | **F** | Clinician / coach / podcast advisor outreach | 2 | [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) | 10-name target list + 3 personalized pitches drafted |
 
 **Track F (advisor outreach) was previously mapped only as bullet items in [GO_TO_MARKET §2.4–2.5](BUFF_GO_TO_MARKET.md). The kit doc operationalizes it — same pattern as FOUNDING_100_KIT operationalizes Phase 1.**

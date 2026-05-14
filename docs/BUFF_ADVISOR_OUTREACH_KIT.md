@@ -14,7 +14,7 @@
 Pre-send checklist before using any pitch from this doc:
 
 - [ ] **`/philosophy` page exists on buffadhd.com.** Two of three pitches link to it. Sending a 404 link kills the pitch. Build first per [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md). ~2 hr.
-- [ ] **Send from `buff.parenting@gmail.com`** (Adi's working branded inbox). Never noreply@. Never marketing automation. Domain email `adi@buffadhd.com` is a deferred upgrade — don't block on it.
+- [ ] **Send from `adi@buffadhd.com`** (Adi's domain email via Google Workspace). Never noreply@. Never marketing automation.
 - [ ] **You actually read/listened to the piece I anchored on.** If they reply quoting their own work and you can't engage — relationship dies on first contact. **Highest-stakes line in this entire doc.**
 - [ ] **Pitch is edited into your voice** — drafts here are mine. Your sentences differ.
 - [ ] **Verify the recipient is still active** in 2026 (last podcast episode, recent post). 5-min Google check per name. People go quiet for a year.
@@ -359,8 +359,64 @@ Pitches in §5 anchored to these sources:
 To unblock this kit:
 
 1. **`/philosophy` page on buffadhd.com** — referenced in 2 of 3 pitches. ~2 hr in buff-main worktree. Per [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md). **Highest leverage / lowest effort.**
-2. **Outreach inbox: currently `buff.parenting@gmail.com`** (Adi's working branded Gmail). Domain email `adi@buffadhd.com` is a **deferred upgrade** for credibility signal (~$6/mo via Google Workspace) — unblocks higher-tier outreach (Tier 1 clinicians like Barkley/Hallowell, press, Adina Maeir partnership conversation). Not blocking for current Bucket A pitches.
+2. **Outreach inbox: `adi@buffadhd.com`** (Adi's domain email via Google Workspace, set up 2026-05-14). Use as From address for all advisor outreach — domain email = founder-voice credibility signal. Backup: `buff.parenting@gmail.com`.
 3. **Brief tracking sheet** (Google Sheet or similar) — for §6 template.
+
+---
+
+### Email signature templates (final, iterated 2026-05-14)
+
+**Strategy:** two signatures, switched per audience. Gmail supports multiple — set both up via Settings → General → Signature → Create new, then pick per-message via the dropdown.
+
+#### Signature 1 — DEFAULT (for ~90% of outreach: parents, clinicians, podcast hosts, Founding 100 prospects, ADHD groups, press)
+
+```
+Adi Elgarat German
+Founder @ BUFF | Mom of an ADHD teen
+On a mission to make the ADHD app your kid grows out of — and the home around it calmer.
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+**Why this set:** "Mom of an ADHD teen" carries higher trust than PM credentials for clinical/parent audiences (per [PERSONAS §P5 trust signals](BUFF_PERSONAS.md) + [BRAND §6](BUFF_BRAND.md) — "treats parent as expert in their kid"). The mission line speaks to BOTH beneficiaries: kid outgrows the app + parent gets the calm.
+
+#### Signature 2 — PM-CHANNEL (for ~10%: Lenny outreach, investor intros, ProductCon, PM Slack/podcasts, founder content)
+
+```
+Adi Elgarat German
+Founder @ BUFF | Senior PM & Mentor turned ADHD-parent founder
+Building the only ADHD app whose success metric is uninstalls.
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+**Why this set:** PM audiences want craft credibility + counter-positioning. "Senior PM & Mentor turned ADHD-parent founder" is the rare combo (PM-as-founder); "uninstalls as success metric" is the engagement-economy heresy that PMs forward.
+
+#### Hebrew variant of DEFAULT (Israeli outreach)
+
+```
+עדי אלגרט גרמן
+מייסדת @ BUFF | אמא לנער עם ADHD
+במשימה ליצור את אפליקציית ה-ADHD שהילד שלך גדל ממנה — ובית רגוע יותר סביבה.
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+#### HTML version of DEFAULT (for Gmail signature box — renders with brand-violet color)
+
+```html
+<p style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333; margin: 0;">
+  <strong>Adi Elgarat German</strong><br>
+  Founder @ BUFF | Mom of an ADHD teen<br>
+  <span style="color: #8b5cf6;">On a mission to make the ADHD app your kid grows out of — and the home around it calmer.</span><br>
+  <a href="https://buffadhd.com" style="color: #8b5cf6; text-decoration: none;">buffadhd.com</a> · <a href="https://www.linkedin.com/in/adi-elgarat-german" style="color: #8b5cf6; text-decoration: none;">LinkedIn</a>
+</p>
+```
+
+**Anti-patterns:**
+- ❌ More than 2 identity tokens in line 2 (signature stops being founder voice, becomes LinkedIn headline)
+- ❌ Stock images / logos embedded — break in many email clients
+- ❌ Multiple phone numbers / addresses — over-shares for cold outreach
+- ❌ Promotional banners ("Try BUFF free!" buttons) — kills founder authenticity
+- ❌ "Sent from my iPhone" mobile signatures — disable entirely
+- ❌ Mixing PM credentials and Mom credential in the same line — dilutes both. Use Signature 1 OR Signature 2, not a hybrid.
 
 ---
 
