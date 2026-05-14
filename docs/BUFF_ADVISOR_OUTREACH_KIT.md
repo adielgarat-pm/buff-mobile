@@ -14,7 +14,7 @@
 Pre-send checklist before using any pitch from this doc:
 
 - [ ] **`/philosophy` page exists on buffadhd.com.** Two of three pitches link to it. Sending a 404 link kills the pitch. Build first per [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md). ~2 hr.
-- [ ] **`adi@buffadhd.com` exists** (or use personal Gmail — never noreply@, never marketing automation tool)
+- [ ] **Send from `buff.parenting@gmail.com`** (Adi's working branded inbox). Never noreply@. Never marketing automation. Domain email `adi@buffadhd.com` is a deferred upgrade — don't block on it.
 - [ ] **You actually read/listened to the piece I anchored on.** If they reply quoting their own work and you can't engage — relationship dies on first contact. **Highest-stakes line in this entire doc.**
 - [ ] **Pitch is edited into your voice** — drafts here are mine. Your sentences differ.
 - [ ] **Verify the recipient is still active** in 2026 (last podcast episode, recent post). 5-min Google check per name. People go quiet for a year.
@@ -359,7 +359,7 @@ Pitches in §5 anchored to these sources:
 To unblock this kit:
 
 1. **`/philosophy` page on buffadhd.com** — referenced in 2 of 3 pitches. ~2 hr in buff-main worktree. Per [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md). **Highest leverage / lowest effort.**
-2. **`adi@buffadhd.com` email address** — domain email gives founder-voice signal. Personal Gmail acceptable but lower trust.
+2. **Outreach inbox: currently `buff.parenting@gmail.com`** (Adi's working branded Gmail). Domain email `adi@buffadhd.com` is a **deferred upgrade** for credibility signal (~$6/mo via Google Workspace) — unblocks higher-tier outreach (Tier 1 clinicians like Barkley/Hallowell, press, Adina Maeir partnership conversation). Not blocking for current Bucket A pitches.
 3. **Brief tracking sheet** (Google Sheet or similar) — for §6 template.
 
 ---
