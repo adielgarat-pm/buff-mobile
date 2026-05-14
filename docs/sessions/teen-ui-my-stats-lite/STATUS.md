@@ -7,9 +7,9 @@
 
 | Phase | State | Date | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 1 — Screen + i18n | _passed_ | 2026-05-14 | (pending commit) | typecheck ✅ / i18n:check ✅ | — |
-| 2 — Navigation wiring | _passed_ | 2026-05-14 | (pending commit) | typecheck ✅ / i18n:check ✅ | — |
-| 3 — Tests + closeout | _passed_ | 2026-05-14 | (pending commit) | 15/15 jest tests pass (4 new + 11 existing) ✅ typecheck ✅ i18n:check ✅ | see Note below |
+| 1 — Screen + i18n | _passed_ | 2026-05-14 | a0172d8 (PR #34) | typecheck ✅ / i18n:check ✅ | — |
+| 2 — Navigation wiring | _passed_ | 2026-05-14 | a0172d8 (PR #34) | typecheck ✅ / i18n:check ✅ | — |
+| 3 — Tests + closeout | _passed_ | 2026-05-14 | a0172d8 (PR #34) + followup 62f5ff8, ba71511 (PR #38) | 15/15 jest tests pass ✅ typecheck ✅ i18n:check ✅ | IN-2026-05-14-01 |
 
 ## Legend
 
@@ -27,17 +27,23 @@ While setting up to run my tests, three pre-existing infrastructure bugs in `pkg
 2. **`setupFilesAfterEach` is not a valid Jest option** — Jest emitted a validation warning. The intended option is `setupFiles`. Fixed.
 3. **`<rootDir>` interpolation into testMatch globs breaks for paths containing `.` segments** — when running from a git worktree under `.claude/worktrees/...`, jest's substitution produces broken mixed-slash globs that match nothing. Fixed by using `roots: ['<rootDir>/src']` + relative testMatch patterns instead.
 
-Additionally, the previously committed test-infra did not install `jest` to `node_modules`. CC ran `npm install --legacy-peer-deps` (needed for React 19 + `@testing-library/react-native` peer-dep mismatch). The regenerated `package-lock.json` is included in this branch.
+Additionally, the previously committed test-infra did not install `jest` to `node_modules`. CC ran `npm install --legacy-peer-deps` (needed for React 19 + `@testing-library/react-native` peer-dep mismatch). The regenerated `package-lock.json` is in the followup PR (#38).
 
-A vector-icons mock was added to [jest-setup.ts](../../../jest-setup.ts) so component tests don't transitively pull in `expo-font` (not currently installed; mocking is the correct call since icons aren't load-bearing for unit tests).
+A vector-icons mock was added to [jest-setup.ts](../../../jest-setup.ts) so component tests don't transitively pull in `expo-font`.
 
 **Result:** `npm test` now passes 15/15 (4 new + 11 existing).
 
 ## Closeout
 
-- [ ] All phases passed
-- [ ] INTEGRATION_LEARNINGS.md updated for surprises
-- [ ] Canonical docs synced per SPEC_SYNC.md
-- [ ] Git tag `pkg/teen-ui-my-stats-lite/v1` created
-- [ ] PR to main, fast-forward merge, branch deleted (per Verify-Before-Delete in CLAUDE.md)
-- [ ] Session marked closed
+- [x] All phases passed
+- [x] INTEGRATION_LEARNINGS.md updated for surprises (IN-2026-05-14-01)
+- [x] Canonical docs synced per SPEC_SYNC.md (teen-ui-design/README.md updated, GAP_ANALYSIS updated by Adi in docs/eod-2026-05-14)
+- [ ] Git tag `pkg/teen-ui-my-stats-lite/v1` created — not done; tag-discipline not currently enforced on this repo
+- [x] PR #34 + #38 merged to main; branches retained on origin (no delete authorized)
+- [x] Session marked closed (this checklist completed 2026-05-14 EOD)
+
+## Follow-ups discovered during this package (now their own packages)
+
+- **`pkg/hide-paywall-from-child`** (merged as PR #40) — paywall CTAs visible to children. Surfaced by Adi while testing as Itay. See [IN-2026-05-14-02](../../INTEGRATION_LEARNINGS.md).
+- **`pkg/fix-runtime-theme-switch`** (merged as PR #41) — the followup's first attempt at the runtime theme switch fix was insufficient (only handled fresh mount). Real fix landed in PR #41.
+- **`pkg/childjoin-claim-orphans`** (open, queued) — see [IN-2026-05-14-03](../../INTEGRATION_LEARNINGS.md).

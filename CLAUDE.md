@@ -288,15 +288,22 @@ If any of these show up in `git status` as untracked, **add them to `.gitignore`
 
 ---
 
-## Open FLAGs (last updated: 2026-05-03)
+## Open FLAGs (last updated: 2026-05-14)
 
 These are unresolved items tracked in `docs/INTEGRATION_LEARNINGS.md`. CC should be aware of them but not act on them without an Improvement Package:
 
 - 🚩 **Onboarding fixes** in Claude.ai's memory (not yet in GAP_ANALYSIS): date picker, "Homework & focus" rename, Section B in Step 3, ScrollView, duplicate options between Steps 2-3
 - 🚩 **Invite Link Option B** (deep link `buff://join/:code`, post-RevenueCat)
-- 🚩 **Code still uses age range 13-15** for Teen Mode auto-detection. Update to 13-18 pending in dedicated session ("Age Range Update")
+- 🚩 **Code still uses age range 13-15** for Teen Mode auto-detection. Update to 13-17 pending in dedicated session — flag F-2026-05-03-03 currently marked CLOSED-STALE pending Teen Mode UI start (which is happening now via Gamer mode rollout — needs revisit)
 - 🚩 **buffadhd.com (public site)** — title still references Executive Function. Marketing alignment session pending.
-- 🚩 **BUFF_BUDDY_SYSTEM.md** is target-spec V0.5; current code implements an earlier, simpler version. Reconciliation deferred to BUDDY implementation session.
+- 🚩 **BUFF_BUDDY_SYSTEM.md** is target-spec V0.5; current code implements an earlier, simpler version. **`pkg/buddy-v05-backend` is the proposed unblock package** — see INTEGRATION_LEARNINGS IN-2026-05-14-01.
+- 🚩 **ChildJoin creates duplicate profiles** when an orphan profile already exists for the same name + family. See IN-2026-05-14-03. Proposed package: `pkg/childjoin-claim-orphans`.
+- 🚩 **`pkg/fix-runtime-theme-switch` (PR #41) verified via code only** — web preview was unreliable; Adi to verify on Android emulator the Mint↔Gamer toggle works without blanking the tab bar.
+
+**Resolved since last update:**
+- ✅ Paywall CTAs visible to children (IN-2026-05-14-02) → `pkg/hide-paywall-from-child` (PR #40)
+- ✅ Pause Mode (was a critical-MVP open item) → shipped via pkg/pause-mode PRs #22-25
+- ✅ Pet Skin picker UI + Wolf as Gamer day-0 default → PR #27
 
 ---
 
@@ -313,6 +320,6 @@ Ask Adi. The cost of asking is 30 seconds; the cost of guessing wrong is hours o
 
 ---
 
-**Last reviewed:** 2026-05-03
+**Last reviewed:** 2026-05-14
 **Maintained by:** Adi + Claude.ai (web)
 **Read by:** Claude Code (CC) at every session start
