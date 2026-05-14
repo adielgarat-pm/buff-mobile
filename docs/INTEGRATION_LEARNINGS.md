@@ -187,6 +187,31 @@
 
 ---
 
+### F-2026-05-14-01: Web compatibility check before adding any native dep
+
+- **תאריך:** 2026-05-14
+- **מקור:** Claude Code — Lovable sunset + web strategy planning session with Adi
+- **תיאור:** Architectural decision (D-2026-05-14, see [BUFF_PRD.md §9.4 Web Strategy](BUFF_PRD.md)) commits BUFF to a future where the app compiles to Web via Expo Web (= React Native Web). Many native modules do not support web builds. If we install a dep that doesn't support web, the future Web build will silently break — and we won't know until we try to ship it.
+- **Concrete risk examples:** native vibration, deep camera access, parts of FCM (PWA push is limited), some `react-native-*` packages without web maintainers.
+- **Operational requirement:** **Before installing any new native dep in `package.json`** — run `expo install <dep>` and confirm no "no web support" warning. Alternatively, check the package README for `react-native-web` (or "web") in the supported platforms list. Either way, **avoid silent native-only deps.**
+- **השפעה:** Without this discipline, F-073 (Web build, Phase 2) will require a large cleanup pass instead of a clean compile.
+- **סטטוס:** `open` — methodological framing for all future development
+- **קשור ל:** D-2026-05-14 (Web Strategy & Lovable Sunset Plan), F-073 (Web build), F-074 (Static landing), F-075 (Sunset Lovable), `pkg/lovable-parity-and-backlog`
+
+---
+
+### F-2026-05-14-02: Extract Lovable reviews → BUFF_TESTIMONIALS (queued task)
+
+- **תאריך:** 2026-05-14
+- **מקור:** Claude Code — Lovable parity discussion with Adi (refined F-071)
+- **תיאור:** Lovable has a `reviews` table with user-submitted, admin-approved reviews of BUFF (full submit→moderate→public flow). The mobile app does NOT have a reviews mechanism (decision: Play Store ratings cover MVP, see F-071). The existing Lovable reviews are valuable testimonials and should be extracted, translated to English (Lovable already has `translate-review` edge function — Google Gemini Flash Lite, on-demand), and added to `BUFF_TESTIMONIALS.md` matching its existing schema (ID T###, Quote, Translation, Speaker, Geo, Date, Consent).
+- **What's needed to execute:** Lovable Supabase access — either (a) project ref + service role key for direct query via Supabase MCP, or (b) Adi exports the `reviews` table from Lovable admin/dashboard manually (filter `status='approved'`) and shares the CSV. Once data is in hand, CC can produce a draft of new BUFF_TESTIMONIALS.md entries in ~10 minutes.
+- **השפעה:** F-074 (Static landing) and broader marketing materials need social proof. Without this, the value of real beta-period user words is lost. Also feeds into BUFF_MARKETING_BACKLOG and `/philosophy` pages on buffadhd.com.
+- **סטטוס:** `open` — queued, blocked on Lovable data access (Adi to provide credentials or CSV export)
+- **קשור ל:** F-071 (in-app reviews — Out), F-074 (Static landing), F-075 (Sunset Lovable), [BUFF_TESTIMONIALS.md](BUFF_TESTIMONIALS.md), D-2026-05-14, `pkg/lovable-parity-and-backlog`
+
+---
+
 ## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-03-06 (RESOLVED 2026-05-03): `.claude/settings.local.json` — file noise

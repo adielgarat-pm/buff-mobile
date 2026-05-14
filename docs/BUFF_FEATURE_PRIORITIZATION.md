@@ -29,7 +29,7 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-003 | UI mode auto-selection by age | Parent | Must Have | S | MVP | 6-12 buddy, 13-18 dashboard |
 | F-004 | Timetable / schedule entry | Parent | Must Have | M | MVP | Enables bag packing feature |
 | F-005 | Equipment list per subject | Parent | Must Have | M | MVP | Core daily utility value |
-| F-006 | Beta user migration from PWA | System | Must Have | M | MVP | Retain existing users and data |
+| F-006 | Beta user migration from PWA | System | Out | M | Phase 2 | D-2026-05-14: only 2 active Lovable users; manual self-migration via Android app or future Web build (F-073). No automated migration tooling planned. |
 | F-007 | Free-for-life flag for beta users | System | Must Have | S | MVP | Honor commitment to early community |
 | PARENT DASHBOARD & TASK MANAGEMENT | PARENT DASHBOARD & TASK MANAGEMENT | PARENT DASHBOARD & TASK MANAGEMENT | PARENT DASHBOARD & TASK MANAGEMENT | PARENT DASHBOARD & TASK MANAGEMENT | PARENT DASHBOARD & TASK MANAGEMENT | PARENT DASHBOARD & TASK MANAGEMENT |
 | F-010 | Create tasks by category | Parent | Must Have | M | MVP | Core functionality |
@@ -46,6 +46,8 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-021 | Push notification to parent on completion | Parent | Must Have | S | MVP | Enables async approval |
 | F-022 | AI insights for parent | Parent | Out | XL | Phase 2 | High cost; not blocking retention |
 | F-023 | Share progress with therapist/teacher | Parent | Out | L | Phase 2 | Important but complex |
+| F-024 | Daily summary email/notification to parent | Parent | Out | XL | Phase 2 | D-2026-05-14: source = Lovable daily-summary edge function; envelopes F-020 + F-022. Pillar 2 flag for design phase: must NOT be a "child failures report" — must lead with progress and opportunity, not deficits. |
+| F-025 | Schedule parsing (free text → timetable, AI) | Parent | Out | XL | Phase 2 | D-2026-05-14: source = Lovable parse-schedule edge function; reduces parent friction in F-004 setup. AI inference cost not justified for MVP. |
 | CHILD UI — BUDDY MODE (6-12) | CHILD UI — BUDDY MODE (6-12) | CHILD UI — BUDDY MODE (6-12) | CHILD UI — BUDDY MODE (6-12) | CHILD UI — BUDDY MODE (6-12) | CHILD UI — BUDDY MODE (6-12) | CHILD UI — BUDDY MODE (6-12) |
 | F-030 | Single next-task view (not a list) | Child | Must Have | M | MVP | Prevents overwhelm — ADHD critical |
 | F-031 | Task completion with buddy animation | Child | Must Have | M | MVP | Immediate positive reinforcement |
@@ -80,6 +82,11 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-068 | Referral program mechanics | System | Out | L | Phase 2 | Build architecture; activate after retention |
 | F-069 | RevenueCat + Google Play Billing (Android MVP) + App Store Billing (iOS Phase 2). Lemon Squeezy for web payments. RevenueCat is free up to $2,500 MRR. | System | Must Have | L | MVP | Revenue — free-for-life + paid tiers |
 | F-070 | Admin dashboard (preserve existing) | System | Must Have | M | MVP | Owner needs visibility into metrics |
+| F-071 | In-app reviews mechanism (submit → moderate → display) | System | Out | L | Phase 2 | D-2026-05-14 (refined): Lovable has a full reviews flow (submit → pending → admin approve → public on Landing) + a `translate-review` edge function (Gemini Flash Lite). **Decision (Adi): Play Store ratings cover MVP need — don't build duplicate in-app system.** Existing Lovable reviews to be extracted and translated for use as testimonials (see INTEGRATION_LEARNINGS F-2026-05-14-02 + BUFF_TESTIMONIALS.md). Revisit F-071 only if pre-Play-Store in-app testimonials become a real need. |
+| F-072 | Email password recovery (ResetPassword screen + deep link) | System | Out | S | Phase 2 | D-2026-05-14 **CONDITIONAL**: code partially exists (LoginScreen.tsx:65 calls resetPasswordForEmail; screen missing). Adi 2026-05-14: "if Google supports that, not sure we need it". If a future Auth Strategy session removes email/password auth → permanently cancelled. If email/password stays → returns to Should Have / MVP. Note: ChildJoinScreen.tsx:49 uses signUp(email, autoPassword, ...) — removing email/password auth would break child invite flow. |
+| F-073 | Web build via Expo Web + PWA install | System | Should Have | L | Phase 2 | D-2026-05-14: single codebase across mobile + web (per BUFF_PRD §9.4 Web Strategy). Temporary iOS replacement until iOS native ships. Expo Web = React Native Web — production-grade at X/Twitter, Coinbase, Discord per Expo official docs (2026). |
+| F-074 | Static marketing landing (buffadhd.com revamp) | System | Should Have | M | Phase 2 | D-2026-05-14: source = Lovable Landing.tsx; separate codebase from app (no logic-sharing needed for a static marketing site). Use translated Lovable reviews as social proof — see F-071 rationale + INTEGRATION_LEARNINGS F-2026-05-14-02. |
+| F-075 | Sunset Lovable + white-glove migration of 2 active users | System | Should Have | M | Phase 2 | D-2026-05-14: 49 Lovable sign-ups, only 2 active per admin (verified 2026-05-14). **White-glove approach (Adi choice 2026-05-14):** (1) Adi/CC manually create accounts in mobile Supabase using the 2 users' emails; (2) set `is_lifetime_access=true`; (3) send personal email "your BUFF account is ready, set your password here"; (4) NO automated data migration — they re-onboard fresh kids/family in the mobile app; (5) decommission Lovable infra after both users confirm switchover. Trigger: after MVP stable in production + 30-day observation. Effort S→M to cover white-glove ops + email drafting. |
 
 
 ## Summary Counts
@@ -87,9 +94,9 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 
 | Priority | Count | In MVP? |
 |---|---|---|
-| Must Have | 37 | Yes — all |
-| Should Have | 9 | Yes — include |
+| Must Have | 36 | Yes — all |
+| Should Have | 12 | Yes — include |
 | Nice to Have | 1 | If time allows |
-| Out / Phase 2 | 6 | No — Phase 2 |
+| Out / Phase 2 | 11 | No — Phase 2 |
 
 BUFF Feature Prioritization v1.0 — Confidential

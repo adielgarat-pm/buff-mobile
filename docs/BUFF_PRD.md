@@ -297,6 +297,36 @@ User research identified three distinct periods where churn occurs:
 - RTL support: Full right-to-left layout for Hebrew UI
 - COPPA compliance: No data collection from children without parental consent
 
+### 9.4 Web Strategy (post-MVP)
+
+D-2026-05-14: Long-term goal is **single codebase across mobile and web** to avoid maintaining two source trees. The Lovable web POC (separate Supabase project, frozen since 2026-04-18) will be sunset post-MVP.
+
+**Three-layer architecture (target state):**
+
+| Layer | Technology | Codebase | Notes |
+|---|---|---|---|
+| 1. Marketing landing | Static site (Astro / Next / plain HTML) | Separate, lightweight | SEO-optimized; no app logic. buffadhd.com revamp = F-074 |
+| 2. App (mobile + web) | Expo (React Native + React Native Web) | **Single codebase** | Compiles to Android, iOS, and Web/PWA from one source. Web build = F-073. Industry-standard at 2026: X/Twitter, Coinbase, Discord, Tesla all use RNW in production (per Expo docs) |
+| 3. Backend | Supabase (existing) | Unchanged | — |
+
+**Why Expo Web over alternatives:**
+
+- **Capacitor** (web-first, wrap in native shell): wrong fit — we already invested in Expo and have native modules (FCM, Google OAuth) that work cleanly in React Native.
+- **Separate web codebase** (Next.js + RN mobile in parallel): defeats the single-codebase goal — exactly what we are avoiding.
+- **React Strict DOM** (Meta's evolution beyond RNW): production-ready in Meta's VR but **built on top of RNW, not a replacement** — no risk of "RNW deprecation" mid-stream.
+
+**Known trade-offs (must plan for):**
+
+- Native-only modules (notably FCM push, native vibration, deep camera access) have limited or no PWA support. Web users will have a degraded experience compared to native — accepted as a temporary fallback.
+- Mobile-first UI will look narrow on desktop. Responsive work needed for parent-facing screens (parents often use desktop).
+- F-039 already notes: "Without push, the PWA problem repeats" — the web build is intended for users without an Android device, NOT as the long-term default.
+
+**Lovable sunset (F-075):** 49 sign-ups in Lovable, only 2 active per admin dashboard (verified 2026-05-14). The 2 active users will be notified and self-migrate to either the Android app or the Web build (when shipped). No automated data migration — schemas diverged and the cost of migration tooling > the cost of re-onboarding 2 humans. Trigger date: after MVP stable in production + 30-day observation window.
+
+**Engineering discipline:** Before adding any new native dep to `package.json`, verify it builds for `expo export --platform web` — otherwise the future Web build will break silently. Tracked in INTEGRATION_LEARNINGS.md as F-2026-05-14-01.
+
+**Sources:** Expo for Web (docs.expo.dev/workflow/web), React Strict DOM (facebook.github.io/react-strict-dom), Coinbase React Native transition (coinbase.com/blog), PkgPulse RN/Expo/Capacitor 2026 comparison.
+
 ## 10. Success Metrics
 
 
