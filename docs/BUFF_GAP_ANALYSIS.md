@@ -2,7 +2,7 @@
 
 **מסמך:** השוואה בין מה שתוכנן (PRD/Feature Audit) למה שקיים בקוד `buff-mobile` היום + החלטות מהשיחות.
 
-**עודכן:** 2 במאי 2026 (אחרי סשן Stitch + תובנות אמי)
+**עודכן:** 14 במאי 2026 (אחרי 4 חבילות Teen UI + bug fixes — ראה docs/eod-2026-05-14)
 
 **איך לקרוא:**
 
@@ -30,14 +30,14 @@
 | 🎨 מסכים שעוצבו ב-Stitch | 6 (מתוך 8) |
 
 **הפיצ'רים הקריטיים לפני MVP:**
-- Teen UI (6 מסכים מעוצבים, 2 חסרים ב-Stitch)
-- Buddy System V0.5 (רמות + Boosters)
+- ~~Teen UI~~ ✅ **4/8 מסכים שופחו** (01-no-buddy, 02, 04, 06, 5B-lite — נכון 14.5.2026); נותרו 03, 05A, 07, 08 (3 תלויים ב-Buddy V0.5, 2 צריכים עיצוב ב-Stitch)
+- Buddy System V0.5 (רמות + Boosters + buddy_relationships tables) — **הצוואר הבא**, פותח מסכי 03/05A ואת ה-Full 5B
 - Daily Vibe Check
-- Pause Mode
-- UI לבחירת Pet Skin
+- ~~Pause Mode~~ ✅ **שופח** (PR #22-25 — schema + parent UI + child UI + Welcome Back)
+- ~~UI לבחירת Pet Skin~~ ✅ **שופח** (PR #27)
 - Daily Win Bonus — חיבור (Bonus Modal קיים)
 - Empty state לילד-עם-קוד
-- Wolf STORMY skin להוסיף ל-HEROIC_SKINS
+- ~~Wolf STORMY skin~~ ✅ **שופח** כ-Gamer day-0 default (PR #27)
 
 **נדחה ל-1.1 / Phase 2:**
 - Child-proposed tasks/rewards
@@ -80,7 +80,7 @@
 | P-11 | Auto-approve trusted | Keep as-is | ❓ לא נבדק | |
 | P-12 | Child-proposed missions | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | P-13 | Child-proposed rewards | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
-| P-14 | **PAUSE MODE** | Must Have | ❌ NOT EXISTS | **🎯 MVP** (D-2026-05-02-14) |
+| P-14 | **PAUSE MODE** | Must Have | ✅ EXISTS | Shipped via pkg/pause-mode (PRs #22-25): schema + parent UI + child UI + Welcome Back modal |
 | P-15 | Reward pricing guidance | Must Have | ❌ NOT EXISTS | **דחוי ל-1.1** |
 | P-16 | Weekly Ignition Analysis | Keep as-is | 🟡 PARTIAL | useParentInsights קיים |
 | P-17 | Trend Detector | Keep as-is | ❌ NOT EXISTS | |
@@ -99,7 +99,7 @@
 | C-03 | Mission completion + buddy animation | Keep as-is | ❓ לא נבדק | |
 | C-04 | Focus Fuel Meter | Keep as-is | ❓ לא נבדק | |
 | C-05 | Buddy Evolution (4 stages) | Keep as-is | ✅ EXISTS | egg/hatchling/scout/guardian |
-| C-06 | **Pet Skins** | Keep as-is | 🟡 PARTIAL | סכמה+תרגומים. **חסר UI לבחירה. צריך להוסיף Wolf** |
+| C-06 | **Pet Skins** | Keep as-is | ✅ EXISTS | UI picker shipped (PR #27); Wolf added as Gamer day-0 default |
 | C-07 | Command Center | Keep as-is | ❓ לא נבדק | |
 | C-08 | The Shop (redeem) | Keep as-is | ✅ EXISTS | |
 | C-09 | My Progress + ticket wallet | Keep as-is | ❓ לא נבדק | |
@@ -121,23 +121,23 @@
 
 | ID | פיצ'ר | PRD | מובייל | סטיץ' מסך | הערות |
 |---|---|---|---|---|---|
-| T-01 | Clean dashboard | Keep + Expand | ❌ | ✅ 01 + 02 | 2 גרסאות: with buddy + without |
-| T-02 | Goals view | Keep + Expand | ❌ | 🟡 חלקי | חלק ממסך Profile (07) |
+| T-01 | Clean dashboard | Keep + Expand | ✅ EXISTS (no-buddy variant) | ✅ 01 + 02 | Shipped as `GamerDashboardScreen` (PR #28). With-buddy variant pending Buddy V0.5 backend. |
+| T-02 | Goals view | Keep + Expand | 🟡 PARTIAL | 🟡 5B lite shipped | `GamerMyStatsScreen` (PR #34/#39) renders 3-stat grid; LEVEL/BOOSTERS pending Buddy V0.5 |
 | T-03 | Deal-making | Must Have | ❌ | 🟡 חלקי | "Suggest a reward" קיים במסך 06 |
-| T-04 | Streak tracker + grace | Keep + Expand | ❓ | — | **שונה** — Itay: streaks לא חשוב. Winning Streak (70%+) בלבד |
+| T-04 | Streak tracker + grace | Keep + Expand | ✅ EXISTS (in 5B lite) | — | **שונה** — Itay: streaks לא חשוב. Winning Streak (70%+) בלבד. "רצף נוכחי" shown on MY STATS screen. |
 | T-05 | Calendar heat-map | Should Have | ❌ | — | **דחוי ל-1.1** |
 
 ### מסכי Stitch שעוצבו (2.5.2026)
 
 | מסך | נושא | סטטוס |
 |---|---|---|
-| 01 | Dashboard with Buddy (Wolf STORMY) | ✅ Approved by Itay |
-| 02 | Dashboard without Buddy (stat cards) | ✅ Approved by Itay |
-| 03 | Buddy Toggle Modal | ✅ Approved |
-| 04 | Tasks Detail (Today's Plan) | ✅ Approved |
-| 05A | Me & Buddy (with character) | ✅ Approved |
-| 05B | My Stats (without character) | ✅ Approved + **Itay's preferred** |
-| 06 | Rewards Shop (FROM PARENT + FROM BUDDY) | ✅ Approved |
+| 01 | Dashboard with Buddy (Wolf STORMY) | 🎨 Approved by Itay; **with-buddy variant not yet implemented** (needs Buddy V0.5 backend) |
+| 02 | Dashboard without Buddy (stat cards) | ✅ **Implemented** as `GamerDashboardScreen` (PR #28) |
+| 03 | Buddy Toggle Modal | 🎨 Approved; **not implemented** (needs `buddy_relationships.buddy_visible`) |
+| 04 | Tasks Detail (Today's Plan) | ✅ **Implemented** as `GamerTasksScreen` (PR #29) |
+| 05A | Me & Buddy (with character) | 🎨 Approved; **not implemented** (needs Buddy V0.5 LEVEL/BOOSTERS) |
+| 05B | My Stats (without character) | 🟡 **Lite version implemented** (PR #34/#39) — 3-stat grid only, no LEVEL/BOOSTERS/hero; full 5B pending Buddy V0.5 |
+| 06 | Rewards Shop (FROM PARENT + FROM BUDDY) | ✅ **Implemented** as `GamerRewardsScreen` (PR #30); FROM BUDDY tab is a placeholder pending V0.5 boosters |
 | 07 | Settings | ⏳ Not yet designed |
 | 08 | Teen Onboarding Choice | ⏳ Not yet designed (חדש) |
 
@@ -149,19 +149,19 @@
 
 | רכיב | סטטוס | הערות |
 |---|---|---|
-| Friendship Levels (5 רמות) | ❌ NOT EXISTS | חדש. דורש DB schema |
-| Boosters (6 סוגים) | ❌ NOT EXISTS | חדש |
-| Me & Buddy / My Stats screen | 🎨 עוצב | מסכים 5A + 5B ב-Stitch |
+| Friendship Levels (5 רמות) | ❌ NOT EXISTS | חדש. דורש DB schema — **proposed as `pkg/buddy-v05-backend`** |
+| Boosters (6 סוגים) | ❌ NOT EXISTS | חדש — proposed as `pkg/buddy-v05-backend` |
+| Me & Buddy / My Stats screen | 🟡 5B-lite shipped | `GamerMyStatsScreen` (PR #34/#39); 5A and full 5B pending Buddy V0.5 backend |
 | Tap on buddy → screen | ❌ NOT EXISTS | חדש |
 | Toast on level up | ❌ NOT EXISTS | חדש |
-| buddy_relationships table | ❌ NOT EXISTS | DB |
-| buddy_gifts_history table | ❌ NOT EXISTS | DB |
-| buddy_daily_check table | ❌ NOT EXISTS | DB |
-| EOD trigger | ❌ NOT EXISTS | logic |
-| Hide/Show Buddy (Teen) | ❌ NOT EXISTS | UI + preference (D-13 v2) |
-| Welcome Back screen | ❌ NOT EXISTS | logic + UI |
-| Pause Mode | ❌ NOT EXISTS | DB + Parent UI + Resume |
-| **Wolf STORMY skin** | ❌ NOT EXISTS | להוסיף ל-HEROIC_SKINS |
+| buddy_relationships table | ❌ NOT EXISTS | DB — `pkg/buddy-v05-backend` |
+| buddy_gifts_history table | ❌ NOT EXISTS | DB — `pkg/buddy-v05-backend` |
+| buddy_daily_check table | ❌ NOT EXISTS | DB — `pkg/buddy-v05-backend` |
+| EOD trigger | ❌ NOT EXISTS | logic — `pkg/buddy-v05-backend` |
+| Hide/Show Buddy (Teen) | ❌ NOT EXISTS | UI + preference (D-13 v2) — needs `buddy_relationships.buddy_visible` |
+| Welcome Back screen | ✅ EXISTS | Shipped as part of pkg/pause-mode (PR #24) |
+| Pause Mode | ✅ EXISTS | Shipped via pkg/pause-mode (PRs #22-25) |
+| **Wolf STORMY skin** | ✅ EXISTS | Added as Gamer day-0 default (PR #27) |
 | **Teen Onboarding Buddy choice** | ❌ NOT EXISTS | מסך חדש (08 ב-Stitch) |
 
 ---
@@ -214,35 +214,34 @@
 - [ ] מסך 07 — Settings ב-Stitch
 - [ ] מסך 08 — Teen Onboarding Choice ב-Stitch (חדש בעקבות D-13 v2)
 
-### שבוע 1
-| יום | משימה |
-|---|---|
-| 1 | סיום Stitch (מסכים 7+8) + תיקוני Onboarding |
-| 2 | Empty state ילד-עם-קוד + Daily Win connection |
-| 3 | Pet Skin UI + Wolf skin להוסיף + שפה מעצימה |
-| 4 | Buddy System V0.5 — DB schema + EOD trigger |
-| 5 | Buddy System — Friendship Levels logic + 2 Boosters |
+### מה שופח (נכון 14.5.2026)
 
-### שבוע 2
-| יום | משימה |
-|---|---|
-| 6 | Buddy System — Me & Buddy + My Stats screens |
-| 7 | Toast notifications + Hide/Show Buddy logic |
-| 8 | Pause Mode (DB + Parent UI + Child UI + Resume) |
-| 9 | Daily Vibe Check (start) |
-| 10 | Daily Vibe Check (end) |
+| חבילה | PR | מה שופח |
+|---|---|---|
+| pkg/pause-mode (phases 0-5) | #22-25 | DB schema + Parent UI banner + Child UI + Welcome Back modal + Resume |
+| pkg/pet-skins | #27 | Pet Skin picker UI + Wolf as Gamer day-0 default |
+| pkg/teen-ui-gamer-dashboard | #28 | Stitch 02 dashboard (no-buddy variant, Itay's pick) → `GamerDashboardScreen` |
+| pkg/teen-ui-tasks-detail | #29 | Stitch 04 → `GamerTasksScreen` |
+| pkg/teen-ui-rewards-shop | #30 | Stitch 06a → `GamerRewardsScreen` |
+| pkg/teen-ui-my-stats-lite (+ followup) | #34, #38, #39 | Stitch 5B-lite → `GamerMyStatsScreen` (3 stats only; LEVEL/BOOSTERS pending V0.5) |
+| pkg/hide-paywall-from-child | #40 | Child viewers no longer see "Unlock ✨" CTAs across 4 screens; gentle "ask your parent" copy instead |
+| pkg/fix-runtime-theme-switch | #41 | Theme toggle in Settings no longer blanks the tab navigator |
 
-### שבוע 3
-| יום | משימה |
-|---|---|
-| 11 | Teen UI מימוש — Dashboard (with/without Buddy) + Onboarding choice |
-| 12 | Teen UI — Tasks Detail + Settings |
-| 13 | Teen UI — Rewards Shop + Boosters integration |
-| 14 | Stickers picker + Push Notifications setup |
-| 15 | Welcome Back + Build + Internal Testing |
-| 16-17 | בדיקה + תיקונים |
+### מה נותר — סדר עבודה מוצע
 
-**סך הכל: 17 ימי עבודה = 3-4 שבועות**
+**הצוואר הבא: Buddy V0.5 backend** — חוסם 4 מסכים (Stitch 01-with-buddy, 03, 05A, ו-Full 5B). זה הצעד היחיד שפותח הכי הרבה.
+
+| תור | חבילה | חוסם / פותח |
+|---|---|---|
+| 1 | **`pkg/buddy-v05-backend`** | Schema (buddy_relationships, buddy_gifts_history, buddy_daily_check) + Friendship Levels logic + 2 Boosters + EOD trigger |
+| 2 | **`pkg/teen-ui-with-buddy-bundle`** | Stitch 01-with-buddy + 03 Buddy Toggle + 05A Me & Buddy + extend 5B-lite to full 5B (LEVEL/BOOSTERS/hero) |
+| 3 | `pkg/daily-vibe-check` | MVP critical, S-07 |
+| 4 | `pkg/fcm-push-notifications` | MVP critical, S-01 |
+| 5 | `pkg/childjoin-claim-orphans` | Data integrity fix (IN-2026-05-14-03) — small |
+| 6 | Stitch design for 07 Settings + 08 Onboarding choice (Adi + Claude.ai) | Unblocks final teen flow |
+| 7 | Empty state for child-with-code | UX polish, MVP |
+| 8 | Daily Win Bonus branding hookup | UX polish, MVP |
+| ⏳ deferred to 1.1 | Children Mode design pass (Pastel) + Stickers + Cognitive Strategy Library + Rest Tickets + Calendar heat-map + AI Insights + Reward pricing guidance | |
 
 ---
 

@@ -14,18 +14,31 @@
 
 ## Implementation Notes
 
+### IN-2026-05-14-04: Runtime theme switch (Mint ↔ Gamer) blanked the child tab bar
+
+- **תאריך:** 2026-05-14
+- **מקור:** Adi + CC — surfaced visually during pkg/hide-paywall-from-child preview verification.
+- **תיאור:** Toggling between Mint and Gamer themes from the child Settings → Theme picker caused the entire tab navigator to render as a black screen with no tabs. Affected all child screens. Root cause was two compounding sources of React Navigation reference instability in `src/navigation/ChildTabs.tsx`:
+  1. **Inline `tabBarButton: () => null`** and **inline `tabBarItemStyle: { display: 'none' }`** — fresh arrow function and object literal references every render. React Navigation's reconciler treats these as "different component" / "different style" and re-mounts the tab item; the conditional toggle on theme change cascaded into unmount loops the navigator couldn't recover from.
+  2. **Inline `screenOptions` closure** — fresh function every render, causing per-route options re-evaluation on every parent render.
+- **השפעה:** Adi could not switch themes mid-session without a full app restart. Blocked any UI verification cycle that involved toggling themes.
+- **סטטוס:** `resolved` — fixed in `pkg/fix-runtime-theme-switch` (PR #41, commit b514c0b). Fix uses module-level stable constants (`HIDDEN_TAB_OPTIONS`, `HIDDEN_TAB_BUTTON`), `useCallback`-memoized `screenOptions`, per-screen `options` instead of conditional in-screenOptions, plus a self-redirect useEffect in `ChildMyStatsScreen` that navigates away if the user lands on the hidden tab after a theme switch.
+- **קשור ל:** `pkg/fix-runtime-theme-switch`. Pending Adi's emulator verification (web preview was unreliable for repeated theme-toggle cycles).
+
+---
+
 ### IN-2026-05-14-02: Paywall / subscribe CTAs visible to children — should be parent-only
 
 - **תאריך:** 2026-05-14
 - **מקור:** Adi — discovered while testing pkg/teen-ui-my-stats-lite in Pastel theme as Itay (child role)
-- **תיאור:** Four places in the child UI show payment/subscribe CTAs to non-subscribed users without checking that the logged-in user is a child (vs parent). The intended product behavior is: only parents see "subscribe" prompts since they are the buyer. Children should see a softer "ask your parent to unlock" message or just have the locked content hidden — never a CTA they can't act on.
-  - `src/screens/child/ChildDashboardScreen.tsx:182` (Pastel) — "Buddy locked 🔒 → Unlock ✨" → opens Paywall
-  - `src/screens/child/ChildRewardsScreen.tsx:78` (Pastel) — replaces shop with full `PaywallContent`
-  - `src/screens/child/GamerRewardsScreen.tsx:139` (Gamer) — same — replaces shop with `PaywallContent`
+- **תיאור:** Four places in the child UI showed payment/subscribe CTAs to non-subscribed users without checking that the logged-in user is a child (vs parent). The intended product behavior is: only parents see "subscribe" prompts since they are the buyer. Children should see a softer "ask your parent to unlock" message or just have the locked content hidden — never a CTA they can't act on.
+  - `src/screens/child/ChildDashboardScreen.tsx:182` (Pastel) — "Buddy locked 🔒 → Unlock ✨" → opened Paywall
+  - `src/screens/child/ChildRewardsScreen.tsx:78` (Pastel) — replaced shop with full `PaywallContent`
+  - `src/screens/child/GamerRewardsScreen.tsx:139` (Gamer) — same — replaced shop with `PaywallContent`
   - `src/screens/child/ChildSettingsScreen.tsx:130` — locked skin picker overlays + Paywall nav
-- **השפעה:** Children see "subscribe" CTAs they can't action. Mild UX bug for non-paying families (the child gets nudged toward a payment screen instead of seeing a child-appropriate "locked" affordance).
-- **סטטוס:** `open` — proposed package: `pkg/hide-paywall-from-child`. Add a `profile?.role === 'parent'` check next to each `isSubscribed` gate, and surface a child-appropriate message when not subscribed and viewer is a child.
-- **קשור ל:** Not in scope for pkg/teen-ui-my-stats-lite (only Gamer Rewards is touched by that package and was already wired with the same paywall logic from a prior package).
+- **השפעה:** Children saw "subscribe" CTAs they couldn't action. Mild UX bug for non-paying families.
+- **סטטוס:** `resolved` — fixed in `pkg/hide-paywall-from-child` (PR #40, commit a8c9424). Added `viewMode === 'child'` gates next to every `isSubscribed` check; replaced CTAs with calm "ask your parent" empty states. New i18n namespace `childLockedState.*` (EN + HE). Parent flow unchanged.
+- **קשור ל:** `pkg/hide-paywall-from-child`.
 
 ---
 
