@@ -7,7 +7,7 @@
 
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 1 | _blocked_ | 2026-05-14 | (pending commit) | awaiting Adi review per TESTS.md | F-2026-05-14-01 added |
+| 1 | _blocked_ | 2026-05-14 | ed5e817 (initial) + (this refinement) | awaiting Adi review per TESTS.md | F-2026-05-14-01, F-2026-05-14-02 added |
 
 ## Legend
 
@@ -71,12 +71,16 @@
 
 1. **בקלוג מעודכן ב-`BUFF_FEATURE_PRIORITIZATION.md`:**
    - PARENT DASHBOARD: הוספת F-024 (Daily summary) ו-F-025 (Schedule parsing AI) — שניהם Out / Phase 2.
-   - TECHNICAL INFRASTRUCTURE: הוספת F-071 (Translate review — Out), F-072 (Email password recovery — Out / Conditional), F-073 (Web build — Should Have), F-074 (Static landing — Should Have), F-075 (Sunset Lovable — Should Have).
+   - TECHNICAL INFRASTRUCTURE: הוספת F-071 (In-app reviews mechanism — Out, refined description per Adi), F-072 (Email password recovery — Out / Conditional), F-073 (Web build — Should Have), F-074 (Static landing — Should Have, **uses translated Lovable reviews as social proof**), F-075 (Sunset Lovable + **white-glove migration** of 2 active users — Should Have, S→M).
    - שינוי F-006 (Beta migration) → Out.
 2. **PRD מעודכן:** סעיף 9.4 Web Strategy חדש ב-`BUFF_PRD.md`.
-3. **FLAG חדש ב-INTEGRATION_LEARNINGS:** לפני התקנת native dep — לבדוק web compat.
+3. **FLAGs חדשים ב-INTEGRATION_LEARNINGS:**
+   - F-2026-05-14-01: לפני התקנת native dep — לבדוק web compat.
+   - F-2026-05-14-02: Lovable reviews extraction queued (blocked on Lovable Supabase access).
 4. **F-072 (Email password recovery) — Out / Conditional:** הקוד מובייל קורא ל-`resetPasswordForEmail` (LoginScreen.tsx:65) אבל אין ResetPassword screen + deep link handler. החלטת 2026-05-14: אדי שאלה "אם Google תומך בזה, למה צריך?" — מסומן Out כל עוד אין החלטה להסיר email/password auth. אם email/password יישאר ב-MVP, F-072 חוזר ל-Should Have.
 5. **ChildJoinScreen.tsx:49 משתמש ב-`signUp(email, autoPassword, ...)`** — הסרת email/password auth תשבור את onboarding של ילדים דרך הזמנה. דורש ניתוח בסשן Auth Strategy עתידי לפני שמסירים את email/password auth.
+6. **F-071 refined to "In-app reviews mechanism" + Adi choice to use Play Store ratings + extract Lovable reviews as testimonials separately** (INTEGRATION_LEARNINGS F-2026-05-14-02).
+7. **F-075 expanded to white-glove approach** for the 2 active Lovable users: pre-create accounts in mobile Supabase + personal email. No automated data migration. Effort S→M to account for white-glove ops.
 
 **מקורות:**
 - [Expo for Web — official docs](https://docs.expo.dev/workflow/web/)

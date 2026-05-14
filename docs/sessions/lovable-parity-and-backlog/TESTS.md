@@ -27,7 +27,7 @@
 - [ ] עברתי על 7 השורות החדשות ב-`BUFF_FEATURE_PRIORITIZATION.md` ואני מסכימה עם ה-priority של כל אחת:
   - [ ] F-024 (Daily summary) → Out / Phase 2 — בסקציית PARENT DASHBOARD
   - [ ] F-025 (Schedule parsing AI) → Out / Phase 2 — בסקציית PARENT DASHBOARD
-  - [ ] F-071 (Translate review) → Out / Phase 2 — בסקציית TECHNICAL
+  - [ ] F-071 (In-app reviews mechanism) → Out / Phase 2 — בסקציית TECHNICAL (description refined post-commit-1; see SPEC.md Resolved Decisions §6)
   - [ ] F-072 (Email password recovery) → Out / Phase 2 — Conditional — בסקציית TECHNICAL
   - [ ] F-073 (Web build) → Should Have / Phase 2 — בסקציית TECHNICAL
   - [ ] F-074 (Static landing) → Should Have / Phase 2 — בסקציית TECHNICAL

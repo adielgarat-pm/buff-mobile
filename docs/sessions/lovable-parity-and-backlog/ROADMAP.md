@@ -11,7 +11,7 @@
      - **F-024** Daily summary email/notification להורה — Out / Phase 2 — XL — *מקור: Lovable `daily-summary` edge function. עוטף את F-020 + F-022.*
      - **F-025** Schedule parsing (טקסט חופשי → לוח זמנים, AI) — Out / Phase 2 — XL — *מקור: Lovable `parse-schedule` edge function. ה-AI יקר.*
    - הוספת 5 שורות חדשות בסקציית **TECHNICAL INFRASTRUCTURE** (אחרי F-070):
-     - **F-071** Translate review (i18n דינמי לתוכן משתמשים) — Out / Phase 2 — M — *מקור: Lovable `translate-review` edge function.*
+     - **F-071** In-app reviews mechanism (submit → moderate → display) — Out / Phase 2 — L — *Lovable has a full flow + `translate-review` edge function (Gemini Flash Lite). Adi: Play Store ratings cover MVP. Existing reviews extracted as testimonials in a separate task (INTEGRATION_LEARNINGS F-2026-05-14-02).*
      - **F-072** Email password recovery — **Out / Phase 2 — Conditional** — S — *הקוד קורא ל-`resetPasswordForEmail` ב-[LoginScreen.tsx:65](src/screens/auth/LoginScreen.tsx) אבל ResetPassword screen חסר. **החלטת 2026-05-14: אדי שאלה "אם Google תומך בזה למה צריך?" — מסומן Out כל עוד אין החלטה רשמית להסיר email/password auth. אם email/password יישאר ב-MVP, F-072 חוזר ל-Should Have.***
      - **F-073** Web build via Expo Web + PWA install — Should Have / Phase 2 — L — *תחליף זמני ל-iOS עד יציאת iOS native. Expo Web = React Native Web (production-grade ב-X/Twitter, Coinbase, Discord).*
      - **F-074** Static marketing landing (buffadhd.com revamp) — Should Have / Phase 2 — M — *מקור: Lovable `Landing.tsx`. בנפרד מקוד האפליקציה.*

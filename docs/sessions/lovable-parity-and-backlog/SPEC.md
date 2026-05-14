@@ -113,6 +113,8 @@
 3. **F-073 (Web build) timing** — דחוי לפוסט-MVP. POC = חבילה נפרדת אם נרצה.
 4. **F-074 (Static landing) scope** — רק שורה ב-PRD בשלב זה. מסמך נפרד `BUFF_MARKETING_SITE.md` יוכן רק כשנתחיל בפועל בתכנון המעבר.
 5. **תאריך סאנסט Lovable (F-075)** — לא מוחלט עכשיו. ייקבע אחרי MVP יציב לפרודקשן + 30 יום observation.
+6. **F-071 refined (post-commit-1):** הוגדר מחדש כ-"In-app reviews mechanism (submit → moderate → display)". בקוד Lovable יש flow מלא + טבלת `reviews` + `translate-review` edge function. **החלטת אדי: Play Store ratings מספיקות ל-MVP — לא בונים מערכת כפולה.** הביקורות הקיימות ב-Lovable יחולצו ויתורגמו לאנגלית כ-testimonials (משימה חיצונית — INTEGRATION_LEARNINGS F-2026-05-14-02).
+7. **F-075 הורחב למודל white-glove (Adi choice):** 2 המשתמשים הפעילים ב-Lovable יקבלו טיפול אישי — חשבונות מוכנים בסופאבייס החדש + מייל "set your password". ללא הגירת דאטה. F-075 effort עלה S→M.
 
 ## Out of Scope
 

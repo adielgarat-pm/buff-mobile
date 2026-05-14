@@ -182,6 +182,18 @@
 
 ---
 
+### F-2026-05-14-02: Extract Lovable reviews → BUFF_TESTIMONIALS (queued task)
+
+- **תאריך:** 2026-05-14
+- **מקור:** Claude Code — Lovable parity discussion with Adi (refined F-071)
+- **תיאור:** Lovable has a `reviews` table with user-submitted, admin-approved reviews of BUFF (full submit→moderate→public flow). The mobile app does NOT have a reviews mechanism (decision: Play Store ratings cover MVP, see F-071). The existing Lovable reviews are valuable testimonials and should be extracted, translated to English (Lovable already has `translate-review` edge function — Google Gemini Flash Lite, on-demand), and added to `BUFF_TESTIMONIALS.md` matching its existing schema (ID T###, Quote, Translation, Speaker, Geo, Date, Consent).
+- **What's needed to execute:** Lovable Supabase access — either (a) project ref + service role key for direct query via Supabase MCP, or (b) Adi exports the `reviews` table from Lovable admin/dashboard manually (filter `status='approved'`) and shares the CSV. Once data is in hand, CC can produce a draft of new BUFF_TESTIMONIALS.md entries in ~10 minutes.
+- **השפעה:** F-074 (Static landing) and broader marketing materials need social proof. Without this, the value of real beta-period user words is lost. Also feeds into BUFF_MARKETING_BACKLOG and `/philosophy` pages on buffadhd.com.
+- **סטטוס:** `open` — queued, blocked on Lovable data access (Adi to provide credentials or CSV export)
+- **קשור ל:** F-071 (in-app reviews — Out), F-074 (Static landing), F-075 (Sunset Lovable), [BUFF_TESTIMONIALS.md](BUFF_TESTIMONIALS.md), D-2026-05-14, `pkg/lovable-parity-and-backlog`
+
+---
+
 ## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-03-06 (RESOLVED 2026-05-03): `.claude/settings.local.json` — file noise
