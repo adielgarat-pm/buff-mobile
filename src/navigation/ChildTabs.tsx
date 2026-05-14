@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ChildTabsParamList } from './types';
-import { useChildTheme } from '../contexts/ThemeContext';
+import { useChildTheme, useTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { useMode } from '../contexts/ModeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ChildDashboardScreen from '../screens/child/ChildDashboardScreen';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
 import ChildRewardsScreen from '../screens/child/ChildRewardsScreen';
+import ChildMyStatsScreen from '../screens/child/ChildMyStatsScreen';
 import ChildSettingsScreen from '../screens/child/ChildSettingsScreen';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -24,6 +25,7 @@ const TAB_CONFIG: Record<
   ChildDashboard: { labelKey: 'tabs.child.hq',     icon: 'game-controller-outline', iconActive: 'game-controller' },
   ChildTasks:     { labelKey: 'tabs.child.quests', icon: 'rocket-outline',           iconActive: 'rocket' },
   ChildRewards:   { labelKey: 'tabs.child.shop',   icon: 'bag-outline',              iconActive: 'bag' },
+  ChildMyStats:   { labelKey: 'tabs.child.stats',  icon: 'stats-chart-outline',      iconActive: 'stats-chart' },
   ChildSettings:  { labelKey: 'tabs.child.menu',   icon: 'menu-outline',             iconActive: 'menu' },
 };
 
@@ -33,6 +35,8 @@ export default function ChildTabs() {
   const { t }           = useTranslation();
   const { isChildPreview, exitChildPreview } = useMode();
   const { profile }     = useAuth();
+  const { themeName }   = useTheme();
+  const isGamer         = themeName === 'gamer';
 
   return (
     <View style={{ flex: 1 }}>
@@ -78,6 +82,9 @@ export default function ChildTabs() {
       <Tab.Screen name="ChildDashboard" component={ChildDashboardScreen} />
       <Tab.Screen name="ChildTasks"     component={ChildTasksScreen} />
       <Tab.Screen name="ChildRewards"   component={ChildRewardsScreen} />
+      {isGamer && (
+        <Tab.Screen name="ChildMyStats" component={ChildMyStatsScreen} />
+      )}
       <Tab.Screen name="ChildSettings"  component={ChildSettingsScreen} />
     </Tab.Navigator>
     </View>

@@ -12,6 +12,24 @@
 
 ---
 
+## Implementation Notes
+
+### IN-2026-05-14-01: Stitch 5B shipped as "lite" — full design depends on Buddy V0.5 backend
+
+- **תאריך:** 2026-05-14
+- **מקור:** CC — during pkg/teen-ui-my-stats-lite SPEC review
+- **תיאור:** The Stitch 5B "My Stats" design ([docs/teen-ui-design/me-and-buddy/5b-my-stats/design-notes.md](teen-ui-design/me-and-buddy/5b-my-stats/design-notes.md)) requires Buddy V0.5 backend infrastructure that does not exist:
+  - `buddy_relationships.buddy_visible` column (the toggle for hiding the buddy character)
+  - `LEVEL N ●●●●○` indicator (friendship-level system)
+  - `YOUR BOOSTERS` carousel (boosters table + history)
+  - "Progress to LEVEL N" bar (level XP curve)
+- After surfacing this dependency, Adi chose to ship a **lite** version that shows only the 3 stats already exposed by `usePetState` / `useChildData` (BUFFs balance, successful days, current streak), deferring LEVEL/BOOSTERS/hero to a future package.
+- **השפעה:** The implemented `GamerMyStatsScreen` is intentional spec drift from the 2026-05-02 Itay-approved 5B. When Buddy V0.5 backend ships (`pkg/buddy-v05-backend`), the screen will be extended to add the LEVEL pill, "Progress to LEVEL N" bar, hero image, and BOOSTERS carousel — at which point this becomes the "real" 5B.
+- **סטטוס:** `resolved` for the lite scope; `deferred` for the full 5B (queued behind `pkg/buddy-v05-backend`).
+- **קשור ל:** `pkg/teen-ui-my-stats-lite`, FLAG F-2026-05-03-05 (BUDDY_SYSTEM.md spec-only)
+
+---
+
 ## FLAGs פתוחים
 
 ### F-2026-05-03-01: Onboarding fixes שעדיין לא ב-GAP_ANALYSIS
