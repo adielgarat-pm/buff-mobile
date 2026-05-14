@@ -14,6 +14,35 @@
 
 ## Implementation Notes
 
+### IN-2026-05-14-02: Paywall / subscribe CTAs visible to children — should be parent-only
+
+- **תאריך:** 2026-05-14
+- **מקור:** Adi — discovered while testing pkg/teen-ui-my-stats-lite in Pastel theme as Itay (child role)
+- **תיאור:** Four places in the child UI show payment/subscribe CTAs to non-subscribed users without checking that the logged-in user is a child (vs parent). The intended product behavior is: only parents see "subscribe" prompts since they are the buyer. Children should see a softer "ask your parent to unlock" message or just have the locked content hidden — never a CTA they can't act on.
+  - `src/screens/child/ChildDashboardScreen.tsx:182` (Pastel) — "Buddy locked 🔒 → Unlock ✨" → opens Paywall
+  - `src/screens/child/ChildRewardsScreen.tsx:78` (Pastel) — replaces shop with full `PaywallContent`
+  - `src/screens/child/GamerRewardsScreen.tsx:139` (Gamer) — same — replaces shop with `PaywallContent`
+  - `src/screens/child/ChildSettingsScreen.tsx:130` — locked skin picker overlays + Paywall nav
+- **השפעה:** Children see "subscribe" CTAs they can't action. Mild UX bug for non-paying families (the child gets nudged toward a payment screen instead of seeing a child-appropriate "locked" affordance).
+- **סטטוס:** `open` — proposed package: `pkg/hide-paywall-from-child`. Add a `profile?.role === 'parent'` check next to each `isSubscribed` gate, and surface a child-appropriate message when not subscribed and viewer is a child.
+- **קשור ל:** Not in scope for pkg/teen-ui-my-stats-lite (only Gamer Rewards is touched by that package and was already wired with the same paywall logic from a prior package).
+
+---
+
+### IN-2026-05-14-03: ChildJoin doesn't reconcile with pre-existing orphan profiles
+
+- **תאריך:** 2026-05-14
+- **מקור:** Adi — discovered trying to log in as Itay via the family-code flow while testing pkg/teen-ui-my-stats-lite
+- **תיאור:** When a parent pre-creates a child profile during onboarding, the profile may end up with `user_id IS NULL` (no auth user linked) until the child signs in. When the child later joins via ChildJoin (name + family code), the flow creates a NEW profile linked to a new auth user, rather than claiming the existing orphan profile that matches the same name + family_id. Result: duplicate "child" profiles in the same family, only one of which is functional.
+  - Reproduced on family KWYEL5: existed profile `איתי` (Hebrew, no user_id, created 2026-04-17). Adi entered name "Itay" + code "KWYEL5" → new profile `Itay` (Latin) created 2026-05-14 16:34, linked to existing `itay@buff.app` auth user. Original `איתי` orphan still dangling.
+  - Same family also has `עדי בדיקה` orphan profile (no user_id, created 2026-04-17) from earlier test flow.
+- **השפעה:** Data integrity — duplicate child profiles per family. Adi might also be confused about which is "real" Itay when she sees both in her family overview.
+- **סטטוס:** `open` — fix scope: in `ChildJoinScreen.handleJoin`, before `signUp`, query `profiles` for a matching `(family_id, display_name)` row with `user_id IS NULL`. If found, link it instead of creating a duplicate. Edge case: case-sensitivity of names + Hebrew/Latin pairs (e.g. "איתי" vs "Itay" — are these the same child?).
+- **Cleanup:** Two orphan profiles in KWYEL5 family can be deleted: `איתי` (no user_id) and `עדי בדיקה` (no user_id). Both created 2026-04-17, no real auth users behind them. 2-line SQL when Adi authorizes.
+- **קשור ל:** Not in scope for pkg/teen-ui-my-stats-lite.
+
+---
+
 ### IN-2026-05-14-01: Stitch 5B shipped as "lite" — full design depends on Buddy V0.5 backend
 
 - **תאריך:** 2026-05-14
