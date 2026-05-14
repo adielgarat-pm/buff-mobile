@@ -10,7 +10,8 @@
 | 02 — Dashboard without Buddy | ⚪ Not started | — |
 | 03 — Buddy toggle flow | ⚪ Not started | — |
 | 04 — Tasks detail | ⚪ Not started | — |
-| 05 — Me & Buddy | ⚪ Not started | — |
+| 05A — Me & Buddy | ⚪ Not started | — |
+| 05B — My Stats | 🟡 Lite version (no LEVEL/BOOSTERS) shipped — full 5B pending pkg/buddy-v05-backend | 2026-05-14 |
 | 06 — Rewards shop | ⚪ Not started | — |
 | 07 — Settings | ⚪ Not started | — |
 
