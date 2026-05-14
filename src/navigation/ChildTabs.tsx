@@ -56,6 +56,7 @@ export default function ChildTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => {
         const cfg = TAB_CONFIG[route.name as keyof ChildTabsParamList];
+        const isMyStatsTab = route.name === 'ChildMyStats';
         return {
           headerShown: false,
           tabBarActiveTintColor:   T.tabBarActive,
@@ -76,15 +77,19 @@ export default function ChildTabs() {
             />
           ),
           tabBarLabel: t(cfg.labelKey),
+          // Hide the MY STATS tab for Pastel theme without unmounting the
+          // route — keeps React Navigation's state stable across runtime
+          // theme switches. (Conditional <Tab.Screen> rendering breaks
+          // the navigator when themeName changes after mount.)
+          tabBarItemStyle: isMyStatsTab && !isGamer ? { display: 'none' } : undefined,
+          tabBarButton: isMyStatsTab && !isGamer ? () => null : undefined,
         };
       }}
     >
       <Tab.Screen name="ChildDashboard" component={ChildDashboardScreen} />
       <Tab.Screen name="ChildTasks"     component={ChildTasksScreen} />
       <Tab.Screen name="ChildRewards"   component={ChildRewardsScreen} />
-      {isGamer && (
-        <Tab.Screen name="ChildMyStats" component={ChildMyStatsScreen} />
-      )}
+      <Tab.Screen name="ChildMyStats"   component={ChildMyStatsScreen} />
       <Tab.Screen name="ChildSettings"  component={ChildSettingsScreen} />
     </Tab.Navigator>
     </View>
