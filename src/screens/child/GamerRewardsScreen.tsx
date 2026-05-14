@@ -75,8 +75,9 @@ interface StoreReward {
 export default function GamerRewardsScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, isChildPreview } = useMode();
+  const { previewChildId, isChildPreview, viewMode } = useMode();
   const { isSubscribed } = useSubscription();
+  const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { totalBalance } = useChildData(childId);
@@ -136,7 +137,22 @@ export default function GamerRewardsScreen() {
   };
 
   // ── Subscription gate ────────────────────────────────────────────────────
+  // Child viewers (real child or parent-in-preview-as-child) see a calm
+  // gamer-styled "ask your parent" empty state instead of the payment CTA.
   if (!isSubscribed) {
+    if (isChildViewer) {
+      return (
+        <View style={[styles.canvas, styles.lockedShop]}>
+          <Text style={styles.lockedShopEmoji}>🎁</Text>
+          <Text style={styles.lockedShopTitle}>
+            {t('childLockedState.shopTitleGamer')}
+          </Text>
+          <Text style={styles.lockedShopSub}>
+            {t('childLockedState.shopSubGamer')}
+          </Text>
+        </View>
+      );
+    }
     return <PaywallContent childName={profile?.display_name ?? ''} />;
   }
 
@@ -495,5 +511,31 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
+  },
+
+  lockedShop: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  lockedShopEmoji: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  lockedShopTitle: {
+    color: COLORS.lime,
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  lockedShopSub: {
+    color: COLORS.textMuted,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

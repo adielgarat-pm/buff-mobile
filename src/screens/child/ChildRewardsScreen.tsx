@@ -47,8 +47,9 @@ function PastelChildRewards() {
   const { t } = useTranslation();
   const T = useChildTheme();
   const { profile } = useAuth();
-  const { previewChildId } = useMode();
+  const { previewChildId, viewMode } = useMode();
   const { isSubscribed } = useSubscription();
+  const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { totalBalance } = useChildData(childId);
@@ -75,8 +76,23 @@ function PastelChildRewards() {
       });
   }, [childId]);
 
-  // Gate: non-subscribers see Paywall in place of the shop
+  // Gate: non-subscribers see Paywall in place of the shop.
+  // For child viewers (real child or parent-in-preview-as-child), show a
+  // calm "ask your parent" empty state instead of the payment CTA.
   if (!isSubscribed) {
+    if (isChildViewer) {
+      return (
+        <View style={[styles.lockedShop, { backgroundColor: T.background }]}>
+          <Text style={styles.lockedShopEmoji}>🎁</Text>
+          <Text style={[styles.lockedShopTitle, { color: T.foreground }]}>
+            {t('childLockedState.shopTitle')}
+          </Text>
+          <Text style={[styles.lockedShopSub, { color: T.mutedForeground }]}>
+            {t('childLockedState.shopSub')}
+          </Text>
+        </View>
+      );
+    }
     return <PaywallContent childName={profile?.display_name ?? ''} />;
   }
 
@@ -192,4 +208,9 @@ const styles = StyleSheet.create({
   safeCard:     { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, borderWidth: 1, gap: 12, marginTop: 8 },
   safeEmoji:    { fontSize: 24 },
   safeText:     { flex: 1, fontSize: 13, lineHeight: 18 },
+
+  lockedShop:        { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+  lockedShopEmoji:   { fontSize: 64, marginBottom: 16 },
+  lockedShopTitle:   { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8, lineHeight: 24 },
+  lockedShopSub:     { fontSize: 14, textAlign: 'center', lineHeight: 20 },
 });

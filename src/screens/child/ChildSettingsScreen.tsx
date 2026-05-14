@@ -27,11 +27,12 @@ const THEME_OPTIONS: { name: ChildThemeName; label: string; emoji: string; desc:
 export default function ChildSettingsScreen() {
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview } = useMode();
+  const { isChildPreview, exitChildPreview, viewMode } = useMode();
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
   const { isSubscribed } = useSubscription();
+  const isChildViewer = viewMode === 'child';
 
   const child = MOCK_MY_CHILD;
   const petCfg = PET_STAGES[child.petStage];
@@ -127,7 +128,10 @@ export default function ChildSettingsScreen() {
       {/* ── Pet skin ───────────────────────────────────────────────────────── */}
       <View style={styles.sectionHeaderRow}>
         <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Pet Skin</Text>
-        {!isSubscribed && (
+        {/* "✨ Premium" badge only shown to parent viewers — children should not
+            be shown subscription CTAs. The locked overlays on the skins stay
+            so children still see what's possible to unlock. */}
+        {!isSubscribed && !isChildViewer && (
           <Text style={[styles.premiumBadge, { color: T.accent }]}>✨ Premium</Text>
         )}
       </View>
@@ -144,6 +148,9 @@ export default function ChildSettingsScreen() {
             ]}
             onPress={() => {
               if (!isSubscribed) {
+                // Child viewer: tap is inert. They see what's locked but
+                // we don't nudge them toward a payment they can't action.
+                if (isChildViewer) return;
                 navigation.navigate('Paywall', {
                   childName: profile?.display_name ?? undefined,
                 });
