@@ -153,7 +153,7 @@
 - **מקור:** Claude Code — marketing strategy session with Adi
 - **תיאור:** Strategic marketing session produced 3 new operational docs ([BUFF_MARKETING_BACKLOG.md](BUFF_MARKETING_BACKLOG.md), [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md), [BUFF_BLOG_CONTENT_MAP.md](BUFF_BLOG_CONTENT_MAP.md)) and surfaced 4 dependencies that need resolution before execution scales:
 
-  1. **`/philosophy` page on buffadhd.com** — referenced in 2 of 3 advisor pitches; ~2 hr work in buff-main worktree. Per [BUFF_GO_TO_MARKET.md §2.3](BUFF_GO_TO_MARKET.md). Highest-leverage Wave 1 unblocker.
+  1. ✅ **`/philosophy` page on buffadhd.com** — **SHIPPED 2026-05-14** (PR `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`, awaits merge + deploy). 3-Principles hero added with WHY/WHAT-first framing. Pillar 3 (Independence-Building / outgrow) prominently articulated as the differentiator.
 
   2. **Israeli ADHD voices gap** — [BUFF_ADVISOR_OUTREACH_KIT.md §3 Bucket C](BUFF_ADVISOR_OUTREACH_KIT.md) needs 2–3 names from Adi. Israeli market is highest-trust + lowest-competition channel (96% of beta is IL per PRD §4.3) but currently underserved by target list.
 
@@ -161,9 +161,11 @@
 
   4. **Adina Maeir (Cog-Fun) outreach decision** — special case per D-2026-05-02-29. Pursuing her would unlock the Cog-Fun question. Pitch is fundamentally different from routine outreach — partnership conversation, not advisor email. Adi to decide separately.
 
-- **השפעה:** Marketing rollout depends on these. Wave 1 (`/philosophy` + meta data) blocks Wave 2 (advisor outreach). Wave 3 (blog) is independent but compounds slowly.
-- **סטטוס:** `open` — awaits Adi prioritization
-- **קשור ל:** [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) Phase 2 / D-2026-05-02-29 / [BUFF_MARKETING_BACKLOG.md §7](BUFF_MARKETING_BACKLOG.md)
+  5. **🆕 Domain email setup** (`adi@buffadhd.com`) — **IN PROGRESS 2026-05-14**, Adi setting up Google Workspace ($6/mo Business Starter). Until live, all outreach uses `buff.parenting@gmail.com` (her actual working inbox; references in BUFF_ADVISOR_OUTREACH_KIT, BUFF_FOUNDING_100_KIT, and founding-100-payment session files corrected). Once `adi@buffadhd.com` is live, switch back for credibility signal on Tier 1 outreach.
+
+- **השפעה:** Marketing rollout depends on these. Wave 1 (`/philosophy` + meta data) ✅ shipped to PR; awaits merge to actually deploy. Wave 3 (blog) is independent but compounds slowly. Email setup unlocks higher-tier outreach.
+- **סטטוס:** `open` — items 2, 3, 4 still pending Adi prioritization; item 5 in progress; item 1 ✅ resolved (shipped to PR)
+- **קשור ל:** [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) Phase 2 / D-2026-05-02-29 / [BUFF_MARKETING_BACKLOG.md §7](BUFF_MARKETING_BACKLOG.md) / Wave 1 PR `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`
 
 ---
 

@@ -364,6 +364,65 @@ To unblock this kit:
 
 ---
 
+### Email signature templates (copy-paste ready)
+
+Once Google Workspace is live and `adi@buffadhd.com` works, set these as default signatures. Until then, use the same content from `buff.parenting@gmail.com`.
+
+**Variant A — Concise (default for cold outreach):**
+
+```
+Adi Elgarat German
+Founder, BUFF
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+**Variant B — Mission-anchored (recommended for advisor / press / podcast pitches):**
+
+```
+Adi Elgarat German
+Founder, BUFF — "Until they don't need us"
+ADHD coaching for families (kids & teens, 6–18)
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+**Variant C — Full credibility (for Tier 1 clinicians, press, investor intros):**
+
+```
+Adi Elgarat German
+Founder, BUFF — ADHD coaching for families (kids & teens, 6–18)
+Senior PM. Mentor. Mom of a teen with ADHD.
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+**Hebrew variant (Israeli outreach):**
+
+```
+עדי אלגרט גרמן
+מייסדת, BUFF — אימון ADHD למשפחות (ילדים ונוער, 6–18)
+מנהלת מוצר. מנטורית. אמא של נער עם ADHD.
+buffadhd.com · linkedin.com/in/adi-elgarat-german
+```
+
+**HTML version (for Gmail signature box — renders with brand-violet color):**
+
+```html
+<p style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333; margin: 0;">
+  <strong>Adi Elgarat German</strong><br>
+  Founder, BUFF — ADHD coaching for families (kids &amp; teens, 6–18)<br>
+  <span style="color: #8b5cf6; font-style: italic;">"Until they don't need us"</span><br>
+  <a href="https://buffadhd.com" style="color: #8b5cf6; text-decoration: none;">buffadhd.com</a> · <a href="https://www.linkedin.com/in/adi-elgarat-german" style="color: #8b5cf6; text-decoration: none;">LinkedIn</a>
+</p>
+```
+
+**Anti-patterns:**
+- ❌ Pronouns/role description blocks longer than 4 lines (signal of corporate, not founder voice)
+- ❌ Stock images / logos embedded — break in many email clients
+- ❌ Multiple phone numbers / addresses — over-shares for cold outreach
+- ❌ Promotional banners ("Try BUFF free!" buttons) — kills founder authenticity
+- ❌ "Sent from my iPhone" — disable mobile signature entirely
+
+---
+
 ## 9. Open Decisions for Adi
 
 1. **Which pitch to send first?** Recommendation: Brendan (highest response odds), then Penny (strongest values match), then Sharon (highest authority).

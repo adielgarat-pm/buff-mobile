@@ -37,7 +37,10 @@ import buffLogo from '@/assets/buff-logo-no-bg.png';
 const TIER_99_LIMIT = 50;
 const HARD_CAP = 100;
 const APP_DEEP_LINK = 'buff://founding-100';
-const FOUNDER_EMAIL = 'adi@buffadhd.com';
+// Updated 2026-05-14: domain email adi@buffadhd.com does not exist yet
+// (deferred Google Workspace setup). Use Adi's working branded Gmail until then.
+// Switch back to adi@buffadhd.com once Workspace is live.
+const FOUNDER_EMAIL = 'buff.parenting@gmail.com';
 
 export default function Founding100() {
   const { language, setLanguage, t, isRTL } = useLanguage();

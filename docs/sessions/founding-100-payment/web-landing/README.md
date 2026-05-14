@@ -60,7 +60,7 @@ After Lovable auto-deploys (~30 seconds):
 - [ ] Counter shows correct tier ($99 / $149) and "X spots left at $Y"
 - [ ] Language toggle works (EN ↔ HE with proper RTL)
 - [ ] CTA button attempts `buff://founding-100` deep link (silent fail on desktop is expected)
-- [ ] Email fallback (`mailto:adi@buffadhd.com`) opens email client
+- [ ] Email fallback (`mailto:buff.parenting@gmail.com`) opens email client — note: domain email `adi@buffadhd.com` does NOT exist yet (deferred Google Workspace setup); switch back to it once Workspace is live
 - [ ] When `count >= 100`, page shows "Founding 100 closed" empty state with a "Back to BUFF" CTA
 - [ ] Footer links work (Privacy, Terms, Community WhatsApp)
 
