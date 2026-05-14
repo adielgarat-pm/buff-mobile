@@ -18,7 +18,7 @@
 - [ ] **Stripe SKUs ready** — $99 ו-$149 lifetime SKUs מוגדרים
 - [ ] **/founding-100 landing page live** — אחרת ה-CTA-ים מוליכים ל-404
 - [ ] **Engineering: `is_lifetime_founding` flag + "Founding Member" badge** — לפחות ה-flag, badge יכול לחכות
-- [ ] **email לזה אישי שלך** — לא noreply@. Founder voice = founder address. הצעה: `adi@buffadhd.com`
+- [ ] **Send from `buff.parenting@gmail.com`** — Adi's working branded inbox. לא noreply@. Founder voice = founder address. Domain email `adi@buffadhd.com` is a deferred upgrade — לא חוסם.
 - [ ] **קישור Launch Date מוכן** — אם עוד לא יודעים תאריך, להחליף את `[LAUNCH_DATE]` ב-"the coming weeks"
 - [ ] **לבדוק שאין conflict commitments** ל-47 משתמשי ה-Lovable POC (האם הובטח להם משהו אחר?)
 
@@ -160,7 +160,7 @@ https://www.linkedin.com/in/adi-elgarat-german
 
 ### 2.4 Sending logistics
 
-- **From:** adi@buffadhd.com (or her personal Gmail if domain email isn't ready)
+- **From:** `buff.parenting@gmail.com` (Adi's working branded Gmail). Domain email `adi@buffadhd.com` doesn't exist yet — deferred upgrade for credibility signal.
 - **Send timing:** Tuesday or Wednesday 9–11am recipient's local time = best open rate
 - **Tool:** Gmail mail-merge add-on (free, personal feel), OR manually paste 47 times (47 is small enough). **Do NOT** use Mailchimp/ConvertKit — those flag "marketing" and kill open rates for this audience
 - **Track:** simple sheet — date sent / opened / clicked / converted. No fancy tools needed for 47 emails.
@@ -287,7 +287,7 @@ If a senior name in PM (Lenny, Shreyas, etc.) comments — reply substantively, 
 
 ## What Adi Does Next (sequenced)
 
-1. **Today (60 min):** Read this kit. Adjust offer spec if needed. Confirm `adi@buffadhd.com` exists or set up a personal-feel address.
+1. **Today (60 min):** Read this kit. Adjust offer spec if needed. Use `buff.parenting@gmail.com` (Adi's working branded inbox). Setting up `adi@buffadhd.com` is a deferred upgrade — not blocking.
 2. **This week:** Open Stripe + define the two SKUs ($99, $149) with `lifetime_founding` metadata. Build minimal `/founding-100` landing page on buffadhd.com (one section, the offer table, Stripe button). Verify Phase 0 ship date.
 3. **Phase 0 ship (when Play Console is live):** Send email to 47 Lovable POC users — Tuesday/Wednesday morning their time.
 4. **Day 7 after first email:** Send follow-up to non-responders.
