@@ -1,18 +1,29 @@
-/**
- * jest-setup.ts — runs once before every test file.
- *
- * Loaded via setupFilesAfterEach in jest.config.js.
- *
- * Use this for global mocks that every test needs (AsyncStorage, supabase
- * client, RC's Purchases, etc.). Per-test mocks should live inside the
- * test file itself.
- */
+// jest-setup.ts — runs once before every test file.
+//
+// Loaded via setupFiles in jest.config.js.
+//
+// Use this for global mocks that every test needs (AsyncStorage, supabase
+// client, RC's Purchases, vector-icons, etc.). Per-test mocks should live
+// inside the test file itself.
 
 // Mock AsyncStorage with the official in-memory mock from the package.
 jest.mock('@react-native-async-storage/async-storage', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
+
+// Mock @expo/vector-icons so component tests don't transitively pull in
+// expo-font. Every icon family becomes a stub component that renders a
+// <Text> with the icon name — enough to keep render trees stable.
+jest.mock('@expo/vector-icons', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native');
+  const stub = (props: { name?: string }) =>
+    React.createElement(Text, null, props.name ?? '');
+  return new Proxy({}, { get: () => stub });
+});
 
 // Mock RevenueCat purchases — no real native module in tests.
 jest.mock('react-native-purchases', () => ({
