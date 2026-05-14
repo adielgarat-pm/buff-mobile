@@ -374,7 +374,7 @@ To unblock this kit:
 Adi Elgarat German
 Founder @ BUFF | Mom of an ADHD teen
 On a mission to make the ADHD app your kid grows out of — and the home around it calmer.
-buffadhd.com · linkedin.com/in/adi-elgarat-german
+buffadhd.com · https://www.linkedin.com/in/adi-elgarat-german
 ```
 
 **Why this set:** "Mom of an ADHD teen" carries higher trust than PM credentials for clinical/parent audiences (per [PERSONAS §P5 trust signals](BUFF_PERSONAS.md) + [BRAND §6](BUFF_BRAND.md) — "treats parent as expert in their kid"). The mission line speaks to BOTH beneficiaries: kid outgrows the app + parent gets the calm.
@@ -385,7 +385,7 @@ buffadhd.com · linkedin.com/in/adi-elgarat-german
 Adi Elgarat German
 Founder @ BUFF | Senior PM & Mentor turned ADHD-parent founder
 Building the only ADHD app whose success metric is uninstalls.
-buffadhd.com · linkedin.com/in/adi-elgarat-german
+buffadhd.com · https://www.linkedin.com/in/adi-elgarat-german
 ```
 
 **Why this set:** PM audiences want craft credibility + counter-positioning. "Senior PM & Mentor turned ADHD-parent founder" is the rare combo (PM-as-founder); "uninstalls as success metric" is the engagement-economy heresy that PMs forward.
@@ -396,7 +396,7 @@ buffadhd.com · linkedin.com/in/adi-elgarat-german
 עדי אלגרט גרמן
 מייסדת @ BUFF | אמא לנער עם ADHD
 במשימה ליצור את אפליקציית ה-ADHD שהילד שלך גדל ממנה — ובית רגוע יותר סביבה.
-buffadhd.com · linkedin.com/in/adi-elgarat-german
+buffadhd.com · https://www.linkedin.com/in/adi-elgarat-german
 ```
 
 #### HTML version of DEFAULT (for Gmail signature box — renders with brand-violet color)
