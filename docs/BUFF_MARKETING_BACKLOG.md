@@ -1,0 +1,162 @@
+# BUFF — Marketing Backlog
+
+> Top-level inventory of free / bootstrap-friendly marketing work.
+> Sister to [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) — GTM is the *strategy*, this is the *backlog* of specific tracks under it.
+
+**עודכן:** 2026-05-13
+**מקור:** marketing strategy session 2026-05-13 + scan of brand family (BRAND, PERSONAS, MESSAGING, COMPETITORS, FAQ, FOUNDER_STORY, TESTIMONIALS) + GO_TO_MARKET phase plan
+**שפה:** הסברים בעברית, action items באנגלית.
+
+---
+
+## למה המסמך הזה קיים
+
+[BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) מגדיר את ה-3-phase plan (Ship → Founding 100 → Free Authority → Paid). זה *מה* האסטרטגיה.
+
+המסמך הזה מפרט את ה-**tracks הספציפיים** של marketing work בתוך אותם פאזות, כל אחד עם: מה הוא, איזו פאזה, מסמך-בת אם יש (kit מפורט), ומה תוצר ה-shipping שלו.
+
+הקנס: GTM אומר *"Phase 2 = Free Authority Build"*. הוא לא אומר *"בנו blog עם 30 posts על SEO targeted ל-P3 personas"*. המסמך הזה אומר.
+
+---
+
+## 1. The Marketing Tracks — Inventory
+
+חמישה tracks הזוהו ב-2026-05-13. כולם 🆓 (founder time, ללא הוצאה).
+
+| # | Track | Phase | Deep doc | Status |
+|---|---|---|---|---|
+| **A** | ADHD parenting groups outreach (FB / Reddit / WhatsApp / forums) | 1 | Templates ב-[MESSAGING §3](BUFF_MESSAGING.md), reply ב-[FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md) | Templates ready, execution not started |
+| **B** | In-app marketing prompts (rating ask, share, referral) | 1.5 (engineering ticket) | פיצ'ר הנדסי — נדרש SPEC (Package Design mode) | Not started, needs Values Check before SPEC |
+| **C** | Blog content for SEO + persona reach | 2 | [BUFF_BLOG_CONTENT_MAP.md](BUFF_BLOG_CONTENT_MAP.md) | 30-post plan saved, infra not built |
+| **D** | Meta data + technical SEO for buffadhd.com | 2 | בקצרה ב-§5 פה. אין deep doc. | Not started — requires audit |
+| **E** | `/philosophy` page on buffadhd.com (publishing BUFF_VALUES) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | Not started — **highest leverage / lowest effort** |
+| **F** | Clinician / coach / podcast advisor outreach | 2 | [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) | 10-name target list + 3 personalized pitches drafted |
+
+**Track F (advisor outreach) was previously mapped only as bullet items in [GO_TO_MARKET §2.4–2.5](BUFF_GO_TO_MARKET.md). The kit doc operationalizes it — same pattern as FOUNDING_100_KIT operationalizes Phase 1.**
+
+---
+
+## 2. Recommended Execution Order
+
+לא לפתוח כל ה-tracks במקביל. סדר מומלץ לפי impact × dependency × effort:
+
+### Wave 1 — *unblockers + quick wins* (week 1)
+1. **Track E — `/philosophy` page** — ~2 hr work, unlocks every advisor pitch in Track F (the pitches reference it). Ship before sending any outreach.
+2. **Track D — Meta data audit + fix** — ~2 hr work. Biggest organic-search ROI per hour. Once shipped, every subsequent post (Track C) inherits good baseline.
+
+### Wave 2 — *outreach foundation* (weeks 2–4)
+3. **Track F — Advisor outreach** — start with 3 pitches from kit (Brendan / Penny / Sharon). One per week, not all at once.
+4. **Track A — ADHD groups outreach** — start once you have 1–2 advisor responses you can reference (even informally).
+
+### Wave 3 — *content compounding* (weeks 4–16)
+5. **Track C — Blog launch burst** — ship 5 launch posts (see [BLOG_CONTENT_MAP §6](BUFF_BLOG_CONTENT_MAP.md) starter set). Then 2/week steady-state.
+
+### Wave 4 — *post-Play-Store-live*
+6. **Track B — In-app rating + share prompts** — requires SPEC + Values Check. Defer until Play Store live AND first 50 users converted. Premature rating asks waste your once-per-year Play Store quota.
+
+---
+
+## 3. Why This Order
+
+**Wave 1 unblocks everything else:**
+- Every advisor pitch in Track F links to `/philosophy` → that page must exist
+- Every blog post in Track C ranks better with proper meta tags → meta data first
+
+**Wave 2 generates the social proof that Wave 3 amplifies:**
+- A blog post saying *"as Dr. Saline wrote in her 5C's framework…"* lands harder if Saline has actually engaged
+- ADHD groups outreach with one named clinical voice in your back pocket converts radically better than cold
+
+**Wave 3 is where SEO compounds — but it compounds slowly.** 12 weeks of consistent posting beats 4 weeks of bursting then silence. Don't start until you have the cadence in you.
+
+**Wave 4 (in-app prompts) is gated on actual users.** Asking for a Play Store review with N=10 users wastes Google's annual ask quota. Wait for ~50 active families.
+
+---
+
+## 4. Track A — ADHD groups outreach (brief)
+
+**Source materials, all already written:**
+- 10 forum reply templates: [MESSAGING §3](BUFF_MESSAGING.md) (T1–T10)
+- 10 hooks mapped to persona × channel: [MESSAGING §2](BUFF_MESSAGING.md)
+- Channel-specific guidelines: [MESSAGING §8](BUFF_MESSAGING.md)
+- Founding 100 reply variants: [FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md)
+
+**What's missing:** a **target list of specific groups** with admin contact + posting rules. Adi: please list 3 FB groups + 2 subreddits + 2 Hebrew WhatsApp groups when ready, and I'll build the tracker.
+
+**Cadence:** [MESSAGING §8.1](BUFF_MESSAGING.md) caps at 2–3 replies/week per group. 5 groups × 2 = 10 organic touchpoints/week.
+
+---
+
+## 5. Track D — Meta data audit (brief, no separate doc yet)
+
+This is buff-main repo (separate worktree), not buff-mobile. Audit checklist:
+
+- [ ] **Per-page `<title>`** (currently likely site-wide default — verify via WebFetch on buffadhd.com)
+- [ ] **Per-page `<meta name="description">`** (~150–160 chars, persona-targeted)
+- [ ] **Open Graph tags** — `og:title`, `og:description`, `og:image` (BUFF logo or per-page image), `og:url`, `og:type`
+- [ ] **Twitter cards** — `twitter:card="summary_large_image"`, `twitter:title`, `twitter:description`, `twitter:image`
+- [ ] **Schema.org JSON-LD** — `MobileApplication` schema (BUFF Android app), eligibility for app rich-results in Google
+- [ ] **`hreflang`** — bilingual EN/HE pages should declare alternates so Google serves the right language
+- [ ] **Canonical tags** on every page
+- [ ] **`sitemap.xml`** + `robots.txt` checked
+- [ ] **No `noindex`** accidentally set anywhere
+
+**Output:** an audit report + a PR to buff-main. Becomes a SPEC in a buff-main worktree session when you're ready.
+
+---
+
+## 6. Track B — In-app prompts (Future Package, needs SPEC + Values Check)
+
+Three candidates, **not built**. Requires its own session SPEC with Values Check before engineering.
+
+| Prompt | Trigger candidate | Risk to flag in Values Check |
+|---|---|---|
+| **Play Store rating ask** (`expo-store-review`) | 7th task completion + 70%+ rate (interim, doesn't require AHA detection) | Pillar 2 — does asking parent for review feel pressure-y? |
+| **"Tell another parent" share** | After 3rd reward redeemed by kid | Pillar 1 — does it create extrinsic motivation for *parent* to share? Probably fine, but ask. |
+| **Referral code** | Settings screen, evergreen, post-RevenueCat | Defer per existing 🚩 FLAG (Invite Link Option B is post-RevenueCat per CLAUDE.md) |
+
+**Constraints:**
+- Google permits 1 review ask per year per user — burning it on day 2 = no review ever
+- Per [BUFF_VALUES.md Pillar 2](BUFF_VALUES.md), no "missed", "failed", or pressure framing
+- Per CLAUDE.md, AHA event detection isn't built yet (4 engineering tickets per [BRAND §4.5](BUFF_BRAND.md)) — interim trigger needed
+
+---
+
+## 7. Open Decisions for Adi
+
+To unblock Wave 1 and Wave 2:
+
+1. **Approve `/philosophy` page work** — buff-main worktree session. Wraps [BUFF_VALUES.md](BUFF_VALUES.md) into web format.
+2. **Approve meta data audit** — buff-main worktree session. Audit + fix in same package.
+3. **Choose Track F starter pitch** — Brendan, Penny, Sharon, or all three sequenced? (See [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) §5.)
+4. **List ADHD groups for Track A tracker** — 3 FB + 2 subreddits + 2 WhatsApp.
+5. **Approve `is_lifetime_founding` flag + Stripe SKUs** for Phase 1 (separate from this backlog — see [GO_TO_MARKET §1.3](BUFF_GO_TO_MARKET.md)).
+
+---
+
+## 8. How to Use
+
+### עבור Adi
+זה ה-index של כל ה-marketing work שעל הצלחת כרגע. כל יום ראשון, סקירה — איזה track בתנועה, איזה תקוע, איזה מוכן ל-pickup.
+
+### עבור Claude.ai (web)
+לפני marketing session — לקרוא את המסמך הזה ולוודא שהבקשה לא חורגת מהפאזה הנוכחית של GTM.
+
+### עבור Claude Code (אני)
+כשמתבקש לעבוד על marketing item — לוודא שהוא משויך ל-track ב-§1, ולעדכן Status שם אחרי shipping.
+
+---
+
+## 9. מתי המסמך הזה מתעדכן
+
+| תרחיש | פעולה |
+|---|---|
+| Track נסגר (shipped) | עדכן Status ב-§1 |
+| Track חדש מתווסף | הוסיפי שורה ב-§1 + ראשי פרקים בסעיף ייעודי |
+| סדר ההפעלה משתנה | עדכן §2 + נימוק |
+| GTM phase מתקדמת | סקירה האם tracks עדיין רלוונטיים לפאזה החדשה |
+
+זה מסמך **חי, מתעדכן שבועית** במהלך ה-marketing ramp.
+
+---
+
+**סוף מסמך.**
