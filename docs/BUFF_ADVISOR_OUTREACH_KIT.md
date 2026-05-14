@@ -364,62 +364,59 @@ To unblock this kit:
 
 ---
 
-### Email signature templates (copy-paste ready)
+### Email signature templates (final, iterated 2026-05-14)
 
-Once Google Workspace is live and `adi@buffadhd.com` works, set these as default signatures. Until then, use the same content from `buff.parenting@gmail.com`.
+**Strategy:** two signatures, switched per audience. Gmail supports multiple — set both up via Settings → General → Signature → Create new, then pick per-message via the dropdown.
 
-**Variant A — Concise (default for cold outreach):**
-
-```
-Adi Elgarat German
-Founder, BUFF
-buffadhd.com · linkedin.com/in/adi-elgarat-german
-```
-
-**Variant B — Mission-anchored (recommended for advisor / press / podcast pitches):**
+#### Signature 1 — DEFAULT (for ~90% of outreach: parents, clinicians, podcast hosts, Founding 100 prospects, ADHD groups, press)
 
 ```
 Adi Elgarat German
-Founder, BUFF — "Until they don't need us"
-ADHD coaching for families (kids & teens, 6–18)
+Founder @ BUFF | Mom of an ADHD teen
+On a mission to make the ADHD app your kid grows out of — and the home around it calmer.
 buffadhd.com · linkedin.com/in/adi-elgarat-german
 ```
 
-**Variant C — Full credibility (for Tier 1 clinicians, press, investor intros):**
+**Why this set:** "Mom of an ADHD teen" carries higher trust than PM credentials for clinical/parent audiences (per [PERSONAS §P5 trust signals](BUFF_PERSONAS.md) + [BRAND §6](BUFF_BRAND.md) — "treats parent as expert in their kid"). The mission line speaks to BOTH beneficiaries: kid outgrows the app + parent gets the calm.
+
+#### Signature 2 — PM-CHANNEL (for ~10%: Lenny outreach, investor intros, ProductCon, PM Slack/podcasts, founder content)
 
 ```
 Adi Elgarat German
-Founder, BUFF — ADHD coaching for families (kids & teens, 6–18)
-Senior PM. Mentor. Mom of a teen with ADHD.
+Founder @ BUFF | Senior PM & Mentor turned ADHD-parent founder
+Building the only ADHD app whose success metric is uninstalls.
 buffadhd.com · linkedin.com/in/adi-elgarat-german
 ```
 
-**Hebrew variant (Israeli outreach):**
+**Why this set:** PM audiences want craft credibility + counter-positioning. "Senior PM & Mentor turned ADHD-parent founder" is the rare combo (PM-as-founder); "uninstalls as success metric" is the engagement-economy heresy that PMs forward.
+
+#### Hebrew variant of DEFAULT (Israeli outreach)
 
 ```
 עדי אלגרט גרמן
-מייסדת, BUFF — אימון ADHD למשפחות (ילדים ונוער, 6–18)
-מנהלת מוצר. מנטורית. אמא של נער עם ADHD.
+מייסדת @ BUFF | אמא לנער עם ADHD
+במשימה ליצור את אפליקציית ה-ADHD שהילד שלך גדל ממנה — ובית רגוע יותר סביבה.
 buffadhd.com · linkedin.com/in/adi-elgarat-german
 ```
 
-**HTML version (for Gmail signature box — renders with brand-violet color):**
+#### HTML version of DEFAULT (for Gmail signature box — renders with brand-violet color)
 
 ```html
 <p style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #333; margin: 0;">
   <strong>Adi Elgarat German</strong><br>
-  Founder, BUFF — ADHD coaching for families (kids &amp; teens, 6–18)<br>
-  <span style="color: #8b5cf6; font-style: italic;">"Until they don't need us"</span><br>
+  Founder @ BUFF | Mom of an ADHD teen<br>
+  <span style="color: #8b5cf6;">On a mission to make the ADHD app your kid grows out of — and the home around it calmer.</span><br>
   <a href="https://buffadhd.com" style="color: #8b5cf6; text-decoration: none;">buffadhd.com</a> · <a href="https://www.linkedin.com/in/adi-elgarat-german" style="color: #8b5cf6; text-decoration: none;">LinkedIn</a>
 </p>
 ```
 
 **Anti-patterns:**
-- ❌ Pronouns/role description blocks longer than 4 lines (signal of corporate, not founder voice)
+- ❌ More than 2 identity tokens in line 2 (signature stops being founder voice, becomes LinkedIn headline)
 - ❌ Stock images / logos embedded — break in many email clients
 - ❌ Multiple phone numbers / addresses — over-shares for cold outreach
 - ❌ Promotional banners ("Try BUFF free!" buttons) — kills founder authenticity
-- ❌ "Sent from my iPhone" — disable mobile signature entirely
+- ❌ "Sent from my iPhone" mobile signatures — disable entirely
+- ❌ Mixing PM credentials and Mom credential in the same line — dilutes both. Use Signature 1 OR Signature 2, not a hybrid.
 
 ---
 
