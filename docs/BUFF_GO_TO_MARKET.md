@@ -10,6 +10,19 @@
 
 ---
 
+## Operational Kits — Where the Execution Lives
+
+This doc is the **strategy**. The execution kits are sister docs:
+
+- [BUFF_MARKETING_BACKLOG.md](BUFF_MARKETING_BACKLOG.md) — top-level inventory of all 6 marketing tracks + 4-wave execution order across all phases
+- [BUFF_FOUNDING_100_KIT.md](BUFF_FOUNDING_100_KIT.md) — Phase 1 outreach execution (47 Lovable users, FB groups, email + LinkedIn templates)
+- [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) — Phase 2 advisor / coach / podcast outreach (10-name target list + 3 personalized pitches)
+- [BUFF_BLOG_CONTENT_MAP.md](BUFF_BLOG_CONTENT_MAP.md) — Phase 2 content track (30-post plan, anchored to brand-family docs)
+
+לפני שמתחילים פעולה ב-phase מסוים — לבדוק את ה-kit הרלוונטי, לא רק את ה-section פה.
+
+---
+
 ## ⚖ The Bootstrap Constraint
 
 **No spend before revenue.** Adi's explicit constraint, 2026-05-11.

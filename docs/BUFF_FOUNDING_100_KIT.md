@@ -6,6 +6,7 @@
 **עודכן:** 2026-05-11
 **מקור:** [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) §1 + BUFF_MESSAGING T-templates + Adi's bootstrap plan
 **שפה:** טמפלייטים EN ראשי + HE לישראל. הסברים בעברית.
+**Sister kits (Phase 2 execution):** [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) · [BUFF_BLOG_CONTENT_MAP.md](BUFF_BLOG_CONTENT_MAP.md) · [BUFF_MARKETING_BACKLOG.md](BUFF_MARKETING_BACKLOG.md)
 
 ---
 

@@ -29,6 +29,25 @@
 
 ---
 
+## מסמכי שיווק / מותג (Brand Family)
+
+| קובץ | תוכן | מתי לקרוא |
+|---|---|---|
+| `BUFF_BRAND.md` | Brand bible — זהות, טאגליינים, tone of voice, visual identity | marketing/brand session |
+| `BUFF_PERSONAS.md` | 9 פרסונות (5 הורים + 4 ילדים) + emotional jobs mapping | marketing/copy session |
+| `BUFF_MESSAGING.md` | Pitches, hooks, forum templates, Reels scripts, AI video prompts | marketing/copy session |
+| `BUFF_COMPETITORS.md` | Landscape map + forum reply ammunition | positioning/sales session |
+| `BUFF_FAQ.md` | תשובות אחידות לכל שאלה נפוצה | press/sales/forum reply |
+| `BUFF_FOUNDER_STORY.md` | סיפור המקור של Adi/Itay/Emi (חלקים `[NEEDS INPUT]`) | About page/PR/podcasts |
+| `BUFF_TESTIMONIALS.md` | מערכת ניהול עדויות + canonical Noa Morag quote | landing/Play Store/ads |
+| `BUFF_GO_TO_MARKET.md` | Bootstrap GTM strategy (3 phases, 🆓/💰 tagging) | marketing planning |
+| `BUFF_FOUNDING_100_KIT.md` | Phase 1 outreach kit ($99 lifetime offer) | Phase 1 execution |
+| **`BUFF_MARKETING_BACKLOG.md`** ⭐ | **Top-level marketing inventory + 4-wave execution order** | **marketing session start** |
+| `BUFF_ADVISOR_OUTREACH_KIT.md` | Phase 2 clinician/coach outreach (10-name list + 3 ready pitches) | Phase 2 outreach |
+| `BUFF_BLOG_CONTENT_MAP.md` | 30-post plan with source anchors + cadence + per-post template | content/SEO work |
+
+---
+
 ## תיקיית `teen-ui-design/`
 
 מכילה את 6 המסכים המעוצבים ב-Stitch (2.5.2026):
@@ -90,6 +109,14 @@ GitHub: github.com/adielgarat-pm/buff-mobile
 8. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_PERSONAS.md
 9. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_MESSAGING.md
 10. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_COMPETITORS.md
+11. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_FAQ.md
+12. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_FOUNDER_STORY.md
+13. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_TESTIMONIALS.md
+14. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_GO_TO_MARKET.md
+15. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_FOUNDING_100_KIT.md
+16. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_MARKETING_BACKLOG.md
+17. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_ADVISOR_OUTREACH_KIT.md
+18. https://github.com/adielgarat-pm/buff-mobile/blob/main/docs/BUFF_BLOG_CONTENT_MAP.md
 
 **אם השיחה היא Teen UI — תסתכל גם על המסכים ב-Stitch:**
    https://github.com/adielgarat-pm/buff-mobile/tree/main/docs/teen-ui-design
