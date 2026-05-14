@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
@@ -36,11 +37,13 @@ export default function ChildDashboardScreen() {
 }
 
 function PastelChildDashboard() {
+  const { t }       = useTranslation();
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, previewChildId } = useMode();
+  const { isChildPreview, exitChildPreview, previewChildId, viewMode } = useMode();
   const T = useChildTheme();
   const { isSubscribed } = useSubscription();
+  const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, dailyGoal, loading } = useChildData(childId);
@@ -112,11 +115,13 @@ function PastelChildDashboard() {
         <>
           <DashboardActiveContent
             T={T}
+            t={t}
             doneTasks={doneTasks}
             totalTasks={totalTasks}
             fuelPct={fuelPct}
             atGoal={atGoal}
             isSubscribed={isSubscribed}
+            isChildViewer={isChildViewer}
             isChildPreview={isChildPreview}
             profileName={profile?.display_name ?? undefined}
             justCompletedTask={justCompletedTask}
@@ -136,11 +141,13 @@ function PastelChildDashboard() {
 // stats row. Pure presentational — no hooks of its own.
 interface DashboardActiveContentProps {
   T: ReturnType<typeof useChildTheme>;
+  t: (key: string) => string;
   doneTasks: number;
   totalTasks: number;
   fuelPct: number;
   atGoal: boolean;
   isSubscribed: boolean;
+  isChildViewer: boolean;
   isChildPreview: boolean;
   profileName: string | undefined;
   justCompletedTask: boolean;
@@ -150,7 +157,7 @@ interface DashboardActiveContentProps {
 }
 
 function DashboardActiveContent({
-  T, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildPreview,
+  T, t, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildViewer, isChildPreview,
   profileName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
 }: DashboardActiveContentProps) {
   return (
@@ -187,7 +194,20 @@ function DashboardActiveContent({
             completedToday={doneTasks}
             totalToday={totalTasks}
           />
+        ) : isChildViewer ? (
+          // Child viewer (real child OR parent in preview-as-child mode):
+          // no payment CTA — show a calm "ask your parent" message.
+          <View style={styles.lockedPet}>
+            <Text style={styles.lockedPetEmoji}>🥚</Text>
+            <Text style={[styles.lockedPetTitle, { color: T.foreground }]}>
+              {t('childLockedState.buddyTitle')}
+            </Text>
+            <Text style={[styles.lockedPetSub, { color: T.mutedForeground }]}>
+              {t('childLockedState.buddySub')}
+            </Text>
+          </View>
         ) : (
+          // Parent viewer not subscribed — keep the existing Paywall CTA.
           <TouchableOpacity
             style={styles.lockedPet}
             onPress={() => navigation.navigate('Paywall', {
