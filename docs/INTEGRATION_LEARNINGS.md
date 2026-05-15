@@ -138,8 +138,8 @@
 - **מקור:** סשן ה-Spec Status header
 - **תיאור:** ה-doc מתאר את BUDDY V0.5 (post-2.5.2026 redesign) עם 5 friendship levels, 6 boosters, EOD trigger. הקוד הקיים ממש *spec ישן יותר* — 4 evolution stages + skins, ללא friendship levels, ללא boosters, ללא EOD trigger.
 - **השפעה:** כל מי שקורא את ה-doc חושב שהקוד ממש את ה-V0.5. **לא נכון.**
-- **סטטוס:** `deferred` — Reconciliation תיעשה ב-BUDDY implementation session, אז ייעשה code audit מפורש.
-- **קשור ל:** Spec Status header נוסף ב-2.5.2026 ל-BUDDY_SYSTEM.md
+- **סטטוס (עודכן 2026-05-15):** `partially-resolved` — `pkg/buddy-v05-backend` שופח את התשתית של V0.5 (3 טבלאות, EOD pg_cron, ל-1 → ל-3 logic, hook). מה שעוד נשאר ל-spec מלא: levels 4-5 logic, booster use mechanics, ה-UI consumers (toast, tap-on-buddy, hide/show, full 5B עם LEVEL/BOOSTERS). הפער הזה ממופה ל-`pkg/teen-ui-with-buddy-bundle` ולחבילות עתידיות.
+- **קשור ל:** Spec Status header ב-BUDDY_SYSTEM.md; pkg/buddy-v05-backend (PR #__)
 
 ---
 
