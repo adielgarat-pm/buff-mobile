@@ -251,7 +251,8 @@
 - **תיאור מקורי:** Lovable has a `reviews` table with user-submitted, admin-approved reviews of BUFF. Existing reviews are valuable testimonials but blocked on Lovable data access.
 - **ההשפעה שהייתה:** F-074 (Static landing) and marketing materials lacked social proof. Beta-period user words were unused.
 - **איך נפתר:** Adi exported the `reviews` table from Lovable admin (3 approved entries — Shani, Noa Morag long-form, Kelly). All reviews already had English translations produced by Lovable's `translate-review` edge function (Gemini Flash Lite). CC imported as T002, T003, T004 in `BUFF_TESTIMONIALS.md §2A` (PR `pkg/lovable-testimonials-import`). Consent for paid ads / Play Store still pending — captured as new Open Action Item in `BUFF_TESTIMONIALS.md §8`.
-- **קשור ל:** F-071 (in-app reviews — Out), F-074 (Static landing), F-075 (Sunset Lovable), [BUFF_TESTIMONIALS.md](BUFF_TESTIMONIALS.md), D-2026-05-14, `pkg/lovable-parity-and-backlog` → `pkg/lovable-testimonials-import`
+- **עדכון 2026-05-15:** T004 (Kelly) הוסרה מ-BUFF_TESTIMONIALS — Adi disclosed it was a family review submitted under a pseudonym, not a real third-party testimonial. Per BUFF_TESTIMONIALS §6 anti-patterns ("don't fabricate quotes"), it doesn't qualify. **For any future sync from Lovable's `reviews` table: skip the Kelly entry.** Adi to delete the row from Lovable's reviews table separately so it stops appearing on buff.lovable.app Landing. T002 (Shani) and T003 (Noa long-form) remain valid.
+- **קשור ל:** F-071 (in-app reviews — Out), F-074 (Static landing), F-075 (Sunset Lovable), [BUFF_TESTIMONIALS.md](BUFF_TESTIMONIALS.md), D-2026-05-14, `pkg/lovable-parity-and-backlog` → `pkg/lovable-testimonials-import`, `pkg/testimonials-remove-t004` (removal of T004 2026-05-15)
 
 ---
 

@@ -140,28 +140,6 @@ Where it's used:
 Strength rating: 5/5 — long-form, validates 2 pillars by name, from canonical user (T001 speaker)
 ```
 
-### T004 — Kelly
-
-```
-ID: T004
-Quote (EN, original): "🚀 Zero Friction — BUFF has been a complete game-changer for our family. My child finally has that internal motivation to get things done without the constant nagging. Our evenings have shifted from power struggles to a calm, confident start"
-Translation: N/A (original EN)
-Speaker:
-  - First name: Kelly
-  - Role: parent (kid age unspecified)
-  - Geo: unknown (likely US/UK based on EN as L1)
-Date collected: 2026-03-15 (via Lovable reviews flow)
-Consent status:
-  - ⚠ VERIFY same as T002.
-Persona tag: P1 (Exhausted Morning Parent)
-Pillar tag: Intrinsic Motivation (uses the EXACT phrase "internal motivation" — directly Pillar 1 wording)
-Pain it speaks to: "I'm tired of nagging" + power struggles
-Where it's used:
-  - Currently: Lovable Landing
-  - Recommended: **Play Store description** (EN-native, 5-star, short enough), **Pillar 1 hero copy on /philosophy**, US-targeted FB ads
-Strength rating: 5/5 — EN-native (geo diversity asset!), uses Pillar 1 vocabulary, "Zero Friction" and "complete game-changer" are headline-grade phrases
-```
-
 ---
 
 ## 3. Slots to Fill — חיפוש פעיל לעדויות חסרות
@@ -170,7 +148,7 @@ Strength rating: 5/5 — EN-native (geo diversity asset!), uses Pillar 1 vocabul
 
 | Persona | Pillar — Intrinsic | Pillar — Positive Coaching | Pillar — Independence |
 |---|---|---|---|
-| P1 Exhausted Morning | T003, T004 ✅ | T001, T002, T003 ✅ | — |
+| P1 Exhausted Morning | T003 ✅ | T001, T002, T003 ✅ | — |
 | P2 Post-Diagnosis | `[NEED]` | `[NEED]` | `[NEED]` |
 | P3 Tried Everything | `[NEED]` | `[NEED]` | `[NEED]` |
 | P4 Teen-Lost-Control | `[NEED]` | `[NEED]` | `[NEED]` |
@@ -289,7 +267,7 @@ Open-ended question to ask:
 - [ ] לאסוף 8-11 עדויות נוספות, אחת לכל cell בטבלת §3
 - [ ] לקבוע ב-CLAUDE.md / WORKFLOW.md מתי לאסוף עדויות חדשות (אחרי X שימוש?)
 - [ ] לעדכן את `<TestimonialsSection />` consent logic אם חסר
-- [ ] לאמת consent מ-Shani (T002), Kelly (T004), ו-Noa Morag (T003 — ציטוט long-form שונה מ-T001) לפני שימוש מעבר ל-Lovable Landing (paid ads, Play Store, FB ads)
+- [ ] לאמת consent מ-Shani (T002) ו-Noa Morag (T003 — ציטוט long-form שונה מ-T001) לפני שימוש מעבר ל-Lovable Landing (paid ads, Play Store, FB ads)
 
 ---
 
