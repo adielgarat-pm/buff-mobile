@@ -173,21 +173,6 @@
 
 ---
 
-### F-2026-05-05-01: Pre-existing expo-doctor failures in buff-mobile
-
-- **תאריך:** 2026-05-05 (discovered during admin-dashboard-port Phase 2)
-- **מקור:** CC — during Chunk 2 of pkg/admin-dashboard-port-phase-2
-- **תיאור:** `npx expo-doctor` reports 4 failures in the root buff-mobile project. Verified as pre-existing on main (before workspace addition) by running expo-doctor on both main and the phase-2 branch — same failures on both:
-  1. `app.json` schema: `android.supportsRTL` is an unknown field
-  2. Missing peer dependency: `expo-font` (required by `@expo/vector-icons`)
-  3. Duplicate `expo-font` (55.0.6 vs 14.0.11) + duplicate `expo-constants` (same version ×3, harmless)
-  4. `babel-preset-expo` major mismatch (expected ~54, found 55.0.15) + 8 patch-version mismatches across Expo packages
-- **השפעה:** Not blocking current work (Metro starts, app runs). May cause unexpected build errors in EAS Build. Patch mismatches are minor; babel-preset-expo major mismatch is more significant.
-- **סטטוס:** `open` — to address in a dedicated "expo-health" Improvement Package before EAS Build submission.
-- **קשור ל:** admin-dashboard-port Phase 2 (discovered), pkg/admin-dashboard-port-phase-2
-
----
-
 ### F-2026-05-05-02: admin-dashboard-port Phase 2 execution notes (deferred items)
 
 - **תאריך:** 2026-05-05
@@ -243,6 +228,22 @@
 ---
 
 ## רשומות שנפתרו (Resolved)
+
+### F-2026-05-05-01 (RESOLVED 2026-05-16): Pre-existing expo-doctor failures in buff-mobile
+
+- **תאריך פתיחה:** 2026-05-05 (discovered during admin-dashboard-port Phase 2)
+- **תאריך סגירה:** 2026-05-16
+- **תיאור מקורי:** `npx expo-doctor` reported 4 failures: (1) `app.json` schema `android.supportsRTL` unknown field; (2) Missing peer dependency `expo-font` required by `@expo/vector-icons`; (3) Duplicate `expo-font` + `expo-constants` ×3 nested copies; (4) `babel-preset-expo` major mismatch (expected ~54, found 55.0.15) + 8 patch-version mismatches across Expo packages.
+- **ההשפעה שהייתה:** Not blocking dev (Metro starts) but flagged as potential EAS Build risk. Marked "to address in a dedicated 'expo-health' Improvement Package before EAS Build submission."
+- **איך נפתר:** Resolved in `pkg/expo-health-and-eas-android` Phase 1 (this commit). Steps:
+  1. Removed `android.supportsRTL` from `app.json` (schema fix).
+  2. Ran `npm dedupe` — cleared all duplicate dependencies (state-only artifact of stale install; no actual version conflicts).
+  3. `npx expo install expo-font` — promoted to direct dep (satisfies `@expo/vector-icons` peer); also added `"expo-font"` to `app.json` plugins (auto by `expo install`).
+  4. `npx expo install --fix` — aligned `babel-preset-expo` to ~54.0.10 + 6 other patch mismatches in one pass.
+  Final state: `npx expo-doctor` reports **17/17 checks passed**.
+- **קשור ל:** `pkg/expo-health-and-eas-android` Phase 1, admin-dashboard-port Phase 2 (where flag was opened)
+
+---
 
 ### F-2026-05-14-02 (RESOLVED 2026-05-14): Extract Lovable reviews → BUFF_TESTIMONIALS
 

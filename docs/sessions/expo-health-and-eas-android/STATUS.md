@@ -7,8 +7,8 @@
 
 | Phase | State | Date | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 0 — Session folder + SPEC | _in_progress_ | 2026-05-16 | — | — | — |
-| 1 — expo-doctor 4 → 0 failures | _pending_ | — | — | — | — |
+| 0 — Session folder + SPEC | _passed_ | 2026-05-16 | `4aa9f75` | N/A (docs only) | — |
+| 1 — expo-doctor 4 → 0 failures | _passed_ | 2026-05-16 | (this commit) | 17/17 ✓ | F-2026-05-05-01 resolved |
 | 2 — EAS-managed Android credentials | _pending_ | — | — | — | — |
 | 3 — First production AAB build | _pending_ | — | — | — | — |
 | 4 — Play Console Internal Testing upload | _pending_ | — | — | — | — |

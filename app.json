@@ -20,7 +20,6 @@
     "android": {
       "package": "com.buffapp.mobile",
       "versionCode": 1,
-      "supportsRTL": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/BUFF_LOGO.png",
         "backgroundColor": "#1a1636"
@@ -35,7 +34,13 @@
       "expo-web-browser",
       "expo-localization",
       "@react-native-community/datetimepicker",
-      ["expo-image-picker", { "photosPermission": "BUFF uses your photo library for profile pictures." }]
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BUFF uses your photo library for profile pictures."
+        }
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
