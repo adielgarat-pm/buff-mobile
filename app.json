@@ -40,7 +40,8 @@
           "photosPermission": "BUFF uses your photo library for profile pictures."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@sentry/react-native"
     ],
     "extra": {
       "eas": {

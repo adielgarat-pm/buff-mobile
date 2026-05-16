@@ -191,9 +191,9 @@ Create `docs/sessions/sentry-crash-monitoring/` mirroring the previous package s
 
 ---
 
-## Open questions for Adi (before exit-plan)
+## Open questions for Adi — RESOLVED 2026-05-16
 
-1. **Do you already have a Sentry account?** If yes, do you want to create a new project under it, or use an existing one (and if so which)?
-2. **Email for crash alerts.** Default = your Sentry account email. Want to also forward to anyone (Itay? Emi-the-future-tester? Anyone else)?
-3. **PII aggressiveness.** Default proposal: scrub emails + display names + child profile names from all breadcrumbs/events. Acceptable? Or more permissive (e.g., keep emails for debugging multi-user issues)?
-4. **Timing.** Want to wait for v8 testers to actually run into a crash first (proves we *need* observability), or start now while v8 testing is fresh? Recommendation: start now — v8 is shipping today, Sentry-enabled v9 in ~24h means crashes from day 1 of broader testing are captured.
+1. **Sentry account?** No existing account. Adi will create with `adi@buffadhd.com` (BUFF Workspace email per memory). Single email = both account login and alert destination.
+2. **Email for crash alerts.** Same: `adi@buffadhd.com`. No forwarding to Itay/Emi at this stage.
+3. **PII aggressiveness.** **Aggressive** — CC's call. Children's app default: scrub emails + display names + child profile names from breadcrumbs and event metadata. Implemented via `beforeSend` + `beforeBreadcrumb` hooks in Phase 1.4.
+4. **Timing.** **Start now** — CC's call. v8 ships to Internal Testing today; Sentry-enabled v9 ready in ~24h means real-tester crashes from day 1 of broader rollout are captured. No reason to wait.

@@ -23,6 +23,8 @@
 // i18n must be imported before any component that calls useTranslation()
 import './src/i18n';
 
+import * as Sentry from '@sentry/react-native';
+
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -35,6 +37,34 @@ import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
 import RootNavigator                     from './src/navigation/RootNavigator';
 import { initRevenueCat }                from './src/services/purchaseService';
+
+// Sentry crash + error monitoring.
+// DSN is only set in production/preview EAS profiles (eas.json env), keeping
+// dev builds Sentry-off so local crashes don't burn quota. PII scrubbing is
+// aggressive because BUFF is a children's app — emails, display names, and IP
+// must never leave the device.
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+  sendDefaultPii: false,
+  beforeSend(event) {
+    if (event.user) {
+      delete event.user.email;
+      delete event.user.username;
+      delete event.user.ip_address;
+    }
+    return event;
+  },
+  beforeBreadcrumb(breadcrumb) {
+    if (typeof breadcrumb.message === 'string') {
+      breadcrumb.message = breadcrumb.message.replace(
+        /[\w._%+-]+@[\w.-]+\.[A-Za-z]{2,}/g,
+        '[email]',
+      );
+    }
+    return breadcrumb;
+  },
+});
 
 /**
  * RevenueCatInit — sits inside AuthProvider.
@@ -77,7 +107,7 @@ function AppContent() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -95,3 +125,5 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+export default Sentry.wrap(App);
