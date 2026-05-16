@@ -1,6 +1,6 @@
 # Track 5 — Cohort Lifetime Access
 
-**Status:** `blocked-redesign` (2026-05-16: CC discovery on mobile DB invalidated the original framing — see [TRACK_5_findings.md](./TRACK_5_findings.md). Lovable users have no `auth.users` rows on mobile yet, so there is nothing to UPDATE. Recommended path: spin up `pkg/pending-lifetime-grants` instead.)
+**Status:** `blocked-mcp-access` (2026-05-16: Cohort identified on live Lovable DB — 24 qualifying parents, 16 with recoverable emails. CC's MCP is wired to Lovable, not mobile. Next step requires write access to buff-mobile to seed `pending_lifetime_grants` table + extend `handle_new_user` trigger. See [TRACK_5_findings.md](./TRACK_5_findings.md).)
 **Owner:** Adi (PM) + CC (executor)
 **Target:** before 2026-06-01 beta launch
 **Mode:** PLAN — no SQL runs until Adi says `approved, proceed`
