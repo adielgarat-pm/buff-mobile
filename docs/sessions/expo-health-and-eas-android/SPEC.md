@@ -39,9 +39,14 @@ Bundling both into one package means the doctor fixes get end-to-end verified by
 - **`android/` directory checked into repo** — diverges from typical Expo managed workflow. Plan Chunk 2.3 surfaces the keep-vs-remove decision with the diff.
 - **D-2026-05-01-06 "backed up" keystore** — we're generating a fresh one via EAS-managed credentials. If a Play Console listing was set up earlier tied to a different fingerprint, Phase 4 upload will fail with "wrong upload key." Adi confirmed (2026-05-16) listing exists for Android — fingerprint match assumed but will be verified at Phase 4.
 
-### Signing fingerprint (TBD — filled in at Phase 2 exit)
-- SHA-1: _captured during Chunk 2.2_
-- SHA-256: _captured during Chunk 2.2_
+### Signing — discovered at Phase 2 (2026-05-16)
+
+EAS already had a keystore registered for this project from a prior session — name `dG1dqozJHO (default)`. CC did **not** generate a new keystore. The build at versionCode 8 is signed with this pre-existing key.
+
+- EAS keystore reference: `dG1dqozJHO (default)` (visible in `eas build` output)
+- Fingerprint (SHA-1 / SHA-256): _to be retrieved via `eas credentials` interactive command (deferred — non-blocking for first build)_
+- Prior builds on this keystore: 8× `development`-profile APKs (Apr 17 – May 16). This is the first `production` AAB.
+- versionCode source: `remote` (per eas.json line 24). Local `app.json` versionCode=1 is **ignored** — EAS auto-increments. Build 8's versionCode is 8.
 
 ---
 
