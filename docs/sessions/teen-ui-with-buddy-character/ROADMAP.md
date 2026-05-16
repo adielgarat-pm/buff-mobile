@@ -44,11 +44,10 @@
 
 **Chunks:**
 
-**2a. Hook mutators + helper hook**
-- Add `setBuddyVisible(visible: boolean)` to `useBuddyRelationship` (optimistic + rollback).
-- Add `setBuddyName(name: string | null)` to `useBuddyRelationship` (same pattern).
-- New `useChildTasksCompletedLifetime(childId)` hook.
-- Jest unit tests for all three.
+**2a. Hook mutators + stats hook** ✅ (commit pending)
+- Added `setBuddyVisible(visible)` + `setBuddyName(name | null)` to `useBuddyRelationship` (optimistic update + refetch-on-error rollback, matching `useAppSettings.togglePause`).
+- New `useChildBuddyStats(childId)` — **scope expanded** from the original "tasks completed lifetime" hook per Adi 2026-05-16 (Q2 answer): returns `{ daysTogether, tasksCompleted }` in parallel queries. "Days Together" = `COUNT(buddy_daily_check WHERE tasks_completed >= 1)` ("days the child opened the app and completed at least one task" — bonding-focused, not calendar-days).
+- 11 Jest tests covering: mount fetch, mutator optimistic paths, refetch-on-error rollback, null-childId no-op, stat counts + error surfacing.
 
 **2b. Shared atomic components**
 - `BuddyHero` (size: 'dashboard' | 'screen'; optional `onClose`). Renders `getBuddyAssetForLevel(skin, level)` ?? `<WolfSilhouette/CapybaraSilhouette>` based on `current_skin_id`.

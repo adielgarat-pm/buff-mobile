@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|
 | 0 — Session folder | _passed_ | 2026-05-16 | `48e54c8` | n/a (docs only) | — |
 | 1 — Buddy assets (Wolf + Fox + Capybara) | _in_progress_ — silhouettes complete; PNG delivery deferred | 2026-05-16 | `6890177` (registry + Wolf+Capybara silhouettes), follow-up (FoxSilhouette + per-buddy color identity) | typecheck ✅ | IN-2026-05-16-01 |
-| 2 — No-buddy path (5B full + Settings + naming modal) | _pending_ | — | — | — | — |
+| 2 — No-buddy path (5B full + Settings + naming modal) | _in_progress_ — Chunk 2a complete (hooks + tests); 2b/2c/2d pending | 2026-05-16 | (Chunk 2a — this commit) | jest 36/36 ✅, typecheck ✅ | — |
 | 3 — With-buddy path (dashboard + 5A) | _pending_ | — | — | — | — |
 | 4 — Regression + closeout | _pending_ | — | — | — | — |
 
