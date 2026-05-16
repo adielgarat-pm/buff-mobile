@@ -1,6 +1,6 @@
 # Track 5 — Cohort Lifetime Access
 
-**Status:** `draft — blocked` (waiting on cohort CSV + Q5 only — Q1–Q4 answered 2026-05-16)
+**Status:** `draft — blocked` (waiting on cohort CSV only — Q1–Q5 all answered 2026-05-16)
 **Owner:** Adi (PM) + CC (executor)
 **Target:** before 2026-06-01 beta launch
 **Mode:** PLAN — no SQL runs until Adi says `approved, proceed`
@@ -36,7 +36,7 @@ Drop the cohort emails as a fenced block in chat, or commit them as `TRACK_5_coh
 | Q2 | Trust CSV blindly, or cross-check PRD §5.2 criteria? | ✅ **Trust** | No qualification `WHERE` clause. UPDATE applies to every resolved profile in the cohort, regardless of family/task state. |
 | Q3 | Parents only, or include children? | ✅ **Both** | Algorithm: cohort email → `auth.users.id` → parent profile → `family_id` → flag ALL profiles in that family (parent + children). Children typically lack their own email, so the email-only match would miss them. **Surface to Adi if this family-fanout interpretation is wrong.** |
 | Q4 | Touch `is_lifetime_founding` + `founding_member_number`? | ✅ **No, only `is_lifetime_access`** | Hard-coded: UPDATE statement touches that one column only. |
-| Q5 | Promote to its own session folder, or execute from this draft? | ⏳ **Pending** | Default if not answered by execution time: execute from this draft (it's a one-shot reversible data mutation, no schema change, no code change). Promote only if scope grows. |
+| Q5 | Promote to its own session folder, or execute from this draft? | ✅ **Execute from this draft** (CC recommended, Adi accepted 2026-05-16) | Audit trail goes to `INTEGRATION_LEARNINGS.md` in the same commit as the UPDATE — cohort + before/after counts + resolved family roster. No SPEC/ROADMAP/TESTS scaffolding. |
 
 ---
 
@@ -120,9 +120,8 @@ Three options — Adi picks:
 
 ## When this Track unblocks
 
-Q1–Q4 answered ✅ (2026-05-16). Remaining:
-1. **Cohort CSV** (chat or local file — CC will not commit emails to repo).
-2. **Q5** — promote to own session folder, or execute from this draft? (CC default if unanswered: execute from this draft.)
+Q1–Q5 all answered ✅ (2026-05-16). Only remaining input:
+1. **Cohort CSV** — to be produced by Lovable per [TRACK_5_lovable_export_prompt.md](./TRACK_5_lovable_export_prompt.md), saved locally at `TRACK_5_cohort.csv` (gitignored — see `.gitignore` entry).
 
 When CSV lands, CC will:
 - Update Status to `ready`

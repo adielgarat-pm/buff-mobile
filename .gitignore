@@ -67,3 +67,7 @@ docs/EOD_CLOSING_2026-05-02.md
 # Zip exports at root level
 /*.zip
 
+# Cohort CSV (PII — emails of beta users) — never commit
+docs/sessions/beta-2026-06-01/TRACK_5_cohort.csv
+docs/sessions/beta-2026-06-01/*_cohort.csv
+
