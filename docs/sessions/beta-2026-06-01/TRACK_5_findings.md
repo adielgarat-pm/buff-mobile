@@ -4,29 +4,36 @@
 
 ---
 
-## CRITICAL CORRECTION — 2026-05-16 (late)
+## SETTLED FRAMING — 2026-05-16 (final, do not flip again)
 
-Earlier sections of this doc said CC's MCP was scoped to **buff-mobile** (based on Q1 answer). On re-verification with Adi, **CC's MCP is actually scoped to Lovable** (project `gfrongfnyigxsexuofrg`). Everything CC measured below is **live Lovable data**, not a stale mobile snapshot.
+After two flip-flops earlier, the settled facts are:
 
-**Implications of the correction:**
-- The "187 dangling profile" framing was wrong. Those are real Lovable parents whose auth flow created a profile row but no `auth.users` row (Lovable uses a non-standard-Supabase auth path for most users). They are not orphans, not stale, not dangling — they are the real Lovable user base.
-- The "auth migration" question is unchanged: Lovable users still need to sign up fresh on mobile via Google OAuth (REQ-1 in the cascading-requirements section below). But it's not because their data didn't copy — it's because mobile uses standard Supabase Google OAuth and Lovable uses something else.
-- The 24 qualifying cohort and 16 recoverable emails are **live, accurate, current** numbers — not stale snapshots.
+- **CC's Supabase MCP is connected to buff-mobile**, project URL `gfrongfnyigxsexuofrg`. Adi's original Q1 answer was correct.
+- **Lovable cannot have an MCP** — closed AI-builder platform, no extensibility. Any live-Lovable query must run inside Lovable's own SQL Editor (Adi clicks Run, downloads CSV, hands back).
+- **The data on buff-mobile is a STALE SNAPSHOT** of Lovable's profile/family/email data, frozen at the time the copy was made. The BUDDY V0.5 tables (`buddy_relationships`, `buddy_daily_check`) are live on buff-mobile (created by recent mobile migrations 2026-05-15), but the Lovable-origin tables are not synced from live Lovable.
+- **All cohort numbers CC produced in this doc (24 / 16 / 188) are from the stale snapshot.** They are *approximations* of the live Lovable cohort, not exact matches.
 
-The "TL;DR" and "Raw evidence" sections below preserve the original wording for traceability; read them as describing Lovable, not mobile.
+**Implications:**
+- For the actual cohort, run [TRACK_5_lovable_cohort_discovery.md](./TRACK_5_lovable_cohort_discovery.md) inside Lovable to get live data.
+- The "187 dangling parent profile" framing on buff-mobile is now explainable: those 187 are profile rows copied from Lovable whose original `user_id` values don't match anything in buff-mobile's `auth.users` (which only has 5 real mobile-signup accounts). They're not orphans or bugs — they're snapshot artifacts.
+- REQ-1 still stands: Lovable users will sign up fresh on mobile via Google OAuth; the pending-grants mechanism auto-flags them on signup.
+
+The "TL;DR" and "Raw evidence" sections below preserve the original wording for traceability; treat them as describing the stale snapshot on buff-mobile, useful as a sanity check against live Lovable.
 
 ---
 
-## TL;DR (original wording, re-interpreted as Lovable)
+## TL;DR (original wording — describes stale snapshot on buff-mobile)
 
-The mobile DB and Lovable DB are separate Supabase projects with different `auth.users` tables. Lovable's parent profiles mostly do not have matching `auth.users` rows in Lovable's own DB (because Lovable's auth is non-standard). Lovable's cohort cannot be flagged on **mobile** until those users sign up to the mobile app via Google OAuth, which creates a fresh mobile `auth.users` row.
+buff-mobile and Lovable are separate Supabase projects. buff-mobile holds a stale copy of Lovable's profile/family/email data plus its own (mostly empty) `auth.users` (5 real signups). 187 of 188 parent profile rows on mobile have `user_id`s that don't match anything in mobile's `auth.users` — snapshot artifacts, not live users.
+
+Lovable's actual cohort cannot be flagged on mobile until those users sign up to the mobile app via Google OAuth, creating fresh mobile `auth.users` rows.
 
 ---
 
-## Raw evidence (read-only queries against Lovable DB)
+## Raw evidence (read-only queries against buff-mobile MCP — STALE SNAPSHOT)
 
-**Project URL** (Lovable MCP): `https://gfrongfnyigxsexuofrg.supabase.co`
-**Schema check:** has the Lovable tables (`pwa_events`, `lesson_progress`, `store_rewards`, etc.) AND the BUDDY V0.5 tables (`buddy_relationships`, `buddy_daily_check`). Both web and the recent BUDDY V0.5 backend ship to this DB. The BUDDY V0.5 tables exist here because Lovable's DB is the production DB Adi has been writing migrations against.
+**Project URL** (buff-mobile MCP): `https://gfrongfnyigxsexuofrg.supabase.co`
+**Schema check:** has Lovable-style tables (`pwa_events`, `lesson_progress`, `store_rewards`, etc.) — these are snapshot-copied from Lovable, not live. Also has BUDDY V0.5 tables (`buddy_relationships`, `buddy_daily_check`) — these ARE live on mobile.
 
 ### Row counts
 

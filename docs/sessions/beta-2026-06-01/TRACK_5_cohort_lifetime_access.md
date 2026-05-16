@@ -1,6 +1,6 @@
 # Track 5 — Cohort Lifetime Access
 
-**Status:** `blocked-mcp-access` (2026-05-16: Cohort identified on live Lovable DB — 24 qualifying parents, 16 with recoverable emails. CC's MCP is wired to Lovable, not mobile. Next step requires write access to buff-mobile to seed `pending_lifetime_grants` table + extend `handle_new_user` trigger. See [TRACK_5_findings.md](./TRACK_5_findings.md).)
+**Status:** `blocked-lovable-csv` (2026-05-16: CC's MCP is buff-mobile, not Lovable. Snapshot-based cohort estimate: ~24 qualifying parents, ~16 with recoverable emails — but stale. Live cohort requires Adi to run [TRACK_5_lovable_cohort_discovery.md](./TRACK_5_lovable_cohort_discovery.md) inside Lovable's AI, download the CSV, then CC seeds buff-mobile's pending_lifetime_grants via MCP.)
 **Owner:** Adi (PM) + CC (executor)
 **Target:** before 2026-06-01 beta launch
 **Mode:** PLAN — no SQL runs until Adi says `approved, proceed`
