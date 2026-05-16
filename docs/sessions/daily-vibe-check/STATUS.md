@@ -4,8 +4,8 @@
 
 | Phase | State | Date | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| **0: Foundation** | _in_progress_ | 2026-05-16 | (this commit) | Phase 0 has no app-code tests; verification = SPEC + folder structure present | TBD if any |
-| **1: `useDailyVibe` data layer** | _pending_ | — | — | — | — |
+| **0: Foundation** | ✅ _passed_ | 2026-05-16 | `177d3d6` | Phase 0 has no app-code tests; verification = SPEC + folder structure present | none |
+| **1: `useDailyVibe` data layer** | ✅ _passed_ | 2026-05-16 | (this commit) | `npm test -- vibeUtils` → 15/15 green; `tsc --noEmit` → clean | none surprising |
 | **2: VibeCheck modal UI (Pastel + Gamer)** | _pending_ | — | — | — | — |
 | **3: Low Power Mode (filter + SOS + Instant Buff)** | _pending_ | — | — | — | — |
 | **4: Parent SOS notification surface** | _pending_ | — | — | — | — |
@@ -19,7 +19,18 @@
 - `_failed_` — tests failed, rework before continuing
 - `_blocked_` — waiting on external (Adi review, design, etc.)
 
-## Phase 0 deliverables (this commit)
+## Phase 1 deliverables (this commit)
+
+- ✅ `src/utils/vibeUtils.ts` — pure helpers (`getTodayKey`, `isLowPowerActive`, `computeLowPowerForLevel`) + types (`VibeLevel`, `VibeType`, `VibeSnapshot`)
+- ✅ `src/utils/__tests__/vibeUtils.test.ts` — 15 unit tests covering date key, level→low-power mapping, derivation including legacy-row fallback and boundary cases
+- ✅ `src/hooks/useDailyVibe.ts` — fetch + realtime + 3 actions (`recordVibe`, `sendSos`, `awardInstantBuff`), mirrors `useAppSettings.ts` shape
+- ✅ TypeScript clean across the repo
+- ✅ Pause-Mode pattern preserved — hook is composable, doesn't reach into `useAppSettings`; caller will combine `hasVibedToday` + `isPauseActive` for `shouldPrompt`
+- 🟡 Deliberately deferred to Phase 4: notification insert on SOS (the hook only flips `parent_sos_sent` for now)
+- ❌ No i18n keys yet (no UI in Phase 1 — those land in Phase 2)
+- ❌ No SPEC_SYNC updates required this phase
+
+## Phase 0 deliverables (commit `177d3d6`)
 
 - ✅ Branch `pkg/daily-vibe-check` off `origin/main`
 - ✅ TRACK_8 SPEC pulled into `docs/sessions/beta-2026-06-01/` from sibling branch (planning artifact preserved at original path)
