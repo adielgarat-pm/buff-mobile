@@ -50,9 +50,13 @@
   - Reproduced on family KWYEL5: existed profile `איתי` (Hebrew, no user_id, created 2026-04-17). Adi entered name "Itay" + code "KWYEL5" → new profile `Itay` (Latin) created 2026-05-14 16:34, linked to existing `itay@buff.app` auth user. Original `איתי` orphan still dangling.
   - Same family also has `עדי בדיקה` orphan profile (no user_id, created 2026-04-17) from earlier test flow.
 - **השפעה:** Data integrity — duplicate child profiles per family. Adi might also be confused about which is "real" Itay when she sees both in her family overview.
-- **סטטוס:** `open` — fix scope: in `ChildJoinScreen.handleJoin`, before `signUp`, query `profiles` for a matching `(family_id, display_name)` row with `user_id IS NULL`. If found, link it instead of creating a duplicate. Edge case: case-sensitivity of names + Hebrew/Latin pairs (e.g. "איתי" vs "Itay" — are these the same child?).
-- **Cleanup:** Two orphan profiles in KWYEL5 family can be deleted: `איתי` (no user_id) and `עדי בדיקה` (no user_id). Both created 2026-04-17, no real auth users behind them. 2-line SQL when Adi authorizes.
-- **קשור ל:** Not in scope for pkg/teen-ui-my-stats-lite.
+- **סטטוס (עודכן 2026-05-16):** `code-complete-pending-verify` — fix landed in `pkg/childjoin-claim-orphans` (branch `claude/lucid-sinoussi-235144`, awaiting Adi's emulator verification + PR merge).
+  - **Approach:** Atomic claim via two new `SECURITY DEFINER` RPCs — `preflight_claim_orphan` (anon-callable; pre-validates before auth.signUp to avoid orphan auth.users rows on block) and `claim_orphan_profile` (authenticated; UPDATE with `user_id IS NULL` race guard). Both live in production Supabase as migrations `20260516082239` + `20260516082341`. Repo SQL: `migrations/007_childjoin_claim_orphan_profile.sql`.
+  - **Matching:** `lower(normalize(trim(display_name), NFC))` on both sides + case-insensitive on `families.short_code`. Robust for Hebrew diacritics and Latin casing; intentionally does NOT cross scripts. Adi's Hebrew-vs-Latin edge case ("איתי" parent-orphan + child types "Itay") falls through to `cross_script_candidate_exists` reason → blocking error UX in Hebrew copy ("בקש מההורה לוודא את השם") — forces parent confirmation, prevents one sibling from claiming another's orphan.
+  - **Client wiring:** `AuthContext.signUp` calls preflight before `supabase.auth.signUp`; on `match_found` calls claim post-auth; on `no_orphan_match` falls back to today's INSERT; on `ambiguous_match`/`cross_script_candidate_exists` returns blocking error tagged `auth.orphanAmbiguous`; ChildJoinScreen surfaces it via new i18n key.
+  - **Verification done at code/RPC level (CC):** 8/8 SQL assertions passed (no-orphan / exact / trim / case-insensitive-Latin / ambiguous / cross-script / family-not-found / null-input / no-auth); typecheck zero errors; both i18n files parse. End-to-end Android emulator verification (5 cases per `docs/sessions/childjoin-claim-orphans/TESTS.md § Phase 2`) **pending Adi**.
+- **Cleanup:** Two orphan profiles in KWYEL5 family can be deleted: `איתי` (no user_id) and `עדי בדיקה` (no user_id). Both created 2026-04-17, no real auth users behind them. 2-line SQL when Adi authorizes. **Still pending** — not part of this package; documented for follow-up.
+- **קשור ל:** Originally surfaced during `pkg/teen-ui-my-stats-lite`; resolved in `pkg/childjoin-claim-orphans` (see [docs/sessions/childjoin-claim-orphans/](sessions/childjoin-claim-orphans/)).
 
 ---
 
@@ -118,8 +122,9 @@
   - Hard-coded גיל ב-validation
   - Strings ב-onboarding screens אם יש מפורש "13-15"
 - **השפעה:** מתבגר בן 16-18 שירשם עכשיו לא יקבל את Teen UI אוטומטית.
-- **סטטוס:** `open` — לפעולה ב-session "Age Range Update" עתידי
-- **קשור ל:** D-2026-05-02-25
+- **סטטוס (עודכן 2026-05-16):** `RESOLVED — CONFIRMED-NOT-APPLICABLE`.
+  Re-audit during `pkg/childjoin-claim-orphans` planning (Plan Mode investigation, beta 2026-06-01 prep) confirmed once more: zero `13-15` references in code. Onboarding buckets are `'6-8' | '9-11' | '12-14' | '15-18'` ([src/screens/onboarding/unified/onboardingData.ts:14](../src/screens/onboarding/unified/onboardingData.ts)). Mode detection is role-based (`profile.role === 'child'` → Children/Gamer UI) at [src/contexts/ModeContext.tsx](../src/contexts/ModeContext.tsx) and [src/navigation/RootNavigator.tsx:102](../src/navigation/RootNavigator.tsx) — no age-to-mode mapping exists anywhere. Earlier `CLOSED — STALE` status (2026-05-08) is now upgraded to fully resolved with explicit confirmation from a second exhaustive search. When age-based teen detection lands (separate future package), it should centralize in `src/constants/ageRanges.ts` with `TEEN_MIN_AGE=13` / `TEEN_MAX_AGE=17` per Adi 2026-05-08 decision (18+ are legal adults in some jurisdictions). **FLAG removal from CLAUDE.md proposed to Adi separately — CC does not edit CLAUDE.md unilaterally.**
+- **קשור ל:** D-2026-05-02-25; `pkg/childjoin-claim-orphans` (where the re-audit happened).
 
 ---
 

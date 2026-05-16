@@ -10,7 +10,7 @@
 | 0 — Adi עונה על Q1-Q4 | `_passed_` | 2026-05-16 | (Adi: "do them all") | N/A | — |
 | 1 — RPC `claim_orphan_profile` + `preflight_claim_orphan` | `_passed_` | 2026-05-16 | TBD (after this commit) | 8/8 preflight asserts passed | one PG quirk caught + fixed: `max(uuid)` not defined → split count/id queries |
 | 2 — Client integration (AuthContext + ChildJoinScreen + i18n) | `_pending-adi-verify_` | 2026-05-16 | TBD (after this commit) | typecheck ✅, JSON ✅, RPC SQL ✅; emulator test → Adi | Expo web couldn't boot — needs react-dom/react-native-web (separate improvement pkg) |
-| 3 — Closeout (docs + tag + PR) | `_pending_` | — | — | — | — |
+| 3 — Closeout (docs + tag + PR) | `_partial_` | 2026-05-16 | TBD (after this commit) | INTEGRATION_LEARNINGS ✅; PR open; tag/merge ⏳ Adi | — |
 
 **Scenario:** A (CC's recommended path) — Q1=drop / Q2=RPC / Q3=NFC+lower / Q4=blocking error.
 
@@ -46,7 +46,20 @@ Branch: `claude/lucid-sinoussi-235144` (pushed ל-origin).
 
 **Adi to verify on Android emulator** per [TESTS.md § Phase 2](./TESTS.md#פאזה-2--client-integration) — 5 manual cases (happy path A exact match, happy path B no orphan, cross-script blocking, ambiguous, invalid family code regression).
 
-**Next:** Phase 3 — INTEGRATION_LEARNINGS closures (IN-2026-05-14-03 RESOLVED, F-2026-05-03-03 CONFIRMED-NOT-APPLICABLE) + STATUS closeout + CLAUDE.md FLAG diff proposed for Adi.
+**Phase 3 partial:** INTEGRATION_LEARNINGS updated:
+- IN-2026-05-14-03 → `code-complete-pending-verify` (full RESOLVED once Adi runs the 5-case emulator test + merges PR).
+- F-2026-05-03-03 → `RESOLVED — CONFIRMED-NOT-APPLICABLE` (second exhaustive search confirms no `13-15` in code).
+
+**Awaiting Adi:**
+1. Android emulator verification per [TESTS.md § Phase 2](./TESTS.md#פאזה-2--client-integration).
+2. CLAUDE.md FLAG diff proposed in chat (CC does not edit CLAUDE.md unilaterally per repo rules).
+3. Merge PR + `git tag pkg/childjoin-claim-orphans/v1`.
+4. Verify-Before-Delete protocol before deleting `claude/lucid-sinoussi-235144`.
+
+**Not done by CC (out of scope):**
+- BUFF_GAP_ANALYSIS.md — ChildJoin not listed there; nothing to mark.
+- BUFF_DECISIONS_LOG.md — Adi-owned. The decisions on Q1-Q4 are captured in SPEC.md; Adi can promote any to DECISIONS_LOG if she wishes.
+- Cleanup of legacy orphan rows in family KWYEL5 (`איתי`, `עדי בדיקה`) — flagged in IN-2026-05-14-03 as separate follow-up.
 
 ## Closeout
 
