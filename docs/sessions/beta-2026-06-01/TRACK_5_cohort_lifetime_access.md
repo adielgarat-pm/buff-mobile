@@ -1,6 +1,6 @@
 # Track 5 — Cohort Lifetime Access
 
-**Status:** `draft — blocked` (Lovable SQL received 2026-05-16; awaiting Adi decision on filter strategy + the CSV itself — see [TRACK_5_lovable_response.md](./TRACK_5_lovable_response.md))
+**Status:** `blocked-redesign` (2026-05-16: CC discovery on mobile DB invalidated the original framing — see [TRACK_5_findings.md](./TRACK_5_findings.md). Lovable users have no `auth.users` rows on mobile yet, so there is nothing to UPDATE. Recommended path: spin up `pkg/pending-lifetime-grants` instead.)
 **Owner:** Adi (PM) + CC (executor)
 **Target:** before 2026-06-01 beta launch
 **Mode:** PLAN — no SQL runs until Adi says `approved, proceed`
