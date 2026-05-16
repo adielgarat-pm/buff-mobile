@@ -16,9 +16,12 @@ import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { useDailyVibe } from '../../hooks/useDailyVibe';
+import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { PetDisplay } from '../../components/PetDisplay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
+import VibeCheckScreen from './VibeCheckScreen';
 import GamerDashboardScreen from './GamerDashboardScreen';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -50,6 +53,20 @@ function PastelChildDashboard() {
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
 
+  // Daily Vibe Check — once per day, gated by Pause (Pause wins per SPEC
+  // Scenario C). Skipped entirely during parent preview to avoid corrupting
+  // the kid's data with parent taps.
+  const { hasVibedToday, recordVibe, loading: vibeLoading } = useDailyVibe(childId);
+  const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
+  const shouldPromptVibe =
+    !vibeLoading &&
+    !dismissLoading &&
+    !!childId &&
+    !isPauseActive &&
+    !hasVibedToday &&
+    !vibeDismissedToday &&
+    !isChildPreview;
+
   const [justCompletedTask, setJustCompletedTask] = useState(false);
 
   const doneTasks  = tasks.filter(t => t.completed).length;
@@ -69,8 +86,14 @@ function PastelChildDashboard() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: T.background }}
-      contentContainerStyle={styles.content}>
+    <>
+      <VibeCheckScreen
+        visible={shouldPromptVibe}
+        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onDismiss={() => { void markVibeDismissed(); }}
+      />
+      <ScrollView style={{ flex: 1, backgroundColor: T.background }}
+        contentContainerStyle={styles.content}>
 
       {/* Parent preview banner */}
       {isChildPreview && (
@@ -132,7 +155,8 @@ function PastelChildDashboard() {
           <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 

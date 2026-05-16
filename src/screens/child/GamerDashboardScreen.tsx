@@ -30,8 +30,11 @@ import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { useDailyVibe } from '../../hooks/useDailyVibe';
+import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
+import VibeCheckScreen from './VibeCheckScreen';
 
 // ─── BUFF brand palette (Gamer mode) — per BUFF_BRAND.md §7.5 ────────────────
 const COLORS = {
@@ -96,6 +99,19 @@ export default function GamerDashboardScreen() {
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
 
+  // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
+  // Pause and skipped during parent preview. See SPEC § Scenario C.
+  const { hasVibedToday, recordVibe, loading: vibeLoading } = useDailyVibe(childId);
+  const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
+  const shouldPromptVibe =
+    !vibeLoading &&
+    !dismissLoading &&
+    !!childId &&
+    !isPauseActive &&
+    !hasVibedToday &&
+    !vibeDismissedToday &&
+    !isChildPreview;
+
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
@@ -130,7 +146,13 @@ export default function GamerDashboardScreen() {
 
   // ── Main render ────────────────────────────────────────────────────────
   return (
-    <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
+    <>
+      <VibeCheckScreen
+        visible={shouldPromptVibe}
+        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onDismiss={() => { void markVibeDismissed(); }}
+      />
+      <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
       {/* Parent preview banner */}
       {isChildPreview && (
         <View style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}>
@@ -280,7 +302,8 @@ export default function GamerDashboardScreen() {
       )}
 
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 

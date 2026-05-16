@@ -7,7 +7,7 @@
 | **0: Foundation** | ✅ _passed_ | 2026-05-16 | `177d3d6` | Phase 0 has no app-code tests; verification = SPEC + folder structure present | none |
 | **1: `useDailyVibe` data layer** | ✅ _passed_ | 2026-05-16 | `1a887da` | `npm test -- vibeUtils` → 15/15 green; `tsc --noEmit` → clean | none surprising |
 | **2a: VibeCheck UI components + i18n** | ✅ _passed_ | 2026-05-16 | `863c5e0` + (this commit) | `tsc --noEmit` clean; `i18n:check` clean. Visual verified via Claude_Preview DOM inspection in both themes — image screenshot tool kept timing out so DOM dimensions + computed colors used instead. Adi sign-off below. | Adi approved B (install web deps); harness theme-context bug found + fixed |
-| **2b: Wire modal into both dashboards + visual review** | _pending_ | — | — | — | — |
+| **2b: Wire modal into both dashboards** | ✅ _passed_ | 2026-05-16 | (this commit) | `tsc --noEmit` clean; jest 26/26 (vibeUtils 15 + pauseUtils 11) green | Pending Adi: flip GAP_ANALYSIS S-07 ❌ → 🟡 partial |
 | **3: Low Power Mode (filter + SOS + Instant Buff)** | _pending_ | — | — | — | — |
 | **4: Parent SOS notification surface** | _pending_ | — | — | — | — |
 | **5: i18n sweep + regression + spec sync** | _pending_ | — | — | — | — |
@@ -20,7 +20,25 @@
 - `_failed_` — tests failed, rework before continuing
 - `_blocked_` — waiting on external (Adi review, design, etc.)
 
-## Phase 2a deliverables (this commit)
+## Phase 2b deliverables (this commit)
+
+- ✅ `src/hooks/useVibeDismiss.ts` — local-device dismiss flag, AsyncStorage keyed `vibeCheck.dismissed.{childId}.{YYYY-MM-DD}`. Storage failure handling: optimistic update, no rollback (worst case: re-prompt next day, identical to never-dismissed).
+- ✅ `src/screens/child/ChildDashboardScreen.tsx` (Pastel branch) — added `useDailyVibe` + `useVibeDismiss` + `shouldPromptVibe` gate + `<VibeCheckScreen>` mounted at top of return.
+- ✅ `src/screens/child/GamerDashboardScreen.tsx` — same wiring on the Gamer branch's main render path (Pause branch already short-circuits and Vibe is correctly gated `!isPauseActive` so it can't fire there).
+- ✅ `shouldPromptVibe` gate composition: `!vibeLoading && !dismissLoading && !!childId && !isPauseActive && !hasVibedToday && !vibeDismissedToday && !isChildPreview`. Parent-preview exclusion prevents corrupting kid data with parent taps.
+- ✅ Modal mounted at the top of JSX (above ScrollView) so it overlays everything during render — full-screen takeover per SPEC Scenario A.
+- ✅ Realtime: `recordVibe` triggers a Supabase INSERT; `useDailyVibe`'s realtime subscription updates `hasVibedToday` → `shouldPromptVibe` flips false → modal closes naturally without needing a separate dismiss path.
+- ✅ tsc clean; jest 26/26.
+- 🟡 **Pending Adi:** flip `BUFF_GAP_ANALYSIS.md` S-07 from `❌ NOT EXISTS` → `🟡 PARTIAL` (per `SPEC_SYNC.md` Phase 2 row). CC does not touch GAP_ANALYSIS unilaterally per CLAUDE.md.
+- 🟡 **Verification needed by Adi on Android emulator** (auth-gated; can't run via Expo web preview):
+  1. New child user, today not yet vibed → modal appears in correct theme on dashboard load
+  2. Tap any emoji/bar → 180ms later modal dismisses + row inserts in `child_vibes`
+  3. Reload as same child → no modal
+  4. Dismiss without selecting → modal closes, AsyncStorage flag set, no DB row, no re-prompt on reload
+  5. Toggle Pause Mode as parent → switch to child → no Vibe modal, only PauseEmptyState
+  6. Switch theme Pastel ↔ Gamer in settings → next prompt renders in the new theme
+
+## Phase 2a deliverables (commits `863c5e0` + `91632b3`)
 
 - ✅ `src/components/VibeFaces.tsx` — Pastel 5-emoji row, palette via props (testable / theme-portable)
 - ✅ `src/components/VibeBars.tsx` — Gamer 5-lime-bar row with energy-ramp heights, palette via props
