@@ -1,6 +1,6 @@
 # Track 5 — Cohort Lifetime Access
 
-**Status:** `draft — blocked` (waiting on cohort CSV + answers to 5 open questions)
+**Status:** `draft — blocked` (waiting on cohort CSV + Q5 only — Q1–Q4 answered 2026-05-16)
 **Owner:** Adi (PM) + CC (executor)
 **Target:** before 2026-06-01 beta launch
 **Mode:** PLAN — no SQL runs until Adi says `approved, proceed`
@@ -28,15 +28,15 @@ Set `profiles.is_lifetime_access = true` for a cohort of beta accounts so they b
 ### 1. The CSV
 Drop the cohort emails as a fenced block in chat, or commit them as `TRACK_5_cohort.csv` next to this file (Adi-only; CC will not commit emails without explicit go-ahead — PII).
 
-### 2. Five open questions
+### 2. Open questions — Adi's answers (2026-05-16)
 
-| # | Question | Why it matters |
-|---|---|---|
-| Q1 | Confirm the Supabase MCP is scoped to the **mobile** project (not Lovable). | If wrong project, we'd flag the wrong DB. |
-| Q2 | Trust the CSV blindly, or cross-check PRD §5.2 qualification criteria (family+child setup + ≥1 task) and report rejects? | Determines whether CC adds a `WHERE` clause filtering by qualification. |
-| Q3 | Parent profiles only, or include children? | Children inherit family-level access; cohort emails are typically parents anyway. |
-| Q4 | Touch `is_lifetime_founding` + `founding_member_number`, or strictly only `is_lifetime_access`? | Default: only `is_lifetime_access`. Confirm. |
-| Q5 | Promote to its own session folder (`docs/sessions/pkg/cohort-lifetime-2026-06-01/`) or execute from this draft? | WORKFLOW.md says schema changes always need a package; data mutations are gray area. |
+| # | Question | Answer | Resulting plan decision |
+|---|---|---|---|
+| Q1 | Confirm Supabase MCP is scoped to the **mobile** project (not Lovable). | ✅ **buff-mobile** | Will execute against the MCP-scoped project; will run a sanity SELECT in Phase 0 confirming we're on the mobile DB before any writes. |
+| Q2 | Trust CSV blindly, or cross-check PRD §5.2 criteria? | ✅ **Trust** | No qualification `WHERE` clause. UPDATE applies to every resolved profile in the cohort, regardless of family/task state. |
+| Q3 | Parents only, or include children? | ✅ **Both** | Algorithm: cohort email → `auth.users.id` → parent profile → `family_id` → flag ALL profiles in that family (parent + children). Children typically lack their own email, so the email-only match would miss them. **Surface to Adi if this family-fanout interpretation is wrong.** |
+| Q4 | Touch `is_lifetime_founding` + `founding_member_number`? | ✅ **No, only `is_lifetime_access`** | Hard-coded: UPDATE statement touches that one column only. |
+| Q5 | Promote to its own session folder, or execute from this draft? | ⏳ **Pending** | Default if not answered by execution time: execute from this draft (it's a one-shot reversible data mutation, no schema change, no code change). Promote only if scope grows. |
 
 ---
 
@@ -51,28 +51,33 @@ All SQL queued, none executed. CC will show each query before running.
 
 ### Phase 1 — Gap report (read-only)
 
-Three buckets, written to a markdown report in this folder as `TRACK_5_gap_report.md`:
+Per Q3, the unit of flagging is the **family**, not the individual email. Buckets work at family resolution:
 
 | Bucket | Definition | Action |
 |---|---|---|
-| **A — Ready** | Email → `auth.users` → `profiles` exists, `is_lifetime_access = false` or NULL | Flag in Phase 2 |
-| **B — Already flagged** | `is_lifetime_access = true` already | No-op |
+| **A — Ready** | Email → `auth.users` → parent `profiles` row → `family_id` → ≥1 profile in family with `is_lifetime_access ≠ true` | Flag all family profiles in Phase 2 |
+| **B — Already flagged** | All profiles in the family already have `is_lifetime_access = true` | No-op |
 | **C — No account** | Email not in `auth.users` | **Gap surfaced** — needs Phase 3 policy |
-| *(D)* | Account exists, no profile row | Data-integrity question — surface to Adi |
+| **D — Orphan profile** | `auth.users` exists, no `profiles` row | Data-integrity question — surface to Adi (related to open FLAG IN-2026-05-14-03 ChildJoin duplicates) |
+| **E — Parent profile but no `family_id`** | Profile exists but is unattached to a family | Flag parent only; surface to Adi as data-quality flag |
 
-### Phase 2 — Update (Bucket A only)
+Report saved to this folder as `TRACK_5_gap_report.md`, with one row per cohort email + the resolved family roster (parent name + child count) so Adi can sanity-check before Phase 2 commits.
+
+### Phase 2 — Update (Bucket A only, family-fanout)
 
 ```sql
 BEGIN;
 UPDATE profiles
 SET is_lifetime_access = true
-WHERE user_id IN (<resolved list from Phase 1>)
+WHERE family_id IN (<resolved family_id list from Phase 1>)
   AND is_lifetime_access IS DISTINCT FROM true;
--- Verify row count matches Bucket A size
+-- Verify row count matches the parent + child total reported in the gap report
 COMMIT;
 ```
 
-Idempotent. Re-running is safe. CC shows exact SQL with resolved `user_id` list before COMMIT.
+Bucket E (parent without family) falls back to `WHERE id IN (<parent profile ids>)` — handled as a separate small UPDATE.
+
+Idempotent. Re-running is safe. CC shows exact SQL with the resolved `family_id` list (+ family roster preview) before COMMIT.
 
 ### Phase 3 — Bucket C policy (the gap Adi pre-flagged)
 
@@ -115,11 +120,11 @@ Three options — Adi picks:
 
 ## When this Track unblocks
 
-The moment Adi provides:
-1. The cohort CSV (chat or local file), AND
-2. Answers to Q1–Q5
+Q1–Q4 answered ✅ (2026-05-16). Remaining:
+1. **Cohort CSV** (chat or local file — CC will not commit emails to repo).
+2. **Q5** — promote to own session folder, or execute from this draft? (CC default if unanswered: execute from this draft.)
 
-CC will:
+When CSV lands, CC will:
 - Update Status to `ready`
 - Push an updated draft with Phase 0 SQL queued for review
 - Wait for `approved, proceed` before running anything
