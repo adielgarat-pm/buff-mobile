@@ -15,13 +15,20 @@
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import VibeCheckScreen from '../child/VibeCheckScreen';
-
-type Theme = 'mint' | 'gamer';
+import { useTheme, type ChildThemeName } from '../../contexts/ThemeContext';
 
 export default function __VibeCheckPreviewHarness() {
-  const [theme, setTheme]     = useState<Theme>('mint');
+  const { themeName, setTheme: setCtxTheme } = useTheme();
   const [visible, setVisible] = useState(true);
   const [lastEvent, setLastEvent] = useState<string>('—');
+
+  // Drive both the modal branch (themeOverride) AND the underlying
+  // ThemeContext tokens via setTheme. Otherwise the Pastel branch would
+  // render with whatever the global theme has — misleading preview.
+  const switchTheme = (name: ChildThemeName) => {
+    setCtxTheme(name);
+    setVisible(true);
+  };
 
   return (
     <View style={styles.root}>
@@ -31,12 +38,12 @@ export default function __VibeCheckPreviewHarness() {
 
         <View style={styles.row}>
           <TouchableOpacity
-            style={[styles.btn, theme === 'mint'  && styles.btnActive]}
-            onPress={() => setTheme('mint')}
+            style={[styles.btn, themeName === 'mint'  && styles.btnActive]}
+            onPress={() => switchTheme('mint')}
           ><Text style={styles.btnText}>Pastel</Text></TouchableOpacity>
           <TouchableOpacity
-            style={[styles.btn, theme === 'gamer' && styles.btnActive]}
-            onPress={() => setTheme('gamer')}
+            style={[styles.btn, themeName === 'gamer' && styles.btnActive]}
+            onPress={() => switchTheme('gamer')}
           ><Text style={styles.btnText}>Gamer</Text></TouchableOpacity>
         </View>
 
@@ -50,7 +57,7 @@ export default function __VibeCheckPreviewHarness() {
 
       <VibeCheckScreen
         visible={visible}
-        themeOverride={theme}
+        themeOverride={themeName}
         onSelect={(level, type) => {
           setLastEvent(`selected level=${level} type=${type}`);
           setVisible(false);

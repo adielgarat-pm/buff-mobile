@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | **0: Foundation** | ✅ _passed_ | 2026-05-16 | `177d3d6` | Phase 0 has no app-code tests; verification = SPEC + folder structure present | none |
 | **1: `useDailyVibe` data layer** | ✅ _passed_ | 2026-05-16 | `1a887da` | `npm test -- vibeUtils` → 15/15 green; `tsc --noEmit` → clean | none surprising |
-| **2a: VibeCheck UI components + i18n** | 🟡 _partial_ | 2026-05-16 | (this commit) | `tsc --noEmit` → clean; `i18n:check` → all keys resolve in both langs. Visual screenshot BLOCKED: web deps missing from node_modules (react-dom, react-native-web in package.json but not installed). | Surfaced web-deps gap to Adi |
+| **2a: VibeCheck UI components + i18n** | ✅ _passed_ | 2026-05-16 | `863c5e0` + (this commit) | `tsc --noEmit` clean; `i18n:check` clean. Visual verified via Claude_Preview DOM inspection in both themes — image screenshot tool kept timing out so DOM dimensions + computed colors used instead. Adi sign-off below. | Adi approved B (install web deps); harness theme-context bug found + fixed |
 | **2b: Wire modal into both dashboards + visual review** | _pending_ | — | — | — | — |
 | **3: Low Power Mode (filter + SOS + Instant Buff)** | _pending_ | — | — | — | — |
 | **4: Parent SOS notification surface** | _pending_ | — | — | — | — |
@@ -28,7 +28,11 @@
 - ✅ `src/screens/_dev/__VibeCheckPreviewHarness.tsx` — dev-only side-by-side preview with Pastel/Gamer toggle, "re-open" button, last-event display. Renders when temporarily swapped into App.tsx (see file header).
 - ✅ 8 i18n keys × 2 langs added (`vibeCheck.title`, `subtitle`, `dismiss`, `a11y.level1-5`). `npm run i18n:check` clean.
 - ✅ `tsc --noEmit` clean across the repo.
-- 🟡 **Visual screenshot blocked:** `react-dom` + `react-native-web` are in `package.json` but missing from `node_modules`. `npm run web` fails with "It looks like you're trying to use web support but don't have the required dependencies installed." Surfaced to Adi; visual review folded into Phase 2b once wired (or after deps installed).
+- ✅ **Visual verification done via Claude_Preview DOM inspection** (image screenshot tool timed out repeatedly — known issue with Expo HMR + preview tool):
+  - Pastel: safeArea #DCFCE7 mint bg, white card with mint border #BBF7D0, dark title #2D3142, 5 emoji buttons in a row at y=401, each 49×49, gap 8px, bg #D1FAE5 (mint muted)
+  - Gamer: canvas #1A1636 violet bg, surface card #3D3556, white title, 5 lime-ready bars at y positions ramping 433→377 with heights ramping 28→84 (per spec: 28+14×(level-1))
+  - Both themes show the correct Hebrew copy from `vibeCheck.*` i18n keys
+- 🐛 **Harness bug fixed in same commit:** `__VibeCheckPreviewHarness` was passing `themeOverride` but not switching the global `ThemeContext`, so the Pastel branch would render with Gamer tokens. Now calls `useTheme().setTheme(name)` to sync both.
 
 ## Phase 1 deliverables (commit `1a887da`)
 
