@@ -1,29 +1,32 @@
 # Track 5 — Discovery Findings (2026-05-16)
 
-> Read this BEFORE acting on Track 5. The cohort problem is much bigger than "run an UPDATE."
+> Read this BEFORE acting on Track 5. There are TWO Supabase projects in play. CC's MCP is wired to one of them. Plan the work accordingly.
 
 ---
 
-## Terminology note (2026-05-16, Adi-corrected)
+## CRITICAL CORRECTION — 2026-05-16 (late)
 
-CC originally called the 187 problematic parent profiles "orphans." That word is already in use in this codebase — [CLAUDE.md](../../../CLAUDE.md) FLAG **IN-2026-05-14-03** uses "orphan profile" to mean *a child profile that exists before being claimed via ChildJoin*. Different concept entirely.
+Earlier sections of this doc said CC's MCP was scoped to **buff-mobile** (based on Q1 answer). On re-verification with Adi, **CC's MCP is actually scoped to Lovable** (project `gfrongfnyigxsexuofrg`). Everything CC measured below is **live Lovable data**, not a stale mobile snapshot.
 
-This doc uses **"dangling parent profile"** for the 187: a parent profile row whose `user_id` foreign-key value does not match any row in `auth.users`. The pointer dangles. They're not orphans in the CLAUDE.md sense.
+**Implications of the correction:**
+- The "187 dangling profile" framing was wrong. Those are real Lovable parents whose auth flow created a profile row but no `auth.users` row (Lovable uses a non-standard-Supabase auth path for most users). They are not orphans, not stale, not dangling — they are the real Lovable user base.
+- The "auth migration" question is unchanged: Lovable users still need to sign up fresh on mobile via Google OAuth (REQ-1 in the cascading-requirements section below). But it's not because their data didn't copy — it's because mobile uses standard Supabase Google OAuth and Lovable uses something else.
+- The 24 qualifying cohort and 16 recoverable emails are **live, accurate, current** numbers — not stale snapshots.
 
----
-
-## TL;DR
-
-**buff-mobile and Lovable are NOT the same Supabase project.** They have different `auth.users` tables. The mobile DB has the *profile* data copied over (or seeded), but the `auth.users` were never migrated. Result: 187 of 188 parent profile rows on mobile are **dangling** — they reference `user_id`s that don't exist in mobile's `auth.users`.
-
-Lovable's cohort cannot be flagged on mobile until those users sign up to the mobile app (creating their `auth.users` row).
+The "TL;DR" and "Raw evidence" sections below preserve the original wording for traceability; read them as describing Lovable, not mobile.
 
 ---
 
-## Raw evidence (read-only queries against mobile DB)
+## TL;DR (original wording, re-interpreted as Lovable)
 
-**Project URL** (mobile MCP): `https://gfrongfnyigxsexuofrg.supabase.co`
-**Schema check:** has all the Lovable tables (`pwa_events`, `lesson_progress`, `store_rewards`, etc.) AND the BUDDY V0.5 tables (`buddy_relationships`, `buddy_daily_check`). Initially read as "single shared project," but the `auth.users` count proves otherwise.
+The mobile DB and Lovable DB are separate Supabase projects with different `auth.users` tables. Lovable's parent profiles mostly do not have matching `auth.users` rows in Lovable's own DB (because Lovable's auth is non-standard). Lovable's cohort cannot be flagged on **mobile** until those users sign up to the mobile app via Google OAuth, which creates a fresh mobile `auth.users` row.
+
+---
+
+## Raw evidence (read-only queries against Lovable DB)
+
+**Project URL** (Lovable MCP): `https://gfrongfnyigxsexuofrg.supabase.co`
+**Schema check:** has the Lovable tables (`pwa_events`, `lesson_progress`, `store_rewards`, etc.) AND the BUDDY V0.5 tables (`buddy_relationships`, `buddy_daily_check`). Both web and the recent BUDDY V0.5 backend ship to this DB. The BUDDY V0.5 tables exist here because Lovable's DB is the production DB Adi has been writing migrations against.
 
 ### Row counts
 
