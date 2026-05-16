@@ -25,7 +25,7 @@
 | 2 | TBD | — | not yet defined | awaiting Adi |
 | 3 | TBD | — | not yet defined | awaiting Adi |
 | 4 | TBD | — | not yet defined | awaiting Adi |
-| 5 | Cohort Lifetime Access | [plan](./TRACK_5_cohort_lifetime_access.md) · [findings ⚠](./TRACK_5_findings.md) · **[cohort prompt for Lovable](./TRACK_5_lovable_cohort_discovery.md)** | blocked-lovable-csv | CC's MCP is buff-mobile (data here is stale Lovable snapshot). Adi runs the Lovable-AI cohort prompt → downloads CSV → CC seeds pending_lifetime_grants on mobile. |
+| 5 | Cohort Lifetime Access | [plan](./TRACK_5_cohort_lifetime_access.md) · [findings ⚠](./TRACK_5_findings.md) · **[pickup 2026-05-17 ▶](./TRACK_5_pickup_2026-05-17.md)** | blocked-lovable-csv | Adi out of Lovable tokens today. Tomorrow: paste pickup-brief prompt into Lovable → temp admin route → download CSV → CC seeds pending_lifetime_grants via mobile MCP. |
 
 > Tracks 1–4 are placeholders. CC will not invent them. Adi defines scope per Track; CC drafts the plan per Track.
 
