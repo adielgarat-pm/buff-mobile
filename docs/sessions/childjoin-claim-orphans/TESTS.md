@@ -8,6 +8,66 @@
 - **RPC tests (פאזה 1):** CC מריץ SQL ידנית דרך Supabase MCP `execute_sql`.
 - **Client tests (פאזה 2):** CC עושה smoke test ב-Expo web ([npm run web](../../../package.json)). Adi עושה verification ידני באמולטור Android עם 2 חשבונות (parent + child) — auth flows קשים לאוטומציה.
 - **Doc tests (פאזה 3):** ידני — בדיקה ש-IN-2026-05-14-03 ו-F-2026-05-03-03 שניהם מסומנים `RESOLVED` ב-INTEGRATION_LEARNINGS.
+- **Sentry log health check (פאזה 2 exit + פאזה 3 post-deploy):** ראי § למטה — pre/post-deploy delta נגד Sentry project `buffadhd/react-native`.
+
+---
+
+## Sentry log health check (pre + post deploy)
+
+> **Convention (Adi 2026-05-16):** כל חבילה שעולה לproduction עוברת Sentry log check פעמיים — pre-deploy (baseline) ו-post-deploy (regression). זה תופס error fingerprints חדשים שהחבילה הציגה לפני שמשתמשים אמיתיים נתקלים בהם.
+
+**Prerequisite:** `pkg/sentry-crash-monitoring` חייב להיות merged ל-main. החבילה הזו מחווטה ל-`SENTRY_DSN` ב-`eas.json` production+preview, עם `@sentry/react-native@7.2.0` ו-PII scrubbing פעיל. סטטוס נוכחי: phases 0-3 passed; phase 4 (v9 build) paused. **עד שזה merge — ה-Sentry check הוא דרישה מוסכמת אבל לא ניתנת לאוטומציה כי DSN לא חי ב-dev profile.**
+
+Project כתובת: `buffadhd/react-native`. Auth token: `SENTRY_AUTH_TOKEN` (EAS project secret id `da05ed42`).
+
+### Pre-deploy baseline — נכלל ב-Phase 2 exit
+
+**מתי:** לפני פתיחת PR (או לפני push של merge commit אם עוקפים PR).
+**מה:** Query ל-Sentry API לפי `statsPeriod=24h` והקלטת count + top 3 fingerprints כ-reference frame.
+
+```bash
+# Baseline — paste SENTRY_AUTH_TOKEN from EAS env (Adi-only)
+SENTRY_AUTH_TOKEN=<paste> bash -c '
+  curl -s -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+    "https://sentry.io/api/0/projects/buffadhd/react-native/issues/?statsPeriod=24h&query=is:unresolved" \
+    | jq "{count: length, top: [.[0:5][] | {title, count, lastSeen}]}"
+'
+```
+
+הקלט את ה-output ב-commit message תחת `Sentry baseline:` — אם count = 0, ציין מפורש "no open issues". זה ה-reference frame ל-post-deploy delta.
+
+### Post-deploy regression — נכלל ב-Phase 3 closeout
+
+**מתי:** מינימום 15 דק' אחרי merge (low-traffic app; כיוונון up אם traffic עולה).
+**מה:** Query לעיתיים שנפתחו אחרי deploy time, filtered to current release tag.
+
+```bash
+# Post-deploy delta — DEPLOY_TIME = ISO-8601 UTC timestamp of merge commit
+SENTRY_AUTH_TOKEN=<paste> DEPLOY_TIME='2026-05-16T12:00:00' bash -c '
+  curl -s -H "Authorization: Bearer $SENTRY_AUTH_TOKEN" \
+    "https://sentry.io/api/0/projects/buffadhd/react-native/issues/?query=is:unresolved+firstSeen:>$DEPLOY_TIME" \
+    | jq "{new_issues_count: length, issues: [.[] | {title, firstSeen, culprit, count}]}"
+'
+```
+
+**Pass criteria:**
+- ✅ `new_issues_count = 0` → mark Sentry-pass; proceed with tag + closeout.
+- ❌ `new_issues_count > 0` → investigate each issue. אם אחד מהם נראה related (e.g. mentions `claim_orphan_profile`, `preflight_claim_orphan`, `ChildJoin`, `signUp`) → הכרת regression; revert או hotfix לפני tag.
+
+### Token sourcing notes
+
+- **Local one-off:** Adi מ-EAS לוקחת token via `eas env:exec production -- node -e "console.log(process.env.SENTRY_AUTH_TOKEN)"`. דורש EAS auth מקומי, לכן Adi-only.
+- **CI/CD:** עדיף — GitHub Actions secret `SENTRY_AUTH_TOKEN` + workflow שמריץ את שני ה-checks אוטומטית ב-PR open ו-15 דק' אחרי merge ל-main. **לא הוקם עדיין** — out of scope לחבילה זו; הצעה ל-`pkg/sentry-ci-health-checks` עתידי.
+
+### לחבילה הזו ספציפית (childjoin-claim-orphans)
+
+החבילה לא משנה את ה-runtime crash surface — היא מוסיפה RPCs ומשנה את ה-client signup flow. סוגי errors שעלולים להופיע (לעקוב אחריהם):
+- `Network request failed` ב-`preflight_claim_orphan` או `claim_orphan_profile` calls (RPC timeout/network)
+- `TypeError` ב-`AuthContext.signUp` אם ה-RPC response shape משתנה
+- `JSON parse` errors מ-i18n אם יש regression ב-he.json/en.json
+- Crashes ב-ChildJoinScreen אחרי הכנסת `auth.orphanAmbiguous` ל-handleJoin
+
+**עד ש-`pkg/sentry-crash-monitoring` merge:** Sentry check לא רץ; פאזה 3 ניתנת להשלמה עם הערה "Sentry baseline skipped — pkg/sentry-crash-monitoring not yet merged. Will retroactively run post-deploy delta when Sentry is live."
 
 ---
 
@@ -160,6 +220,7 @@ CC ירוץ `npm run web` ויאמת באמצעות Claude_Preview MCP:
 ### בדיקות מתודולוגיות (תמיד)
 - [ ] STATUS.md row נוסף עם phase=2, state=passed
 - [ ] Values Check passed (verified above)
+- [ ] **Sentry pre-deploy baseline נרשם** ב-commit message תחת `Sentry baseline:` (ראי § Sentry log health check). אם `pkg/sentry-crash-monitoring` עדיין לא merged → ציין "skipped (Sentry not yet live)".
 
 ---
 
@@ -168,7 +229,7 @@ CC ירוץ `npm run web` ויאמת באמצעות Claude_Preview MCP:
 ### בדיקות אוטומטיות
 - [ ] grep ב-docs/INTEGRATION_LEARNINGS.md: `IN-2026-05-14-03` בסטטוס `RESOLVED`
 - [ ] grep ב-docs/INTEGRATION_LEARNINGS.md: `F-2026-05-03-03` בסטטוס `RESOLVED — CONFIRMED-NOT-APPLICABLE`
-- [ ] git tag exists: `pkg/beta-2026-06-01/v1`
+- [ ] git tag exists: `pkg/childjoin-claim-orphans/v1`
 
 ### בדיקות ידניות (Adi)
 - [ ] Adi קוראת את ה-2 closure entries לפני merge
@@ -179,6 +240,7 @@ CC ירוץ `npm run web` ויאמת באמצעות Claude_Preview MCP:
 - [ ] STATUS.md closeout checklist הושלם
 - [ ] Verify-Before-Delete protocol עבר לפני מחיקת branch (per CLAUDE.md § Verify-Before-Delete)
 - [ ] Adi מאמתת ידנית במצב production: ChildJoin עובד end-to-end עם orphan קיים
+- [ ] **Sentry post-deploy regression check עבר** — מינימום 15 דק' אחרי merge, query לפי `firstSeen:>DEPLOY_TIME` החזיר `new_issues_count = 0` או רק issues שלא קשורים ל-`pkg/childjoin-claim-orphans` (no mentions of preflight_claim_orphan / claim_orphan_profile / ChildJoin / signUp). אם `pkg/sentry-crash-monitoring` עדיין לא merged → ציין "skipped — retroactive run scheduled when Sentry goes live".
 
 ---
 
