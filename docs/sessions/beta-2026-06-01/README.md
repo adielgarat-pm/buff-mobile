@@ -38,6 +38,14 @@
 - **Status line** at top of each Track doc is the at-a-glance: `draft | blocked | ready | in-progress | done`.
 - When a Track lands in `done` and merges to `main`, this README's table is updated in the same commit.
 
+## Cross-Track requirements captured so far
+
+When discovery in one Track surfaces a constraint that another Track needs, it's logged in the originating Track's doc under a "Cascading requirements" section and indexed here:
+
+| ID | Originating Track | Constraint | Target Track |
+|---|---|---|---|
+| REQ-1 | TRACK 5 ([findings](./TRACK_5_findings.md#cascading-requirements-for-other-tracks)) | Migration email must explain "sign up fresh on mobile with the same Google account" — no automatic auth migration | TBD (migration comms) |
+
 ---
 
 ## Why a single umbrella session, not 5 separate sessions
