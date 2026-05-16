@@ -10,7 +10,7 @@
 | 0 — Session folder + SPEC | _passed_ | 2026-05-16 | `4aa9f75` | N/A (docs only) | — |
 | 1 — expo-doctor 4 → 0 failures | _passed_ | 2026-05-16 | (this commit) | 17/17 ✓ | F-2026-05-05-01 resolved |
 | 2 — EAS-managed Android credentials | _passed_ | 2026-05-16 | (auto, no commit) | Keystore `dG1dqozJHO (default)` already registered from prior session; no action needed | — |
-| 3 — First production AAB build | _in_progress_ | 2026-05-16 | — | Build `2d91bc38-baac-4828-975b-da8b2fe6d1ae` running. versionCode auto-incremented 7→8 (8 prior `development`-profile APKs exist; this is first `production` AAB). Logs: https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/2d91bc38-baac-4828-975b-da8b2fe6d1ae | — |
+| 3 — First production AAB build | _passed_ | 2026-05-16 | (this commit) | Build `2d91bc38` finished in 8.5 min. AAB: https://expo.dev/artifacts/eas/6CnwxoiyZDq2giZzeYTXmj.aab. versionCode 8 (remote-managed). | D-2026-05-16-01 |
 | 4 — Play Console Internal Testing upload | _pending_ | — | — | — | — |
 
 ## Legend

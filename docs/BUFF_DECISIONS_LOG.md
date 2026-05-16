@@ -6,6 +6,39 @@
 
 ---
 
+## 16 במאי 2026 — DevEx & First Production AAB
+
+### D-2026-05-16-01: First production Android AAB built via EAS-managed credentials
+
+**ההחלטה:** The first signed Android App Bundle (AAB) was built for BUFF via EAS Build, using the pre-existing EAS-managed keystore. The AAB is staged for upload to Google Play Console Internal Testing track for `com.buffapp.mobile`.
+
+**הסיבה:** Closes the long-pending *"EAS Build / Submit decision pending DevEx session"* line in [CLAUDE.md §Tech Stack](../CLAUDE.md). Bundled with F-2026-05-05-01 (4 expo-doctor failures) into one package — `pkg/expo-health-and-eas-android` — so doctor fixes were end-to-end verified by a successful build, not just a clean doctor report.
+
+**Build details:**
+- Build ID: `2d91bc38-baac-4828-975b-da8b2fe6d1ae`
+- Profile: `production` (`eas.json` `android.buildType: "app-bundle"`)
+- Version: 1.0.0, versionCode **8** (auto-incremented from EAS remote counter; 7 prior `development`-profile APK builds preceded — this is the first `production` AAB for the project)
+- AAB URL: https://expo.dev/artifacts/eas/6CnwxoiyZDq2giZzeYTXmj.aab
+- Build page: https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/2d91bc38-baac-4828-975b-da8b2fe6d1ae
+- Built on commit `cd6bce85` (Phase 1 of pkg/expo-health-and-eas-android)
+- Built at 2026-05-16T05:43:39Z, finished 05:52:13Z (8.5 min duration)
+
+**Signing approach:** EAS-managed credentials. The keystore `dG1dqozJHO (default)` was already registered for this project before this package started (likely created during the D-2026-05-01-06 era; not in any prior DECISIONS_LOG entry). CC did **not** generate a new keystore; the existing one was used. Keystore SHA-1/SHA-256 fingerprint accessible via the EAS dashboard at https://expo.dev/accounts/iamadi79/projects/buff-mobile/credentials.
+
+**EAS Submit:** Out of scope this package per the approved plan. First AAB upload to Play Console is manual (Adi-driven) — see [docs/sessions/expo-health-and-eas-android/PLAY_CONSOLE_FIRST_UPLOAD.md](sessions/expo-health-and-eas-android/PLAY_CONSOLE_FIRST_UPLOAD.md). Future builds may automate via EAS Submit with a Google Play service account JSON in a follow-up package.
+
+**iOS:** Out of scope this package per Adi 2026-05-16. iOS profile is a separate package once Apple Developer account + macOS build credentials are in place.
+
+**מסמכים מושפעים:**
+- `CLAUDE.md` §Tech Stack line 226 — updated at Phase 4 closeout (after Adi confirms successful Play Console upload + install smoke test)
+- `docs/sessions/expo-health-and-eas-android/STATUS.md` — Phase 3 → passed (this commit)
+- `docs/sessions/expo-health-and-eas-android/SPEC.md` — Capabilities section updated with AAB URL + project fingerprint
+- `docs/INTEGRATION_LEARNINGS.md` — F-2026-05-05-01 → Resolved (already done in Phase 1 commit `cd6bce85`)
+
+**הסטטוס:** Phase 3 complete. Phase 4 (manual Play Console upload) pending Adi-only work per [PLAY_CONSOLE_FIRST_UPLOAD.md](sessions/expo-health-and-eas-android/PLAY_CONSOLE_FIRST_UPLOAD.md). On successful upload + smoke test, Phase 4 closeout will update CLAUDE.md §Tech Stack to reflect the shipped state.
+
+---
+
 ## 3 במאי 2026 — Workflow Foundation
 
 ### D-2026-05-03-30: ה-Workflow Foundation חי ב-main

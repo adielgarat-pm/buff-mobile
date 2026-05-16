@@ -39,14 +39,22 @@ Bundling both into one package means the doctor fixes get end-to-end verified by
 - **`android/` directory checked into repo** — diverges from typical Expo managed workflow. Plan Chunk 2.3 surfaces the keep-vs-remove decision with the diff.
 - **D-2026-05-01-06 "backed up" keystore** — we're generating a fresh one via EAS-managed credentials. If a Play Console listing was set up earlier tied to a different fingerprint, Phase 4 upload will fail with "wrong upload key." Adi confirmed (2026-05-16) listing exists for Android — fingerprint match assumed but will be verified at Phase 4.
 
-### Signing — discovered at Phase 2 (2026-05-16)
+### Signing & build — Phase 3 closed (2026-05-16)
 
-EAS already had a keystore registered for this project from a prior session — name `dG1dqozJHO (default)`. CC did **not** generate a new keystore. The build at versionCode 8 is signed with this pre-existing key.
+EAS already had a keystore registered for this project from a prior session — name `dG1dqozJHO (default)`. CC did **not** generate a new keystore. The build at versionCode 8 was signed with this pre-existing key.
 
 - EAS keystore reference: `dG1dqozJHO (default)` (visible in `eas build` output)
-- Fingerprint (SHA-1 / SHA-256): _to be retrieved via `eas credentials` interactive command (deferred — non-blocking for first build)_
-- Prior builds on this keystore: 8× `development`-profile APKs (Apr 17 – May 16). This is the first `production` AAB.
-- versionCode source: `remote` (per eas.json line 24). Local `app.json` versionCode=1 is **ignored** — EAS auto-increments. Build 8's versionCode is 8.
+- Keystore SHA-1 / SHA-256: _accessible interactively at https://expo.dev/accounts/iamadi79/projects/buff-mobile/credentials — non-blocking for first upload; Play Console will verify the fingerprint match against the AAB during upload_
+- Prior builds on this keystore: 7× `development`-profile APKs (Apr 17 – May 14). This is the first `production` AAB.
+- versionCode source: `remote` (per eas.json). Local `app.json` versionCode=1 is **ignored** — EAS auto-increments.
+
+**First production AAB:**
+- Build ID: `2d91bc38-baac-4828-975b-da8b2fe6d1ae`
+- versionCode: 8
+- AAB: https://expo.dev/artifacts/eas/6CnwxoiyZDq2giZzeYTXmj.aab
+- Project fingerprint (CNG hash, not signing): `24d2bb7d2f3d666ce6f2fa989de324df2f771b19`
+- Built from commit `cd6bce85`, completed 2026-05-16T05:52:13Z (8.5 min)
+- Decision: [D-2026-05-16-01](../../BUFF_DECISIONS_LOG.md)
 
 ---
 
