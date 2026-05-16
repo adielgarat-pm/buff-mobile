@@ -38,6 +38,7 @@
   "auth.invalidFamilyCode": "קוד משפחה לא תקין",
   "auth.invalidCode": "הקוד חייב להיות 6 תווים",
   "auth.codeNotFound": "הקוד לא נמצא, בדוק עם ההורה שלך",
+  "auth.orphanAmbiguous": "מצאנו פרופיל קיים במשפחה הזו שיכול להיות שלך. בקש מההורה שלך לוודא את השם ונסה שוב.",
   "auth.welcomeBack": "ברוך שובך!",
   "auth.accountCreated": "החשבון נוצר בהצלחה! ברוך הבא למשפחה!",
   "auth.orContinueWith": "או המשך עם",

@@ -320,6 +320,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     familyCode?: string,
     marketingConsent?: boolean
   ): Promise<{ error: Error | null }> => {
+    // Preflight: for child + familyCode, check orphan-claim eligibility BEFORE
+    // creating an auth user. Blocks on ambiguous or cross-script matches so we
+    // don't leave a profile-less auth.users row behind. (See migration 007 and
+    // docs/sessions/childjoin-claim-orphans/SPEC.md.)
+    let preflightReason: string | null = null;
+
+    if (familyCode && role === 'child') {
+      const { data: preflight, error: preflightError } = await supabase.rpc(
+        'preflight_claim_orphan',
+        { p_family_code: familyCode, p_display_name: displayName }
+      );
+
+      if (preflightError) {
+        // Network/RPC failure — fall through to legacy flow rather than blocking signup.
+        console.warn('[signUp] preflight_claim_orphan failed:', preflightError);
+      } else {
+        preflightReason = (preflight as { reason?: string } | null)?.reason ?? null;
+
+        if (preflightReason === 'family_not_found') {
+          return { error: new Error('קוד משפחה לא נמצא') };
+        }
+        if (
+          preflightReason === 'ambiguous_match' ||
+          preflightReason === 'cross_script_candidate_exists'
+        ) {
+          return { error: new Error('auth.orphanAmbiguous: blocked ambiguous or cross-script orphan match') };
+        }
+        // match_found or no_orphan_match → proceed to auth.signUp
+      }
+    }
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -363,6 +394,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (familyError) return { error: familyError };
       familyId = (newFamily as { id: string }).id;
+    }
+
+    // If preflight found exactly one matching orphan, claim it instead of inserting.
+    if (preflightReason === 'match_found' && familyCode && role === 'child') {
+      const { data: claimData, error: claimError } = await supabase.rpc(
+        'claim_orphan_profile',
+        { p_family_code: familyCode, p_display_name: displayName }
+      );
+
+      const claimed = (claimData as { claimed?: boolean } | null)?.claimed === true;
+
+      if (!claimError && claimed) {
+        await refreshProfile(authData.user.id);
+        return { error: null };
+      }
+
+      // Race lost or unexpected — fall through to INSERT so the child still gets a profile.
+      console.warn('[signUp] claim_orphan_profile fell back to INSERT:', { claimError, claimData });
     }
 
     const { error: profileError } = await supabase.from('profiles').insert({
