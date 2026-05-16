@@ -85,8 +85,13 @@
   - עטיפת Step 3 ב-ScrollView
   - פתרון אופציות זהות שמופיעות גם ב-Step 2 וגם ב-Step 3
 - **השפעה:** ה-onboarding flow עלול להיות במצב לא רצוי בקוד. צריך אודיט מול הקוד הקיים.
-- **סטטוס:** `open`
-- **קשור ל:** Adi הורתה לא להוסיף ל-GAP_ANALYSIS חד-צדדית. ידון בסשן עתידי + יוסכם יחד מה להכניס.
+- **סטטוס (עודכן 2026-05-16):** `partially-resolved` — אודיט קוד מול ה-flag (לקראת beta 2026-06-01) הראה שרוב הסעיפים כבר מומשו ב-refactor של ה-unified onboarding (`UStep1_ChildProfile.tsx`, `UStep2_Goal.tsx`, `UStep3_Challenges.tsx`). פירוט סטטוס לפי סעיף:
+  - ✅ **datetimepicker** — dep מותקן (`package.json:18` @ 8.4.4); picker חי ב-`src/screens/onboarding/unified/UStep1_ChildProfile.tsx:4, :172-181, :198-206`; פורמט "19 Oct 1998" מיוצר ע"י `formatDate()` ב-`UStep1_ChildProfile.tsx:24-27`.
+  - ✅ **"Homework & grades" → "Homework & focus"** — `Homework & grades` לא קיים בקוד. גיל 9-11 משתמש ב-`"Homework & school focus"` (`src/i18n/en.json:1316`); גיל 12-14 כבר משתמש ב-`"Homework & focus"` (`src/i18n/en.json:1320`). הסעיף N/A.
+  - ✅ **Step 3 ScrollView** — חי ב-`src/screens/onboarding/unified/UStep3_Challenges.tsx:73-105` עם `keyboardShouldPersistTaps="handled"` ו-`paddingBottom: 110` ל-sticky footer.
+  - ⚠️ **אופציות זהות Step 2 ↔ Step 3** — filter חלקי קיים ב-`UStep3_Challenges.tsx:31-33` (מסיר את ה-mainChallenge מ-Step 3). dedup מלא דורש Section B (סעיף הבא), שעדיין לא מומש. נשאר `open` כ-polish, לא חוסם beta.
+  - 🚩 **Section B ב-Step 3** — עדיין לא מומש. נשאר `open` כ-polish (Adi דחתה במפורש מ-beta 2026-06-01 scope).
+- **קשור ל:** Adi הורתה לא להוסיף ל-GAP_ANALYSIS חד-צדדית. ידון בסשן עתידי + יוסכם יחד מה להכניס. סגירת הסעיפים שתועדה כאן נעשתה ב-`pkg/close-f-2026-05-03-01` (docs-only).
 
 ---
 
@@ -239,6 +244,22 @@
 - **השפעה:** Without this discipline, F-073 (Web build, Phase 2) will require a large cleanup pass instead of a clean compile.
 - **סטטוס:** `open` — methodological framing for all future development
 - **קשור ל:** D-2026-05-14 (Web Strategy & Lovable Sunset Plan), F-073 (Web build), F-074 (Static landing), F-075 (Sunset Lovable), `pkg/lovable-parity-and-backlog`
+
+---
+
+### F-2026-05-16-01: Birthday date format ignores Hebrew locale
+
+- **תאריך:** 2026-05-16
+- **מקור:** Claude Code — code audit during `pkg/close-f-2026-05-03-01` (closure of F-2026-05-03-01)
+- **תיאור:** `formatDate()` ב-`src/screens/onboarding/unified/UStep1_ChildProfile.tsx:24-27` מקודד ידנית `'en-GB'` כ-locale ל-`toLocaleDateString`. משתמשים בעברית (קהל ראשי per CLAUDE.md "User-facing app strings: Hebrew") יראו תאריך לידה באנגלית ("19 Oct 1998") במקום ("19 אוק׳ 1998") או פורמט עברי תקני. הקוד היחיד הרלוונטי:
+  ```ts
+  function formatDate(d: Date): string {
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  ```
+- **השפעה:** UX miss מינורי ב-onboarding לקהל ישראלי. לא חוסם beta (פונקציונליות עובדת; רק locale). תיקון מועמד: שורה אחת — להעביר את ה-locale מ-`i18n.language` (בדומה ל-`useTranslation()` שכבר זמין במסך).
+- **סטטוס:** `open` — מועמד ל-quick-fix package נפרד או bundle עם תיקוני onboarding polish עתידיים (Section B, Step 3 dedup, etc.).
+- **קשור ל:** F-2026-05-03-01 (sister flag — נחשף תוך כדי האודיט שלו), `pkg/close-f-2026-05-03-01`
 
 ---
 
