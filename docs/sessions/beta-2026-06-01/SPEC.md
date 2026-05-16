@@ -281,25 +281,16 @@ const { error: profileError } = await supabase.from('profiles').insert({ ... });
 
 **אופציות:**
 
-- [ ] **Drop (b) — confirm CLOSED-NOT-APPLICABLE** *(המלצת CC)*
-  - מסיר את ה-FLAG מ-CLAUDE.md
+- [x] **Drop (b) — confirm CLOSED-NOT-APPLICABLE** *(המלצת CC — נבחר 2026-05-16)*
+  - מסיר את ה-FLAG מ-CLAUDE.md (Adi עושה, לא CC)
   - מוסיף entry verified-clean ב-INTEGRATION_LEARNINGS
   - לא מוסיף קוד שאף אחד לא קורא לו
   - הבנדל מצטמצם ל-(a) בלבד
 - [ ] **Add defensive `src/constants/ageRanges.ts`**
-  - `TEEN_MIN_AGE = 13`, `TEEN_MAX_AGE = 17`
-  - `getModeFromAge(birthDate: string): 'teen' | 'child'` helper
-  - שום call site היום — נקרא ב-`pkg/teen-ui-my-stats-full` אם/כש detection הופך age-based
-  - מונע hardcoded drift עתידי
 - [ ] **Re-cut onboarding age buckets ל-13-17 alignment**
-  - שינוי `AgeGroup` type ב-onboardingData.ts מ-`'6-8'|'9-11'|'12-14'|'15-18'` ל-`'6-8'|'9-12'|'13-17'`
-  - עדכון כל ה-records: `OPTIONS_BY_AGE`, `REWARD_PICKS` (5 motivators × 3 buckets = 15 records)
-  - עדכון UStep1 picker UI
-  - migration consideration לaccounts קיימים (נדיר ב-pre-launch)
-  - הגדול מבין שלושת — שעות עבודה, לא חצי שעה
-- [ ] **Other** — _(Adi כותבת תשובה חופשית)_
+- [ ] **Other**
 
-**תשובת Adi:** ___________________________________________
+**תשובת Adi:** Drop. אומת ב-`do them all` 2026-05-16. CC מקרצב כך שהבנדל מצטמצם ל-(a) בלבד.
 
 ---
 
@@ -309,71 +300,53 @@ const { error: profileError } = await supabase.from('profiles').insert({ ... });
 
 **אופציות:**
 
-- [ ] **`SECURITY DEFINER` RPC `claim_orphan_profile`** *(המלצת CC)*
+- [x] **`SECURITY DEFINER` RPC `claim_orphan_profile`** *(המלצת CC — נבחר 2026-05-16)*
   - Atomic server-side claim עם validation מובנה (family_code + normalized display_name)
   - לא מרחיב RLS באופן רחב — keeps surface area תחום
-  - דורש Supabase migration approval מ-Adi בנפרד
   - SQL מלא בסעיף § Schema Changes למעלה
 - [ ] **Broaden RLS — child יכול UPDATE orphan ב-family שלו**
-  - Policy חדש: WITH CHECK על orphan + family_id matching + display_name matching
-  - **סיכון:** RLS subqueries איטיים, וכל ילד עם valid family code יכול לנסות לתבוע כל orphan עם guessed name
-  - לא מומלץ
 - [ ] **No auto-claim — surface duplicate ל-Parent דרך banner**
-  - אין שינוי backend, אין migration
-  - משתמש ב-`useUnlinkedChildren.linkChild` הקיים
-  - בונים banner UI ב-ParentHome
-  - הילד עדיין יוצר profile כפול בשנייה הראשונה; ההורה רואה ופותר תוך דקות
-  - lowest backend risk; takes longer-to-resolve-from-user-perspective
-- [ ] **Other** — _(Adi)_
+- [ ] **Other**
 
-**תשובת Adi:** ___________________________________________
+**תשובת Adi:** RPC. אומת ב-`do them all` 2026-05-16. Supabase migration approved.
 
 ---
 
 ### Q3 — אסטרטגיית התאמת `display_name`
 
-**רקע:** ה-orphan נוצר עם הקלדה של ההורה. הילד מקליד עצמאית. ההבדל יכול להיות case ("Dani" vs "dani"), trim, או diacritics ב-Hebrew. ה-bug brief הזכיר "case-sensitivity / Hebrew-vs-Latin name".
+**רקע:** ה-orphan נוצר עם הקלדה של ההורה. הילד מקליד עצמאית. ההבדל יכול להיות case ("Dani" vs "dani"), trim, או diacritics ב-Hebrew.
 
 **אופציות:**
 
-- [ ] **Trim + Unicode NFC + case-insensitive** *(המלצת CC)*
+- [x] **Trim + Unicode NFC + case-insensitive** *(המלצת CC — נבחר 2026-05-16)*
   - `lower(normalize(trim(display_name), NFC))` בשני הצדדים
   - חזק ל-Hebrew diacritics ול-Latin casing
-  - **לא חוצה scripts** — `דני` לא יזוהה כ-`Dani`
+  - **לא חוצה scripts** — `דני` לא יזוהה כ-`Dani` → נופל ל-Q4 logic
 - [ ] **Trim בלבד — שומר case**
-  - Lowest false positive
-  - Highest false negative ("Dani" vs "dani" → לא יזוהה)
-  - Falls back ל-manual link
 - [ ] **NFC + case-insensitive + cross-script confusable detection**
-  - דורש lib חדשה (dep approval)
-  - overkill ל-MVP probably
-- [ ] **Other** — _(Adi)_
+- [ ] **Other**
 
-**תשובת Adi:** ___________________________________________
+**תשובת Adi:** NFC + lower + trim. אומת ב-`do them all` 2026-05-16.
 
 ---
 
 ### Q4 — UX ל-Ambiguity
 
-**רקע:** אם match הוא cross-script (`דני` orphan, ילד מקליד `Dani`) — Q3 לא יזהה אותו. דומה אם יש 2+ orphans באותו שם בfamily. מה הילד רואה?
+**רקע:** Q3 = NFC matching לא חוצה scripts. אם match הוא cross-script (`דני` orphan, ילד מקליד `Dani`), או יש 2+ orphans באותו שם — מה הילד רואה?
 
 **אופציות:**
 
-- [ ] **Block signup; "Ask your parent" message** *(המלצת CC)*
+- [x] **Block signup; "Ask your parent" message** *(המלצת CC — נבחר 2026-05-16)*
   - Error בעברית: "מצאנו פרופיל קיים במשפחה הזו שיכול להיות שלך. בקש מההורה לוודא את השם ונסה שוב."
   - אין duplicate
-  - מאלץ involvement של ההורה — מתאים ל-positive-coaching pillar
+  - הורה מאשר את השם — safeguard נגד kid A תובע orphan של kid B
+  - **Tradeoff acknowledged:** scenario חוקי של Hebrew parent + English keyboard kid → friction. תיקון: parent יודע על המגבלה אחרי setup.
 - [ ] **Show child a picker of orphan candidates**
-  - "האם אחד מאלה זה אתה? [דני / Daniel / אף אחד]"
-  - Self-service אבל חושף שמות של ילדים אחרים ב-family לילד אחד — מינור privacy
-  - יותר autonomy לילד = פיליר 3 supportive
+  - חולשה: kid A יכול לבחור orphan של kid B = takeover
 - [ ] **Create new profile + surface ל-Parent banner**
-  - Child experience חלק (success)
-  - Parent מקבל banner — אבל ה-banner UX עדיין צריך להיבנות
-  - אם Q2 = parent banner only, זה ה-default ממילא
-- [ ] **Other** — _(Adi)_
+- [ ] **Other**
 
-**תשובת Adi:** ___________________________________________
+**תשובת Adi:** Block + empathic Hebrew copy. אומת ב-`do them all` 2026-05-16.
 
 ---
 

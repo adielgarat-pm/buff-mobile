@@ -7,12 +7,12 @@
 
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 0 — Adi עונה על Q1-Q4 | `_blocked_` | 2026-05-16 | `3181fab` (drafts pushed) | — | — |
-| 1 — TBD (תלוי תרחיש) | `_pending_` | — | — | — | — |
-| 2 — TBD (תלוי תרחיש) | `_pending_` | — | — | — | — |
-| 3 — Closeout | `_pending_` | — | — | — | — |
+| 0 — Adi עונה על Q1-Q4 | `_passed_` | 2026-05-16 | (Adi: "do them all") | N/A | — |
+| 1 — RPC `claim_orphan_profile` + `preflight_claim_orphan` | `_pending_` | — | — | — | — |
+| 2 — Client integration (AuthContext + ChildJoinScreen + i18n) | `_pending_` | — | — | — | — |
+| 3 — Closeout (docs + tag + PR) | `_pending_` | — | — | — | — |
 
-> שורות פאזות 1-N יתעדכנו אחרי ש-Q1-Q4 נענו ו-ROADMAP.md הופך מ-conditional ל-concrete.
+**Scenario:** A (CC's recommended path) — Q1=drop / Q2=RPC / Q3=NFC+lower / Q4=blocking error.
 
 ## Legend
 
@@ -24,15 +24,19 @@
 
 ## מצב נוכחי (2026-05-16)
 
-**Blocked on Adi.** CC כתב 4 drafts ב-`docs/sessions/beta-2026-06-01/`:
-- `README.md` (commit `fbec39c`) — orientation
-- `SPEC.md` (commit `c3cea4f`) — מצב יעד + Values Check + Open Questions
-- `ROADMAP.md` (commit `3181fab`) — conditional phases (תרחישים A-D)
-- `STATUS.md` (this) — קובץ זה
+**Phase 0 closed.** Adi אישרה את כל ה-recommendations של CC ("do them all"). CC ממשיך לפאזה 1.
+
+**Drafts committed:**
+- `README.md` (commit `fbec39c`)
+- `SPEC.md` (commits `c3cea4f` + answer-update) — Q1-Q4 inlined
+- `ROADMAP.md` (commits `3181fab` + concrete-rewrite) — scenario A phases 1-3
+- `STATUS.md` (this) — phase 0 passed
+- `TESTS.md` (new) — pass/fail criteria per phase
+- `SPEC_SYNC.md` (new) — canonical docs sync per phase
 
 Branch: `claude/lucid-sinoussi-235144` (pushed ל-origin).
 
-Adi צריכה לעשות `git pull` ולענות על Q1-Q4 ב-SPEC.md § Open Questions. אחרי זה, CC נכנס ל-Plan Mode קצר כדי לכתוב TESTS.md ו-SPEC_SYNC.md ולעדכן את ROADMAP מ-conditional ל-concrete.
+**Next:** Phase 1 — write + apply Supabase migration for `claim_orphan_profile` + `preflight_claim_orphan`.
 
 ## Closeout
 
