@@ -10,7 +10,7 @@
 | 0 — Session folder + SPEC | _passed_ | 2026-05-16 | (this commit) | N/A (docs) | — |
 | 1 — Install Sentry dep + config | _passed_ | 2026-05-16 | (this commit) | expo-doctor 17/17 ✓, `tsc --noEmit` clean ✓, `@sentry/react-native@7.2.0` in deps, plugin auto-added to app.json, App.tsx wraps with PII scrubbing | — |
 | 2 — DSN wired | _passed_ | 2026-05-16 | (this commit) | Sentry project `buffadhd/react-native` created. DSN added to `eas.json` `build.production.env.EXPO_PUBLIC_SENTRY_DSN` + `build.preview.env`. Dev profile intentionally has no DSN. | D-2026-05-16-02 |
-| 3 — Source-map upload (after Adi auth token) | _blocked_ | — | — | Blocked on Adi creating Sentry auth token (Settings → Auth Tokens → scopes: `project:releases`, `project:write`, `org:read`) | — |
+| 3 — Source-map upload configured | _passed_ | 2026-05-16 | (this commit) | Adi created Organization Token `eas-build-source-maps` with scope `org:ci` (covers Source Map Upload + Release Creation + Code Mappings). Token stored as EAS project secret `SENTRY_AUTH_TOKEN` (id `da05ed42`); never committed. `SENTRY_ORG=buffadhd` + `SENTRY_PROJECT=react-native` added to eas.json env (production + preview). Verification deferred to Phase 4 build logs. | — |
 | 4 — v9 build + crash verification | _pending_ | — | — | — | — |
 | 5 — Play Console upload | _pending_ | — | — | — | — |
 

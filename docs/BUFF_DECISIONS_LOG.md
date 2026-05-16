@@ -25,7 +25,9 @@
 - No display names, child profile names, or family identifiers leave the device
 - Verified in Phase 4 (planned) by inspecting a real captured event
 
-**Status:** Phase 2 of `pkg/sentry-crash-monitoring` complete. Phase 3 (auth token + source-map upload) blocked on Adi creating the auth token in Sentry settings.
+**Status:** Phase 2 + 3 of `pkg/sentry-crash-monitoring` complete (this commit and prior). Phase 4 (v9 build + crash verification) is the next CC action.
+
+**Phase 3 addendum (2026-05-16, same day):** Adi created Sentry **Organization Token** (not User Auth Token) named `eas-build-source-maps`, scope `org:ci` (limited; covers Source Map Upload + Release Creation + Code Mappings). Token stored as EAS project secret `SENTRY_AUTH_TOKEN` (`da05ed42`), never committed. `SENTRY_ORG=buffadhd` + `SENTRY_PROJECT=react-native` added to eas.json env (production + preview) so the source-map uploader knows the destination. Organization Tokens are the recommended pattern for CI — they don't carry a user's full permissions and survive user-permission changes.
 
 **מסמכים מושפעים:** `eas.json` (DSN added); `docs/sessions/sentry-crash-monitoring/STATUS.md` (Phase 2 → passed); `App.tsx` (Sentry.init + wrap, Phase 1 commit `bd6097f`); `CLAUDE.md` §Tech Stack — observability stack to be updated at Phase 5 closeout.
 
