@@ -14,6 +14,22 @@
 
 ## Implementation Notes
 
+### IN-2026-05-16-01: Egg/evolution-stage removal queued
+
+- **תאריך:** 2026-05-16
+- **מקור:** Adi + CC — surfaced during pkg/teen-ui-with-buddy-character Phase 1 design (Capybara added as parallel buddy, exposed the question "what does a capybara's egg look like?").
+- **תיאור:** The pre-character evolution mechanic in [src/types/pet.ts:5-13](../src/types/pet.ts:5) (`EvolutionStage = 'egg' | 'hatchling' | 'scout' | 'guardian'` with thresholds 0/3/7/13 days) is vestigial pre-V0.5 spec drift. V0.5 Friendship Levels already start with the character visible at L1 day-0. The egg layer:
+  - Violates Pillar 1 (extrinsic gamification — egg-hatch reveal is the exact dopamine-trigger anti-pattern BUFF rejects, cf. D-2026-05-02-07 streaks rejection).
+  - Violates Pillar 2 (a child who uses BUFF day 1+2 then stops never meets their buddy — soft failure framing).
+  - Violates Pillar 3 (app decides when child sees their own pick — no voice).
+  - Breaks cross-species coherence (wolves, capybaras, pandas, unicorns don't hatch from eggs).
+  - Is explicitly flagged as "reconciliation deferred" in [BUFF_BUDDY_SYSTEM.md:7-9](BUFF_BUDDY_SYSTEM.md:7).
+- **השפעה:** Touches `src/types/pet.ts` (remove `EvolutionStage`, `EVOLUTION_THRESHOLDS`, `getEvolutionStage`, `getNextEvolutionThreshold`, `STAGE_VISUALS`, default `evolution_stage: 'egg'`), `src/components/PetDisplay.tsx`, `src/components/EmojiPet.tsx`, any `pet.stage.*` i18n keys, and the contradictory line at [BUFF_BUDDY_SYSTEM.md:94](BUFF_BUDDY_SYSTEM.md:94) ("egg/hatchling/scout/guardian"). `pet_state` is AsyncStorage-only so no DB migration needed — existing `evolution_stage` values can be read-once-then-ignored.
+- **סטטוס:** `open` — queued as `pkg/drop-egg-evolution-stage` to run after `pkg/teen-ui-with-buddy-character` ships. The current package already builds against a no-egg world (BuddyHero renders Wolf STORMY / Capybara LUNA at friendship_level L1 from day 0).
+- **קשור ל:** D-2026-05-16-?? (Adi to formalize in BUFF_DECISIONS_LOG.md), `pkg/teen-ui-with-buddy-character` (this package), `pkg/drop-egg-evolution-stage` (queued follow-up).
+
+---
+
 ### IN-2026-05-14-04: Runtime theme switch (Mint ↔ Gamer) blanked the child tab bar
 
 - **תאריך:** 2026-05-14

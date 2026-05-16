@@ -19,19 +19,23 @@
 
 ---
 
-### Phase 1 — Wolf STORMY assets
-**Goal:** Land 5 Wolf STORMY image variants (L1-L5) into `assets/buddies/`, with SVG fallback wired so the rest of the package isn't blocked on art.
+### Phase 1 — Buddy assets (Wolf STORMY + Capybara LUNA)
+**Goal:** Ship the buddy asset registry + per-skin SVG silhouettes so Phase 2/3 components can render Buddy regardless of PNG delivery status. PNGs land in a follow-up commit when Adi finishes Midjourney.
 
-**Approach (locked in OQ1):**
-1. CC drafts 5 Midjourney prompts per BUFF_BRAND.md §7.5 (Gamer aesthetic: charcoal greys + neon green edge highlights, void-black background).
-2. Adi runs prompts in Midjourney, picks the winning set (or asks for prompt iteration — max 2 rounds).
-3. CC commits 5 `wolf-stormy-L{1,2,3,4,5}.png` files to `assets/buddies/`.
-4. CC commits an SVG silhouette fallback at `assets/buddies/wolf-stormy-silhouette.tsx` (or PNG, TBD) — used by Phase 2/3 components when `WOLF_ASSETS_READY` is `false`.
-5. CC adds a module-level `WOLF_ASSETS_READY` constant + static `require()` map.
+**Approach (locked in OQ1, extended for Capybara per Adi 2026-05-16):**
+1. ✅ CC drafts 10 Midjourney prompts (5 wolf + 5 capybara) per BUFF_BRAND.md §7.5.
+2. CC ships [src/components/buddy/buddyAssets.ts](../../../src/components/buddy/buddyAssets.ts) — `BUDDY_ASSETS_READY` constant + static `Record<BuddySkinId, Record<1..5, ImageSourcePropType | null>>` map + `getBuddyDefaultName()` helper (STORMY for wolf, LUNA for capybara).
+3. CC ships [src/components/buddy/WolfSilhouette.tsx](../../../src/components/buddy/WolfSilhouette.tsx) — abstract wolf-head SVG, edge-glow scales with friendship level.
+4. CC ships [src/components/buddy/CapybaraSilhouette.tsx](../../../src/components/buddy/CapybaraSilhouette.tsx) — parallel capybara-head SVG.
+5. Adi runs Midjourney with the prompts (L3 first as anchor, then `--cref` for L1/L2/L4/L5), picks winning variants per buddy (max 2 prompt-iteration rounds).
+6. Adi commits 10 PNGs to `assets/buddies/`.
+7. CC follow-up commit: flip `BUDDY_ASSETS_READY = true`, uncomment the `require()`s.
 
-**Stop condition:** Adi approves the 5 variants OR Adi approves shipping with the SVG fallback while Midjourney iterates async. Either way, Phase 2 can start.
+**Stop condition for this commit (steps 1-4):** SVG silhouettes render. `npm run typecheck` passes. Phase 2 can start immediately on the fallback path.
 
-**Exit deliverables:** STATUS row + asset paths recorded.
+**Stop condition for Phase 1 close (step 7):** All 10 PNGs landed and Adi has visually approved the result on Expo web, OR Adi has explicitly approved shipping on the SVG fallback for 2026-06-01.
+
+**Exit deliverables:** STATUS row, INTEGRATION_LEARNINGS entry for egg-drop queued package (IN-2026-05-16-01), assets module + silhouettes committed.
 
 ---
 
@@ -40,27 +44,35 @@
 
 **Chunks:**
 
-**2a. Hook mutator + helper hook**
+**2a. Hook mutators + helper hook**
 - Add `setBuddyVisible(visible: boolean)` to `useBuddyRelationship` (optimistic + rollback).
+- Add `setBuddyName(name: string | null)` to `useBuddyRelationship` (same pattern).
 - New `useChildTasksCompletedLifetime(childId)` hook.
-- Jest unit tests for both.
+- Jest unit tests for all three.
 
 **2b. Shared atomic components**
-- `BuddyHero` (size: 'dashboard' | 'screen'; optional `onClose`).
-- `LevelPill` (LEVEL N ●●●●○).
+- `BuddyHero` (size: 'dashboard' | 'screen'; optional `onClose`). Renders `getBuddyAssetForLevel(skin, level)` ?? `<WolfSilhouette/CapybaraSilhouette>` based on `current_skin_id`.
+- `LevelPill` (LEVEL N ●●●●○) — uses gender-aware HE labels (model A) driven by `profile.gender`.
 - `BoostersCarousel` (Available / Used / Locked states).
 - `BuddyToggleModal` (mode: 'hide' | 'show').
+- `BuddyNameModal` — text input with default-name placeholder + Save/Cancel; calls `setBuddyName`.
 - Snapshot tests for each at multiple level/state inputs.
 
 **2c. Full 5B extension**
 - Rewrite `GamerMyStatsScreen` to render the full Stitch 5B layout, reading from `useBuddyRelationship` + `useChildTasksCompletedLifetime` instead of `usePetState`.
 - Pause Mode short-circuit preserved.
-- i18n keys added (EN + HE).
+- i18n keys added (EN + HE), including the locked friendship-level labels:
+  - L1 boy/other: `חברים` / girl: `חברות`
+  - L2 boy/other: `חברים טובים` / girl: `חברות טובות`
+  - L3 boy/other: `חברים קרובים` / girl: `חברות קרובות`
+  - L4 boy/other: `החברים הכי טובים` / girl: `החברות הכי טובות`
+  - L5 boy/other: `חברים לנצח` / girl: `חברות לנצח`
 - Update existing `__tests__/GamerMyStatsScreen.test.tsx`.
 
-**2d. Settings entry + 03 modal wiring**
-- Add "Buddy view" entry to `ChildSettingsScreen` (under Pet Skin section).
-- Tap → opens `BuddyToggleModal` in the appropriate mode.
+**2d. Settings entries + modal wiring**
+- Add "Buddy view" entry to `ChildSettingsScreen` (under Pet Skin section) → opens `BuddyToggleModal`.
+- Add "Rename Buddy" entry directly below → opens `BuddyNameModal`.
+- Both entries respect Pillar 3 (child voice, day-0 accessible).
 
 **Stop condition:** No-buddy variant works end-to-end. Adi verifies on emulator/web that toggling Hide → re-renders 5B without Buddy expectation, and the Settings entry shows the right modal copy depending on current state.
 
@@ -87,6 +99,7 @@
 - Reuses `BuddyHero` (size='screen'), `LevelPill`, `BoostersCarousel`.
 - Buddy Story sub-line: stubbed lines for L1-L5, EN + HE (Adi redlines before Phase 4).
 - Pause Mode short-circuit per existing pattern.
+- **First-launch trigger:** if `relationship.buddy_name === null` when 5A or dashboard first renders for this child, auto-open `BuddyNameModal`. After Save (or Cancel), `buddy_name` is set (or stays null with default shown). Modal does NOT re-open unless the child explicitly invokes Settings → Rename Buddy.
 
 **3c. Navigation wiring**
 - Register `GamerMeAndBuddyScreen` in the child stack navigator.

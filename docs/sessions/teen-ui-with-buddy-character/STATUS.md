@@ -6,9 +6,9 @@
 
 | Phase | State | Date | Commit | Tests | Learnings |
 |---|---|---|---|---|---|
-| 0 — Session folder | _in_progress_ | 2026-05-16 | (this commit) | n/a (docs only) | — |
-| 1 — Wolf STORMY assets | _pending_ | — | — | — | — |
-| 2 — No-buddy path (5B full + Settings) | _pending_ | — | — | — | — |
+| 0 — Session folder | _passed_ | 2026-05-16 | `48e54c8` | n/a (docs only) | — |
+| 1 — Buddy assets (Wolf + Capybara) | _in_progress_ | 2026-05-16 | (this commit) — code in place, awaiting Midjourney PNGs | typecheck ✅ | IN-2026-05-16-01 |
+| 2 — No-buddy path (5B full + Settings + naming modal) | _pending_ | — | — | — | — |
 | 3 — With-buddy path (dashboard + 5A) | _pending_ | — | — | — | — |
 | 4 — Regression + closeout | _pending_ | — | — | — | — |
 
@@ -23,7 +23,9 @@
 ## Open carryover from upstream
 
 - **`pkg/teen-ui-my-stats-full` branch supersedes** — that branch's last commit was `9b1580f plan(teen-ui-my-stats-full): SPEC only — extends 5B lite to full + Hide Buddy toggle`. No implementation ever shipped. This package absorbs the work; the my-stats-full branch will be closed without a PR after this package merges (Phase 4 exit deliverable).
-- **Wolf STORMY asset path** — locked at Midjourney primary + SVG fallback per OQ1. Phase 1 owns this.
+- **Wolf STORMY + Capybara LUNA asset path** — locked at Midjourney primary + SVG fallback per OQ1. Phase 1 ships the registry + silhouettes; Adi runs Midjourney in parallel; PNGs land in a follow-up commit that flips `BUDDY_ASSETS_READY`.
+- **Naming feature added to Phase 2 scope** — `BuddyNameModal` lets the child rename their buddy at first launch and from Settings. Pillar 3 win (child voice from day 0). Schema already supports it (`buddy_relationships.buddy_name`).
+- **Egg-drop queued** — `pkg/drop-egg-evolution-stage` follows this package, per D-2026-05-16-?? (Adi to formalize in DECISIONS_LOG). See IN-2026-05-16-01.
 
 ## Closeout checklist (to fill at Phase 4 exit)
 
