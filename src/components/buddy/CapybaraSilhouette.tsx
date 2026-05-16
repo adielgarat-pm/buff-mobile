@@ -1,11 +1,13 @@
 /**
  * CapybaraSilhouette — abstract SVG fallback for Capybara LUNA.
  *
- * Parallel to WolfSilhouette. Same color tokens (BUFF_BRAND.md §7.5)
- * and same level → edge-opacity scaling. Different geometry: rounder
- * head, side-set small ears, wide flat nose, slightly closer-set
- * eyes — reads as calm and unhurried (Pillar 2 — never sad, never
- * goofy, never anxious).
+ * Parallel to WolfSilhouette + FoxSilhouette. Same level →
+ * edge-opacity scaling. Different geometry: rounder head, side-set
+ * small ears, wide flat nose, slightly closer-set eyes — reads as
+ * calm and unhurried (Pillar 2 — never sad, never goofy, never
+ * anxious). Different color identity per D-2026-05-16-?? (locked
+ * 2026-05-16): warm amber-honey edges and eye glow, vs the wolf's
+ * lime and the fox's lavender.
  *
  * Pure presentational component.
  */
@@ -20,7 +22,8 @@ interface Props {
 
 const FILL_BODY = '#2D2546';
 const FILL_INNER = '#1a1636';
-const STROKE = '#A8E63E';
+/** Capybara identity color — warm amber-honey. Distinct from wolf's lime + fox's lavender. */
+const STROKE = '#F0B868';
 
 function edgeOpacityForLevel(level: BuddyRelationship['friendship_level']): number {
   return 0.35 + ((level - 1) * 0.1625);
