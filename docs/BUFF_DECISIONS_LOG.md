@@ -8,6 +8,29 @@
 
 ## 16 במאי 2026 — DevEx & First Production AAB
 
+### D-2026-05-16-02: Sentry adopted as crash + error monitoring layer
+
+**ההחלטה:** BUFF adopts **Sentry** as the crash + error monitoring SaaS for the mobile app. First DSN provisioned 2026-05-16 in `adi@buffadhd.com`'s Sentry account; organization `buffadhd`, project `react-native` (default name kept; rename later if needed). DSN wired into `eas.json` for `production` + `preview` build profiles; `development` is intentionally Sentry-off to avoid burning quota on local dev crashes.
+
+**הסיבה:** Phase 5 of `pkg/expo-health-and-eas-android` originally proposed manual upload of R8 `mapping.txt` to Play Console for symbolicated crash stack traces. After discovering v8's artifacts don't include mapping (would require a rebuild + per-build manual upload), Adi chose Sentry — which provides real-time crash + breadcrumb capture, symbolicated stack traces via JS source maps, and email alerts on every new crash signature. Strictly better signal than Play Console Android Vitals alone, and no Play Console mapping required.
+
+**Storage & secrets:**
+- **DSN**: stored as `EXPO_PUBLIC_SENTRY_DSN` env var in `eas.json` for production + preview profiles. DSN is **not secret** per Sentry docs (it's an event-ingestion endpoint; anyone with it can SEND events but can't READ existing events without an auth token).
+- **Auth token** (Phase 3): will be stored as EAS project secret `SENTRY_AUTH_TOKEN`, **not** committed to repo. Used only at build time for source-map upload.
+
+**PII handling (children's-app default):**
+- `Sentry.init` configured with `sendDefaultPii: false`
+- `beforeSend` hook strips `event.user.{email,username,ip_address}`
+- `beforeBreadcrumb` hook regex-redacts email addresses from breadcrumb messages
+- No display names, child profile names, or family identifiers leave the device
+- Verified in Phase 4 (planned) by inspecting a real captured event
+
+**Status:** Phase 2 of `pkg/sentry-crash-monitoring` complete. Phase 3 (auth token + source-map upload) blocked on Adi creating the auth token in Sentry settings.
+
+**מסמכים מושפעים:** `eas.json` (DSN added); `docs/sessions/sentry-crash-monitoring/STATUS.md` (Phase 2 → passed); `App.tsx` (Sentry.init + wrap, Phase 1 commit `bd6097f`); `CLAUDE.md` §Tech Stack — observability stack to be updated at Phase 5 closeout.
+
+---
+
 ### D-2026-05-16-01: First production Android AAB built via EAS-managed credentials
 
 **ההחלטה:** The first signed Android App Bundle (AAB) was built for BUFF via EAS Build, using the pre-existing EAS-managed keystore. The AAB is staged for upload to Google Play Console Internal Testing track for `com.buffapp.mobile`.
