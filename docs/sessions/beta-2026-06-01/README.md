@@ -25,7 +25,7 @@
 | 2 | TBD | — | not yet defined | awaiting Adi |
 | 3 | TBD | — | not yet defined | awaiting Adi |
 | 4 | TBD | — | not yet defined | awaiting Adi |
-| 5 | Cohort Lifetime Access | [TRACK_5_cohort_lifetime_access.md](./TRACK_5_cohort_lifetime_access.md) + [TRACK_5_lovable_export_prompt.md](./TRACK_5_lovable_export_prompt.md) | draft — blocked | cohort CSV only (Q1–Q5 all answered) |
+| 5 | Cohort Lifetime Access | [plan](./TRACK_5_cohort_lifetime_access.md) · [lovable prompt](./TRACK_5_lovable_export_prompt.md) · [lovable response](./TRACK_5_lovable_response.md) | draft — blocked | Adi decision: filter strategy (182 vs ~49 gap) + run SQL + save CSV |
 
 > Tracks 1–4 are placeholders. CC will not invent them. Adi defines scope per Track; CC drafts the plan per Track.
 

@@ -1,6 +1,6 @@
 # Track 5 — Cohort Lifetime Access
 
-**Status:** `draft — blocked` (waiting on cohort CSV only — Q1–Q5 all answered 2026-05-16)
+**Status:** `draft — blocked` (Lovable SQL received 2026-05-16; awaiting Adi decision on filter strategy + the CSV itself — see [TRACK_5_lovable_response.md](./TRACK_5_lovable_response.md))
 **Owner:** Adi (PM) + CC (executor)
 **Target:** before 2026-06-01 beta launch
 **Mode:** PLAN — no SQL runs until Adi says `approved, proceed`
