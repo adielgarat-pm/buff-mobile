@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|
 | 0 — Adi עונה על Q1-Q4 | `_passed_` | 2026-05-16 | (Adi: "do them all") | N/A | — |
 | 1 — RPC `claim_orphan_profile` + `preflight_claim_orphan` | `_passed_` | 2026-05-16 | TBD (after this commit) | 8/8 preflight asserts passed | one PG quirk caught + fixed: `max(uuid)` not defined → split count/id queries |
-| 2 — Client integration (AuthContext + ChildJoinScreen + i18n) | `_pending_` | — | — | — | — |
+| 2 — Client integration (AuthContext + ChildJoinScreen + i18n) | `_pending-adi-verify_` | 2026-05-16 | TBD (after this commit) | typecheck ✅, JSON ✅, RPC SQL ✅; emulator test → Adi | Expo web couldn't boot — needs react-dom/react-native-web (separate improvement pkg) |
 | 3 — Closeout (docs + tag + PR) | `_pending_` | — | — | — | — |
 
 **Scenario:** A (CC's recommended path) — Q1=drop / Q2=RPC / Q3=NFC+lower / Q4=blocking error.
@@ -34,7 +34,19 @@ Both consolidated into [`../../../migrations/007_childjoin_claim_orphan_profile.
 
 Branch: `claude/lucid-sinoussi-235144` (pushed ל-origin).
 
-**Next:** Phase 2 — modify `AuthContext.signUp` to call `preflight_claim_orphan` BEFORE `auth.signUp` (avoids orphan auth users on blocking error) and `claim_orphan_profile` AFTER, then wire blocking-error UX in `ChildJoinScreen` + i18n Hebrew/English copy.
+**Phase 2 client work landed, awaiting Adi's emulator verification.** Changes:
+- [src/contexts/AuthContext.tsx](../../../src/contexts/AuthContext.tsx) `signUp` — preflight RPC before `auth.signUp` (avoids orphan auth user on block); claim RPC after success when `match_found`; fallback to INSERT on `no_orphan_match` or claim race.
+- [src/screens/auth/ChildJoinScreen.tsx](../../../src/screens/auth/ChildJoinScreen.tsx) `handleJoin` — detects `auth.orphanambiguous` tag in error message, shows Hebrew/English blocking copy.
+- [src/i18n/he.json](../../../src/i18n/he.json) + [src/i18n/en.json](../../../src/i18n/en.json) — added `auth.orphanAmbiguous` key.
+
+**Smoke tests performed locally by CC:**
+- ✅ `node -e "JSON.parse(...)"` on both i18n files
+- ✅ `npx tsc --noEmit` — zero errors
+- ❌ `npm run web` — can't run; project missing `react-dom` + `react-native-web` deps. CLAUDE.md forbids installs without approval. End-to-end web smoke deferred.
+
+**Adi to verify on Android emulator** per [TESTS.md § Phase 2](./TESTS.md#פאזה-2--client-integration) — 5 manual cases (happy path A exact match, happy path B no orphan, cross-script blocking, ambiguous, invalid family code regression).
+
+**Next:** Phase 3 — INTEGRATION_LEARNINGS closures (IN-2026-05-14-03 RESOLVED, F-2026-05-03-03 CONFIRMED-NOT-APPLICABLE) + STATUS closeout + CLAUDE.md FLAG diff proposed for Adi.
 
 ## Closeout
 

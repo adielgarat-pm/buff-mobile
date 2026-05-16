@@ -38,6 +38,7 @@
   "auth.invalidFamilyCode": "Invalid family code",
   "auth.invalidCode": "Code must be 6 characters",
   "auth.codeNotFound": "Code not found, check with your parent",
+  "auth.orphanAmbiguous": "We found an existing profile in this family that might be yours. Ask your parent to confirm your name and try again.",
   "auth.welcomeBack": "Welcome back!",
   "auth.accountCreated": "Account created successfully! Welcome to the family!",
   "auth.orContinueWith": "or continue with",

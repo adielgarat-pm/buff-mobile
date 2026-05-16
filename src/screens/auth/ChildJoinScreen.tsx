@@ -57,7 +57,12 @@ export default function ChildJoinScreen() {
 
     const msg = error.message.toLowerCase();
 
-    if (msg.includes('already registered') || msg.includes('already exists')) {
+    if (msg.includes('auth.orphanambiguous')) {
+      // Preflight blocked: orphan match was ambiguous (2+ candidates) or
+      // cross-script (e.g. parent created "דני", child typed "Dani").
+      // Parent must confirm the name before the child can join.
+      Alert.alert(t('auth.orphanAmbiguous'));
+    } else if (msg.includes('already registered') || msg.includes('already exists')) {
       // Returning child — attempt silent sign-in with the same deterministic password
       const { error: signInError } = await signIn(email, autoPassword);
       if (!signInError) {
