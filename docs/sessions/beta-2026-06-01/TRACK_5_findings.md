@@ -116,3 +116,49 @@ The original plan ("resolve emails → UPDATE `is_lifetime_access = true`") **ca
 **Owner:** TBD — likely the Track that handles migration comms (not yet defined in README index).
 
 **Open sub-question:** Do we plan to also migrate family/children/tasks/rewards data, or do Lovable users start fresh on mobile? If start-fresh, the email needs to manage that expectation. If migrate-data, this is its own Improvement Package.
+
+---
+
+## Cohort definition (2026-05-16, Adi-stated)
+
+Adi's criteria for the migration cohort:
+1. From her **mailing list of 49** people (the ones she'll actually email about the migration)
+2. WHO HAS completed family setup (= has at least one child in their family)
+3. WHO HAS approved marketing email (`marketing_consent = true`)
+
+Anyone outside that intersection — families with no children, or with children but no consent — is **out of scope for now**.
+
+### Mobile DB baseline (CC discovery 2026-05-16)
+
+Adi's stated: 189 families / 191 parents / 87 children.
+CC measured: **190 families / 188 parents / 88 children**. Off by 1–3, close enough (probably timing variance).
+
+### Qualifying-cohort funnel
+
+| Step | Count | Notes |
+|---|---|---|
+| All parents in mobile DB | 188 | |
+| Parents with `marketing_consent = true` | **48** | Close to Adi's "49" — likely the same list, tracked via this column |
+| Families with ≥1 child (= "completed family setup") | 68 | |
+| Parents whose family has kids AND parent has consent (**qualifying cohort**) | **24** | This is the actionable cohort. |
+| Of those 24, with at least one email recoverable from `email_logs.email_to` | **16** | |
+| Of those 24, with NO email anywhere CC could find on mobile | **8** | |
+
+### Email recovery situation
+
+The mobile DB has no `email` column on `profiles`. Emails live in two places:
+1. `auth.users.email` — useless for the cohort (the 187 dangling profiles have no `auth.users` rows)
+2. `public.email_logs.email_to` — historical log of every email Buff sent. Covers 16 of the 24 cohort members.
+
+The 8 cohort members with no recoverable email were either never emailed through Buff's own system, or emailed via an external tool (MailerLite or similar) that doesn't write to `email_logs`.
+
+---
+
+## The one decision left to Adi
+
+**Is the "mailing list of 49" the same as `marketing_consent = true` in the mobile DB (which is 48)?**
+
+- **If YES:** CC has enough data. Cohort = 24 qualifying parents. CC can extract the 16 recoverable emails into a gitignored local file. The remaining 8 need either: (a) Adi to provide their emails from the external mailing tool, or (b) accept they fall out of the cohort.
+- **If NO** (the 49 is a separate external list, e.g. MailerLite): Adi exports the 49 from her mailing tool and gives CC the CSV. CC then intersects: which of those 49 are in the qualifying 70-parents-with-kids subset on mobile.
+
+Either path, the next step is the same: build `pkg/pending-lifetime-grants` (Option B above) and seed the resolved cohort emails into it.
