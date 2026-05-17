@@ -55,7 +55,11 @@
   - **Matching:** `lower(normalize(trim(display_name), NFC))` on both sides + case-insensitive on `families.short_code`. Robust for Hebrew diacritics and Latin casing; intentionally does NOT cross scripts. Adi's Hebrew-vs-Latin edge case ("איתי" parent-orphan + child types "Itay") falls through to `cross_script_candidate_exists` reason → blocking error UX in Hebrew copy ("בקש מההורה לוודא את השם") — forces parent confirmation, prevents one sibling from claiming another's orphan.
   - **Client wiring:** `AuthContext.signUp` calls preflight before `supabase.auth.signUp`; on `match_found` calls claim post-auth; on `no_orphan_match` falls back to today's INSERT; on `ambiguous_match`/`cross_script_candidate_exists` returns blocking error tagged `auth.orphanAmbiguous`; ChildJoinScreen surfaces it via new i18n key.
   - **Verification done at code/RPC level (CC):** 8/8 SQL assertions passed (no-orphan / exact / trim / case-insensitive-Latin / ambiguous / cross-script / family-not-found / null-input / no-auth); typecheck zero errors; both i18n files parse. End-to-end Android emulator verification (5 cases per `docs/sessions/childjoin-claim-orphans/TESTS.md § Phase 2`) **pending Adi**.
-- **Cleanup:** Two orphan profiles in KWYEL5 family can be deleted: `איתי` (no user_id) and `עדי בדיקה` (no user_id). Both created 2026-04-17, no real auth users behind them. 2-line SQL when Adi authorizes. **Still pending** — not part of this package; documented for follow-up.
+- **Cleanup (2026-05-17, executed):**
+  - **Deleted:** `Itay` bug-residue profile (`3dd54491-...`) + its orphan auth.users row (`9760c8b9-...`) created by the bug on 2026-05-14. 0 user data; cascaded 1 `buddy_relationships` + 1 `buddy_daily_check` row.
+  - **Deleted:** stale test orphan `עדי בדיקה` (`04920920-...`); cascaded 4 tasks + 2 rewards + 2 buddy rows. Name self-identified as test data.
+  - **Kept:** legitimate orphan `איתי` (`0b702f2d-...`, created 2026-04-17 by Adi's onboarding) as the live target for Itay's emulator claim test.
+  - **Authorized by:** Adi "תטפל איך שאתה חושב" 2026-05-17.
 - **קשור ל:** Originally surfaced during `pkg/teen-ui-my-stats-lite`; resolved in `pkg/childjoin-claim-orphans` (see [docs/sessions/childjoin-claim-orphans/](sessions/childjoin-claim-orphans/)).
 
 ---

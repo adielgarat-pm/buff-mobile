@@ -23,6 +23,14 @@ Repo SQL:
 - [`../../../migrations/007_childjoin_claim_orphan_profile.sql`](../../../migrations/007_childjoin_claim_orphan_profile.sql) — initial pair (consolidated)
 - [`../../../migrations/008_childjoin_preflight_returning_user_fix.sql`](../../../migrations/008_childjoin_preflight_returning_user_fix.sql) — hotfix
 
+**Live data cleanup (2026-05-17, authorized by Adi "תטפל איך שאתה חושב"):**
+- Deleted `Itay` bug-residue profile (`3dd54491-...`) + its orphan auth user (`9760c8b9-...`)
+- Deleted stale test orphan `עדי בדיקה` (`04920920-...`)
+- Kept legitimate orphan `איתי` (`0b702f2d-...`) for Itay's emulator claim test
+- Family KWYEL5 now has 4 profiles: parent `עדי`, child `Emmy`, child `Test` (from Adi's mid-cleanup test), orphan `איתי`
+
+**Known side-effect of Fix B in current state (1 orphan only):** any new sibling joining KWYEL5 right now (e.g. typing `Yossi`) gets `cross_script_candidate_exists` blocking. Transitional — disappears after Itay claims the `איתי` orphan (then orphan_total = 0). If Adi sees this in production for other families, refinement candidate: skip blocking when input shares no script-overlap with the lone orphan.
+
 ## Legend
 
 - `_pending_` — לא התחיל
