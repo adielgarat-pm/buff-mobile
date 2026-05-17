@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|
 | 0 — Adi עונה על Q1-Q4 | `_passed_` | 2026-05-16 | (Adi: "do them all") | N/A | — |
 | 1 — RPC `claim_orphan_profile` + `preflight_claim_orphan` | `_passed_` | 2026-05-16 | TBD (after this commit) | 8/8 preflight asserts passed | one PG quirk caught + fixed: `max(uuid)` not defined → split count/id queries |
-| 2 — Client integration (AuthContext + ChildJoinScreen + i18n) | `_pending-adi-verify_` | 2026-05-16 | TBD (after this commit) | typecheck ✅, JSON ✅, RPC SQL ✅; emulator test → Adi | Expo web couldn't boot — needs react-dom/react-native-web (separate improvement pkg) |
+| 2 — Client integration (AuthContext + ChildJoinScreen + i18n) | `_passed-with-hotfix_` | 2026-05-16 | hotfix added migration 008 + IN-2026-05-16-01 | preflight matrix 7/7 ✅; Adi's emulator test caught 2 regressions (returning user blocked, new sibling blocked); fixed in 008 | IN-2026-05-16-01 |
 | 3 — Closeout (docs + tag + PR) | `_partial_` | 2026-05-16 | TBD (after this commit) | INTEGRATION_LEARNINGS ✅; PR open; tag/merge ⏳ Adi | — |
 
 **Scenario:** A (CC's recommended path) — Q1=drop / Q2=RPC / Q3=NFC+lower / Q4=blocking error.
@@ -17,8 +17,19 @@
 **Live Supabase migrations applied (project `gfrongfnyigxsexuofrg`):**
 - `20260516082239_childjoin_claim_orphan_profile` — initial RPC pair
 - `20260516082341_childjoin_claim_orphan_profile_fix_max_uuid` — fix `max(uuid)` → split count/id queries
+- `20260516175504_childjoin_preflight_returning_user_and_multi_orphan` — **hotfix** (2026-05-16) — adds `existing_profile_match` reason for returning users; constrains `cross_script_candidate_exists` to orphan_total=1 case only (Fix B). Caught by Adi's emulator test.
 
-Both consolidated into [`../../../migrations/007_childjoin_claim_orphan_profile.sql`](../../../migrations/007_childjoin_claim_orphan_profile.sql) for repo version control.
+Repo SQL:
+- [`../../../migrations/007_childjoin_claim_orphan_profile.sql`](../../../migrations/007_childjoin_claim_orphan_profile.sql) — initial pair (consolidated)
+- [`../../../migrations/008_childjoin_preflight_returning_user_fix.sql`](../../../migrations/008_childjoin_preflight_returning_user_fix.sql) — hotfix
+
+**Live data cleanup (2026-05-17, authorized by Adi "תטפל איך שאתה חושב"):**
+- Deleted `Itay` bug-residue profile (`3dd54491-...`) + its orphan auth user (`9760c8b9-...`)
+- Deleted stale test orphan `עדי בדיקה` (`04920920-...`)
+- Kept legitimate orphan `איתי` (`0b702f2d-...`) for Itay's emulator claim test
+- Family KWYEL5 now has 4 profiles: parent `עדי`, child `Emmy`, child `Test` (from Adi's mid-cleanup test), orphan `איתי`
+
+**Known side-effect of Fix B in current state (1 orphan only):** any new sibling joining KWYEL5 right now (e.g. typing `Yossi`) gets `cross_script_candidate_exists` blocking. Transitional — disappears after Itay claims the `איתי` orphan (then orphan_total = 0). If Adi sees this in production for other families, refinement candidate: skip blocking when input shares no script-overlap with the lone orphan.
 
 ## Legend
 

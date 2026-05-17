@@ -55,8 +55,29 @@
   - **Matching:** `lower(normalize(trim(display_name), NFC))` on both sides + case-insensitive on `families.short_code`. Robust for Hebrew diacritics and Latin casing; intentionally does NOT cross scripts. Adi's Hebrew-vs-Latin edge case ("איתי" parent-orphan + child types "Itay") falls through to `cross_script_candidate_exists` reason → blocking error UX in Hebrew copy ("בקש מההורה לוודא את השם") — forces parent confirmation, prevents one sibling from claiming another's orphan.
   - **Client wiring:** `AuthContext.signUp` calls preflight before `supabase.auth.signUp`; on `match_found` calls claim post-auth; on `no_orphan_match` falls back to today's INSERT; on `ambiguous_match`/`cross_script_candidate_exists` returns blocking error tagged `auth.orphanAmbiguous`; ChildJoinScreen surfaces it via new i18n key.
   - **Verification done at code/RPC level (CC):** 8/8 SQL assertions passed (no-orphan / exact / trim / case-insensitive-Latin / ambiguous / cross-script / family-not-found / null-input / no-auth); typecheck zero errors; both i18n files parse. End-to-end Android emulator verification (5 cases per `docs/sessions/childjoin-claim-orphans/TESTS.md § Phase 2`) **pending Adi**.
-- **Cleanup:** Two orphan profiles in KWYEL5 family can be deleted: `איתי` (no user_id) and `עדי בדיקה` (no user_id). Both created 2026-04-17, no real auth users behind them. 2-line SQL when Adi authorizes. **Still pending** — not part of this package; documented for follow-up.
+- **Cleanup (2026-05-17, executed):**
+  - **Deleted:** `Itay` bug-residue profile (`3dd54491-...`) + its orphan auth.users row (`9760c8b9-...`) created by the bug on 2026-05-14. 0 user data; cascaded 1 `buddy_relationships` + 1 `buddy_daily_check` row.
+  - **Deleted:** stale test orphan `עדי בדיקה` (`04920920-...`); cascaded 4 tasks + 2 rewards + 2 buddy rows. Name self-identified as test data.
+  - **Kept:** legitimate orphan `איתי` (`0b702f2d-...`, created 2026-04-17 by Adi's onboarding) as the live target for Itay's emulator claim test.
+  - **Authorized by:** Adi "תטפל איך שאתה חושב" 2026-05-17.
 - **קשור ל:** Originally surfaced during `pkg/teen-ui-my-stats-lite`; resolved in `pkg/childjoin-claim-orphans` (see [docs/sessions/childjoin-claim-orphans/](sessions/childjoin-claim-orphans/)).
+
+---
+
+### IN-2026-05-16-01: preflight_claim_orphan blocked returning users + new siblings (regression caught in emulator test)
+
+- **תאריך:** 2026-05-16
+- **מקור:** Adi — first emulator test post-merge of `pkg/childjoin-claim-orphans`. Existing child user (`Itay` with auth.users row) tried to re-join the family and the app silently blocked them via `cross_script_candidate_exists` instead of falling through to the existing signUp→signIn flow.
+- **תיאור:** The Phase 1 RPC `preflight_claim_orphan` (migration 007) had two regressions:
+  1. **Returning users blocked.** preflight only looked at orphans (`user_id IS NULL`). For a family with orphans, any input that didn't NFC-match an orphan returned `cross_script_candidate_exists` — including existing users typing their own name (whose profile has `user_id IS NOT NULL` so it's invisible to preflight's orphan filter). Pre-fix flow's "auth.signUp → already registered → signIn" recovery was bypassed.
+  2. **New siblings blocked.** Same root cause: any new child joining a family with orphans for OTHER children was blocked even though they're legitimately a new profile (NCFC matches no orphan).
+- **השפעה:** Both regressions block legitimate flows. Returning user gets "ask your parent" alert instead of signing in. New sibling gets the same alert instead of getting a fresh profile.
+- **תיקון (migration 008, `childjoin_preflight_returning_user_and_multi_orphan`):**
+  - Added existing-profile pre-check at top of preflight. If a non-orphan profile in the family matches input (NFC + lower + trim), return new reason `existing_profile_match` → client falls through to signUp→signIn.
+  - Constrained `cross_script_candidate_exists` to fire only when `orphan_total = 1`. With 2+ orphans and no NFC match, return `no_orphan_match` → INSERT. Tradeoff: rare real cross-script case in a multi-orphan family creates a duplicate; recovered via existing `useUnlinkedChildren.linkChild` parent banner (the original IN-2026-05-14-03 fallback mechanism).
+- **Verification (CC):** 7/7 SQL scenarios pass on live family KWYEL5: existing users `Itay`/`Emmy` → `existing_profile_match`; orphan exact-match `איתי`/`עדי בדיקה` → `match_found`; new sibling `Yossi` → `no_orphan_match`; multi-orphan cross-script `Dani` → `no_orphan_match` (was blocking pre-fix); bad code `NONE99` → `family_not_found`.
+- **Lesson:** Bug-fix RPCs need to model **all relevant profile states** (orphan + non-orphan), not just the new state being introduced. The original 8-case SQL test suite covered orphans + family lookup + auth but did NOT include a non-orphan returning user — a gap caught only by Adi's emulator test against real data.
+- **קשור ל:** IN-2026-05-14-03 (the original bug); `pkg/childjoin-claim-orphans` hotfix.
 
 ---
 
