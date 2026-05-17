@@ -1,0 +1,349 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LevelPill snapshot — level 1 (one filled dot) 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#2D2546",
+      "borderColor": "rgba(255,255,255,0.10)",
+      "borderRadius": 14,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "paddingHorizontal": 12,
+      "paddingVertical": 6,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#FFFFFF",
+        "fontSize": 12,
+        "fontWeight": "700",
+        "letterSpacing": 1.5,
+        "marginRight": 10,
+      }
+    }
+  >
+    LEVEL 
+    1
+  </Text>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "rgba(255,255,255,0.25)",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "rgba(255,255,255,0.25)",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "rgba(255,255,255,0.25)",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "rgba(255,255,255,0.25)",
+          },
+        ]
+      }
+    />
+  </View>
+</View>
+`;
+
+exports[`LevelPill snapshot — level 3 (three filled dots) 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#2D2546",
+      "borderColor": "rgba(255,255,255,0.10)",
+      "borderRadius": 14,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "paddingHorizontal": 12,
+      "paddingVertical": 6,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#FFFFFF",
+        "fontSize": 12,
+        "fontWeight": "700",
+        "letterSpacing": 1.5,
+        "marginRight": 10,
+      }
+    }
+  >
+    LEVEL 
+    3
+  </Text>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "rgba(255,255,255,0.25)",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "rgba(255,255,255,0.25)",
+          },
+        ]
+      }
+    />
+  </View>
+</View>
+`;
+
+exports[`LevelPill snapshot — level 5 (all filled) 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#2D2546",
+      "borderColor": "rgba(255,255,255,0.10)",
+      "borderRadius": 14,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "paddingHorizontal": 12,
+      "paddingVertical": 6,
+    }
+  }
+>
+  <Text
+    style={
+      {
+        "color": "#FFFFFF",
+        "fontSize": 12,
+        "fontWeight": "700",
+        "letterSpacing": 1.5,
+        "marginRight": 10,
+      }
+    }
+  >
+    LEVEL 
+    5
+  </Text>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "borderRadius": 4,
+            "height": 8,
+            "marginLeft": 4,
+            "width": 8,
+          },
+          {
+            "backgroundColor": "#A8E63E",
+          },
+        ]
+      }
+    />
+  </View>
+</View>
+`;

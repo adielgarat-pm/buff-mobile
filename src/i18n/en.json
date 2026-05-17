@@ -1485,5 +1485,33 @@
 
   "welcomeBack.title": "Hey, you're back!",
   "welcomeBack.subtitle": "Let's start fresh today.",
-  "welcomeBack.cta": "Let's go"
+  "welcomeBack.cta": "Let's go",
+
+  "buddy.toggleModal.hide.title": "Hide Buddy?",
+  "buddy.toggleModal.hide.subtitle": "Your Buddy keeps helping you in the background. You'll still earn Boosters and level up.",
+  "buddy.toggleModal.hide.keepCta": "Keep Buddy",
+  "buddy.toggleModal.hide.confirmCta": "Hide Buddy",
+  "buddy.toggleModal.show.title": "Show Buddy?",
+  "buddy.toggleModal.show.subtitle": "Bring your Buddy back to the dashboard.",
+  "buddy.toggleModal.show.keepCta": "Keep Hidden",
+  "buddy.toggleModal.show.confirmCta": "Show Buddy",
+  "buddy.toggleModal.bullet1": "Boosters still arrive",
+  "buddy.toggleModal.bullet2": "Friendship levels still progress",
+  "buddy.toggleModal.bullet3": "Show Buddy again anytime in Settings",
+
+  "buddy.nameModal.title": "What's your buddy's name?",
+  "buddy.nameModal.hint": "You can change the name anytime in Settings.",
+  "buddy.nameModal.save": "Save",
+  "buddy.nameModal.cancel": "Cancel",
+
+  "buddy.boosters.sectionTitle": "Your Boosters",
+  "buddy.boosters.available": "Available",
+  "buddy.boosters.usedOnDay": "Used Day {{day}}",
+  "buddy.boosters.unlockAtLevel": "Unlock at LEVEL {{level}}",
+  "buddy.boosters.giftType.theme_color": "Theme Color",
+  "buddy.boosters.giftType.double_buffs": "×2 Buffs",
+  "buddy.boosters.giftType.mood_pack": "Mood Pack",
+  "buddy.boosters.giftType.skip_token": "Skip Token",
+  "buddy.boosters.giftType.reward_discount": "Reward Discount",
+  "buddy.boosters.giftType.skin": "New Skin"
 }

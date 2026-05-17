@@ -1485,5 +1485,33 @@
 
   "welcomeBack.title": "היי, חזרת!",
   "welcomeBack.subtitle": "בוא נתחיל מחדש היום.",
-  "welcomeBack.cta": "יאללה"
+  "welcomeBack.cta": "יאללה",
+
+  "buddy.toggleModal.hide.title": "להסתיר את החבר?",
+  "buddy.toggleModal.hide.subtitle": "החבר שלך ממשיך לעזור ברקע. ה-Boosters עדיין מגיעים והרמות עדיין עולות.",
+  "buddy.toggleModal.hide.keepCta": "להשאיר",
+  "buddy.toggleModal.hide.confirmCta": "להסתיר",
+  "buddy.toggleModal.show.title": "להציג את החבר?",
+  "buddy.toggleModal.show.subtitle": "החבר שלך חוזר לדשבורד.",
+  "buddy.toggleModal.show.keepCta": "להשאיר מוסתר",
+  "buddy.toggleModal.show.confirmCta": "להציג",
+  "buddy.toggleModal.bullet1": "Boosters ממשיכים להגיע",
+  "buddy.toggleModal.bullet2": "רמות החברות ממשיכות לעלות",
+  "buddy.toggleModal.bullet3": "אפשר להציג שוב בהגדרות בכל זמן",
+
+  "buddy.nameModal.title": "איזה שם תרצי לחבר שלך?",
+  "buddy.nameModal.hint": "אפשר לשנות את השם בכל זמן בהגדרות.",
+  "buddy.nameModal.save": "שמירה",
+  "buddy.nameModal.cancel": "ביטול",
+
+  "buddy.boosters.sectionTitle": "ה-Boosters שלי",
+  "buddy.boosters.available": "זמין",
+  "buddy.boosters.usedOnDay": "נוצל ביום {{day}}",
+  "buddy.boosters.unlockAtLevel": "נפתח ברמה {{level}}",
+  "buddy.boosters.giftType.theme_color": "צבע ערכת נושא",
+  "buddy.boosters.giftType.double_buffs": "×2 Buffs",
+  "buddy.boosters.giftType.mood_pack": "מצב רוח",
+  "buddy.boosters.giftType.skip_token": "כרטיס דילוג",
+  "buddy.boosters.giftType.reward_discount": "הנחת פרס",
+  "buddy.boosters.giftType.skin": "מראה חדש"
 }
