@@ -58,3 +58,37 @@ export function isLowPowerActive(snap: VibeSnapshot | null | undefined): boolean
 export function computeLowPowerForLevel(level: VibeLevel): boolean {
   return level <= 2;
 }
+
+/**
+ * Minimal task shape required by trimTasksForLowPower — kept loose so
+ * different Task types in the codebase (with extra fields) can pass.
+ */
+export interface TrimmableTask {
+  id:         string;
+  completed:  boolean;
+  category?:  string;
+}
+
+/**
+ * Trim a task list for Low Power Mode rendering.
+ *
+ * Rule (per SPEC § Scenario E "highest-priority pain-target + 1 self-care"):
+ *   - If everything is already done, show the list as-is (kid's done!).
+ *   - Otherwise: first incomplete task (tasks are already time-sorted by
+ *     useChildData) + first incomplete self-care task (if different).
+ *
+ * Returns at most 2 tasks. Caller should only invoke this when low-power.
+ *
+ * No "priority" field exists on Task today, so "first incomplete" is the
+ * MVP heuristic. If/when a priority field arrives, swap the first picker.
+ */
+export function trimTasksForLowPower<T extends TrimmableTask>(tasks: T[]): T[] {
+  if (tasks.length === 0) return [];
+  const incomplete = tasks.filter(t => !t.completed);
+  if (incomplete.length === 0) return tasks;
+
+  const first         = incomplete[0];
+  const firstSelfCare = incomplete.find(t => t.category === 'self-care' && t.id !== first.id);
+
+  return firstSelfCare ? [first, firstSelfCare] : [first];
+}

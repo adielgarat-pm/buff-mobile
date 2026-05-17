@@ -10,7 +10,9 @@ import {
   getTodayKey,
   isLowPowerActive,
   computeLowPowerForLevel,
+  trimTasksForLowPower,
   type VibeSnapshot,
+  type TrimmableTask,
 } from '../vibeUtils';
 
 describe('getTodayKey', () => {
@@ -91,5 +93,63 @@ describe('isLowPowerActive', () => {
   test('boundary: level=3 + persisted false → false', () => {
     const snap: VibeSnapshot = { ...baseSnap, vibe_level: 3, low_power_mode: false };
     expect(isLowPowerActive(snap)).toBe(false);
+  });
+});
+
+describe('trimTasksForLowPower', () => {
+  const T = (id: string, completed: boolean, category?: string): TrimmableTask =>
+    ({ id, completed, category });
+
+  test('empty list → empty', () => {
+    expect(trimTasksForLowPower([])).toEqual([]);
+  });
+
+  test('all completed → return as-is (kid earned the rest)', () => {
+    const list = [T('1', true), T('2', true)];
+    expect(trimTasksForLowPower(list)).toEqual(list);
+  });
+
+  test('first incomplete only, no self-care → just first', () => {
+    const list = [
+      T('a', false, 'learning'),
+      T('b', false, 'organization'),
+      T('c', false, 'movement'),
+    ];
+    expect(trimTasksForLowPower(list).map(t => t.id)).toEqual(['a']);
+  });
+
+  test('first incomplete + first incomplete self-care → both', () => {
+    const list = [
+      T('a', false, 'learning'),
+      T('b', false, 'self-care'),
+      T('c', false, 'movement'),
+    ];
+    expect(trimTasksForLowPower(list).map(t => t.id)).toEqual(['a', 'b']);
+  });
+
+  test('first incomplete IS self-care → just one (no duplicate)', () => {
+    const list = [
+      T('a', false, 'self-care'),
+      T('b', false, 'self-care'),
+    ];
+    // first is self-care; second self-care is picked as the +1
+    expect(trimTasksForLowPower(list).map(t => t.id)).toEqual(['a', 'b']);
+  });
+
+  test('only one self-care task and it is the first → just one', () => {
+    const list = [
+      T('a', false, 'self-care'),
+      T('b', false, 'learning'),
+    ];
+    expect(trimTasksForLowPower(list).map(t => t.id)).toEqual(['a']);
+  });
+
+  test('completed tasks at the front are skipped', () => {
+    const list = [
+      T('done1', true,  'learning'),
+      T('a',     false, 'organization'),
+      T('b',     false, 'self-care'),
+    ];
+    expect(trimTasksForLowPower(list).map(t => t.id)).toEqual(['a', 'b']);
   });
 });

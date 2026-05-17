@@ -7,7 +7,8 @@
 | **0: Foundation** | ✅ _passed_ | 2026-05-16 | `177d3d6` | Phase 0 has no app-code tests; verification = SPEC + folder structure present | none |
 | **1: `useDailyVibe` data layer** | ✅ _passed_ | 2026-05-16 | `1a887da` | `npm test -- vibeUtils` → 15/15 green; `tsc --noEmit` → clean | none surprising |
 | **2a: VibeCheck UI components + i18n** | ✅ _passed_ | 2026-05-16 | `863c5e0` + (this commit) | `tsc --noEmit` clean; `i18n:check` clean. Visual verified via Claude_Preview DOM inspection in both themes — image screenshot tool kept timing out so DOM dimensions + computed colors used instead. Adi sign-off below. | Adi approved B (install web deps); harness theme-context bug found + fixed |
-| **2b: Wire modal into both dashboards** | ✅ _passed_ | 2026-05-16 | (this commit) | `tsc --noEmit` clean; jest 26/26 (vibeUtils 15 + pauseUtils 11) green | Pending Adi: flip GAP_ANALYSIS S-07 ❌ → 🟡 partial |
+| **2b: Wire modal into both dashboards** | ✅ _passed_ | 2026-05-16 | `28c0994` | `tsc --noEmit` clean; jest 26/26 (vibeUtils 15 + pauseUtils 11) green; live verified Pastel modal on Expo web | Pending Adi: flip GAP_ANALYSIS S-07 ❌ → 🟡 partial |
+| **3: Low Power Mode (filter + SOS + Instant Buff)** | ✅ _passed_ | 2026-05-17 | (this commit) | tsc clean; jest 47/47 (added 7 trim cases); i18n 299 keys clean. Live UI verification blocked by intermittent Expo HMR blank-render; DB row inserted via MCP for visual check on emulator | Pending Adi: flip GAP_ANALYSIS S-07 → ✅ done (now complete in code) |
 | **3: Low Power Mode (filter + SOS + Instant Buff)** | _pending_ | — | — | — | — |
 | **4: Parent SOS notification surface** | _pending_ | — | — | — | — |
 | **5: i18n sweep + regression + spec sync** | _pending_ | — | — | — | — |
@@ -20,7 +21,31 @@
 - `_failed_` — tests failed, rework before continuing
 - `_blocked_` — waiting on external (Adi review, design, etc.)
 
-## Phase 2b deliverables (this commit)
+## Phase 3 deliverables (this commit)
+
+- ✅ `src/contexts/LowPowerContext.tsx` — provider + `useLowPower()` hook. Pure pass-through (no internal hook calls) so the dashboard owns the single `useDailyVibe` subscription and feeds the slice into the provider.
+- ✅ `src/components/LowPowerBanner.tsx` — calm banner per OQ2. Self-conditional.
+- ✅ `src/components/SosButton.tsx` — header pill, confirmation dialog via React Native `Alert.alert`, calls `useLowPower().sendSos()`. Disabled + "Sent" label once `parent_sos_sent` flips. Self-conditional.
+- ✅ `src/components/InstantBuffCard.tsx` — once-per-session card with 1 of 3 rotating self-care prompts. Calls `useLowPower().awardInstantBuff()` → +5 BUFFs to `credit_vault`. Card hides after award (Pillar 1: no coin-grinding loop). Self-conditional.
+- ✅ `src/utils/vibeUtils.ts` extended with `trimTasksForLowPower(tasks)` — heuristic "first incomplete + first incomplete self-care, max 2". 7 new unit tests cover empty/all-done/mixed/duplicate edge cases.
+- ✅ 12 new i18n keys × 2 langs (lowPower.*, sosButton.*, instantBuff.*). i18n parity check clean.
+- ✅ Both dashboards wired:
+  - **Pastel** — SosButton next to streak badge in header; LowPowerBanner above DashboardActiveContent; InstantBuffCard below (only on active branch — not during Pause)
+  - **Gamer** — SosButton in the icon row (before notifications/settings); LowPowerBanner between Focus Fuel and the filter chips; InstantBuffCard after the task list; **task list trimmed** via `trimTasksForLowPower(filteredTasks)` (stat counters keep using full `filteredTasks` so the kid sees real progress)
+- ✅ tsc clean; jest 47/47 green (was 40, +7 trim tests); i18n parity clean (299 static keys).
+- ✅ Palettes:
+  - Pastel: SOS amber (`T.warning #F59E0B`) — warm, not alarming red (Pillar 2); banner soft mint; Instant Buff CTA on `T.primary` light purple
+  - Gamer: SOS orange (`#F97316`) — warm urgency; banner muted violet; Instant Buff CTA on lime (matches dashboard accents)
+- 🟡 **Live UI render blocked by Expo HMR flakiness** — same intermittent blank-after-reload pattern I hit on 2026-05-16. Console shows only pre-existing RevenueCat / `direction` warnings, no new errors from my code. DB row inserted via MCP for child profile `d76a529a-acc3-4240-bc9d-0ffda8f6051b` ("Test", family `37d6a2bd...`) on 2026-05-17 — visible on emulator next time anyone logs in as that child.
+- 🟡 **Pending Adi (Android emulator):**
+  - Reload the dashboard as "Test" child today — expect: amber SOS pill in header (top-right), "היום יום של אנרגיה נמוכה. אנחנו איתך." banner, "רגע קטן" card with one of 3 prompts + lime/purple CTA
+  - Gamer theme: expect the task list trimmed to 1-2 items + everything above
+  - Tap SOS → confirmation alert ("להודיע להורה?") → confirm → row's `parent_sos_sent` flips to true (verify via MCP), button becomes "נשלח"
+  - Tap Instant Buff CTA → +5 BUFFs visible in total balance, card disappears
+  - Toggle Pause Mode → no Low Power UI (Pause wins)
+- 🟡 **Pending Adi (docs):** flip [BUFF_GAP_ANALYSIS.md](../../BUFF_GAP_ANALYSIS.md) S-07 `❌ NOT EXISTS` → `✅` (was supposed to be 🟡 at Phase 2 → now ✅ at Phase 3 per SPEC_SYNC matrix; if you haven't flipped to 🟡 yet, jump straight to ✅).
+
+## Phase 2b deliverables (commit `28c0994`)
 
 - ✅ `src/hooks/useVibeDismiss.ts` — local-device dismiss flag, AsyncStorage keyed `vibeCheck.dismissed.{childId}.{YYYY-MM-DD}`. Storage failure handling: optimistic update, no rollback (worst case: re-prompt next day, identical to never-dismissed).
 - ✅ `src/screens/child/ChildDashboardScreen.tsx` (Pastel branch) — added `useDailyVibe` + `useVibeDismiss` + `shouldPromptVibe` gate + `<VibeCheckScreen>` mounted at top of return.
