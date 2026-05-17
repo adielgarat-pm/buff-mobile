@@ -5,7 +5,7 @@
  *
  * Real data from Supabase via useChildData.
  */
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -23,6 +23,10 @@ import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import VibeCheckScreen from './VibeCheckScreen';
 import GamerDashboardScreen from './GamerDashboardScreen';
+import LowPowerBanner from '../../components/LowPowerBanner';
+import SosButton from '../../components/SosButton';
+import InstantBuffCard from '../../components/InstantBuffCard';
+import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -56,7 +60,8 @@ function PastelChildDashboard() {
   // Daily Vibe Check — once per day, gated by Pause (Pause wins per SPEC
   // Scenario C). Skipped entirely during parent preview to avoid corrupting
   // the kid's data with parent taps.
-  const { hasVibedToday, recordVibe, loading: vibeLoading } = useDailyVibe(childId);
+  const vibe = useDailyVibe(childId);
+  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
   const shouldPromptVibe =
     !vibeLoading &&
@@ -66,6 +71,27 @@ function PastelChildDashboard() {
     !hasVibedToday &&
     !vibeDismissedToday &&
     !isChildPreview;
+
+  // Low Power Mode value (consumed by SosButton / InstantBuffCard /
+  // LowPowerBanner via context to avoid each component spinning up its
+  // own realtime subscription).
+  const lowPowerValue: LowPowerContextValue = useMemo(() => ({
+    isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff,
+  }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff]);
+
+  // Theme-scoped palettes for the LP components — Pastel mint.
+  const pastelLPPalettes = useMemo(() => ({
+    banner: { bg: T.muted, border: T.border, text: T.foreground },
+    sos: {
+      bg: T.warning, bgSent: T.muted, border: T.border,
+      text: '#FFFFFF', textSent: T.mutedForeground,
+    },
+    instantBuff: {
+      bg: T.card, border: T.border,
+      title: T.mutedForeground, prompt: T.foreground,
+      ctaBg: T.primary, ctaText: T.primaryForeground, ctaShadow: T.shadow,
+    },
+  }), [T]);
 
   const [justCompletedTask, setJustCompletedTask] = useState(false);
 
@@ -86,7 +112,7 @@ function PastelChildDashboard() {
   }
 
   return (
-    <>
+    <LowPowerProvider value={lowPowerValue}>
       <VibeCheckScreen
         visible={shouldPromptVibe}
         onSelect={(level, type) => { void recordVibe(level, type); }}
@@ -115,9 +141,12 @@ function PastelChildDashboard() {
             {isChildPreview ? 'Preview' : (profile?.display_name ?? 'Hero')} ⚡
           </Text>
         </View>
-        <View style={[styles.streakBadge, { backgroundColor: T.muted, borderColor: T.border }]}>
-          <Text style={styles.streakEmoji}>🔥</Text>
-          <Text style={[styles.streakCount, { color: T.streak }]}>{streak}</Text>
+        <View style={styles.headerRight}>
+          <SosButton palette={pastelLPPalettes.sos} />
+          <View style={[styles.streakBadge, { backgroundColor: T.muted, borderColor: T.border }]}>
+            <Text style={styles.streakEmoji}>🔥</Text>
+            <Text style={[styles.streakCount, { color: T.streak }]}>{streak}</Text>
+          </View>
         </View>
       </View>
 
@@ -136,6 +165,7 @@ function PastelChildDashboard() {
         </>
       ) : (
         <>
+          <LowPowerBanner palette={pastelLPPalettes.banner} />
           <DashboardActiveContent
             T={T}
             t={t}
@@ -152,11 +182,12 @@ function PastelChildDashboard() {
             totalBalance={totalBalance}
             navigation={navigation}
           />
+          <InstantBuffCard palette={pastelLPPalettes.instantBuff} />
           <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
         </>
       )}
       </ScrollView>
-    </>
+    </LowPowerProvider>
   );
 }
 
@@ -277,6 +308,7 @@ const styles = StyleSheet.create({
   previewBanner: { borderRadius: 10, padding: 10, marginBottom: 16, alignItems: 'center' },
   previewText:   { fontSize: 13, fontWeight: '600' },
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+  headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
   greeting:      { fontSize: 14 },
   name:          { fontSize: 26, fontWeight: '900' },
   streakBadge:   { flexDirection: 'row', alignItems: 'center', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, gap: 4 },
