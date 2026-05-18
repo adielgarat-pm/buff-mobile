@@ -241,6 +241,8 @@
   "vibeCheck.a11y.level3": "בסדר",
   "vibeCheck.a11y.level4": "אנרגיה טובה",
   "vibeCheck.a11y.level5": "אנרגיה גבוהה",
+  "parentNotifications.sosInline.text": "{{name}} רצה/רצתה לשתף — יום של אנרגיה נמוכה",
+  "parentNotifications.sosInline.a11y": "{{name}} שלח/ה אות של אנרגיה נמוכה היום",
   "gamerDashboard.greetingPrefix": "היי,",
   "gamerDashboard.previewBanner": "תצוגת הורה",
   "gamerDashboard.successfulDays": "ימים מוצלחים",

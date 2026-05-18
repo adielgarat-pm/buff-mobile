@@ -241,6 +241,8 @@
   "vibeCheck.a11y.level3": "Okay",
   "vibeCheck.a11y.level4": "Good energy",
   "vibeCheck.a11y.level5": "High energy",
+  "parentNotifications.sosInline.text": "{{name}} wanted to share — low energy today",
+  "parentNotifications.sosInline.a11y": "{{name}} sent a low-energy signal today",
   "gamerDashboard.greetingPrefix": "Hey,",
   "gamerDashboard.previewBanner": "Parent Preview",
   "gamerDashboard.successfulDays": "Successful days",

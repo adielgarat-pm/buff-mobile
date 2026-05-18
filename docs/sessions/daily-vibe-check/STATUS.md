@@ -10,7 +10,7 @@
 | **2b: Wire modal into both dashboards** | ✅ _passed_ | 2026-05-16 | `28c0994` | `tsc --noEmit` clean; jest 26/26 (vibeUtils 15 + pauseUtils 11) green; live verified Pastel modal on Expo web | Pending Adi: flip GAP_ANALYSIS S-07 ❌ → 🟡 partial |
 | **3: Low Power Mode (filter + SOS + Instant Buff)** | ✅ _passed_ | 2026-05-17 | `fa4d0c8` (cherry-picked onto fresh branch off main) | tsc clean; jest 79/79 green; i18n clean. Live UI verification blocked by intermittent Expo HMR blank-render; DB row inserted via MCP for visual check on emulator | Pending Adi: flip GAP_ANALYSIS S-07 → ✅ done (now complete in code) |
 | **4a: DB trigger for parent_sos notifications** | ✅ _passed_ | 2026-05-17 | (this commit) | Live trigger test on synthetic data in KWYEL5: 1 INSERT on false→true ✅; no-op UPDATE no dup ✅; true→false→true re-flip no dup (NOT EXISTS guard) ✅. Cleanup verified (0 leftover rows). | none surprising |
-| **4b: Parent dashboard banner + child card badge + i18n** | _pending_ | — | — | — | — |
+| **4b: Parent dashboard child card SOS surface + i18n** | ✅ _passed_ | 2026-05-17 | (this commit) | tsc clean; jest 79/79 green; i18n 313 static keys clean (was 299; +4 new). Banner dropped after research review — option A: inline text + soft amber dot per child card, no manual mark-as-read, auto-clear at midnight. | Spec drift: original SPEC said banner + auto-mark-on-tap; both removed per UX research. To be reflected in Phase 5 spec sync. |
 | **5: i18n sweep + regression + spec sync + PR** | _pending_ | — | — | — | — |
 
 ## Legend
@@ -21,7 +21,26 @@
 - `_failed_` — tests failed, rework before continuing
 - `_blocked_` — waiting on external (Adi review, design, etc.)
 
-## Phase 3 deliverables (this commit)
+## Phase 4b deliverables (this commit)
+
+- ✅ `src/hooks/useParentNotifications.ts` — fetches today's `parent_sos` rows for the family + realtime subscribes. Returns `Map<child_id, ParentSosNotification>` for O(1) per-card lookup. No mutation actions (no `markAsRead` in v1 — locked option A).
+- ✅ `src/screens/parent/ParentDashboardScreen.tsx` — wires `useParentNotifications()` into child card render. New `childNameRow` flex container with soft amber dot (8px, `#F59E0B` matching kid-side SOS button — Pillar 2 visual consistency). New `sosInline` italic muted-text row between header and progress bar.
+- ✅ 2 new i18n keys × 2 langs:
+  - EN: "{{name}} wanted to share — low energy today" (declarative + connection-not-rescue per research 2026-05-17)
+  - HE: "{{name}} רצה/רצתה לשתף — יום של אנרגיה נמוכה" (gender-slash form)
+  - Plus a11y label for screen readers
+- ✅ tsc clean; jest 79/79; i18n 313 static keys clean (was 299).
+- 🟡 **Design changes from original SPEC (Phase 5 spec sync will reconcile):**
+  - SPEC said "vibe_sos" type → reality is `parent_sos` (Lovable convention, 1 historical row)
+  - SPEC said copy "[Kid] needs a moment" → reality is "{{name}} wanted to share — low energy today" (Adi-approved 2026-05-17 after research)
+  - SPEC suggested a banner + manual or auto mark-as-read → reality is inline-only, no mark-as-read action (Adi-approved option A 2026-05-17)
+- 🟡 **Pending Adi (Android emulator):**
+  - Open parent dashboard with no SOS today → child cards render as today
+  - Insert a `child_vibes` row + flip `parent_sos_sent=true` via MCP → expect inline text + amber dot to appear on the matching child's card within ~1 sec (realtime)
+  - Reload + tap card → text + dot remain (no mark-as-read fires); navigation to child detail still works
+  - Midnight rollover: cards return to clean state next day
+
+## Phase 3 deliverables (commit `fa4d0c8`)
 
 - ✅ `src/contexts/LowPowerContext.tsx` — provider + `useLowPower()` hook. Pure pass-through (no internal hook calls) so the dashboard owns the single `useDailyVibe` subscription and feeds the slice into the provider.
 - ✅ `src/components/LowPowerBanner.tsx` — calm banner per OQ2. Self-conditional.
