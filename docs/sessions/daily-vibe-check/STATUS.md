@@ -11,7 +11,7 @@
 | **3: Low Power Mode (filter + SOS + Instant Buff)** | ✅ _passed_ | 2026-05-17 | `fa4d0c8` (cherry-picked onto fresh branch off main) | tsc clean; jest 79/79 green; i18n clean. Live UI verification blocked by intermittent Expo HMR blank-render; DB row inserted via MCP for visual check on emulator | Pending Adi: flip GAP_ANALYSIS S-07 → ✅ done (now complete in code) |
 | **4a: DB trigger for parent_sos notifications** | ✅ _passed_ | 2026-05-17 | (this commit) | Live trigger test on synthetic data in KWYEL5: 1 INSERT on false→true ✅; no-op UPDATE no dup ✅; true→false→true re-flip no dup (NOT EXISTS guard) ✅. Cleanup verified (0 leftover rows). | none surprising |
 | **4b: Parent dashboard child card SOS surface + i18n** | ✅ _passed_ | 2026-05-17 | (this commit) | tsc clean; jest 79/79 green; i18n 313 static keys clean (was 299; +4 new). Banner dropped after research review — option A: inline text + soft amber dot per child card, no manual mark-as-read, auto-clear at midnight. | Spec drift: original SPEC said banner + auto-mark-on-tap; both removed per UX research. To be reflected in Phase 5 spec sync. |
-| **5: i18n sweep + regression + spec sync + PR** | _pending_ | — | — | — | — |
+| **5: closeout (spec sync + INTEGRATION_LEARNINGS + push)** | ✅ _passed_ | 2026-05-17 | (this commit) | tsc clean; jest 79/79; i18n 313 static keys clean. SPEC.md updated with EX-1..EX-5 (refinements during execution). INTEGRATION_LEARNINGS gained 3 new entries (declarative-copy convention, PRD §7.1 drift, 3-package sequencing). Branch pushed to origin. PR awaiting Adi. | IN-2026-05-17-01 (convention), -02 (PRD drift), -03 (sequencing) |
 
 ## Legend
 
@@ -116,6 +116,33 @@
 - ✅ Decisions locked for NEW-1, NEW-2, OQ1-7 — CC defaults applied; Adi may override at any phase plan review
 - ✅ PRD ↔ GAP conflict surfaced (PRD §7.1 line 215 says "fully implemented", code shows zero impl) — slated for Spec Sync at Phase 5
 - ❌ No `src/` code touched (per phase contract)
+
+## Phase 5 deliverables (this commit)
+
+- ✅ `SPEC.md` updated — § Decisions Locked annotated with "(LATER REFINED 2026-05-17, see EX-1 below)" on OQ4; new § "Decisions added during execution (2026-05-17)" with rows EX-1 through EX-5 capturing every divergence from the original SPEC (parent_sos type, declarative copy, no banner, no mark-as-read, no kid-side indicator, 3-package sequencing).
+- ✅ `docs/INTEGRATION_LEARNINGS.md` — 3 new entries:
+  - **IN-2026-05-17-01** (resolved): declarative notification copy convention — ongoing convention for all future parent-facing notification copy
+  - **IN-2026-05-17-02** (open, Adi-pending): PRD §7.1 line 215 spec drift — "Already fully implemented" claim was false; needs Adi edit
+  - **IN-2026-05-17-03** (open, Adi-pending): 3-package sequencing for the parent notification surface — proposes scaffolding `pkg/fcm-push-notifications` (already in CLAUDE.md FLAGs) + new `pkg/parent-notification-feed`
+- ✅ Branch pushed to origin: `pkg/daily-vibe-check-low-power` (5 commits ahead of main)
+- ✅ PR URL: https://github.com/adielgarat-pm/buff-mobile/pull/new/pkg/daily-vibe-check-low-power
+
+## Adi-pending docs edits (CC does not touch unilaterally)
+
+| File | Edit | Reference |
+|---|---|---|
+| `docs/BUFF_PRD.md` §7.1 line 215 | Remove or replace "Already fully implemented in current codebase" — Vibe Check now shipped in mobile via this package | Decision NEW-1, IN-2026-05-17-02 |
+| `docs/BUFF_GAP_ANALYSIS.md` S-07 row | Flip `❌ NOT EXISTS` → `✅` (Vibe Check + Low Power Mode + Parent SOS surface all shipped in mobile) | SPEC_SYNC matrix Phase 5 |
+| `CLAUDE.md` § Open FLAGs | (1) Mark `pkg/daily-vibe-check` as resolved/shipped. (2) Add `pkg/parent-notification-feed` as proposed MVP package. (3) FCM FLAG (`pkg/fcm-push-notifications`) already there — no change needed. | IN-2026-05-17-03 |
+
+## Adi-pending manual verification on Android emulator (regression flow #9)
+
+1. Open the parent dashboard with no SOS today → child cards render as before (no regression)
+2. Trigger an SOS as a child user → within ~1 sec the matching child card on parent dashboard shows an amber dot + the inline "wanted to share" text (realtime subscribe firing)
+3. Tap the child card → navigation to child detail works; SOS markers REMAIN on the dashboard (no mark-as-read fires by design)
+4. Midnight rolls over → next day, SOS markers gone (today-only filter rotates)
+5. Open dashboard with both kids having SOS → both child cards have the marker independently
+6. Pause Mode toggle → Vibe Check still skipped per Phase 2b (pause wins)
 
 ## Closeout (post-Phase-5)
 
