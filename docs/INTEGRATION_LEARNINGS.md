@@ -305,6 +305,38 @@
 
 ---
 
+### F-2026-05-18-01: Empty Dashboard for newly-joined child (no tasks → cold-start moment lost)
+
+- **תאריך:** 2026-05-18
+- **מקור:** Adi — observed during web session-persistence diagnostic session (`claude/cranky-lederberg-6716ef` worktree, 2026-05-18). Diagnostic itself concluded NO code change needed for persistence (works tested in CC env via Claude_Preview headless Chromium: signup → reload → server stop/start → session restored every time). Empty-Dashboard observation surfaced incidentally while reviewing what a new child sees post-join.
+- **תיאור:** Current flow for a child joining via `ChildJoinScreen` (name + family_code → `signUp` → ChildTabs):
+  1. `signUp` succeeds, profile inserted with `family_id` set
+  2. `RootNavigator` routes to `ChildTabs` → default tab `ChildDashboard`
+  3. `useChildData` fetches tasks — returns **0 rows** for a brand-new child (no parent has assigned anything yet)
+  4. Dashboard renders empty / near-empty state — no missions, no BUFFs, nothing to do
+- **השפעה (PRD-relevant):** First-touch moment for the child is the critical engagement window for an ADHD kid. An empty Dashboard risks:
+  - Confusion ("מה לעשות פה?")
+  - Disengagement before parent has chance to set up
+  - Negative emotional tone against `BUFF_VALUES.md` Pillar 2 (Positive Coaching)
+- **Values Check tension (preview only — full check at SPEC time):**
+  - **Pillar 1 (Intrinsic Motivation):** ⚠️ Default/starter tasks risk feeling imposed-not-chosen → fails Q1 ("would the child want this without virtual reward?")
+  - **Pillar 2 (Positive Coaching):** ⚠️ Empty state could read as "nothing for me here" → may fail Q1 ("does the wording belittle / present as failure?")
+  - **Pillar 3 (Independence-Building):** ⚠️ Starter tasks short-circuit the parent-child conversation about goals → undermines independence-by-design
+- **המלצת ביניים (לא החלטה — מצריך session ייעודי):** ייתכן שהתשובה היא **לא משימות דיפולטיביות**, אלא **welcome screen חד-פעמי** עבור child בלי tasks:
+  - "היי {שם}! ההורה שלך יכין לך משימות. בינתיים — תכיר את ה-BUDDY שלך 🐶"
+  - לא ריק, לא דיפולטי, לא מציע tasks שהילד לא בחר
+  - מהווה bridge עד שההורה משלים setup, ומפנה את הילד ל-engagement עם BUDDY (שכבר עומד ב-Values)
+  - **Adi liked this direction (2026-05-18) — recorded as starting hypothesis, not commitment.**
+- **סטטוס:** `open` — מועמד ל-package ייעודי. דורש:
+  1. Session design עם Adi + Claude.ai
+  2. Values Check מלא (9 שאלות) ב-SPEC.md
+  3. Itay opinion (Teen UI co-creator) על העברית והטון
+  4. החלטה אם זה חלק מ-package רחב יותר של "child first-touch experience" או focused
+- **שמות מוצעים ל-package:** `pkg/child-first-experience` או `pkg/child-empty-state-welcome` או `pkg/onboarding-handoff`
+- **קשור ל:** BUFF_VALUES.md (3 pillars), BUFF_PRD.md §2.2 (shared-device constraint — 65% של ילדים משתפים מכשיר עם הורה ולא בודקים תיכף), BUFF_BUDDY_SYSTEM.md (BUDDY כ-bridge engagement)
+
+---
+
 ## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-14-02 (RESOLVED 2026-05-14): Extract Lovable reviews → BUFF_TESTIMONIALS
