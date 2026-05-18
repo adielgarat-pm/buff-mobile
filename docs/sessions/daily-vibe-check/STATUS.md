@@ -8,10 +8,10 @@
 | **1: `useDailyVibe` data layer** | ✅ _passed_ | 2026-05-16 | `1a887da` | `npm test -- vibeUtils` → 15/15 green; `tsc --noEmit` → clean | none surprising |
 | **2a: VibeCheck UI components + i18n** | ✅ _passed_ | 2026-05-16 | `863c5e0` + (this commit) | `tsc --noEmit` clean; `i18n:check` clean. Visual verified via Claude_Preview DOM inspection in both themes — image screenshot tool kept timing out so DOM dimensions + computed colors used instead. Adi sign-off below. | Adi approved B (install web deps); harness theme-context bug found + fixed |
 | **2b: Wire modal into both dashboards** | ✅ _passed_ | 2026-05-16 | `28c0994` | `tsc --noEmit` clean; jest 26/26 (vibeUtils 15 + pauseUtils 11) green; live verified Pastel modal on Expo web | Pending Adi: flip GAP_ANALYSIS S-07 ❌ → 🟡 partial |
-| **3: Low Power Mode (filter + SOS + Instant Buff)** | ✅ _passed_ | 2026-05-17 | (this commit) | tsc clean; jest 47/47 (added 7 trim cases); i18n 299 keys clean. Live UI verification blocked by intermittent Expo HMR blank-render; DB row inserted via MCP for visual check on emulator | Pending Adi: flip GAP_ANALYSIS S-07 → ✅ done (now complete in code) |
-| **3: Low Power Mode (filter + SOS + Instant Buff)** | _pending_ | — | — | — | — |
-| **4: Parent SOS notification surface** | _pending_ | — | — | — | — |
-| **5: i18n sweep + regression + spec sync** | _pending_ | — | — | — | — |
+| **3: Low Power Mode (filter + SOS + Instant Buff)** | ✅ _passed_ | 2026-05-17 | `fa4d0c8` (cherry-picked onto fresh branch off main) | tsc clean; jest 79/79 green; i18n clean. Live UI verification blocked by intermittent Expo HMR blank-render; DB row inserted via MCP for visual check on emulator | Pending Adi: flip GAP_ANALYSIS S-07 → ✅ done (now complete in code) |
+| **4a: DB trigger for parent_sos notifications** | ✅ _passed_ | 2026-05-17 | (this commit) | Live trigger test on synthetic data in KWYEL5: 1 INSERT on false→true ✅; no-op UPDATE no dup ✅; true→false→true re-flip no dup (NOT EXISTS guard) ✅. Cleanup verified (0 leftover rows). | none surprising |
+| **4b: Parent dashboard banner + child card badge + i18n** | _pending_ | — | — | — | — |
+| **5: i18n sweep + regression + spec sync + PR** | _pending_ | — | — | — | — |
 
 ## Legend
 
