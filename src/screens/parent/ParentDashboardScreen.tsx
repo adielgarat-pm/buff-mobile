@@ -26,6 +26,7 @@ import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
+import { useParentNotifications } from '../../hooks/useParentNotifications';
 import LinkChildModal from '../../components/LinkChildModal';
 import PauseBanner from '../../components/PauseBanner';
 import { supabase } from '../../integrations/supabase/client';
@@ -43,6 +44,10 @@ export default function ParentDashboardScreen() {
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
   const { isSubscribed }                   = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
+  // Today's parent_sos signals per child — surfaces an inline message +
+  // soft dot on the child's card. Auto-clears at midnight (filter is
+  // today-only); no manual mark-as-read in v1.
+  const { getSosForChild }                 = useParentNotifications();
   const [linkTarget, setLinkTarget]        = useState<typeof unlinked[0] | null>(null);
   const autoLinkedRef                      = useRef(false);
 
@@ -284,12 +289,24 @@ export default function ParentDashboardScreen() {
         children.map(child => {
           const pct    = child.tasksTotal > 0 ? Math.round((child.tasksCompleted / child.tasksTotal) * 100) : 0;
           const atGoal = pct >= 70;
+          const sos    = getSosForChild(child.childId);
           return (
             <View key={child.childId} style={[styles.childCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
               <View style={styles.childHeader}>
                 <Text style={styles.childAvatar}>{child.avatar}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.childName, { color: T.text }]}>{child.displayName}</Text>
+                  <View style={styles.childNameRow}>
+                    <Text style={[styles.childName, { color: T.text }]}>{child.displayName}</Text>
+                    {/* Soft SOS dot — Pillar 2: warm amber (matches kid-side
+                        SOS button T.warning #F59E0B), not alarming red.
+                        Persists until midnight. */}
+                    {sos && (
+                      <View
+                        style={styles.sosDot}
+                        accessibilityLabel={t('parentNotifications.sosInline.a11y', { name: child.displayName })}
+                      />
+                    )}
+                  </View>
                   <Text style={[styles.childSub, { color: T.textMuted }]}>
                     {child.tasksCompleted}/{child.tasksTotal} {t('overview.tasks')} · ⚡ {child.totalBalance.toLocaleString()} {t('parentSettings.buffPoints')}
                   </Text>
@@ -300,6 +317,14 @@ export default function ParentDashboardScreen() {
                   </Text>
                 </View>
               </View>
+
+              {/* SOS inline message — sits between header and progress bar.
+                  No tap-to-dismiss in v1 (Adi-locked); rolls off at midnight. */}
+              {sos && (
+                <Text style={[styles.sosInline, { color: T.textMuted }]}>
+                  {t('parentNotifications.sosInline.text', { name: child.displayName })}
+                </Text>
+              )}
 
               {/* Progress bar */}
               <View style={[styles.barTrack, { backgroundColor: T.cardBorder }]}>
@@ -492,7 +517,10 @@ const styles = StyleSheet.create({
   childCard:    { borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1 },
   childHeader:  { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   childAvatar:  { fontSize: 30, marginRight: 12 },
-  childName:    { fontSize: 17, fontWeight: '700', marginBottom: 2 },
+  childNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
+  childName:    { fontSize: 17, fontWeight: '700' },
+  sosDot:       { width: 8, height: 8, borderRadius: 4, backgroundColor: '#F59E0B' },
+  sosInline:    { fontSize: 13, fontWeight: '500', fontStyle: 'italic', marginTop: 4, marginBottom: 8 },
   childSub:     { fontSize: 13 },
   badge:        { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   barTrack:     { height: 6, borderRadius: 3, marginBottom: 4, overflow: 'hidden' },

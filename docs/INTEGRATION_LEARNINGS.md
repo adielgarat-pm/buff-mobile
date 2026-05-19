@@ -113,6 +113,35 @@
 
 ---
 
+### IN-2026-05-17-01: Declarative notification copy convention (research-backed)
+
+- **תאריך:** 2026-05-17
+- **מקור:** CC + Adi — pkg/daily-vibe-check Phase 4 design review
+- **תיאור:** During Phase 4 of pkg/daily-vibe-check, Adi pushed back on the original SPEC's copy ("[Kid] needs a moment") as too directive — implies rescuer mode. WebSearch surfaced a clear pattern from ADHD therapist sources (CHADD, ADDitude, Childhood Collective, NN/G, Toptal, PatternFly): **declarative "I noticed" framing** beats directive language for parent-child communication. Lands as a convention for ALL future parent-facing notification copies — not just SOS. Specifically: (a) frame around the kid's agency ("wanted to share / sent a signal"), (b) describe state observationally ("low energy day"), (c) avoid action verbs that put parent in rescuer mode ("needs / requires / urgent"), (d) preserve privacy — never expose the underlying score/data.
+- **השפעה:** All future notification copy in `pkg/fcm-push-notifications`, `pkg/parent-notification-feed`, and any new parent-facing alerts. The Phase 4 copy in pkg/daily-vibe-check is the reference implementation (EN + HE). Future packages should reference this entry.
+- **סטטוס:** `resolved` (locked as ongoing convention; not a problem to track)
+- **קשור ל:** pkg/daily-vibe-check SPEC § Decisions EX-1, future pkg/fcm-push-notifications
+
+### IN-2026-05-17-02: PRD §7.1 line 215 spec drift — Vibe Check falsely claimed "fully implemented"
+
+- **תאריך:** 2026-05-17 (discovered 2026-05-16 in pkg/daily-vibe-check Phase 0)
+- **מקור:** CC — Phase 0 spec verification of pkg/daily-vibe-check
+- **תיאור:** BUFF_PRD.md §7.1 line 215 reads: *"Daily Vibe Check ... Already fully implemented in current codebase."* `grep` of `src/` for any vibe/SOS identifiers returned 0 matches before Phase 1 of this package. The claim was carried over from Lovable web, where Vibe Check WAS implemented; mobile codebase never had it. Now corrected by pkg/daily-vibe-check Phases 1-4. PRD line is stale.
+- **השפעה:** PRD §7.1 line 215 needs editing to either remove the claim or replace with current state (Vibe Check shipped in mobile via pkg/daily-vibe-check beta-2026-06-01). CC does NOT touch PRD unilaterally per CLAUDE.md; Adi to apply.
+- **סטטוס:** `open` (pending Adi PRD edit)
+- **קשור ל:** pkg/daily-vibe-check, Decision NEW-1 in pkg SPEC, BUFF_GAP_ANALYSIS.md S-07
+
+### IN-2026-05-17-03: 3-package sequencing for the parent notification surface
+
+- **תאריך:** 2026-05-17
+- **מקור:** Adi — Phase 4 design discussion in pkg/daily-vibe-check
+- **תיאור:** During Phase 4 of pkg/daily-vibe-check, Adi raised two MVP-critical scope items that I had under-scoped: (1) **FCM push notifications** are MVP, not Phase 2 — Lovable churn root cause was parents/kids not knowing to return to the app, so push is essential. (2) **Bell icon + notification feed in parent UI** — Lovable parity gap; the mobile app today doesn't surface ANY of the 396 historical notifications. Both became sibling packages: `pkg/fcm-push-notifications` (already in CLAUDE.md FLAGs, MVP-critical S-01) and `pkg/parent-notification-feed` (new, MVP, Lovable parity). Both will read from the same `public.notifications` table that pkg/daily-vibe-check Phase 4a established as the source of truth. No rework when they land. Sequencing for beta-2026-06-01: (1) Vibe Check (this pkg, in progress); (2) FCM push; (3) bell + feed. All independent; FCM doesn't block bell+feed.
+- **השפעה:** Two new packages need session folders + SPECs (CC may scaffold on Adi's signal). CLAUDE.md FLAGs needs updating to mark `pkg/parent-notification-feed` as proposed MVP (Adi to apply — CC does not touch CLAUDE.md unilaterally).
+- **סטטוס:** `open` (pending: scaffold the 2 packages; update CLAUDE.md FLAGs)
+- **קשור ל:** pkg/daily-vibe-check Phase 4, future `pkg/fcm-push-notifications` + `pkg/parent-notification-feed`
+
+---
+
 ## FLAGs פתוחים
 
 ### F-2026-05-03-01: Onboarding fixes שעדיין לא ב-GAP_ANALYSIS

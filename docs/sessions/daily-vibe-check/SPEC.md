@@ -174,7 +174,7 @@ What happens if kid taps outside the modal or hits back without selecting?
 
 Parent gets: "[Kid name] is having a tough morning" — does the parent know it was triggered by Vibe Check, or kept abstract?
 
-- **(a)** Abstract: "[Kid] needs a moment" — doesn't reveal the mechanic, lets parent investigate
+- **(a)** Abstract: "[Kid] needs a moment" — doesn't reveal the mechanic, lets parent investigate. **(LATER REFINED 2026-05-17, see EX-1 below: replaced by declarative "wanted to share — low energy today" after research review.)**
 - **(b)** Specific: "[Kid] rated their morning a 1/5 and pressed SOS" — informative
 - **(c)** Per parent preference setting
 
@@ -317,12 +317,22 @@ These supersede the "Open Questions for Adi" section above. Open Questions remai
 | **OQ1** | "Today" = `date` text column, computed via existing `getTodayKey()` = UTC `YYYY-MM-DD`. | Matches existing `daily_progress.date` convention. No timezone math. DST edge once a year is acceptable. (Existing UTC convention logged as a follow-up risk in INTEGRATION_LEARNINGS, but not fixed in this package.) |
 | **OQ2** | Low Power Mode: same UI + fewer tasks + calm banner "Today's a low-power day. We've got you." | No saturation/style downgrade — avoids shame-by-design ("broken" look). Banner explicitly acknowledges. |
 | **OQ3** | Dismiss-without-rating: no row, no re-prompt today, normal flow proceeds. | Pillar 3 (Independence-Building) — kid has voice, including the voice to skip. |
-| **OQ4** | SOS parent copy: abstract — "[Kid] needs a moment" (i18n keyed). | Preserves kid emotional privacy. Parent investigates with the kid directly. |
+| **OQ4** | SOS parent copy: declarative + connection-not-rescue — *"{{name}} wanted to share — low energy today"* (i18n keyed). HE: *"{{name}} רצה/רצתה לשתף — יום של אנרגיה נמוכה"*. **Refined 2026-05-17** after ADHD therapist research (declarative "I noticed" framing > directive; connection-not-rescue). Original *"[Kid] needs a moment"* dropped — too directive, pushed parent into rescuer mode. | Preserves kid emotional privacy + agency (kid CHOSE to share). Parent absorbs info, doesn't get scripted into action. |
 | **OQ5** | Instant Buff: 3 rotating cards. EN: "Drink water 🚰" / "5 deep breaths 🌬️" / "Stretch 30 sec 🤸". HE equivalents. +5 BUFFs to `credit_vault.total_balance`. | Concrete, doable, kid-friendly. More variety = Phase 2 polish. |
 | **OQ6** | Pastel: system emoji — 😴 😔 😐 🙂 ⚡. | Ships fastest, RTL-safe, scales with device. Custom illustration set = post-MVP. |
 | **OQ7** | Gamer: 5 horizontal discrete bars, single-tap selection, lime fill. | Discrete > slider for kid touch accuracy. |
 
 **If Adi disagrees with any default during a phase plan review, the SPEC row gets updated in the same commit that implements the alternative — no silent drift.**
+
+### Decisions added during execution (2026-05-17)
+
+| ID | Decision | Rationale |
+|---|---|---|
+| **EX-1** | DB type name is `parent_sos` (not `vibe_sos` as originally written above). | Lovable already used `parent_sos` in production (1 row from 2026-03-20). Cross-platform consistency wins over local SPEC text. |
+| **EX-2** | Parent SOS surface is **inline-only on the child card** (soft amber dot + italic muted-text row). NO global banner. | Pillar 2 — a banner is alarm-design; event volume is ~1-3 per family per month; banner would mis-frame BUFF as a "watch for distress" tool. |
+| **EX-3** | NO mark-as-read action in v1 (option A). The text + dot persist until midnight via the `created_at::date = today` filter. | UX research (PatternFly, NN/G, Toptal): auto-mark on tap is anti-pattern; manual mark-as-read adds friction without clear value at this volume. |
+| **EX-4** | NO child-side SOS indicator beyond the existing button "Sent" label (already in Phase 3). | Pillar 3 — kid expresses, doesn't surveil parent's response. Read-receipt loop would create unhealthy dependency. |
+| **EX-5** | Push notifications scoped to a **separate parallel MVP package** `pkg/fcm-push-notifications`. Same `notifications` table is the trigger source — no rework. | FCM requires native build + signing + certs; not the right scope for this package. Also enables `pkg/parent-notification-feed` (bell + generic feed) without coupling. |
 
 ---
 
