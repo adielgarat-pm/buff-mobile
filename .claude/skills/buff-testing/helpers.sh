@@ -51,11 +51,36 @@ buff_focus() {
 # --- screenshot + UI dump -----------------------------------------------------
 
 # Take a screenshot to $TMP_DIR/<name>.png — defaults to timestamp
+# Native 1080x2400. Use buff_screenshot_small for downsized version friendlier to image-API limits.
 buff_screenshot() {
   local name="${1:-$(date +%s)}"
   MSYS_NO_PATHCONV=1 "$ADB" shell "screencap -p /sdcard/_s.png" > /dev/null
   MSYS_NO_PATHCONV=1 "$ADB" pull /sdcard/_s.png "$TMP_DIR/$name.png" > /dev/null
   echo "$TMP_DIR/$name.png"
+}
+
+# Take a screenshot and resize to 540px wide (preserves aspect ratio).
+# Cuts file size ~4x — required when feeding back to Claude (~1568px long-edge cap is comfy; 1200 is safer).
+# Default name = timestamp + "-small" suffix.
+buff_screenshot_small() {
+  local name="${1:-$(date +%s)}"
+  local full="$TMP_DIR/$name.png"
+  MSYS_NO_PATHCONV=1 "$ADB" shell "screencap -p /sdcard/_s.png" > /dev/null
+  MSYS_NO_PATHCONV=1 "$ADB" pull /sdcard/_s.png "$full" > /dev/null
+  local small="$TMP_DIR/${name}-small.png"
+  powershell -NoProfile -Command "
+    Add-Type -AssemblyName System.Drawing
+    \$src = [System.Drawing.Image]::FromFile('$full')
+    \$w = 540
+    \$h = [int](\$src.Height * 540 / \$src.Width)
+    \$bmp = New-Object System.Drawing.Bitmap \$w, \$h
+    \$g = [System.Drawing.Graphics]::FromImage(\$bmp)
+    \$g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    \$g.DrawImage(\$src, 0, 0, \$w, \$h)
+    \$bmp.Save('$small', [System.Drawing.Imaging.ImageFormat]::Png)
+    \$src.Dispose(); \$bmp.Dispose()
+  " > /dev/null
+  echo "$small"
 }
 
 # Dump UI hierarchy to $TMP_DIR/_ui.xml
