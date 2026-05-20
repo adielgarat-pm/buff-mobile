@@ -1535,10 +1535,10 @@
   "childSettings.buddyView.statusShown": "Showing",
   "childSettings.buddyView.statusHidden": "Hidden",
   "childSettings.renameBuddy.entry": "Rename Buddy",
-  "buddy.story.L1": "{{buddyName}} is settling in",
-  "buddy.story.L2": "{{buddyName}} is starting to trust you",
-  "buddy.story.L3": "{{buddyName}} sticks close by",
-  "buddy.story.L4": "{{buddyName}} has your back",
-  "buddy.story.L5": "{{buddyName}} is your wingmate now",
+  "buddy.story.L1": "{{buddyName}} is here.",
+  "buddy.story.L2": "{{buddyName}}'s nearby.",
+  "buddy.story.L3": "{{buddyName}}'s sitting with you. At your pace.",
+  "buddy.story.L4": "{{buddyName}} is right beside you. Whenever.",
+  "buddy.story.L5": "{{buddyName}}. Always here.",
   "meAndBuddy.title": "Me & Buddy"
 }

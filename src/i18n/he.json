@@ -1535,10 +1535,10 @@
   "childSettings.buddyView.statusShown": "מוצג",
   "childSettings.buddyView.statusHidden": "מוסתר",
   "childSettings.renameBuddy.entry": "שינוי שם הבאדי",
-  "buddy.story.L1": "{{buddyName}} מתאקלם",
-  "buddy.story.L2": "{{buddyName}} מתחיל לסמוך עליך",
-  "buddy.story.L3": "{{buddyName}} תמיד לידך",
-  "buddy.story.L4": "{{buddyName}} שומר על הגב שלך",
-  "buddy.story.L5": "{{buddyName}} כבר חבר לחיים",
+  "buddy.story.L1": "{{buddyName}} פה.",
+  "buddy.story.L2": "{{buddyName}} בסביבה.",
+  "buddy.story.L3": "{{buddyName}} איתך. בקצב שלך.",
+  "buddy.story.L4": "{{buddyName}} לידך. בכל רגע.",
+  "buddy.story.L5": "{{buddyName}}. תמיד פה.",
   "meAndBuddy.title": "אני והבאדי"
 }
