@@ -44,7 +44,6 @@ export const ParentNotificationBell: React.FC = () => {
 
   return (
     <View
-      pointerEvents="box-none"
       style={[styles.container, { top: insets.top + 8 }]}
     >
       <Pressable
@@ -75,6 +74,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 16,
     zIndex: 100,
+    // Container sized to its child (bell, 40x40). The bell itself
+    // captures presses; the rest of the screen below is unaffected.
+    pointerEvents: 'box-none',
   },
   bell: {
     width: 40,
