@@ -55,6 +55,9 @@ export type RootStackParamList = {
 
   // ── Buddy detail (5A Me & Buddy, stack-pushed from child app) ────────
   GamerMeAndBuddy: undefined;
+
+  // ── Parent notification feed (modal pushed above ParentApp) ──────────
+  NotificationFeed: undefined;
 };
 
 export type ParentTabsParamList = {

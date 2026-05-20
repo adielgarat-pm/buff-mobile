@@ -75,9 +75,34 @@
   - Reproduced on family KWYEL5: existed profile `איתי` (Hebrew, no user_id, created 2026-04-17). Adi entered name "Itay" + code "KWYEL5" → new profile `Itay` (Latin) created 2026-05-14 16:34, linked to existing `itay@buff.app` auth user. Original `איתי` orphan still dangling.
   - Same family also has `עדי בדיקה` orphan profile (no user_id, created 2026-04-17) from earlier test flow.
 - **השפעה:** Data integrity — duplicate child profiles per family. Adi might also be confused about which is "real" Itay when she sees both in her family overview.
-- **סטטוס:** `open` — fix scope: in `ChildJoinScreen.handleJoin`, before `signUp`, query `profiles` for a matching `(family_id, display_name)` row with `user_id IS NULL`. If found, link it instead of creating a duplicate. Edge case: case-sensitivity of names + Hebrew/Latin pairs (e.g. "איתי" vs "Itay" — are these the same child?).
-- **Cleanup:** Two orphan profiles in KWYEL5 family can be deleted: `איתי` (no user_id) and `עדי בדיקה` (no user_id). Both created 2026-04-17, no real auth users behind them. 2-line SQL when Adi authorizes.
-- **קשור ל:** Not in scope for pkg/teen-ui-my-stats-lite.
+- **סטטוס (עודכן 2026-05-16):** `code-complete-pending-verify` — fix landed in `pkg/childjoin-claim-orphans` (branch `claude/lucid-sinoussi-235144`, awaiting Adi's emulator verification + PR merge).
+  - **Approach:** Atomic claim via two new `SECURITY DEFINER` RPCs — `preflight_claim_orphan` (anon-callable; pre-validates before auth.signUp to avoid orphan auth.users rows on block) and `claim_orphan_profile` (authenticated; UPDATE with `user_id IS NULL` race guard). Both live in production Supabase as migrations `20260516082239` + `20260516082341`. Repo SQL: `migrations/007_childjoin_claim_orphan_profile.sql`.
+  - **Matching:** `lower(normalize(trim(display_name), NFC))` on both sides + case-insensitive on `families.short_code`. Robust for Hebrew diacritics and Latin casing; intentionally does NOT cross scripts. Adi's Hebrew-vs-Latin edge case ("איתי" parent-orphan + child types "Itay") falls through to `cross_script_candidate_exists` reason → blocking error UX in Hebrew copy ("בקש מההורה לוודא את השם") — forces parent confirmation, prevents one sibling from claiming another's orphan.
+  - **Client wiring:** `AuthContext.signUp` calls preflight before `supabase.auth.signUp`; on `match_found` calls claim post-auth; on `no_orphan_match` falls back to today's INSERT; on `ambiguous_match`/`cross_script_candidate_exists` returns blocking error tagged `auth.orphanAmbiguous`; ChildJoinScreen surfaces it via new i18n key.
+  - **Verification done at code/RPC level (CC):** 8/8 SQL assertions passed (no-orphan / exact / trim / case-insensitive-Latin / ambiguous / cross-script / family-not-found / null-input / no-auth); typecheck zero errors; both i18n files parse. End-to-end Android emulator verification (5 cases per `docs/sessions/childjoin-claim-orphans/TESTS.md § Phase 2`) **pending Adi**.
+- **Cleanup (2026-05-17, executed):**
+  - **Deleted:** `Itay` bug-residue profile (`3dd54491-...`) + its orphan auth.users row (`9760c8b9-...`) created by the bug on 2026-05-14. 0 user data; cascaded 1 `buddy_relationships` + 1 `buddy_daily_check` row.
+  - **Deleted:** stale test orphan `עדי בדיקה` (`04920920-...`); cascaded 4 tasks + 2 rewards + 2 buddy rows. Name self-identified as test data.
+  - **Kept:** legitimate orphan `איתי` (`0b702f2d-...`, created 2026-04-17 by Adi's onboarding) as the live target for Itay's emulator claim test.
+  - **Authorized by:** Adi "תטפל איך שאתה חושב" 2026-05-17.
+- **קשור ל:** Originally surfaced during `pkg/teen-ui-my-stats-lite`; resolved in `pkg/childjoin-claim-orphans` (see [docs/sessions/childjoin-claim-orphans/](sessions/childjoin-claim-orphans/)).
+
+---
+
+### IN-2026-05-16-01: preflight_claim_orphan blocked returning users + new siblings (regression caught in emulator test)
+
+- **תאריך:** 2026-05-16
+- **מקור:** Adi — first emulator test post-merge of `pkg/childjoin-claim-orphans`. Existing child user (`Itay` with auth.users row) tried to re-join the family and the app silently blocked them via `cross_script_candidate_exists` instead of falling through to the existing signUp→signIn flow.
+- **תיאור:** The Phase 1 RPC `preflight_claim_orphan` (migration 007) had two regressions:
+  1. **Returning users blocked.** preflight only looked at orphans (`user_id IS NULL`). For a family with orphans, any input that didn't NFC-match an orphan returned `cross_script_candidate_exists` — including existing users typing their own name (whose profile has `user_id IS NOT NULL` so it's invisible to preflight's orphan filter). Pre-fix flow's "auth.signUp → already registered → signIn" recovery was bypassed.
+  2. **New siblings blocked.** Same root cause: any new child joining a family with orphans for OTHER children was blocked even though they're legitimately a new profile (NCFC matches no orphan).
+- **השפעה:** Both regressions block legitimate flows. Returning user gets "ask your parent" alert instead of signing in. New sibling gets the same alert instead of getting a fresh profile.
+- **תיקון (migration 008, `childjoin_preflight_returning_user_and_multi_orphan`):**
+  - Added existing-profile pre-check at top of preflight. If a non-orphan profile in the family matches input (NFC + lower + trim), return new reason `existing_profile_match` → client falls through to signUp→signIn.
+  - Constrained `cross_script_candidate_exists` to fire only when `orphan_total = 1`. With 2+ orphans and no NFC match, return `no_orphan_match` → INSERT. Tradeoff: rare real cross-script case in a multi-orphan family creates a duplicate; recovered via existing `useUnlinkedChildren.linkChild` parent banner (the original IN-2026-05-14-03 fallback mechanism).
+- **Verification (CC):** 7/7 SQL scenarios pass on live family KWYEL5: existing users `Itay`/`Emmy` → `existing_profile_match`; orphan exact-match `איתי`/`עדי בדיקה` → `match_found`; new sibling `Yossi` → `no_orphan_match`; multi-orphan cross-script `Dani` → `no_orphan_match` (was blocking pre-fix); bad code `NONE99` → `family_not_found`.
+- **Lesson:** Bug-fix RPCs need to model **all relevant profile states** (orphan + non-orphan), not just the new state being introduced. The original 8-case SQL test suite covered orphans + family lookup + auth but did NOT include a non-orphan returning user — a gap caught only by Adi's emulator test against real data.
+- **קשור ל:** IN-2026-05-14-03 (the original bug); `pkg/childjoin-claim-orphans` hotfix.
 
 ---
 
@@ -94,6 +119,76 @@
 - **השפעה:** The implemented `GamerMyStatsScreen` is intentional spec drift from the 2026-05-02 Itay-approved 5B. When Buddy V0.5 backend ships (`pkg/buddy-v05-backend`), the screen will be extended to add the LEVEL pill, "Progress to LEVEL N" bar, hero image, and BOOSTERS carousel — at which point this becomes the "real" 5B.
 - **סטטוס:** `resolved` for the lite scope; `deferred` for the full 5B (queued behind `pkg/buddy-v05-backend`).
 - **קשור ל:** `pkg/teen-ui-my-stats-lite`, FLAG F-2026-05-03-05 (BUDDY_SYSTEM.md spec-only)
+
+---
+
+### IN-2026-05-17-01: Declarative notification copy convention (research-backed)
+
+- **תאריך:** 2026-05-17
+- **מקור:** CC + Adi — pkg/daily-vibe-check Phase 4 design review
+- **תיאור:** During Phase 4 of pkg/daily-vibe-check, Adi pushed back on the original SPEC's copy ("[Kid] needs a moment") as too directive — implies rescuer mode. WebSearch surfaced a clear pattern from ADHD therapist sources (CHADD, ADDitude, Childhood Collective, NN/G, Toptal, PatternFly): **declarative "I noticed" framing** beats directive language for parent-child communication. Lands as a convention for ALL future parent-facing notification copies — not just SOS. Specifically: (a) frame around the kid's agency ("wanted to share / sent a signal"), (b) describe state observationally ("low energy day"), (c) avoid action verbs that put parent in rescuer mode ("needs / requires / urgent"), (d) preserve privacy — never expose the underlying score/data.
+- **השפעה:** All future notification copy in `pkg/fcm-push-notifications`, `pkg/parent-notification-feed`, and any new parent-facing alerts. The Phase 4 copy in pkg/daily-vibe-check is the reference implementation (EN + HE). Future packages should reference this entry.
+- **סטטוס:** `resolved` (locked as ongoing convention; not a problem to track)
+- **קשור ל:** pkg/daily-vibe-check SPEC § Decisions EX-1, future pkg/fcm-push-notifications
+
+### IN-2026-05-17-02: PRD §7.1 line 215 spec drift — Vibe Check falsely claimed "fully implemented"
+
+- **תאריך:** 2026-05-17 (discovered 2026-05-16 in pkg/daily-vibe-check Phase 0)
+- **מקור:** CC — Phase 0 spec verification of pkg/daily-vibe-check
+- **תיאור:** BUFF_PRD.md §7.1 line 215 reads: *"Daily Vibe Check ... Already fully implemented in current codebase."* `grep` of `src/` for any vibe/SOS identifiers returned 0 matches before Phase 1 of this package. The claim was carried over from Lovable web, where Vibe Check WAS implemented; mobile codebase never had it. Now corrected by pkg/daily-vibe-check Phases 1-4. PRD line is stale.
+- **השפעה:** PRD §7.1 line 215 needs editing to either remove the claim or replace with current state (Vibe Check shipped in mobile via pkg/daily-vibe-check beta-2026-06-01). CC does NOT touch PRD unilaterally per CLAUDE.md; Adi to apply.
+- **סטטוס:** `open` (pending Adi PRD edit)
+- **קשור ל:** pkg/daily-vibe-check, Decision NEW-1 in pkg SPEC, BUFF_GAP_ANALYSIS.md S-07
+
+### IN-2026-05-17-03: 3-package sequencing for the parent notification surface
+
+- **תאריך:** 2026-05-17
+- **מקור:** Adi — Phase 4 design discussion in pkg/daily-vibe-check
+- **תיאור:** During Phase 4 of pkg/daily-vibe-check, Adi raised two MVP-critical scope items that I had under-scoped: (1) **FCM push notifications** are MVP, not Phase 2 — Lovable churn root cause was parents/kids not knowing to return to the app, so push is essential. (2) **Bell icon + notification feed in parent UI** — Lovable parity gap; the mobile app today doesn't surface ANY of the 396 historical notifications. Both became sibling packages: `pkg/fcm-push-notifications` (already in CLAUDE.md FLAGs, MVP-critical S-01) and `pkg/parent-notification-feed` (new, MVP, Lovable parity). Both will read from the same `public.notifications` table that pkg/daily-vibe-check Phase 4a established as the source of truth. No rework when they land. Sequencing for beta-2026-06-01: (1) Vibe Check (this pkg, in progress); (2) FCM push; (3) bell + feed. All independent; FCM doesn't block bell+feed.
+- **השפעה:** Two new packages need session folders + SPECs (CC may scaffold on Adi's signal). CLAUDE.md FLAGs needs updating to mark `pkg/parent-notification-feed` as proposed MVP (Adi to apply — CC does not touch CLAUDE.md unilaterally).
+- **סטטוס:** `resolved 2026-05-19` (SPECs scaffolded on `pkg/notification-spec` planning branch; CLAUDE.md FLAGs still Adi-pending)
+- **קשור ל:** pkg/daily-vibe-check Phase 4, future `pkg/fcm-push-notifications` + `pkg/parent-notification-feed`
+
+### IN-2026-05-19-01: Cross-platform notification mechanism = single FCM HTTP v1 backend
+
+- **תאריך:** 2026-05-19
+- **מקור:** Adi — pkg/notification-spec planning session
+- **תיאור:** Cross-platform notification requirement (Android now, Expo Web Phase 2 per F-073, iOS later) reconciled by routing ALL push delivery through **FCM HTTP v1 API server-side**. Client SDKs differ by platform because the OS forces it: `expo-notifications` on mobile (Android FCM / iOS APNs-via-FCM), `firebase/messaging` web SDK + Service Worker on web. Same Edge Function, same `public.notifications` table, same copy library. This unified pipeline is THE work that enables Lovable retirement when Expo Web ships — without it, web push remains unreliable PWA. Decision triggered by Adi's reframing: "אנחנו עושים מיגרציה לאפליקציה בלוובל אלינו ... בסוף אנחנו רוצים codebase אחד".
+- **השפעה:** ALL future notification packages assume this backend. `pkg/fcm-push-notifications` implements; `pkg/parent-notification-feed` reads from same table. No alternative backend (e.g., OneSignal, Pusher) gets considered without explicit re-scoping.
+- **סטטוס:** `resolved` (locked principle)
+- **קשור ל:** pkg/fcm-push-notifications, pkg/parent-notification-feed, future iOS package, F-039, F-063, AUDIT S-01
+
+### IN-2026-05-19-02: Notification gating = foreground + recent-activity suppression, NOT device-aware
+
+- **תאריך:** 2026-05-19
+- **מקור:** Adi — pkg/notification-spec planning session (challenged the device-aware draft)
+- **תיאור:** Original SPEC draft gated push delivery by a derived `child.has_own_device` flag (shared device → no push for child events). Adi challenged: this is brittle (flag derivation is opaque), changes behavior silently when a kid transitions to own-device, and breaks "why didn't I get notified?" debug. Replaced with **generic delivery + 2-stage suppression in Edge Function**: (a) if recipient's `device_tokens.last_seen_at < 5 min` → in-app surface is already showing → skip server push; (b) if app is in foreground (handled client-side via `setNotificationHandler`) → suppress tray, show in-app toast. Achieves the same UX goal (no redundant pushes when parent already sees the event) without "shared device" determination. Architecturally simpler, future-proof, easier to debug.
+- **השפעה:** `pkg/fcm-push-notifications` Edge Function uses activity-based suppression, not device-aware gating. The `notifications` table always gets the row regardless of device situation; only the PUSH delivery is conditioned. The in-app feed always sees everything. No `has_own_device` flag needs to be derived or persisted.
+- **סטטוס:** `resolved` (locked principle)
+- **קשור ל:** pkg/fcm-push-notifications, pkg/parent-notification-feed
+
+### IN-2026-05-19-03: Pillar-1 extension for kid-side push — presence + autonomy-marker ONLY (the "body double test")
+
+- **תאריך:** 2026-05-19 (amended same day with body-doubling grounding)
+- **מקור:** Adi — pkg/notification-spec planning session (challenged "reward mention" draft → later proposed body-doubling framing)
+- **תיאור:** I drafted E5 (kid-not-opened-N-days) push copy as `"{reward_name} עוד מחכה לך — {buddy_name} מוכן/ה"` and claimed Pillar-1 alignment because the reward is kid-chosen. Adi corrected: **any mention of reward, task, BUFFs, count, or progress in a kid-facing push converts intrinsic motivation INTO extrinsic motivation**. The reward lives in the kid's mind as their own goal; surfacing it in a push pulls ownership to the app. Pillar-1 PURIST rule for kid-side push (and any kid-facing "come back" prompt): **presence + autonomy-marker only**. Examples that pass: `"{buddy_name}: כאן כשתרצה."` / `"{buddy_name} פה. בלי לחץ."` Examples that fail (even if "gentle"): `"{reward} עוד מחכה לך"` (extrinsic), `"{buddy_name} מוכן/ה ל-2 דברים"` (quantification), `"{buddy_name} חיכה לך"` (subtle pressure / sad-buddy adjacency).
+- **Theoretical grounding (added 2026-05-19 amendment):** This convention operationalizes BUDDY as a **virtual body double** for the kid (per `BUFF_BUDDY_SYSTEM.md` line 25, locked in BUFF spec). Body doubling is an established ADHD scaffold: social-facilitation theory; ACM Transactions on Accessible Computing 2024 (first academic investigation with neurodivergent participants); CHADD/ADDitude consensus practice; Focusmate / Caveday / Discord study rooms prove product-market fit at scale. The mechanism: **present, non-judgmental, non-prompting companionship reduces task-initiation activation barrier without taking ownership of motivation**. The body double doesn't drive the kid's motivation; it removes the friction of starting.
+- **The "body double test"** — every kid-side copy in BUFF should pass: *would a body double say this?* A body double:
+  - ❌ Doesn't quantify ("you have 2 things")
+  - ❌ Doesn't reward-bribe ("X is waiting")
+  - ❌ Doesn't escalate ("you missed yesterday")
+  - ❌ Doesn't prompt action ("let's do it")
+  - ❌ Doesn't express need or sadness ("BUDDY misses you")
+  - ✅ Says: *"I'm here, ready when you are."* / *"with you, at your pace"* / *"standing by"*
+- **Canonical body-doubling copy templates (locked 2026-05-19):**
+  - HE: `"{buddy_name}: פה, מוכן/ה כשתרצה"` · EN: `"{buddy_name}: here, ready when you are"`
+  - HE: `"{buddy_name}: לידך, בקצב שלך"` · EN: `"{buddy_name}: with you, at your pace"`
+  - HE: `"{buddy_name} עומד/ת לידך"` · EN: `"{buddy_name} standing by"`
+- **Reference voice** (extracted from existing i18n + BRAND §6): Coach voice for parent-facing; **friend voice / body-double voice** for BUDDY-to-kid; brief; autonomy-marker required ("בלי לחץ" / "כשתרצה" / "אולי אחר כך" / "בקצב שלך"); period-not-exclamation. Reference samples: `lowPower.banner` ("היום יום של אנרגיה נמוכה. אנחנו איתך."), `sosButton.confirmBody` ("...בלי לדבר על הציון."), `vibeCheck.dismiss` ("אולי אחר כך").
+- **השפעה:** All kid-side copy in `pkg/fcm-push-notifications` (E5, E9 server push; E7, E11 local). Also applies to in-app BUDDY-mediated prompts. Parent-side copy remains governed by IN-2026-05-17-01 (declarative + connection-not-rescue) — different lens for different recipient.
+- **סטטוס:** `resolved` (locked principle + theoretical mechanism); proposed `BUFF_BRAND.md §6` update to capture the body-doubling voice template + the "body double test" — Adi to apply (CC does not touch BRAND.md unilaterally per CLAUDE.md).
+- **קשור ל:** pkg/fcm-push-notifications (E5, E7, E9, E11), BUFF_VALUES.md Pillar 1, BUFF_BRAND.md §6, **BUFF_BUDDY_SYSTEM.md line 25 (canonical body-double framing)**, IN-2026-05-17-01 (parent-side counterpart)
+- **External research references:** Oxford CBT · Mind Vortex · ADHD Vancouver · Medical News Today · ADDA · Beyond Clinics · ACM TACCESS 2024 ([dl.acm.org/doi/full/10.1145/3689648](https://dl.acm.org/doi/full/10.1145/3689648))
 
 ---
 
@@ -143,8 +238,9 @@
   - Hard-coded גיל ב-validation
   - Strings ב-onboarding screens אם יש מפורש "13-15"
 - **השפעה:** מתבגר בן 16-18 שירשם עכשיו לא יקבל את Teen UI אוטומטית.
-- **סטטוס:** `open` — לפעולה ב-session "Age Range Update" עתידי
-- **קשור ל:** D-2026-05-02-25
+- **סטטוס (עודכן 2026-05-16):** `RESOLVED — CONFIRMED-NOT-APPLICABLE`.
+  Re-audit during `pkg/childjoin-claim-orphans` planning (Plan Mode investigation, beta 2026-06-01 prep) confirmed once more: zero `13-15` references in code. Onboarding buckets are `'6-8' | '9-11' | '12-14' | '15-18'` ([src/screens/onboarding/unified/onboardingData.ts:14](../src/screens/onboarding/unified/onboardingData.ts)). Mode detection is role-based (`profile.role === 'child'` → Children/Gamer UI) at [src/contexts/ModeContext.tsx](../src/contexts/ModeContext.tsx) and [src/navigation/RootNavigator.tsx:102](../src/navigation/RootNavigator.tsx) — no age-to-mode mapping exists anywhere. Earlier `CLOSED — STALE` status (2026-05-08) is now upgraded to fully resolved with explicit confirmation from a second exhaustive search. When age-based teen detection lands (separate future package), it should centralize in `src/constants/ageRanges.ts` with `TEEN_MIN_AGE=13` / `TEEN_MAX_AGE=17` per Adi 2026-05-08 decision (18+ are legal adults in some jurisdictions). **FLAG removal from CLAUDE.md proposed to Adi separately — CC does not edit CLAUDE.md unilaterally.**
+- **קשור ל:** D-2026-05-02-25; `pkg/childjoin-claim-orphans` (where the re-audit happened).
 
 ---
 
@@ -285,6 +381,80 @@
 - **השפעה:** UX miss מינורי ב-onboarding לקהל ישראלי. לא חוסם beta (פונקציונליות עובדת; רק locale). תיקון מועמד: שורה אחת — להעביר את ה-locale מ-`i18n.language` (בדומה ל-`useTranslation()` שכבר זמין במסך).
 - **סטטוס:** `open` — מועמד ל-quick-fix package נפרד או bundle עם תיקוני onboarding polish עתידיים (Section B, Step 3 dedup, etc.).
 - **קשור ל:** F-2026-05-03-01 (sister flag — נחשף תוך כדי האודיט שלו), `pkg/close-f-2026-05-03-01`
+
+---
+
+### F-2026-05-18-01: Empty Dashboard for newly-joined child (no tasks → cold-start moment lost)
+
+- **תאריך:** 2026-05-18
+- **מקור:** Adi — observed during web session-persistence diagnostic session (`claude/cranky-lederberg-6716ef` worktree, 2026-05-18). Diagnostic itself concluded NO code change needed for persistence (works tested in CC env via Claude_Preview headless Chromium: signup → reload → server stop/start → session restored every time). Empty-Dashboard observation surfaced incidentally while reviewing what a new child sees post-join.
+- **תיאור:** Current flow for a child joining via `ChildJoinScreen` (name + family_code → `signUp` → ChildTabs):
+  1. `signUp` succeeds, profile inserted with `family_id` set
+  2. `RootNavigator` routes to `ChildTabs` → default tab `ChildDashboard`
+  3. `useChildData` fetches tasks — returns **0 rows** for a brand-new child (no parent has assigned anything yet)
+  4. Dashboard renders empty / near-empty state — no missions, no BUFFs, nothing to do
+- **השפעה (PRD-relevant):** First-touch moment for the child is the critical engagement window for an ADHD kid. An empty Dashboard risks:
+  - Confusion ("מה לעשות פה?")
+  - Disengagement before parent has chance to set up
+  - Negative emotional tone against `BUFF_VALUES.md` Pillar 2 (Positive Coaching)
+- **Values Check tension (preview only — full check at SPEC time):**
+  - **Pillar 1 (Intrinsic Motivation):** ⚠️ Default/starter tasks risk feeling imposed-not-chosen → fails Q1 ("would the child want this without virtual reward?")
+  - **Pillar 2 (Positive Coaching):** ⚠️ Empty state could read as "nothing for me here" → may fail Q1 ("does the wording belittle / present as failure?")
+  - **Pillar 3 (Independence-Building):** ⚠️ Starter tasks short-circuit the parent-child conversation about goals → undermines independence-by-design
+- **המלצת ביניים (לא החלטה — מצריך session ייעודי):** ייתכן שהתשובה היא **לא משימות דיפולטיביות**, אלא **welcome screen חד-פעמי** עבור child בלי tasks:
+  - "היי {שם}! ההורה שלך יכין לך משימות. בינתיים — תכיר את ה-BUDDY שלך 🐶"
+  - לא ריק, לא דיפולטי, לא מציע tasks שהילד לא בחר
+  - מהווה bridge עד שההורה משלים setup, ומפנה את הילד ל-engagement עם BUDDY (שכבר עומד ב-Values)
+  - **Adi liked this direction (2026-05-18) — recorded as starting hypothesis, not commitment.**
+- **סטטוס:** `open` — מועמד ל-package ייעודי. דורש:
+  1. Session design עם Adi + Claude.ai
+  2. Values Check מלא (9 שאלות) ב-SPEC.md
+  3. Itay opinion (Teen UI co-creator) על העברית והטון
+  4. החלטה אם זה חלק מ-package רחב יותר של "child first-touch experience" או focused
+- **שמות מוצעים ל-package:** `pkg/child-first-experience` או `pkg/child-empty-state-welcome` או `pkg/onboarding-handoff`
+- **קשור ל:** BUFF_VALUES.md (3 pillars), BUFF_PRD.md §2.2 (shared-device constraint — 65% של ילדים משתפים מכשיר עם הורה ולא בודקים תיכף), BUFF_BUDDY_SYSTEM.md (BUDDY כ-bridge engagement)
+
+---
+
+### IN-2026-05-20-01: service_role lacks GRANT on Lovable-era public tables
+
+- **תאריך:** 2026-05-20
+- **מקור:** CC — pkg/fcm-push-notifications Phase 3 E2E debugging
+- **תיאור:** Edge Function `push-notification-fanout` failed E2E with `permission denied for table profiles` even though it was using `SUPABASE_SERVICE_ROLE_KEY`. Investigation: `has_table_privilege('service_role', 'public.profiles', 'SELECT')` returned `false` for most existing tables. The buff-mobile project (originally provisioned via Lovable) was missing the standard Supabase service_role grants on `profiles`, `notifications`, `tasks`, `daily_progress`, `buddy_relationships`, `child_vibes`, and others. Migration 005 (`grant_service_role_usage.sql`) covered USAGE on schema but did NOT include table-level GRANTs.
+- **Symptom for future debugging:** `supabase-js` with service-role key returning `error.message = "permission denied for table X"` despite RLS being non-restrictive — first check `has_table_privilege('service_role', 'public.X', 'SELECT')`. If false → GRANT missing, not RLS.
+- **השפעה:** Migration 014 (`service_role_grants.sql`) applied — `GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role` + `ALTER DEFAULT PRIVILEGES` so future tables auto-grant. This is now baseline for any Edge Function in buff-mobile. Future packages that create new public tables get the grant automatically via DEFAULT PRIVILEGES; older Lovable-era tables are now retroactively covered.
+- **סטטוס:** `resolved` (migration 014 live; ALTER DEFAULT PRIVILEGES ensures durable fix)
+- **קשור ל:** pkg/fcm-push-notifications Phase 3, migrations/005, migrations/014, all future Edge Functions
+
+### F-2026-05-20-01: Supabase environment separation (dev/staging/prod) — deferred
+
+- **תאריך:** 2026-05-20
+- **מקור:** Adi — pkg/fcm-push-notifications Phase 1 execution
+- **תיאור:** During Phase 1 execution (migration 012 application), CC paused to ask before applying schema changes to live `buff-mobile` Supabase project. Adi clarified: there are no production users yet on the mobile project (all 275 profiles + 191 families are test data + Lovable-era snapshot). For now, CC applies migrations directly. **When real production users arrive, this freedom needs to revert** — at that point we need proper environment separation:
+  - Dev branch (CC autonomous)
+  - Staging branch (Adi manual approval before merge)
+  - Prod branch (Adi-only, gated PR)
+- Supabase native branching (preview branches) would be the cleanest path. RevenueCat + Sentry + EAS already have separate environments configured per `BUFF_PRD.md §9`.
+- **השפעה:** Once Play Store internal testing scales beyond Adi + family, this MUST be set up. Best done as a dedicated package (`pkg/env-separation`) after MVP ships.
+- **סטטוס:** `open` (deferred — revisit before public launch)
+- **קשור ל:** `feedback_mobile_db_no_prod_users.md` memory, CLAUDE.md (Modify Supabase schema rule will need amendment), future `pkg/env-separation`
+
+### F-2026-05-19-01: Parent-initiated re-engagement tools for disengaged kids — v1.1 idea
+
+- **תאריך:** 2026-05-19
+- **מקור:** Adi — pkg/notification-spec planning session, after locking the automatic E5 (BUDDY presence after 5d/14d) cadence
+- **תיאור:** MVP gives the parent **zero direct tools** to bring a disengaged kid back — only BUDDY's automatic re-engagement push (E5) fires after 5 days of no-open. Adi proposed giving parents agency in the loop: a way for the parent to actively reach out when they notice the kid hasn't been on. **Explicitly OUT OF MVP** — needs separate design work because of the Pillar tension:
+  - **Pillar 2 risk:** "Send your kid a reminder" easily becomes parental nagging via the app. The whole BUFF thesis is "coach mode, not cop mode" (`BUFF_BRAND.md §6`).
+  - **Pillar 3 risk:** Parent-as-pusher inverts the agency model. BUDDY (kid's friend) is the right voice; parent-direct-to-kid push could feel surveillant.
+  - **Pillar 1 risk:** Easy to slide into reward-bribing ("if you come back, you'll get…").
+- **Possible directions to explore** (not yet decided):
+  - **(a) BUDDY-mediated:** Parent triggers a BUDDY-voiced push from their device ("BUDDY would like to say hi from {parent_name}") — keeps the friend voice, parent stays one step removed
+  - **(b) Sticker / heart:** Parent sends a tiny non-verbal signal that lands in the kid's app, no push
+  - **(c) Reduce BUDDY frequency knob:** Parent can adjust E5 cadence (5d → 3d, 14d → 7d) — gives agency through policy not action
+  - **(d) Dashboard insight only:** Parent sees "{kid} hasn't been on for X days" with NO action button — pure awareness
+- **השפעה:** Out of MVP scope. Should land as its own `pkg/parent-reengagement-tools` after beta-2026-06-01, with full Values Check + session design with Adi + Itay (Teen UI co-creator).
+- **סטטוס:** `open` (idea logged; not in any backlog yet)
+- **קשור ל:** pkg/fcm-push-notifications E5, BUFF_VALUES.md (all 3 pillars), BUFF_BUDDY_SYSTEM.md (BUDDY voice constraints), F-2026-05-18-01 (cold-start moment — adjacent concern)
 
 ---
 

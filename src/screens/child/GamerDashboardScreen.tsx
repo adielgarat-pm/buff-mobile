@@ -33,10 +33,18 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
+import { useDailyVibe } from '../../hooks/useDailyVibe';
+import { useVibeDismiss } from '../../hooks/useVibeDismiss';
+import { trimTasksForLowPower } from '../../utils/vibeUtils';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { BuddyHero } from '../../components/buddy/BuddyHero';
 import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
+import VibeCheckScreen from './VibeCheckScreen';
+import LowPowerBanner from '../../components/LowPowerBanner';
+import SosButton from '../../components/SosButton';
+import InstantBuffCard from '../../components/InstantBuffCard';
+import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -53,6 +61,28 @@ const COLORS = {
   textFaint:     'rgba(255,255,255,0.50)',
   lime:          '#A8E63E',  // signal/success
   violet:        '#8b5cf6',  // primary action
+  orange:        '#F97316',  // SOS only — warm urgency, not alarming red (Pillar 2)
+} as const;
+
+// Low-Power-Mode component palettes for the Gamer theme.
+const GAMER_LP_PALETTES = {
+  banner: { bg: COLORS.surface, border: COLORS.border, text: COLORS.textMuted },
+  sos: {
+    bg:       COLORS.orange,
+    bgSent:   COLORS.surface,
+    border:   COLORS.border,
+    text:     COLORS.canvas,
+    textSent: COLORS.textMuted,
+  },
+  instantBuff: {
+    bg:        COLORS.surfaceHigh,
+    border:    COLORS.border,
+    title:     COLORS.textMuted,
+    prompt:    COLORS.text,
+    ctaBg:     COLORS.lime,
+    ctaText:   COLORS.canvas,
+    ctaShadow: COLORS.lime,
+  },
 } as const;
 
 type TimeFilter = 'all' | 'morning' | 'noon' | 'afternoon' | 'evening';
@@ -106,6 +136,24 @@ export default function GamerDashboardScreen() {
   const { relationship, setBuddyVisible } = useBuddyRelationship(childId);
   const welcomeBack = useWelcomeBack();
 
+  // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
+  // Pause and skipped during parent preview. See SPEC § Scenario C.
+  const vibe = useDailyVibe(childId);
+  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
+  const shouldPromptVibe =
+    !vibeLoading &&
+    !dismissLoading &&
+    !!childId &&
+    !isPauseActive &&
+    !hasVibedToday &&
+    !vibeDismissedToday &&
+    !isChildPreview;
+
+  const lowPowerValue: LowPowerContextValue = useMemo(() => ({
+    isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff,
+  }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff]);
+
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [hideModalVisible, setHideModalVisible] = useState(false);
 
@@ -118,6 +166,15 @@ export default function GamerDashboardScreen() {
     if (timeFilter === 'all') return tasks;
     return tasks.filter(t => timeBucket(t.time) === timeFilter);
   }, [tasks, timeFilter]);
+
+  // Low Power Mode trims the task list to the most important + first
+  // self-care (max 2). See trimTasksForLowPower for the rule. Stat
+  // counters (Focus Fuel etc.) keep using filteredTasks so the kid
+  // sees their real progress, not the trimmed view.
+  const displayedTasks = useMemo(
+    () => (isLowPower ? trimTasksForLowPower(filteredTasks) : filteredTasks),
+    [isLowPower, filteredTasks],
+  );
 
   const doneCount  = filteredTasks.filter(t => t.completed).length;
   const totalCount = filteredTasks.length;
@@ -145,7 +202,13 @@ export default function GamerDashboardScreen() {
 
   // ── Main render ────────────────────────────────────────────────────────
   return (
-    <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
+    <LowPowerProvider value={lowPowerValue}>
+      <VibeCheckScreen
+        visible={shouldPromptVibe}
+        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onDismiss={() => { void markVibeDismissed(); }}
+      />
+      <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
       {/* Parent preview banner */}
       {isChildPreview && (
         <View style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}>
@@ -165,6 +228,7 @@ export default function GamerDashboardScreen() {
           </Text>
         </View>
         <View style={styles.iconRow}>
+          <SosButton palette={GAMER_LP_PALETTES.sos} />
           <View style={styles.iconBtn}>
             <Ionicons name="notifications-outline" size={20} color={COLORS.textMuted} />
           </View>
@@ -231,6 +295,9 @@ export default function GamerDashboardScreen() {
         )}
       </View>
 
+      {/* Low Power Mode banner — self-conditional (only renders when isLowPower) */}
+      <LowPowerBanner palette={GAMER_LP_PALETTES.banner} />
+
       {/* Time-of-day filter chips */}
       <ScrollView
         horizontal
@@ -265,7 +332,7 @@ export default function GamerDashboardScreen() {
       {/* Tasks section */}
       <Text style={styles.sectionTitle}>{t('gamerDashboard.tasksHeader')}</Text>
 
-      {filteredTasks.length === 0 ? (
+      {displayedTasks.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyEmoji}>🎯</Text>
           <Text style={styles.emptyText}>
@@ -275,7 +342,7 @@ export default function GamerDashboardScreen() {
           </Text>
         </View>
       ) : (
-        filteredTasks.map(task => (
+        displayedTasks.map(task => (
           <View
             key={task.id}
             style={[
@@ -307,6 +374,10 @@ export default function GamerDashboardScreen() {
         ))
       )}
 
+      {/* Instant Buff card — self-conditional (only renders when isLowPower
+          AND not yet awarded this session) */}
+      <InstantBuffCard palette={GAMER_LP_PALETTES.instantBuff} />
+
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
 
       <BuddyToggleModal
@@ -318,7 +389,8 @@ export default function GamerDashboardScreen() {
         }}
         onCancel={() => setHideModalVisible(false)}
       />
-    </ScrollView>
+      </ScrollView>
+    </LowPowerProvider>
   );
 }
 

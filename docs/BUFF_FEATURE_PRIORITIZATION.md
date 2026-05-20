@@ -58,7 +58,7 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-036 | Propose new task to parent | Child | Must Have | S | MVP | Key differentiator vs Joon — ownership |
 | F-037 | Propose new reward to parent | Child | Must Have | S | MVP | Child-driven motivation |
 | F-038 | Bag packing checklist (evening) | Child | Must Have | M | MVP | Daily utility — drives habit |
-| F-039 | Push notifications (task reminders) | Child | Must Have | L | MVP | Without this, PWA problem repeats |
+| F-039 | Push notifications (task reminders) | Child | Must Have | L | ✅ Shipped 2026-05-20 (`pkg/fcm-push-notifications`) | Kid-side via `expo-notifications` local scheduler (E7 body-doubling per-phase reminders), POST first-task-missed + 60min grace. Server push (E5 kid disengagement, E9 reward approved) via Edge Function. |
 | F-040 | Offline mode (read-only task list) | Child | Should Have | M | MVP | Requested by users; no WiFi at school |
 | F-041 | Streak display and celebration | Child | Should Have | M | MVP | Week-level retention |
 | F-042 | Mini games for buddy (offline) | Child | Nice to Have | XL | Phase 2 | Requested; complex; not blocking |
@@ -74,7 +74,7 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-060 | React Native app (Android build) | System | Must Have | XL | MVP | Core platform requirement |
 | F-061 | Google Play Store submission + RevenueCat payment integration — CRITICAL: grace period expires May 1 2026. No payment system exists in current codebase. | System | Must Have | S | MVP | Distribution channel |
 | F-062 | iOS architecture ready (not released) | System | Must Have | M | MVP | Build once, deploy twice later |
-| F-063 | Firebase Cloud Messaging (push) | System | Must Have | L | MVP | Reliable push is non-negotiable |
+| F-063 | Firebase Cloud Messaging (push) | System | Must Have | L | ✅ Shipped 2026-05-20 (`pkg/fcm-push-notifications`) | FCM HTTP v1 single backend (IN-2026-05-19-01). Edge Function `push-notification-fanout`. Database Webhook on notifications INSERT. Activity-based suppression (IN-2026-05-19-02). |
 | F-064 | Supabase database migration + cleanup | System | Must Have | M | MVP | Preserve beta users |
 | F-065 | Hebrew + English i18n (RTL) | System | Must Have | M | MVP | Israeli + international market |
 | F-066 | Offline caching (task list) | System | Should Have | M | MVP | User-requested; no internet at school |
