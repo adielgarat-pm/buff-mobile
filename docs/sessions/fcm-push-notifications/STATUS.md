@@ -4,7 +4,8 @@
 
 | Phase | State | Date | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| **0: Foundation** | 🟡 _in_progress_ | 2026-05-19 | (this commit) | Phase 0 has no app-code tests; verification = MCP schema checks + SPEC + folder structure present | none surprising yet |
+| **0: Foundation** | ✅ _passed_ | 2026-05-19 | `4239b09` | MCP schema verification + scaffolding files present | none surprising |
+| **1: DB migration 012** | ✅ _passed_ | 2026-05-20 | (this commit) | Migration applied to live (gfrongfnyigxsexuofrg) via MCP `apply_migration`; `get_advisors` security check: 1 INFO (notification_pushes has RLS+no policies — by design, service-role only) + pre-existing function warnings unrelated to this migration | F-2026-05-20-01 (env separation deferred); `feedback_mobile_db_no_prod_users.md` memory |
 
 ## Legend
 
@@ -83,12 +84,30 @@ Phases 1, 2, 4, 5, 6, 7, 8 (DB + client + i18n + scheduler + permission) can pro
 - ❌ No `src/` code touched (per phase contract)
 - 🟡 Awaiting Adi: Firebase service account JSON (Phase 3 prerequisite)
 
-## Next: Phase 1 — DB layer
+## Phase 1 deliverables (this commit, 2026-05-20)
 
-Proceeding immediately. Migration `012_device_tokens.sql` will create:
-- `device_tokens` table + RLS
-- `notification_pushes` idempotency table + RLS
-- `profiles.last_seen_at` column
-- `notifications` idempotent capture (`CREATE TABLE IF NOT EXISTS`)
-- Backfill of `profiles.fcm_token` → `device_tokens` (defensive, even though column is empty)
-- Drop `profiles.fcm_token`
+### ✅ Schema applied to live (project gfrongfnyigxsexuofrg)
+
+- `profiles.last_seen_at` column added (TIMESTAMPTZ NOT NULL DEFAULT now())
+- `public.device_tokens` table created (PK + profile_id FK + token UNIQUE + token_type CHECK + last_seen_at + created_at), index `idx_device_tokens_profile_type`, RLS enabled with 4 owner-only policies
+- `public.notification_pushes` table created (notification_id PK→notifications.id, pushed_at, recipient_token_count, suppressed_reason), RLS enabled (no policies — service role only by design)
+- `public.notifications` repo migration (no-op on prod via `CREATE TABLE IF NOT EXISTS`)
+- `profiles.fcm_token` column DROPPED (0 non-null rows pre-migration; backfill no-op)
+
+### ✅ Verification
+
+- `apply_migration` returned `{"success":true}`
+- `get_advisors` security check: 1 INFO-level lint on `notification_pushes` (RLS+no-policies — INTENTIONAL, service role only); pre-existing WARN-level lints on Lovable-era functions unrelated
+- Repo migration file: `migrations/012_fcm_push_foundation.sql` (idempotent — `CREATE/ALTER IF NOT EXISTS`, `ON CONFLICT DO NOTHING`, `DROP COLUMN IF EXISTS`)
+
+### 📝 Policy update (2026-05-20)
+
+Adi confirmed buff-mobile Supabase has no production users — CC applies migrations directly without per-action approval. Saved as `feedback_mobile_db_no_prod_users.md` + `F-2026-05-20-01` (env separation deferred).
+
+## Next: Phase 2 — Client token registration (Android, parent path)
+
+- `npm install expo-notifications` (pre-approved per OQ-A1)
+- `app.json` plugin config
+- `src/hooks/usePushRegistration.ts` — permission + register token to `device_tokens`
+- `src/screens/onboarding/UStepPushPermissionPrePrompt.tsx`
+- Wire into root app lifecycle for foreground re-registration
