@@ -35,6 +35,7 @@ import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
 import RootNavigator                     from './src/navigation/RootNavigator';
 import { initRevenueCat }                from './src/services/purchaseService';
+import { NotificationGate }              from './src/components/NotificationGate';
 
 /**
  * RevenueCatInit — sits inside AuthProvider.
@@ -87,6 +88,7 @@ export default function App() {
           <ModeProvider>
             <ThemeProvider>
               <AppContent />
+              <NotificationGate />
             </ThemeProvider>
           </ModeProvider>
         </AuthProvider>
