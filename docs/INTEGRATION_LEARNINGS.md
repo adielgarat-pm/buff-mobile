@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-05-20-01: SPEC Decision 9 (gender-aware HE friendship labels) — column doesn't exist on profiles
+
+- **תאריך:** 2026-05-20
+- **מקור:** CC — surfaced during `pkg/teen-ui-with-buddy-character` chunk 2c-a planning (i18n keys for friendship-level labels).
+- **תיאור:** SPEC §"Architectural Decisions" Decision 9 ([SPEC.md:235](sessions/teen-ui-with-buddy-character/SPEC.md:235)) reads: "HE friendship-level labels are gender-aware, child-driven (model A). Form per child's `gender` field: `boy` → masculine-plural; `girl` → feminine-plural; `other` or `null` → masculine-plural fallback." Schema verification via Supabase MCP on 2026-05-20 found that `profiles` has only `display_name` and `role` — **`gender` column does not exist**. Decision 9 cannot run as written today.
+- **השפעה:** Chunk 2c-a still added all 3 gender variants of the keys (`buddy.friendshipLevel.L{1..5}.{boy,girl,other}` × HE) so the i18n surface is future-proof. EN duplicates the same string across all 3 keys per level (English isn't gendered). Day-1 behavior: any future screen consuming these keys must resolve to the `other` variant unconditionally (masculine-plural), because no gender data exists to drive a branch. The Phase 2 screens (`GamerMyStatsScreen` 5B, `ChildSettingsScreen`) consume `LEVEL N` from `LevelPill` and not the friendship label — impact lands in Phase 3 (5A "Me & Buddy" screen) when the friendship-level label is rendered.
+- **סטטוס:** `open` — a future package can add `profiles.gender` + an onboarding question, then flip the resolver to use the real value. Zero i18n changes needed at that point. Slug suggestion: `pkg/add-profile-gender-for-friendship-labels`. Decision 9 in the SPEC stays valid as the *target* behavior — only the day-1 implementation lands as uniform masculine-plural.
+- **קשור ל:** `pkg/teen-ui-with-buddy-character` chunks 2c-a + 3b (5A), SPEC.md Decision 9.
+
 ### IN-2026-05-16-01: Egg/evolution-stage removal queued
 
 - **תאריך:** 2026-05-16
