@@ -42,6 +42,7 @@ import ChildTabs             from './ChildTabs';
 import PaywallScreen         from '../screens/PaywallScreen';
 import FoundingHundredScreen from '../screens/FoundingHundredScreen';
 import PhilosophyScreen      from '../screens/parent/PhilosophyScreen';
+import GamerMeAndBuddyScreen from '../screens/child/GamerMeAndBuddyScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -104,6 +105,11 @@ export default function RootNavigator() {
           <>
             <Stack.Screen name="ChildApp" component={ChildTabs} />
             <Stack.Screen
+              name="GamerMeAndBuddy"
+              component={GamerMeAndBuddyScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="Paywall"
               component={PaywallScreen}
               options={{ presentation: 'modal', headerShown: false }}
@@ -137,6 +143,11 @@ export default function RootNavigator() {
             <Stack.Screen
               name="Philosophy"
               component={PhilosophyScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="GamerMeAndBuddy"
+              component={GamerMeAndBuddyScreen}
               options={{ headerShown: false }}
             />
             <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>

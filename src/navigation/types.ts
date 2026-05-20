@@ -52,6 +52,9 @@ export type RootStackParamList = {
 
   // ── Philosophy / About ───────────────────────────────────────────────
   Philosophy: undefined;
+
+  // ── Buddy detail (5A Me & Buddy, stack-pushed from child app) ────────
+  GamerMeAndBuddy: undefined;
 };
 
 export type ParentTabsParamList = {
