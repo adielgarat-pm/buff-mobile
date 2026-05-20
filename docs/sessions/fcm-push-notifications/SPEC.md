@@ -453,6 +453,87 @@ These are pre-committed CC decisions. If Adi disagrees with any default during a
 
 ---
 
+## Appendix A — iOS APNs design (Phase 10, design-only)
+
+Captured 2026-05-20 during pkg/fcm-push-notifications execution. NO code yet — Apple Developer account is not active. When Adi activates the account, this appendix becomes the implementation checklist.
+
+### A.1 Prerequisites (Adi action items)
+
+1. **Apple Developer account** — Apple Developer Program enrollment (annual fee, ~$99)
+2. **Bundle identifier** — already declared: `com.buff.mobile` (per `app.json`)
+3. **App ID** — register at https://developer.apple.com/account/resources/identifiers — match the bundle id; enable **Push Notifications** capability
+4. **APNs Authentication Key** — Apple recommends this over per-app certificates (one key works for all your apps). Generate at developer.apple.com → Keys → "+" → Apple Push Notifications service (APNs) → Download `.p8` file + record Key ID + Team ID
+
+### A.2 Firebase ↔ APNs bridge
+
+We use Firebase Cloud Messaging as the unified backend (IN-2026-05-19-01). FCM forwards iOS pushes to APNs:
+
+1. Firebase Console → Project Settings → Cloud Messaging tab
+2. Under "Apple app configuration":
+   - Upload the `.p8` APNs Authentication Key
+   - Enter Key ID + Team ID
+3. Verify by sending a test FCM message from console → app
+
+### A.3 expo-notifications iOS config
+
+Add to `app.json` `expo.ios` section (when ready):
+
+```json
+"ios": {
+  "supportsTablet": true,
+  "bundleIdentifier": "com.buff.mobile",
+  "infoPlist": {
+    "UIBackgroundModes": ["remote-notification"]
+  },
+  "entitlements": {
+    "aps-environment": "production"
+  }
+}
+```
+
+The `expo-notifications` plugin already in `app.json` (added Phase 2) handles the rest.
+
+### A.4 EAS Build config
+
+For iOS production builds:
+- `eas.json` `production` profile needs `"ios": { "distribution": "store" }`
+- EAS Submit / TestFlight requires App Store Connect API key (separate Adi setup)
+- Provisioning profile auto-managed by EAS (just needs Apple Developer creds)
+
+### A.5 Differences from Android
+
+| Aspect | Android (now) | iOS (when active) |
+|---|---|---|
+| Token type | `fcm-android` | `fcm-ios` (FCM-routed APNs token) |
+| Permission prompt | Android 13+ POST_NOTIFICATIONS | iOS APNs prompt (since iOS 8, always required) |
+| Foreground behavior | Same `setNotificationHandler` | Same (cross-platform via Expo) |
+| Sandbox vs production | N/A | Dev builds use sandbox; production uses production APNs. EAS handles via `aps-environment` entitlement |
+| Notification channels | Required (Android 8+) | Not applicable (iOS uses categories / interruption levels) |
+| Badge update | Manual via `setBadgeCountAsync` | Manual same; aps payload also supports `badge` |
+| Sound | Per-channel | Per-notification `sound` field |
+
+### A.6 No code changes expected to `usePushRegistration`
+
+The hook already does `getTokenType()` returning `'fcm-ios'` on iOS. `expo-notifications.getExpoPushTokenAsync()` works cross-platform. The only deployment work is the Adi-side credentials.
+
+### A.7 Open questions to surface when iOS activates
+
+- **APNs key vs certificate** — recommend key (one for all apps + no expiry)
+- **Sandbox push for TestFlight** — iOS uses production APNs for TestFlight (counter-intuitive but documented)
+- **Notification Service Extension** — for rich payloads (images, mutable content). Defer to v1.1.
+- **Critical Alerts** — bypass DND. NOT enabling for BUFF (Pillar 2 — alarm-design risk).
+
+### A.8 Test plan (when iOS activates)
+
+- Fresh install → onboard parent → pre-prompt → grant → token registered with `token_type='fcm-ios'`
+- Send test via Firebase Console → tray push appears
+- Send via Edge Function (same dispatch path) → tray push appears
+- Foreground app → no tray, in-app toast (same as Android)
+- Tap from background → app opens, correct route
+- Web build (already shipped by then) → simultaneous push delivery across both
+
+---
+
 ## Brief for the receiving session
 
 Paste this as the first message when you spin up a new CC session for this package:

@@ -407,6 +407,19 @@
 
 ---
 
+### F-2026-05-20-01: Supabase environment separation (dev/staging/prod) — deferred
+
+- **תאריך:** 2026-05-20
+- **מקור:** Adi — pkg/fcm-push-notifications Phase 1 execution
+- **תיאור:** During Phase 1 execution (migration 012 application), CC paused to ask before applying schema changes to live `buff-mobile` Supabase project. Adi clarified: there are no production users yet on the mobile project (all 275 profiles + 191 families are test data + Lovable-era snapshot). For now, CC applies migrations directly. **When real production users arrive, this freedom needs to revert** — at that point we need proper environment separation:
+  - Dev branch (CC autonomous)
+  - Staging branch (Adi manual approval before merge)
+  - Prod branch (Adi-only, gated PR)
+- Supabase native branching (preview branches) would be the cleanest path. RevenueCat + Sentry + EAS already have separate environments configured per `BUFF_PRD.md §9`.
+- **השפעה:** Once Play Store internal testing scales beyond Adi + family, this MUST be set up. Best done as a dedicated package (`pkg/env-separation`) after MVP ships.
+- **סטטוס:** `open` (deferred — revisit before public launch)
+- **קשור ל:** `feedback_mobile_db_no_prod_users.md` memory, CLAUDE.md (Modify Supabase schema rule will need amendment), future `pkg/env-separation`
+
 ### F-2026-05-19-01: Parent-initiated re-engagement tools for disengaged kids — v1.1 idea
 
 - **תאריך:** 2026-05-19
