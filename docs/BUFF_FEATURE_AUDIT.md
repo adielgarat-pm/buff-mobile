@@ -82,6 +82,7 @@ Terminology note: Credits = Buffs (באפים) throughout all documents. The rew
 | T-05 | Teen | Calendar heat-map of completions | NOT in app | New feature | Visual progress for teen self-awareness |
 | SMART & SYSTEM FEATURES | SMART & SYSTEM FEATURES | SMART & SYSTEM FEATURES | SMART & SYSTEM FEATURES | SMART & SYSTEM FEATURES | SMART & SYSTEM FEATURES |
 | S-01 | System | Push Notifications: context-aware coaching nudges by pet stage + time of day | ✅ Shipped 2026-05-20 (`pkg/fcm-push-notifications`, FCM HTTP v1, Android live; Expo Web stub Phase 2-ready; iOS design-only) | Shipped | Native FCM replaces PWA Web Push. Activity-based suppression. Body-doubling kid copy (IN-2026-05-19-03). |
+| S-01b | System | Parent in-app notification feed (bell + chronological list) | ✅ Shipped 2026-05-20 (`pkg/parent-notification-feed`) | Shipped | Reads from same `public.notifications`. Floating bell on all 5 ParentTabs. Sticky time-bucket sections. Equal-weight rows (Pillar 2 — no SOS amplification). is_read parent-private (Pillar 3 — no read-receipts to kid). |
 | S-02 | System | Notification messages library (morning, departure, focus, shower, bedtime) | Implemented | Keep as-is | Copy is good, just needs native delivery |
 | S-03 | System | 15-Minute Rule: cognitive strategy for task startup | Implemented | Keep as-is | Unique pedagogical feature |
 | S-04 | System | Dopamine Bridge: tiered reward system philosophy | Implemented | Keep as-is | Philosophy expressed in reward pricing |

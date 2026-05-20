@@ -1,3 +1,4 @@
+import { View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import ParentTasksScreen from '../screens/parent/ParentTasksScreen';
 import ParentRewardsScreen from '../screens/parent/ParentRewardsScreen';
 import ParentTimetableScreen from '../screens/parent/TimetableScreen';
 import ParentSettingsScreen from '../screens/parent/ParentSettingsScreen';
+import { ParentNotificationBell } from '../components/parent/ParentNotificationBell';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -31,38 +33,43 @@ export default function ParentTabs() {
   const { t } = useTranslation();
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => {
-        const cfg = TAB_CONFIG[route.name as keyof ParentTabsParamList];
-        return {
-          headerShown: false,
-          lazy: true,
-          tabBarActiveTintColor: PARENT_THEME.accent,
-          tabBarInactiveTintColor: PARENT_THEME.textMuted,
-          tabBarStyle: {
-            backgroundColor: PARENT_THEME.tabBar,
-            borderTopColor: PARENT_THEME.tabBarBorder,
-            borderTopWidth: 1,
-            paddingBottom: 4 + insets.bottom,
-            height: 56 + insets.bottom,
-          },
-          tabBarLabelStyle: { fontSize: 11, marginTop: -2 },
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons
-              name={focused ? cfg.iconActive : cfg.icon}
-              size={size}
-              color={color}
-            />
-          ),
-          tabBarLabel: t(cfg.labelKey),
-        };
-      }}
-    >
-      <Tab.Screen name="ParentDashboard"  component={ParentDashboardScreen} />
-      <Tab.Screen name="ParentTasks"      component={ParentTasksScreen} />
-      <Tab.Screen name="ParentRewards"    component={ParentRewardsScreen} />
-      <Tab.Screen name="ParentTimetable"  component={ParentTimetableScreen} />
-      <Tab.Screen name="ParentSettings"   component={ParentSettingsScreen} />
-    </Tab.Navigator>
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={({ route }) => {
+          const cfg = TAB_CONFIG[route.name as keyof ParentTabsParamList];
+          return {
+            headerShown: false,
+            lazy: true,
+            tabBarActiveTintColor: PARENT_THEME.accent,
+            tabBarInactiveTintColor: PARENT_THEME.textMuted,
+            tabBarStyle: {
+              backgroundColor: PARENT_THEME.tabBar,
+              borderTopColor: PARENT_THEME.tabBarBorder,
+              borderTopWidth: 1,
+              paddingBottom: 4 + insets.bottom,
+              height: 56 + insets.bottom,
+            },
+            tabBarLabelStyle: { fontSize: 11, marginTop: -2 },
+            tabBarIcon: ({ color, size, focused }) => (
+              <Ionicons
+                name={focused ? cfg.iconActive : cfg.icon}
+                size={size}
+                color={color}
+              />
+            ),
+            tabBarLabel: t(cfg.labelKey),
+          };
+        }}
+      >
+        <Tab.Screen name="ParentDashboard"  component={ParentDashboardScreen} />
+        <Tab.Screen name="ParentTasks"      component={ParentTasksScreen} />
+        <Tab.Screen name="ParentRewards"    component={ParentRewardsScreen} />
+        <Tab.Screen name="ParentTimetable"  component={ParentTimetableScreen} />
+        <Tab.Screen name="ParentSettings"   component={ParentSettingsScreen} />
+      </Tab.Navigator>
+      {/* Floating notification bell — visible across all 5 parent tabs (OQ-B1).
+          Positioned absolutely; does not consume layout space. */}
+      <ParentNotificationBell />
+    </View>
   );
 }

@@ -42,6 +42,7 @@ import ChildTabs             from './ChildTabs';
 import PaywallScreen         from '../screens/PaywallScreen';
 import FoundingHundredScreen from '../screens/FoundingHundredScreen';
 import PhilosophyScreen      from '../screens/parent/PhilosophyScreen';
+import NotificationFeedScreen from '../screens/parent/NotificationFeedScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -138,6 +139,11 @@ export default function RootNavigator() {
               name="Philosophy"
               component={PhilosophyScreen}
               options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="NotificationFeed"
+              component={NotificationFeedScreen}
+              options={{ presentation: 'modal', headerShown: false }}
             />
             <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
               <Stack.Screen name="UStep1"            component={UStep1_ChildProfile} />

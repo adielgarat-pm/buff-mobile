@@ -1562,5 +1562,20 @@
   "push.kid_phase.afternoon.title": "{{buddy_name}}",
   "push.kid_phase.afternoon.body": "לידך, בקצב שלך",
   "push.kid_phase.evening.title": "{{buddy_name}}",
-  "push.kid_phase.evening.body": "עומד/ת לידך 🌙"
+  "push.kid_phase.evening.body": "עומד/ת לידך 🌙",
+  "notificationBell.a11y": "התראות, {{count}} לא נקראו",
+  "notificationFeed.title": "התראות",
+  "notificationFeed.back.a11y": "חזרה",
+  "notificationFeed.markAll": "סמן הכל כנקרא",
+  "notificationFeed.bucket.today": "היום",
+  "notificationFeed.bucket.yesterday": "אתמול",
+  "notificationFeed.bucket.this_week": "השבוע",
+  "notificationFeed.bucket.older": "מוקדם יותר",
+  "notificationFeed.empty.headline": "אין הודעות חדשות — שקט כרגע",
+  "notificationFeed.row.parent_sos": "{{name}} רצה/רצתה לשתף — יום של אנרגיה נמוכה",
+  "notificationFeed.row.reward_redeemed": "{{name}} בחר/ה פרס: {{reward}}",
+  "notificationFeed.row.task_completed": "{{name}} השלים/ה משימה",
+  "notificationFeed.row.quest_milestone": "{{name}} הגיע/ה לאבן דרך",
+  "notificationFeed.row.parent_engagement": "{{name}} פעיל/ה השבוע — בא לראות?",
+  "notificationFeed.row.family_joined": "{{name}} הצטרף/ה למשפחה"
 }
