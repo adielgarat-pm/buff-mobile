@@ -5,7 +5,13 @@
 | Phase | State | Date | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
 | **0: Foundation** | ✅ _passed_ | 2026-05-19 | `4239b09` | MCP schema verification + scaffolding files present | none surprising |
-| **1: DB migration 012** | ✅ _passed_ | 2026-05-20 | (this commit) | Migration applied to live (gfrongfnyigxsexuofrg) via MCP `apply_migration`; `get_advisors` security check: 1 INFO (notification_pushes has RLS+no policies — by design, service-role only) + pre-existing function warnings unrelated to this migration | F-2026-05-20-01 (env separation deferred); `feedback_mobile_db_no_prod_users.md` memory |
+| **1: DB migration 012** | ✅ _passed_ | 2026-05-20 | `1e77088` | Migration applied to live (gfrongfnyigxsexuofrg) via MCP `apply_migration`; `get_advisors` security check: 1 INFO (notification_pushes has RLS+no policies — by design, service-role only) + pre-existing function warnings unrelated to this migration | F-2026-05-20-01 (env separation deferred); `feedback_mobile_db_no_prod_users.md` memory |
+| **2/4/5/6/8: Client lifecycle + body-doubling local notifications** | ✅ _passed_ | 2026-05-20 | `278d3c7` | `tsc --noEmit` 0 errors; `jest` 79/79 passing; `i18n:check` 313 keys parity. New files: pushTokens.ts + usePushRegistration.ts + PushPermissionPrePrompt.tsx + notificationHandler.ts + notificationRouter.ts + useKidLocalNotifications.ts + NotificationGate.tsx. `expo-notifications ~0.32.17` installed + plugin in app.json. 24 new i18n keys × 2 languages. NotificationGate wired into App.tsx | none surprising |
+| **7: Engagement scheduler (E5, E6)** | ✅ _passed_ | 2026-05-20 | (this commit) | Migration 013 applied to live; `scan_disengaged_users()` SECURITY DEFINER function created; pg_cron job `scan_disengaged_users_daily` scheduled at `0 6 * * *` (06:00 UTC daily). Function tested manually returning (0, 0) initially as expected — no profiles have last_seen_at >= 5d yet (all just bumped today by new column default + usePushRegistration foreground listener) | none surprising |
+| **9: Web client stub** | ✅ _passed_ | 2026-05-20 | (this commit) | `src/lib/webPushRegistration.ts` scaffolding — returns `not_implemented` until Firebase web SDK is installed. Real implementation deferred to Phase 9 v1.1 (separate `firebase` npm approval required) | none |
+| **10: iOS design appendix** | ✅ _passed_ | 2026-05-20 | (this commit) | SPEC.md § "Appendix A — iOS APNs design (Phase 10, design-only)" added. Captures prerequisites, FCM-APNs bridge, expo-notifications iOS config, EAS Build settings, differences from Android, test plan. NO code changes — Apple Developer account not active | none |
+| **3: Edge Function dispatch** | 🟡 _blocked_ | — | — | Awaiting Firebase project + service account JSON from Adi (action item in STATUS.md § Pending Adi) | — |
+| **11: Spec sync + PR** | _pending_ | — | — | After Adi evening test + Firebase setup unblocks Phase 3 | — |
 
 ## Legend
 
