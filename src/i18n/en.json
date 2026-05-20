@@ -1562,5 +1562,20 @@
   "push.kid_phase.afternoon.title": "{{buddy_name}}",
   "push.kid_phase.afternoon.body": "with you, at your pace",
   "push.kid_phase.evening.title": "{{buddy_name}}",
-  "push.kid_phase.evening.body": "standing by 🌙"
+  "push.kid_phase.evening.body": "standing by 🌙",
+  "notificationBell.a11y": "Notifications, {{count}} unread",
+  "notificationFeed.title": "Notifications",
+  "notificationFeed.back.a11y": "Back",
+  "notificationFeed.markAll": "Mark all as read",
+  "notificationFeed.bucket.today": "Today",
+  "notificationFeed.bucket.yesterday": "Yesterday",
+  "notificationFeed.bucket.this_week": "This week",
+  "notificationFeed.bucket.older": "Older",
+  "notificationFeed.empty.headline": "All caught up — quiet for now",
+  "notificationFeed.row.parent_sos": "{{name}} wanted to share — low energy today",
+  "notificationFeed.row.reward_redeemed": "{{name}} chose a reward: {{reward}}",
+  "notificationFeed.row.task_completed": "{{name}} completed a task",
+  "notificationFeed.row.quest_milestone": "{{name}} reached a milestone",
+  "notificationFeed.row.parent_engagement": "{{name}} has been active this week — wanna see?",
+  "notificationFeed.row.family_joined": "{{name}} joined the family"
 }

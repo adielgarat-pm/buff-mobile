@@ -275,7 +275,7 @@ User research identified three distinct periods where churn occurs:
 | Mobile Framework | React Native | Single codebase for Android + iOS; familiar to React developers; strong community |
 | Launch Platform | Android (Google Play Store) first | 36/39 existing PWA installations are Android; faster review process than Apple |
 | Backend & DB | Supabase (existing, cleaned) | Existing data preserved; PostgreSQL; auth included; real-time capable |
-| Push Notifications | Firebase Cloud Messaging (FCM) — replaces PWA Web Push | Reliable delivery; free tier sufficient; cross-platform (Android + iOS ready) |
+| Push Notifications | Firebase Cloud Messaging (FCM HTTP v1) — replaces PWA Web Push | ✅ Shipped 2026-05-20 via `pkg/fcm-push-notifications` (Android live; Expo Web stub Phase 2-ready; iOS design-only). Single backend, multi-platform `device_tokens` table, Supabase Edge Function `push-notification-fanout` for dispatch with activity-based suppression. |
 | Internationalization | i18next / react-i18next | English primary; Hebrew secondary; RTL support required |
 
 

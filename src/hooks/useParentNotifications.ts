@@ -1,27 +1,23 @@
 /**
- * useParentNotifications — surfaces today's per-child parent_sos notifications
- * to the parent dashboard.
+ * useParentNotifications — narrow selector on useNotificationsFeed for the
+ * parent dashboard's per-child SOS surface (Vibe Check Phase 4b).
  *
- * Source SPEC: docs/sessions/daily-vibe-check/SPEC.md § Phase 4 (revised
- * during session 2026-05-17: badge-only on child card; no banner; no
- * manual mark-as-read in v1; auto-clear at midnight via today-filter).
+ * Originally a standalone hook (pkg/daily-vibe-check Phase 4b, 2026-05-17).
+ * Refactored 2026-05-20 in pkg/parent-notification-feed Phase 1 to be a thin
+ * selector on top of `useNotificationsFeed` (OQ-B11 locked decision) — one
+ * realtime channel per family per session instead of two.
  *
- * Scope intentionally narrow:
- *   - Filters to type='parent_sos' only. Other types (task_completed,
- *     reward_redeemed, quest_milestone) belong to pkg/parent-notification-
- *     feed (separate package).
- *   - Filters to today only. Yesterday's parent_sos rows are gone from
- *     the surface — they roll off naturally.
- *   - No is_read mutation in v1. The text + dot persist for the full day
- *     and disappear at midnight when the date filter rotates.
- *   - Realtime subscribed so a fresh SOS appears without manual refresh.
+ * **Return shape preserved** so `ParentDashboardScreen` consumer stays
+ * unchanged. Snapshot regression test guards against drift.
  *
- * Returns a Map<childId, ParentSosNotification> so callers can do a
- * cheap O(1) lookup per child card.
+ * Selection rules (unchanged from original):
+ *   - type === 'parent_sos' only (drops other types — dashboard scope)
+ *   - today only (UTC date match; yesterday's SOS rolls off naturally)
+ *   - latest SOS per child (defensive against multiple-per-day)
  */
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../integrations/supabase/client';
-import { useAuth } from '../contexts/AuthContext';
+
+import { useCallback, useMemo } from 'react';
+import { useNotificationsFeed } from './useNotificationsFeed';
 
 export interface ParentSosNotification {
   id:           string;
@@ -34,83 +30,39 @@ export interface ParentSosNotification {
  *  daily_progress.date + child_vibes.date elsewhere in the codebase. */
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-export function useParentNotifications() {
-  const { familyId } = useAuth();
-  const [byChild, setByChild] = useState<Map<string, ParentSosNotification>>(new Map());
-  const [loading, setLoading] = useState(true);
+interface UseParentNotificationsResult {
+  byChild:         Map<string, ParentSosNotification>;
+  loading:         boolean;
+  getSosForChild:  (childId: string) => ParentSosNotification | null;
+  refetch:         () => Promise<void>;
+}
 
-  const refetch = useCallback(async () => {
-    if (!familyId) {
-      setByChild(new Map());
-      setLoading(false);
-      return;
-    }
+export function useParentNotifications(): UseParentNotificationsResult {
+  const { items, loading, refetch } = useNotificationsFeed();
 
+  const byChild = useMemo(() => {
     const todayKey = getTodayKey();
-    // ISO range for today (UTC). created_at >= start of UTC day < start of next day.
-    const todayStart = `${todayKey}T00:00:00Z`;
-    const tomorrow   = new Date(Date.parse(todayStart) + 24 * 60 * 60 * 1000)
-                          .toISOString();
-
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('id, child_id, child_name, created_at')
-        .eq('family_id', familyId)
-        .eq('type', 'parent_sos')
-        .gte('created_at', todayStart)
-        .lt('created_at', tomorrow)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('[useParentNotifications] fetch error:', error);
-        setByChild(new Map());
-        return;
+    const map = new Map<string, ParentSosNotification>();
+    for (const row of items) {
+      if (row.type !== 'parent_sos') continue;
+      if (!row.child_id) continue;
+      // Today-only filter — extract UTC date portion of created_at
+      const rowDate = row.created_at.split('T')[0];
+      if (rowDate !== todayKey) continue;
+      // Latest SOS per child (items are already ordered DESC by created_at,
+      // so the FIRST one we encounter for a child is the most recent)
+      if (!map.has(row.child_id)) {
+        map.set(row.child_id, {
+          id:         row.id,
+          child_id:   row.child_id,
+          child_name: row.child_name,
+          created_at: row.created_at,
+        });
       }
-
-      // Latest SOS per child (multiple unlikely in v1 but defensive).
-      const next = new Map<string, ParentSosNotification>();
-      for (const row of data ?? []) {
-        if (!row.child_id) continue;
-        if (!next.has(row.child_id)) {
-          next.set(row.child_id, row as ParentSosNotification);
-        }
-      }
-      setByChild(next);
-    } catch (err) {
-      console.error('[useParentNotifications] fetch exception:', err);
-    } finally {
-      setLoading(false);
     }
-  }, [familyId]);
+    return map;
+  }, [items]);
 
-  useEffect(() => { refetch(); }, [refetch]);
-
-  // Realtime — re-fetch whenever a parent_sos notification appears for
-  // this family. (Cheap re-fetch; we'd otherwise need to filter the
-  // INSERT payload client-side anyway.)
-  useEffect(() => {
-    if (!familyId) return;
-    const channel = supabase
-      .channel(`parent-notifications-${familyId}-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event:  'INSERT',
-          schema: 'public',
-          table:  'notifications',
-          filter: `family_id=eq.${familyId}`,
-        },
-        (payload) => {
-          const row = payload.new as { type?: string } | null;
-          if (row?.type === 'parent_sos') refetch();
-        },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [familyId, refetch]);
-
-  /** Convenience: was there an SOS for this child today? */
   const getSosForChild = useCallback(
     (childId: string): ParentSosNotification | null => byChild.get(childId) ?? null,
     [byChild],

@@ -52,6 +52,9 @@ export type RootStackParamList = {
 
   // ── Philosophy / About ───────────────────────────────────────────────
   Philosophy: undefined;
+
+  // ── Parent notification feed (modal pushed above ParentApp) ──────────
+  NotificationFeed: undefined;
 };
 
 export type ParentTabsParamList = {

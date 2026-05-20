@@ -407,6 +407,16 @@
 
 ---
 
+### IN-2026-05-20-01: service_role lacks GRANT on Lovable-era public tables
+
+- **תאריך:** 2026-05-20
+- **מקור:** CC — pkg/fcm-push-notifications Phase 3 E2E debugging
+- **תיאור:** Edge Function `push-notification-fanout` failed E2E with `permission denied for table profiles` even though it was using `SUPABASE_SERVICE_ROLE_KEY`. Investigation: `has_table_privilege('service_role', 'public.profiles', 'SELECT')` returned `false` for most existing tables. The buff-mobile project (originally provisioned via Lovable) was missing the standard Supabase service_role grants on `profiles`, `notifications`, `tasks`, `daily_progress`, `buddy_relationships`, `child_vibes`, and others. Migration 005 (`grant_service_role_usage.sql`) covered USAGE on schema but did NOT include table-level GRANTs.
+- **Symptom for future debugging:** `supabase-js` with service-role key returning `error.message = "permission denied for table X"` despite RLS being non-restrictive — first check `has_table_privilege('service_role', 'public.X', 'SELECT')`. If false → GRANT missing, not RLS.
+- **השפעה:** Migration 014 (`service_role_grants.sql`) applied — `GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role` + `ALTER DEFAULT PRIVILEGES` so future tables auto-grant. This is now baseline for any Edge Function in buff-mobile. Future packages that create new public tables get the grant automatically via DEFAULT PRIVILEGES; older Lovable-era tables are now retroactively covered.
+- **סטטוס:** `resolved` (migration 014 live; ALTER DEFAULT PRIVILEGES ensures durable fix)
+- **קשור ל:** pkg/fcm-push-notifications Phase 3, migrations/005, migrations/014, all future Edge Functions
+
 ### F-2026-05-20-01: Supabase environment separation (dev/staging/prod) — deferred
 
 - **תאריך:** 2026-05-20
