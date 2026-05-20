@@ -1530,5 +1530,9 @@
   "buddy.friendshipLevel.L5.other": "חברים לנצח",
   "gamerMyStats.statDaysTogether": "ימים יחד",
   "gamerMyStats.statTasksCompleted": "משימות שהושלמו",
-  "gamerMyStats.progressToNextLevel": "התקדמות ל-LEVEL {{level}}"
+  "gamerMyStats.progressToNextLevel": "התקדמות ל-LEVEL {{level}}",
+  "childSettings.buddyView.entry": "באדי על הדאשבורד",
+  "childSettings.buddyView.statusShown": "מוצג",
+  "childSettings.buddyView.statusHidden": "מוסתר",
+  "childSettings.renameBuddy.entry": "שינוי שם הבאדי"
 }

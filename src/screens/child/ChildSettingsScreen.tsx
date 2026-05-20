@@ -6,12 +6,17 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 're
 import { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useTheme, useChildTheme, CHILD_THEMES, type ChildThemeName } from '../../contexts/ThemeContext';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
+import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
+import { BuddyNameModal } from '../../components/buddy/BuddyNameModal';
+import { getBuddyDefaultName } from '../../components/buddy/buddyAssets';
 import { MOCK_MY_CHILD, PET_STAGES } from '../../mock/data';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -27,17 +32,28 @@ const THEME_OPTIONS: { name: ChildThemeName; label: string; emoji: string; desc:
 export default function ChildSettingsScreen() {
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, viewMode } = useMode();
+  const { isChildPreview, exitChildPreview, viewMode, previewChildId } = useMode();
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
   const { isSubscribed } = useSubscription();
+  const { t } = useTranslation();
   const isChildViewer = viewMode === 'child';
+
+  const childId = previewChildId ?? profile?.id ?? null;
+  const { relationship, setBuddyVisible, setBuddyName } = useBuddyRelationship(childId);
 
   const child = MOCK_MY_CHILD;
   const petCfg = PET_STAGES[child.petStage];
   const [hapticsOn, setHapticsOn]       = useState(true);
   const [selectedSkin, setSelectedSkin] = useState('🐉');
+  const [toggleModalVisible, setToggleModalVisible] = useState(false);
+  const [nameModalVisible,   setNameModalVisible]   = useState(false);
+
+  const buddyVisible = relationship?.buddy_visible ?? true;
+  const toggleMode: 'hide' | 'show' = buddyVisible ? 'hide' : 'show';
+  const buddyDefaultName = getBuddyDefaultName(relationship?.current_skin_id ?? null) ?? 'Buddy';
+  const buddyDisplayName = relationship?.buddy_name ?? buddyDefaultName;
 
   // Load persisted haptics preference on mount
   useEffect(() => {
@@ -165,6 +181,36 @@ export default function ChildSettingsScreen() {
         ))}
       </View>
 
+      {/* ── Buddy section ──────────────────────────────────────────────────── */}
+      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Buddy</Text>
+      <TouchableOpacity
+        style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
+        onPress={() => setToggleModalVisible(true)}
+        accessibilityRole="button"
+        testID="buddy-view-entry"
+      >
+        <Text style={[styles.settingLabel, { color: T.foreground }]}>
+          {t('childSettings.buddyView.entry')}
+        </Text>
+        <Text style={[styles.settingStatus, { color: T.mutedForeground }]}>
+          {t(buddyVisible ? 'childSettings.buddyView.statusShown' : 'childSettings.buddyView.statusHidden')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
+        onPress={() => setNameModalVisible(true)}
+        accessibilityRole="button"
+        testID="rename-buddy-entry"
+      >
+        <Text style={[styles.settingLabel, { color: T.foreground }]}>
+          {t('childSettings.renameBuddy.entry')}
+        </Text>
+        <Text style={[styles.settingStatus, { color: T.mutedForeground }]} numberOfLines={1}>
+          {buddyDisplayName}
+        </Text>
+      </TouchableOpacity>
+
       {/* ── Haptics toggle ─────────────────────────────────────────────────── */}
       <View style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}>
         <Text style={[styles.settingLabel, { color: T.foreground }]}>📳 Completion Haptics</Text>
@@ -176,6 +222,26 @@ export default function ChildSettingsScreen() {
         />
       </View>
 
+      <BuddyToggleModal
+        visible={toggleModalVisible}
+        mode={toggleMode}
+        onConfirm={async () => {
+          setToggleModalVisible(false);
+          await setBuddyVisible(!buddyVisible);
+        }}
+        onCancel={() => setToggleModalVisible(false)}
+      />
+
+      <BuddyNameModal
+        visible={nameModalVisible}
+        currentName={relationship?.buddy_name ?? null}
+        defaultName={buddyDefaultName}
+        onSave={async (name) => {
+          setNameModalVisible(false);
+          await setBuddyName(name);
+        }}
+        onCancel={() => setNameModalVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -214,4 +280,5 @@ const styles = StyleSheet.create({
 
   settingRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1 },
   settingLabel:        { fontSize: 15 },
+  settingStatus:       { fontSize: 13, maxWidth: 140 },
 });

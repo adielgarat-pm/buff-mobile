@@ -1530,5 +1530,9 @@
   "buddy.friendshipLevel.L5.other": "Friends Forever",
   "gamerMyStats.statDaysTogether": "Days Together",
   "gamerMyStats.statTasksCompleted": "Tasks Completed",
-  "gamerMyStats.progressToNextLevel": "Progress to LEVEL {{level}}"
+  "gamerMyStats.progressToNextLevel": "Progress to LEVEL {{level}}",
+  "childSettings.buddyView.entry": "Buddy on dashboard",
+  "childSettings.buddyView.statusShown": "Showing",
+  "childSettings.buddyView.statusHidden": "Hidden",
+  "childSettings.renameBuddy.entry": "Rename Buddy"
 }
