@@ -9,6 +9,7 @@
 import {
   levelForSuccessfulDays,
   daysUntilNextLevel,
+  friendshipLevelI18nKey,
   FRIENDSHIP_LEVEL_THRESHOLDS,
 } from '../buddy';
 
@@ -76,5 +77,26 @@ describe('daysUntilNextLevel', () => {
   test('returns null at level 5 (no next)', () => {
     expect(daysUntilNextLevel(100)).toBeNull();
     expect(daysUntilNextLevel(500)).toBeNull();
+  });
+});
+
+describe('friendshipLevelI18nKey', () => {
+  test('resolves boy variant for masculine gender', () => {
+    expect(friendshipLevelI18nKey(1, 'boy')).toBe('buddy.friendshipLevel.L1.boy');
+    expect(friendshipLevelI18nKey(4, 'boy')).toBe('buddy.friendshipLevel.L4.boy');
+  });
+
+  test('resolves girl variant for feminine gender', () => {
+    expect(friendshipLevelI18nKey(2, 'girl')).toBe('buddy.friendshipLevel.L2.girl');
+    expect(friendshipLevelI18nKey(5, 'girl')).toBe('buddy.friendshipLevel.L5.girl');
+  });
+
+  test('resolves other variant explicitly', () => {
+    expect(friendshipLevelI18nKey(3, 'other')).toBe('buddy.friendshipLevel.L3.other');
+  });
+
+  test('null or undefined gender falls back to other (per IN-2026-05-20-01)', () => {
+    expect(friendshipLevelI18nKey(1, null)).toBe('buddy.friendshipLevel.L1.other');
+    expect(friendshipLevelI18nKey(5, undefined)).toBe('buddy.friendshipLevel.L5.other');
   });
 });

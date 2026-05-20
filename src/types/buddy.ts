@@ -98,3 +98,18 @@ export function daysUntilNextLevel(days: number): number | null {
   if (next > 5) return null;
   return FRIENDSHIP_LEVEL_THRESHOLDS[next as 2 | 3 | 4 | 5] - days;
 }
+
+/**
+ * i18n key resolver for the friendship-level label (e.g. "Best Friends" /
+ * "החברים הכי טובים"). Per SPEC Decision 9 + IN-2026-05-20-01: profile.gender
+ * does not yet exist on the live schema, so all callers should currently pass
+ * null and the helper resolves to the masculine-plural 'other' variant.
+ * When gender lands in a future package, this function alone changes — i18n
+ * keys are already in place.
+ */
+export function friendshipLevelI18nKey(
+  level: BuddyRelationship['friendship_level'],
+  gender: 'boy' | 'girl' | 'other' | null | undefined,
+): string {
+  return `buddy.friendshipLevel.L${level}.${gender ?? 'other'}`;
+}

@@ -1534,5 +1534,11 @@
   "childSettings.buddyView.entry": "באדי על הדאשבורד",
   "childSettings.buddyView.statusShown": "מוצג",
   "childSettings.buddyView.statusHidden": "מוסתר",
-  "childSettings.renameBuddy.entry": "שינוי שם הבאדי"
+  "childSettings.renameBuddy.entry": "שינוי שם הבאדי",
+  "buddy.story.L1": "{{buddyName}} מתאקלם",
+  "buddy.story.L2": "{{buddyName}} מתחיל לסמוך עליך",
+  "buddy.story.L3": "{{buddyName}} תמיד לידך",
+  "buddy.story.L4": "{{buddyName}} שומר על הגב שלך",
+  "buddy.story.L5": "{{buddyName}} כבר חבר לחיים",
+  "meAndBuddy.title": "אני והבאדי"
 }
