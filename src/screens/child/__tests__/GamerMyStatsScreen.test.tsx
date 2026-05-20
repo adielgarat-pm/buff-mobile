@@ -1,15 +1,21 @@
 /**
- * Tests for GamerMyStatsScreen — the lite version of Stitch 5B.
+ * Tests for GamerMyStatsScreen — the full Stitch 5B layout.
  *
- * Covers: stat-grid render with data, Pause Mode short-circuit, loading state,
- * zero-data fallback (no crash on missing values).
+ * Covers: render with V0.5 data, Pause Mode short-circuit, loading state,
+ * fresh-child fallback (relationship === null → L1 + zeros), L5 hides
+ * progress bar, booster carousel renders gifts.
  */
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import GamerMyStatsScreen from '../GamerMyStatsScreen';
+import type { BuddyRelationship, BuddyGift } from '../../../types/buddy';
 
 // ── Mock hooks ──────────────────────────────────────────────────────────────
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string, opts?: Record<string, unknown>) =>
+      opts && 'level' in opts ? `${key}:${opts.level}` : key,
+  }),
 }));
 
 jest.mock('../../../contexts/AuthContext', () => ({
@@ -20,12 +26,16 @@ jest.mock('../../../contexts/ModeContext', () => ({
   useMode: () => ({ previewChildId: null, isChildPreview: false }),
 }));
 
-jest.mock('../../../hooks/useChildProgress', () => ({
-  useChildData: jest.fn(),
+jest.mock('../../../hooks/useBuddyRelationship', () => ({
+  useBuddyRelationship: jest.fn(),
 }));
 
-jest.mock('../../../hooks/usePetState', () => ({
-  usePetState: jest.fn(),
+jest.mock('../../../hooks/useChildBuddyStats', () => ({
+  useChildBuddyStats: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useChildBuddyGifts', () => ({
+  useChildBuddyGifts: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useAppSettings', () => ({
@@ -50,87 +60,165 @@ jest.mock('../../../components/PauseEmptyState', () => {
 });
 
 // Type-safe access to the mocked hooks
-import { useChildData } from '../../../hooks/useChildProgress';
-import { usePetState } from '../../../hooks/usePetState';
+import { useBuddyRelationship } from '../../../hooks/useBuddyRelationship';
+import { useChildBuddyStats } from '../../../hooks/useChildBuddyStats';
+import { useChildBuddyGifts } from '../../../hooks/useChildBuddyGifts';
 import { useAppSettings } from '../../../hooks/useAppSettings';
 
-const mockedUseChildData    = useChildData as jest.MockedFunction<typeof useChildData>;
-const mockedUsePetState     = usePetState as jest.MockedFunction<typeof usePetState>;
-const mockedUseAppSettings  = useAppSettings as jest.MockedFunction<typeof useAppSettings>;
+const mockedUseBuddy       = useBuddyRelationship as jest.MockedFunction<typeof useBuddyRelationship>;
+const mockedUseStats       = useChildBuddyStats   as jest.MockedFunction<typeof useChildBuddyStats>;
+const mockedUseGifts       = useChildBuddyGifts   as jest.MockedFunction<typeof useChildBuddyGifts>;
+const mockedUseAppSettings = useAppSettings       as jest.MockedFunction<typeof useAppSettings>;
 
 // ── Test data builders ─────────────────────────────────────────────────────
-const baseChildData = {
-  tasks: [],
-  totalBalance: 1234,
-  dailyGoal: 5,
-  loading: false,
+const baseRelationship: BuddyRelationship = {
+  id: 'rel-1',
+  child_profile_id: 'child-1',
+  friendship_level: 2,
+  successful_days_count: 5,
+  current_skin_id: 'wolf',
+  current_theme_color: null,
+  buddy_name: null,
+  buddy_visible: true,
+  has_pending_gift: false,
+  relationship_started_at: '2026-05-01T00:00:00Z',
+  last_level_up_at: '2026-05-15T00:00:00Z',
+  last_successful_day_date: '2026-05-19',
+  created_at: '2026-05-01T00:00:00Z',
+  updated_at: '2026-05-15T00:00:00Z',
 };
 
-const basePetState = {
-  petState: {
-    evolution_days_count: 47,
-    daily_streak: 9,
-  } as any,
-  loading: false,
+const baseGift: BuddyGift = {
+  id: 'gift-1',
+  child_profile_id: 'child-1',
+  gift_type: 'theme_color',
+  gift_value: 'lime',
+  given_at_level: 2,
+  given_at: '2026-05-15T00:00:00Z',
+  used_at: null,
+  is_used: false,
+  created_at: '2026-05-15T00:00:00Z',
 };
 
-const baseAppSettings = { isPauseActive: false } as any;
+function setHooks({
+  relationship = baseRelationship,
+  daysTogether = 12,
+  tasksCompleted = 47,
+  gifts = [baseGift],
+  loading = { buddy: false, stats: false, gifts: false },
+  isPauseActive = false,
+}: Partial<{
+  relationship: BuddyRelationship | null;
+  daysTogether: number;
+  tasksCompleted: number;
+  gifts: BuddyGift[];
+  loading: { buddy: boolean; stats: boolean; gifts: boolean };
+  isPauseActive: boolean;
+}> = {}) {
+  mockedUseBuddy.mockReturnValue({
+    relationship,
+    loading: loading.buddy,
+    error: null,
+    refetch: jest.fn(),
+    setBuddyVisible: jest.fn(),
+    setBuddyName: jest.fn(),
+  } as any);
+  mockedUseStats.mockReturnValue({
+    stats: { daysTogether, tasksCompleted },
+    loading: loading.stats,
+    error: null,
+    refetch: jest.fn(),
+  } as any);
+  mockedUseGifts.mockReturnValue({
+    gifts,
+    loading: loading.gifts,
+    error: null,
+    refetch: jest.fn(),
+  } as any);
+  mockedUseAppSettings.mockReturnValue({ isPauseActive } as any);
+}
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 describe('GamerMyStatsScreen', () => {
   beforeEach(() => {
-    mockedUseChildData.mockReturnValue(baseChildData as any);
-    mockedUsePetState.mockReturnValue(basePetState as any);
-    mockedUseAppSettings.mockReturnValue(baseAppSettings);
+    jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    setHooks();
   });
 
-  test('renders 3 stat cards with the data from hooks', () => {
-    const { getByText } = render(<GamerMyStatsScreen />);
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    // Title
+  test('renders full 5B layout with V0.5 data', () => {
+    const { getByText, queryAllByText } = render(<GamerMyStatsScreen />);
+
+    // Title + LEVEL N (from LevelPill)
     expect(getByText('gamerMyStats.title')).toBeTruthy();
+    expect(getByText('LEVEL 2')).toBeTruthy();
 
-    // Stat values
-    expect(getByText('1,234')).toBeTruthy();   // totalBalance, locale-formatted
-    expect(getByText('47')).toBeTruthy();       // evolution_days_count
-    expect(getByText('9')).toBeTruthy();        // daily_streak
+    // 3 stat values
+    expect(getByText('12')).toBeTruthy(); // daysTogether
+    expect(getByText('5')).toBeTruthy();  // successful_days_count
+    expect(getByText('47')).toBeTruthy(); // tasksCompleted
 
-    // Stat labels (i18n keys, since we mocked t to return the key)
-    expect(getByText('gamerMyStats.statBuffs')).toBeTruthy();
+    // 3 stat labels
+    expect(getByText('gamerMyStats.statDaysTogether')).toBeTruthy();
     expect(getByText('gamerMyStats.statSuccessfulDays')).toBeTruthy();
-    expect(getByText('gamerMyStats.statCurrentStreak')).toBeTruthy();
+    expect(getByText('gamerMyStats.statTasksCompleted')).toBeTruthy();
+
+    // Progress bar label (level=2 → next is 3)
+    expect(getByText('gamerMyStats.progressToNextLevel:3')).toBeTruthy();
+
+    // Booster carousel section title + one available gift label
+    expect(queryAllByText('buddy.boosters.sectionTitle').length).toBeGreaterThan(0);
+    expect(queryAllByText('buddy.boosters.giftType.theme_color').length).toBeGreaterThan(0);
   });
 
-  test('renders PauseEmptyState when isPauseActive is true (no stats shown)', () => {
-    mockedUseAppSettings.mockReturnValue({ isPauseActive: true } as any);
+  test('renders PauseEmptyState when isPauseActive — no stats shown', () => {
+    setHooks({ isPauseActive: true });
 
     const { getByTestId, queryByText } = render(<GamerMyStatsScreen />);
 
     expect(getByTestId('pause-empty-state')).toBeTruthy();
-    // Stats labels should NOT render during pause
-    expect(queryByText('gamerMyStats.statBuffs')).toBeNull();
-    expect(queryByText('1,234')).toBeNull();
+    expect(queryByText('gamerMyStats.statDaysTogether')).toBeNull();
+    expect(queryByText('12')).toBeNull();
   });
 
-  test('renders 0 fallback for missing pet data without crashing', () => {
-    mockedUsePetState.mockReturnValue({
-      petState: { evolution_days_count: 0, daily_streak: 0 } as any,
-      loading: false,
-    } as any);
-    mockedUseChildData.mockReturnValue({ ...baseChildData, totalBalance: 0 } as any);
-
-    const { getAllByText } = render(<GamerMyStatsScreen />);
-
-    // All three stats should show "0"
-    expect(getAllByText('0').length).toBe(3);
-  });
-
-  test('shows loading indicator while either hook is loading', () => {
-    mockedUseChildData.mockReturnValue({ ...baseChildData, loading: true } as any);
+  test('shows loader while any of buddy/stats/gifts is loading', () => {
+    setHooks({ loading: { buddy: false, stats: true, gifts: false } });
 
     const { queryByText } = render(<GamerMyStatsScreen />);
 
-    // Title should not render during loading (loader short-circuits)
     expect(queryByText('gamerMyStats.title')).toBeNull();
+  });
+
+  test('fresh-child fallback: null relationship renders L1 with zeros', () => {
+    setHooks({ relationship: null, daysTogether: 0, tasksCompleted: 0, gifts: [] });
+
+    const { getByText, getAllByText } = render(<GamerMyStatsScreen />);
+
+    expect(getByText('LEVEL 1')).toBeTruthy();
+    // All 3 stat values render as "0"
+    expect(getAllByText('0').length).toBe(3);
+    // Progress bar visible (level < 5) — next level is 2
+    expect(getByText('gamerMyStats.progressToNextLevel:2')).toBeTruthy();
+  });
+
+  test('L5 hides the progress bar', () => {
+    setHooks({ relationship: { ...baseRelationship, friendship_level: 5, successful_days_count: 120 } });
+
+    const { queryByText } = render(<GamerMyStatsScreen />);
+
+    expect(queryByText('LEVEL 5')).toBeTruthy();
+    // progressToNextLevel:6 would render if the bar wasn't hidden
+    expect(queryByText('gamerMyStats.progressToNextLevel:6')).toBeNull();
+  });
+
+  test('tapping an available booster fires the coming-soon alert', () => {
+    const { getByText } = render(<GamerMyStatsScreen />);
+
+    fireEvent.press(getByText('buddy.boosters.giftType.theme_color'));
+
+    expect(Alert.alert).toHaveBeenCalledTimes(1);
   });
 });
