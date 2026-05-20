@@ -172,6 +172,54 @@
 
 ---
 
+## 🐛 BUG-2026-05-20-02 — ChildSettingsScreen displays mock data
+
+**Severity:** High (UX integrity — child sees fake BUFFs balance + fake pet skin state)
+
+**Repro:**
+1. Sign in as any child
+2. Navigate Menu tab (bottom-right)
+3. Observe profile card
+
+**Actual:**
+- Profile shows "1,240 Buffs ⚡" regardless of real balance
+- Pet stage "Spark · Scout" — hardcoded
+- Avatar 🐉 — hardcoded
+- Pet skin "Active" state on dragon — hardcoded
+- Other pets show "locked" (🔒) regardless of actual unlocks
+
+**Root cause:**
+- `src/screens/child/ChildSettingsScreen.tsx:37` — `const child = MOCK_MY_CHILD;`
+- `MOCK_MY_CHILD` is defined in `src/mock/data.ts:43-56`
+- The screen was likely shipped before the real `useChildStats` / `usePetState` wiring landed and was never reconnected.
+
+**Impact on beta launch:**
+- Affects: every child who opens the Menu tab
+- Severity: HIGH because it directly contradicts reality. Kid earned 50 BUFFs all week → Menu says 1,240. Kid trusts the number → confusion or loss of trust.
+- **Recommendation:** Fix before beta 2026-06-01. This is a "displayed truth" bug, not a missing feature.
+
+**Suggested fix:**
+- Replace `MOCK_MY_CHILD` with hook-driven data:
+  - `useChildStats()` → `total_balance`, `petStage`, `streak`
+  - `usePetState()` → unlocked pet skins (already exists per hook list)
+- Keep `PET_STAGES` constant for stage metadata (visual only — that's fine to keep)
+
+---
+
+## ✅ F13 — Theme switch verification (2026-05-20)
+
+| AC | Verdict | Evidence |
+|---|---|---|
+| F13.H1 Mint → Gamer switch — tab bar stays visible | ✅ | screenshots `menu.png` + `gamer.png` |
+| F13.H1 Tab bar grew from 4 → 5 (Stats tab Gamer-exclusive) | ✅ bonus | `gamer.png` |
+| F13.H4 Gamer palette = deep violet + cyan | ✅ | BUFF_BRAND §7.5 match |
+| State persists across theme switch (SOS sent, Low Power) | ✅ | `gamer_dash.png` shows banner + Sent pill |
+| F13.H3 Pastel = mint background + warm | ✅ | `menu.png` (before switch) |
+| Empty state "No tasks today. Take it easy." | ✅ Pillar 2 | `gamer_dash.png` |
+| InstantBuffCard re-themes correctly for Gamer | ✅ | `gamer_dash.png` lime CTA |
+
+---
+
 ## Updated Hat 1 / Hat 2 / Hat 3 scoreboard
 
 | Hat | ACs verified ✅ | Failed ❌ | Blocked by MCP 🤔 | Not yet run ⬜ |

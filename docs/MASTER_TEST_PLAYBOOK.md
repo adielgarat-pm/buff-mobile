@@ -1049,7 +1049,7 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 | **F10 (Vibe Check + Low Power)** | **mostly ✅** — H1, H6, H8, E3, E6 ✅; H7 ❌ (BUG-2026-05-20-01); rest ⬜ | full AC matrix in `docs/sessions/daily-vibe-check/AC_MATRIX.md` |
 | F11 (SOS notifications) | ⬜ — needs parent session | |
 | F12 (Pause Mode) | ⬜ | |
-| F13 (Theme switch) | ⬜ | |
+| F13 (Theme switch) | mostly ✅ — H1, H4 ✅; round-trip ⬜ | Mint↔Gamer no blanking; state persists; bonus Stats tab Gamer-exclusive |
 | F14 (BUDDY V0.5) | H4 ✅; rest 🤔 (needs MCP) | |
 | F15 (Teen onboarding) | ⬜ | |
 | F16 (Schedule/timetable) | ⬜ | |
@@ -1062,6 +1062,7 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 | ID | Severity | Status |
 |---|---|---|
 | **BUG-2026-05-20-01** | Medium | InstantBuff RLS on new ChildJoin profiles. Full details in `AC_MATRIX.md`. |
+| **BUG-2026-05-20-02** | **High** | ChildSettingsScreen displays MOCK_MY_CHILD hardcoded data (1,240 Buffs, dragon avatar) instead of real user data. Beta blocker. Full details in `AC_MATRIX.md`. |
 
 ---
 
