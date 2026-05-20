@@ -53,6 +53,9 @@ export type RootStackParamList = {
   // ── Philosophy / About ───────────────────────────────────────────────
   Philosophy: undefined;
 
+  // ── Buddy detail (5A Me & Buddy, stack-pushed from child app) ────────
+  GamerMeAndBuddy: undefined;
+
   // ── Parent notification feed (modal pushed above ParentApp) ──────────
   NotificationFeed: undefined;
 };

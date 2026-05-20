@@ -25,21 +25,29 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { trimTasksForLowPower } from '../../utils/vibeUtils';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
+import { BuddyHero } from '../../components/buddy/BuddyHero';
+import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
 import VibeCheckScreen from './VibeCheckScreen';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
+import type { RootStackParamList } from '../../navigation/types';
+
+type Nav = StackNavigationProp<RootStackParamList>;
 
 // ─── BUFF brand palette (Gamer mode) — per BUFF_BRAND.md §7.5 ────────────────
 const COLORS = {
@@ -119,11 +127,13 @@ export default function GamerDashboardScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
   const { previewChildId, isChildPreview } = useMode();
+  const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, loading: dataLoading } = useChildData(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
+  const { relationship, setBuddyVisible } = useBuddyRelationship(childId);
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
@@ -145,6 +155,11 @@ export default function GamerDashboardScreen() {
   }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff]);
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
+  const [hideModalVisible, setHideModalVisible] = useState(false);
+
+  const buddyVisible = relationship?.buddy_visible ?? true;
+  const buddyLevel = relationship?.friendship_level ?? 1;
+  const buddySkinId = relationship?.current_skin_id ?? null;
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
   const filteredTasks = useMemo(() => {
@@ -222,6 +237,19 @@ export default function GamerDashboardScreen() {
           </View>
         </View>
       </View>
+
+      {/* Buddy hero region — conditional on buddy_visible */}
+      {buddyVisible && (
+        <View style={styles.buddyHeroRow} testID="dashboard-buddy-hero">
+          <BuddyHero
+            size="dashboard"
+            skinId={buddySkinId}
+            level={buddyLevel}
+            onPress={() => navigation.navigate('GamerMeAndBuddy')}
+            onClose={() => setHideModalVisible(true)}
+          />
+        </View>
+      )}
 
       {/* Stats row */}
       <View style={styles.statsRow}>
@@ -351,6 +379,16 @@ export default function GamerDashboardScreen() {
       <InstantBuffCard palette={GAMER_LP_PALETTES.instantBuff} />
 
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
+
+      <BuddyToggleModal
+        visible={hideModalVisible}
+        mode="hide"
+        onConfirm={async () => {
+          setHideModalVisible(false);
+          await setBuddyVisible(false);
+        }}
+        onCancel={() => setHideModalVisible(false)}
+      />
       </ScrollView>
     </LowPowerProvider>
   );
@@ -391,6 +429,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
 
+  buddyHeroRow: { alignItems: 'center', marginBottom: 20 },
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   statCard: {
     flex: 1,
