@@ -1,8 +1,9 @@
 /**
  * LanguagePicker — compact language button for auth screens.
  *
- * Shows current language as a text pill (EN / עב).
- * Tapping opens a Modal with text-only language options.
+ * Shows a globe icon (universal language-switch affordance) so the trigger
+ * stays square and never gets clipped on narrow mobile screens.
+ * Tapping opens a Modal with the available language options.
  */
 import { useState } from 'react';
 import {
@@ -13,6 +14,7 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../contexts/LanguageContext';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../i18n';
@@ -21,8 +23,6 @@ export default function LanguagePicker() {
   const { language, setLanguage, isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
-
-  const shortLabel = language === 'he' ? 'עב' : 'EN';
 
   return (
     <>
@@ -36,8 +36,9 @@ export default function LanguagePicker() {
         onPress={() => setOpen(true)}
         activeOpacity={0.7}
         accessibilityLabel="Change language"
+        accessibilityRole="button"
       >
-        <Text style={styles.triggerLabel}>{shortLabel}</Text>
+        <Ionicons name="globe-outline" size={20} color="#A78BFA" />
       </TouchableOpacity>
 
       {/* Modal sheet */}
@@ -79,17 +80,14 @@ export default function LanguagePicker() {
 
 const styles = StyleSheet.create({
   trigger: {
-    position:          'absolute',
-    backgroundColor:   'rgba(167,139,250,0.12)',
-    paddingHorizontal: 12,
-    paddingVertical:   6,
-    borderRadius:      20,
-    zIndex:            10,
-  },
-  triggerLabel: {
-    color:      '#A78BFA',
-    fontSize:   13,
-    fontWeight: '700',
+    position:        'absolute',
+    backgroundColor: 'rgba(167,139,250,0.12)',
+    width:           36,
+    height:          36,
+    borderRadius:    18,
+    alignItems:      'center',
+    justifyContent:  'center',
+    zIndex:          10,
   },
 
   backdrop: {
