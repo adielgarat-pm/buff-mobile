@@ -7,18 +7,19 @@
  *     dedicated buddy screen.
  *
  * Asset selection per pkg/teen-ui-with-buddy-character SPEC §"Architectural
- * Decision 3": static `require()` map keyed by skin × level. Today the map
- * returns null (BUDDY_ASSETS_READY = false) → component falls back to the
- * per-skin SVG silhouette. When PNGs land, a single 1-line PR flips the
- * registry and BuddyHero starts rendering raster art with zero call-site
- * changes.
+ * Decision 3": static `require()` map keyed by skin × level, looked up via
+ * `getBuddyAssetForLevelWithFallback` which returns the exact-level PNG
+ * when present, or the nearest-level PNG for the same skin (so a child's
+ * buddy never flickers between raster and silhouette mid-progression).
+ * Skins with zero PNGs (e.g. capybara today) fall through to the per-skin
+ * SVG silhouette.
  */
 import type { FC } from 'react';
 import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { BuddyRelationship } from '../../types/buddy';
 import {
-  getBuddyAssetForLevel,
+  getBuddyAssetForLevelWithFallback,
   isKnownBuddySkin,
   type BuddySkinId,
 } from './buddyAssets';
@@ -107,7 +108,7 @@ function renderCharacter(
   level: BuddyRelationship['friendship_level'],
   px: number,
 ) {
-  const asset = getBuddyAssetForLevel(skinId, level);
+  const asset = getBuddyAssetForLevelWithFallback(skinId, level);
   if (asset) {
     return (
       <Image

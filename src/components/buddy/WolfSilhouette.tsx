@@ -1,8 +1,12 @@
 /**
  * WolfSilhouette — abstract SVG fallback for Wolf STORMY.
  *
- * Used by `BuddyHero` when `BUDDY_ASSETS_READY === false` (per
- * src/components/buddy/buddyAssets.ts). Renders a stylized wolf-head
+ * Used by `BuddyHero` only when no wolf PNG can be resolved for any
+ * friendship level (e.g. all wolf slots in `buddyAssets.ts` are null).
+ * Today wolf L1/L2/L5 PNGs are wired, with L3/L4 falling back to the
+ * nearest PNG — so in practice this silhouette is the day-1 path for
+ * non-wolf skins that share the heroic geometry (and the safety net).
+ * Renders a stylized wolf-head
  * silhouette in the Gamer aesthetic (charcoal-violet fill + neon-lime
  * edge highlights — BUFF_BRAND.md §7.5).
  *
