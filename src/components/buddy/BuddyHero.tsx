@@ -108,7 +108,13 @@ function renderCharacter(
   level: BuddyRelationship['friendship_level'],
   px: number,
 ) {
-  const asset = getBuddyAssetForLevelWithFallback(skinId, level);
+  // Normalize null/unknown skin to 'wolf' (canonical Gamer default per SPEC).
+  // Resolving BEFORE the asset lookup lets fresh children whose
+  // `current_skin_id` hasn't been set yet still see the Wolf STORMY PNG
+  // instead of the silhouette wireframe.
+  const resolvedSkin: BuddySkinId = isKnownBuddySkin(skinId) ? skinId : 'wolf';
+
+  const asset = getBuddyAssetForLevelWithFallback(resolvedSkin, level);
   if (asset) {
     return (
       <Image
@@ -120,7 +126,6 @@ function renderCharacter(
     );
   }
 
-  const resolvedSkin: BuddySkinId = isKnownBuddySkin(skinId) ? skinId : 'wolf';
   if (resolvedSkin === 'capybara') {
     return <CapybaraSilhouette level={level} size={px} />;
   }
