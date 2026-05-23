@@ -3,11 +3,13 @@
 > Live status tracker. Updated by CC at every phase exit in the same commit as the code.
 
 **Package:** `pkg/anchor-recovery`
-**Branch:** `pkg/anchor-recovery` (TBD off main)
+**Branch:** `pkg/anchor-recovery-impl` (off main) — docs already merged via `pkg/anchor-recovery` PR #63
 **Owner:** Adi (PM) + Claude.ai (design) + CC (impl)
 **SPEC:** [SPEC.md](./SPEC.md)
 **Drafted:** 2026-05-23
-**Status:** `draft — awaiting Adi review of SPEC + answers to OQ1-9`
+**Phase 0 closed:** 2026-05-23
+**Phase 1 closed:** 2026-05-23
+**Status:** `phase 1 closed — awaiting Phase 2 plan approval (UI)`
 
 ---
 
@@ -15,8 +17,8 @@
 
 | Phase | Title | State | Started | Closed | Commit | Tests | Learnings | Notes |
 |---|---|---|---|---|---|---|---|---|
-| 0 | Setup + schema verification | ⬜ not-started | — | — | — | — | — | OQ9 (copy) must be approved before this phase closes |
-| 1 | Inactivity Detector backend | ⬜ not-started | — | — | — | — | — | Mirrors pg_cron pattern from pkg/buddy-v05-backend |
+| 0 | Setup + schema verification | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | schema OK, no migration | See SPEC § Schema Verified + Decisions Locked | OQ9 = C (Adi-approved); EX-1 = branch `pkg/anchor-recovery-impl`; EX-2 = Vibe-credit separate from INSTANT_BUFF |
+| 1 | Inactivity Detector backend | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | 7/7 scenarios passed | Spec drift: scan_disengaged_users coexists — both run independently | EX-3/4/5/6 added; migration `anchor_recovery_detector_and_cleanup` applied via MCP |
 | 2 | Parent Prompt UI | ⬜ not-started | — | — | — | — | — | Pillar 2 risk on copy — verify Adi-approved text rendered |
 | 3 | Auto-create anchor task | ⬜ not-started | — | — | — | — | — | |
 | 4 | Vibe Check credit | ⬜ not-started | — | — | — | — | — | Extends existing useDailyVibe hook |
@@ -32,19 +34,21 @@
 
 ---
 
-## Pre-Phase-0 Open Questions (must close before Phase 0)
+## Open Questions — All Locked (Phase 0)
 
 | OQ | Question | Adi decision | Status |
 |---|---|---|---|
-| 1 | Inactivity threshold (3/5/7 days) | — | open |
-| 2 | Notification mechanism (in-app / push / both) | — | open |
-| 3 | Re-fire cadence after dismiss | — | open |
-| 4 | Auto-add vs confirm | — | open |
-| 5 | Vibe credit amount + cap | — | open |
-| 6 | Default time + credits for meds anchor | — | open |
-| 7 | "Standalone meds" detection heuristic | — | open |
-| 8 | Multi-kid families: per-kid or per-family | — | open |
-| 9 | **Copy approval (Pillar 2 critical)** | — | **open — BLOCKING** |
+| 1 | Inactivity threshold | 5 days | ✅ locked |
+| 2 | Notification mechanism | in-app only (v1) | ✅ locked |
+| 3 | Re-fire cadence after dismiss | 7 days | ✅ locked |
+| 4 | Auto-add vs confirm | auto-add + toast w/ edit link | ✅ locked |
+| 5 | Vibe credit amount + cap | 5 BUFFs, cap 1/day, separate from INSTANT_BUFF | ✅ locked |
+| 6 | Default time + credits for meds anchor | 07:30, 5 BUFFs, standalone | ✅ locked |
+| 7 | "Standalone meds" detection heuristic | `תרופה` AND NOT (`ארוחת`/`בוקר`/`ערב`) | ✅ locked |
+| 8 | Multi-kid families | per-kid trigger | ✅ locked |
+| 9 | **Copy approval (Pillar 2 critical)** | **Option C — "כולנו צריכים התחלה חדשה לפעמים…"** | ✅ **Adi-approved** |
+| EX-1 | Branch name | `pkg/anchor-recovery-impl` | ✅ locked |
+| EX-2 | Vibe-credit code path | separate from `INSTANT_BUFF_AMOUNT` (Phase 4) | ✅ locked |
 
 ---
 
@@ -70,6 +74,6 @@
 
 ## Notes
 
-- **Branching note:** SPEC files were authored on `pkg/yesterday-recap` (current branch as of 2026-05-23 draft). They will be moved/cherry-picked to a new `pkg/anchor-recovery` branch before Phase 0 begins.
+- **Branching history:** SPEC + 5 supporting files were authored on `pkg/yesterday-recap` (current branch as of 2026-05-23 draft), then moved to `pkg/anchor-recovery` and merged to `main` via PR #63 (commit `eb47c38`). Implementation continues on **`pkg/anchor-recovery-impl`** off main (EX-1) — verify-before-delete authorization for old branch deferred per CLAUDE.md protocol.
 - **Data context:** All findings backed by 2026-05-23 research session. Lovable JSON exports stored at `C:\Users\adiel\buff-mobile-data\lovable-exports\`. Supabase MCP queries reproducible via memory file `reference_lovable_user_data_location.md`.
 - **Co-dependent packages:** This package is independent but builds atop `pkg/daily-vibe-check` (shipped). If `pkg/fcm-push-notifications` ships first, v1.1 of this package can add push.
