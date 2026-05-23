@@ -22,11 +22,11 @@
 
 | קטגוריה | כמות |
 |---|---|
-| ✅ קיים ועובד | 7 |
+| ✅ קיים ועובד | 8 |
 | 🟡 קיים חלקית | 6 |
 | ❌ לא קיים — Must-Have ל-MVP | 11 |
 | 🆕 קיים בקוד / לא ב-PRD | 4 |
-| 🎯 החלטות חדשות מ-2.5 | 24 |
+| 🎯 החלטות חדשות מ-2.5 | 25 |
 | 🎨 מסכים שעוצבו ב-Stitch | 6 (מתוך 8) |
 
 **הפיצ'רים הקריטיים לפני MVP:**
@@ -87,6 +87,7 @@
 | P-18 | Stage Performance | Keep as-is | ❓ לא נבדק | |
 | P-19 | Reflection Log | Keep as-is | ❓ לא נבדק | |
 | P-20 | AI Insights | Phase 2 | ❌ Phase 2 | תואם תוכנית |
+| P-21 | Yesterday Recap | 🎯 חדש 2026-05-23 | ✅ EXISTS | Read-only parent view of yesterday's completion. Beta-driven (Shani). `docs/sessions/yesterday-recap/` |
 
 ---
 
