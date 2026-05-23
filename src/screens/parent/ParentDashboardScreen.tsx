@@ -31,6 +31,9 @@ import { useYesterdayRecap } from '../../hooks/useYesterdayRecap';
 import LinkChildModal from '../../components/LinkChildModal';
 import PauseBanner from '../../components/PauseBanner';
 import YesterdayRecapCard from '../../components/YesterdayRecapCard';
+import AnchorRecoveryPromptModal from './AnchorRecoveryPromptModal';
+import { useAnchorRecoveryPrompts } from '../../hooks/useAnchorRecoveryPrompts';
+import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -50,6 +53,16 @@ export default function ParentDashboardScreen() {
   // soft dot on the child's card. Auto-clears at midnight (filter is
   // today-only); no manual mark-as-read in v1.
   const { getSosForChild }                 = useParentNotifications();
+  // Anchor Recovery prompts — pkg/anchor-recovery Phase 2. Surfaces a
+  // full-screen modal on first dashboard open of the day (OQ-P2-1 a) if
+  // any kid has an unread anchor_recovery notification.
+  const { prompts: anchorPrompts, resolveAll: resolveAnchorPrompts } = useAnchorRecoveryPrompts();
+  const {
+    shownToday: anchorShownToday,
+    markShown:  markAnchorShown,
+    loading:    anchorDismissLoading,
+  } = useAnchorRecoveryDismiss(familyId ?? null);
+  const [anchorModalVisible, setAnchorModalVisible] = useState(false);
   // Yesterday's task completion per child — read-only section below "Today."
   // Beta-driven (Shani 2026-05-21); SPEC at docs/sessions/yesterday-recap/.
   const {
@@ -95,6 +108,39 @@ export default function ParentDashboardScreen() {
     // 3. No match — open modal for parent to choose
     setLinkTarget(child);
   }, [unlinked, linkable, linkChild, refetch]);
+
+  // Anchor Recovery: show modal on first dashboard open of the day if any
+  // kid has an unread anchor_recovery notification (OQ-P2-1 = a). Gate on
+  // dismiss-hook loading so the storage check completes before we decide.
+  useEffect(() => {
+    if (anchorDismissLoading) return;
+    if (anchorShownToday) return;
+    if (anchorPrompts.length === 0) return;
+    if (anchorModalVisible) return;
+    setAnchorModalVisible(true);
+  }, [anchorDismissLoading, anchorShownToday, anchorPrompts.length, anchorModalVisible]);
+
+  // Phase 2 wiring: CTAs LOG ONLY. Phase 3 will replace these with actual
+  // task creation (Vibe Check task / standalone meds task). All three
+  // handlers resolve the prompt (mark notifications as read) + mark
+  // shown-today (so it doesn't re-fire) + close the modal.
+  const handleAnchorAddVibe = (childId: string, childName: string) => {
+    if (__DEV__) console.log('[anchor-recovery] Phase 2: vibe CTA tapped', { childId, childName });
+    void resolveAnchorPrompts();
+    void markAnchorShown();
+    setAnchorModalVisible(false);
+  };
+  const handleAnchorAddMeds = (childId: string, childName: string) => {
+    if (__DEV__) console.log('[anchor-recovery] Phase 2: meds CTA tapped', { childId, childName });
+    void resolveAnchorPrompts();
+    void markAnchorShown();
+    setAnchorModalVisible(false);
+  };
+  const handleAnchorDismiss = () => {
+    void resolveAnchorPrompts();
+    void markAnchorShown();
+    setAnchorModalVisible(false);
+  };
 
   const firstName = profile?.display_name && !profile.display_name.includes('@')
     ? profile.display_name.split(' ')[0]
@@ -403,6 +449,15 @@ export default function ParentDashboardScreen() {
           </View>
         );
       })()}
+
+      {/* ── Anchor Recovery prompt (pkg/anchor-recovery Phase 2) ─────── */}
+      <AnchorRecoveryPromptModal
+        visible={anchorModalVisible}
+        prompts={anchorPrompts}
+        onAddVibe={handleAnchorAddVibe}
+        onAddMeds={handleAnchorAddMeds}
+        onDismiss={handleAnchorDismiss}
+      />
 
       {/* ── Link child modal ─────────────────────────────────────────── */}
       <LinkChildModal

@@ -9,7 +9,8 @@
 **Drafted:** 2026-05-23
 **Phase 0 closed:** 2026-05-23
 **Phase 1 closed:** 2026-05-23
-**Status:** `phase 1 closed — awaiting Phase 2 plan approval (UI)`
+**Phase 2 closed:** 2026-05-23 (rebuilt after lost p2 branch)
+**Status:** `phase 2 closed — awaiting Phase 3 plan approval (task auto-create)`
 
 ---
 
@@ -19,7 +20,7 @@
 |---|---|---|---|---|---|---|---|---|
 | 0 | Setup + schema verification | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | schema OK, no migration | See SPEC § Schema Verified + Decisions Locked | OQ9 = C (Adi-approved); EX-1 = branch `pkg/anchor-recovery-impl`; EX-2 = Vibe-credit separate from INSTANT_BUFF |
 | 1 | Inactivity Detector backend | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | 7/7 scenarios passed | Spec drift: scan_disengaged_users coexists — both run independently | EX-3/4/5/6 added; migration `anchor_recovery_detector_and_cleanup` applied via MCP |
-| 2 | Parent Prompt UI | ⬜ not-started | — | — | — | — | — | Pillar 2 risk on copy — verify Adi-approved text rendered |
+| 2 | Parent Prompt UI | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | rendered with OQ9 copy — CTAs log only (Phase 3) | EX-7: prior pkg/anchor-recovery-p2 branch lost mid-session; rebuilt on pkg/anchor-recovery-ui — commit chunks A then B+C for safety | OQ-P2-1 = a (first-open-of-day) |
 | 3 | Auto-create anchor task | ⬜ not-started | — | — | — | — | — | |
 | 4 | Vibe Check credit | ⬜ not-started | — | — | — | — | — | Extends existing useDailyVibe hook |
 | 5 | ParentTasksScreen template | ⬜ not-started | — | — | — | — | — | Heuristic for "already has standalone meds" |

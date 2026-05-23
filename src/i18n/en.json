@@ -1612,5 +1612,14 @@
   "notificationFeed.row.task_completed": "{{name}} completed a task",
   "notificationFeed.row.quest_milestone": "{{name}} reached a milestone",
   "notificationFeed.row.parent_engagement": "{{name}} has been active this week — wanna see?",
-  "notificationFeed.row.family_joined": "{{name}} joined the family"
+  "notificationFeed.row.family_joined": "{{name}} joined the family",
+
+  "anchorRecovery.title": "Everyone needs a fresh start sometimes",
+  "anchorRecovery.body.single": "Here's a gentle way to help {{name}} return.",
+  "anchorRecovery.body.multi": "Here's a gentle way to help them return.",
+  "anchorRecovery.cta.vibe": "Add Vibe Check",
+  "anchorRecovery.cta.vibe.a11y": "Add Vibe Check for {{name}}",
+  "anchorRecovery.cta.meds": "Add medication reminder",
+  "anchorRecovery.cta.meds.a11y": "Add medication reminder for {{name}}",
+  "anchorRecovery.dismiss": "Not now"
 }
