@@ -203,6 +203,7 @@ Parent Interface
 - PAUSE MODE (new, critical) — single button to freeze all tasks without deleting progress
 - Resume from pause with 'Welcome back' experience
 - Family dashboard — task completion overview
+- Yesterday Recap — read-only per-child summary of yesterday's task completion on the Parent Dashboard. Parent sees ✓/○ per task without any mark-action; kid does not see it. Beta-driven (Shani 2026-05-21). Pillar 2 contract: neutral observation, no counts of failure. See `docs/sessions/yesterday-recap/SPEC.md`.
 Child Interface — Pastel Mode (default for 6–8 fallback; chosen by kid age 9+)
 
 - Buddy character that evolves from egg to full character (default on; kid can toggle off)

@@ -460,6 +460,28 @@
 
 ## רשומות שנפתרו (Resolved)
 
+### F-2026-05-21-01 (RESOLVED 2026-05-23): סייגים ל"פספוסים" בתצוגת "סיכום אתמול"
+
+- **תאריך פתיחה:** 2026-05-21
+- **תאריך סגירה:** 2026-05-23
+- **מקור:** Adi + CC, סשן תכנון תגובה לבקשת בטא-יוזרית (שני, אמא של מתן) לראיית משימות שלא סומנו אתמול. SPEC ב-`docs/sessions/yesterday-recap/SPEC.md`.
+- **תיאור מקורי:** ב-pkg/yesterday-recap (Parent Dashboard read-only), חובה להגדיר בקפידה **מה נחשב "לא סומן"** מול **מה כלל לא היה אמור להופיע אתמול**. הצגת משימה כ"מוחמצת" כשהיא לא הייתה רלוונטית היא false-positive שיגרום להורה חרדה לשווא ויפיל את אמון המוצר.
+
+  **תרחישים שצריך היה לסנן החוצה מ"לא סומן":**
+  1. משימות שאינן בתבנית schedule_days של היום
+  2. ימים ללא בית ספר ad-hoc (חגים, יום חופש, יום מחלה, שביתה) — לא נתמך בנתונים
+  3. משימות שנמחקו / שונו בין יום הבסיס לתצוגה
+  4. משימות שהוקצו אחרי האתמול (`created_at > yesterday_end`)
+
+- **איך נפתר:** ב-pkg/yesterday-recap (commits d4a28ca → c0d7cfb):
+  - **#1, #3, #4 — נפתרו במלואם** ב-`src/utils/yesterdayRecapUtils.ts` → `isTaskEligibleForChild`. 31 unit tests מאמתים כל שילוב + boundary case.
+  - **#2 — V1 פתרון: סמכים על Pause Mode הקיים** (`shouldHideRecap` בודק `isPauseActive`). הורה שצריך "אין בית ספר היום" משתמש ב-Pause Mode. דגל ad-hoc ייעודי נדחה ל-V1.1 אם נראה תלונות.
+  - **Pillar 2 enforcement:** banned-string grep gate ב-TESTS.md מאמת אפס שימוש ב-`פספסת/החמצת/לא בוצעו/כשלון/missed/failed`. Component tests (`src/components/__tests__/YesterdayRecapCard.test.tsx`) מאמתים את היעדר ✗ / X / red-color בכל ה-render paths.
+- **קשור ל:** Pause Mode (`docs/sessions/pause-mode/`), F-2026-05-19-01 (parent re-engagement tools — adjacent Pillar 2/3 tensions), `docs/sessions/parent-notification-feed/` (sibling parent observability surface), בקשת בטא של שני (2026-05-21).
+- **לקח להמשך:** Beta-driven features may surface Pillar tensions that the original PRD didn't anticipate. The 3-iteration design loop (kid late-marking → parent retroactive marking → read-only view) shows the value of pre-design Values Check + explicit beta-user dialogue before committing scope. The "read-only" outcome is more aligned with all 3 pillars than any of the marking-enabled options would have been.
+
+---
+
 ### F-2026-05-14-02 (RESOLVED 2026-05-14): Extract Lovable reviews → BUFF_TESTIMONIALS
 
 - **תאריך פתיחה:** 2026-05-14
