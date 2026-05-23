@@ -74,6 +74,25 @@ export default function ParentDashboardScreen() {
   const [linkTarget, setLinkTarget]        = useState<typeof unlinked[0] | null>(null);
   const autoLinkedRef                      = useRef(false);
 
+  // Today/Yesterday toggle — pkg/dashboard-today-yesterday-toggle (2026-05-23).
+  // Defaults to 'today' on every mount per OQ-DTY-2 (no persistence — keeps
+  // parent focused on the actionable surface; Yesterday is opt-in review).
+  // Effective view falls back to 'today' if yesterday is unavailable
+  // (Pause Mode, no kids, no scheduled tasks yesterday) — see OQ-DTY-5.
+  const [view, setView] = useState<'today' | 'yesterday'>('today');
+  const yesterdayAvailable = !yesterdayLoading && !yesterdayHidden;
+  const effectiveView: 'today' | 'yesterday' =
+    !yesterdayAvailable ? 'today' : view;
+  // Format yesterdayDate ('YYYY-MM-DD') → 'D.M' for the Yesterday pill label.
+  // Mirrors the pkg/yesterday-recap §5 (option C) display format.
+  const formattedYesterday = yesterdayDate
+    ? (() => {
+        const parts = yesterdayDate.split('-');
+        if (parts.length !== 3) return '';
+        return `${parseInt(parts[2], 10)}.${parseInt(parts[1], 10)}`;
+      })()
+    : '';
+
   // Auto-link when possible; show modal only if no match found
   useEffect(() => {
     if (autoLinkedRef.current || unlinked.length === 0 || linkable.length === 0) return;
@@ -325,21 +344,75 @@ export default function ParentDashboardScreen() {
         </TouchableOpacity>
       ))}
 
-      {/* ── Children section header + Add Child ────────────────────────── */}
-      <View style={styles.sectionRow}>
-        <Text style={[styles.sectionTitle, { color: T.textMuted }]}>
-          {t('dashboard.today')}
-        </Text>
-        {/* FIX 3 */}
-        <TouchableOpacity style={styles.addChildBtn} onPress={handleAddChild}>
-          <Text style={[styles.addChildText, { color: T.accent }]}>
-            {t('dashboard.addChild')}
+      {/* ── Section header — toggle pills when yesterday data is available,
+              otherwise static "TODAY" label.
+              pkg/dashboard-today-yesterday-toggle (2026-05-23) per OQ-DTY-1/5. */}
+      {yesterdayAvailable ? (
+        <View style={styles.sectionRow}>
+          <View style={styles.togglePills}>
+            <TouchableOpacity
+              style={[
+                styles.togglePill,
+                effectiveView === 'today' ? styles.togglePillActive : styles.togglePillInactive,
+              ]}
+              onPress={() => setView('today')}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.toggle.a11y.today')}
+              accessibilityState={{ selected: effectiveView === 'today' }}
+            >
+              <Text style={[
+                styles.togglePillText,
+                effectiveView === 'today' ? styles.togglePillTextActive : styles.togglePillTextInactive,
+              ]}>
+                {t('dashboard.toggle.today')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.togglePill,
+                effectiveView === 'yesterday' ? styles.togglePillActive : styles.togglePillInactive,
+              ]}
+              onPress={() => setView('yesterday')}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.toggle.a11y.yesterday')}
+              accessibilityState={{ selected: effectiveView === 'yesterday' }}
+            >
+              <Text style={[
+                styles.togglePillText,
+                effectiveView === 'yesterday' ? styles.togglePillTextActive : styles.togglePillTextInactive,
+              ]}>
+                {t('dashboard.toggle.yesterday', { date: formattedYesterday })}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {/* + Add Child hidden in Yesterday view (OQ-DTY-4) — adding a kid is
+              a today/future action, has no meaning in a read-only yesterday view. */}
+          {effectiveView === 'today' && (
+            <TouchableOpacity style={styles.addChildBtn} onPress={handleAddChild}>
+              <Text style={[styles.addChildText, { color: T.accent }]}>
+                {t('dashboard.addChild')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
+        <View style={styles.sectionRow}>
+          <Text style={[styles.sectionTitle, { color: T.textMuted }]}>
+            {t('dashboard.today')}
           </Text>
-        </TouchableOpacity>
-      </View>
+          {/* FIX 3 */}
+          <TouchableOpacity style={styles.addChildBtn} onPress={handleAddChild}>
+            <Text style={[styles.addChildText, { color: T.accent }]}>
+              {t('dashboard.addChild')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* ── Children cards ─────────────────────────────────────────────── */}
-      {childrenLoading ? (
+      {/* ── Children cards (Today view) ──────────────────────────────────── */}
+      {effectiveView === 'today' && (childrenLoading ? (
         <ActivityIndicator color={T.accent} style={{ marginTop: 20 }} />
       ) : children.length === 0 ? (
         <View style={[styles.emptyCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
@@ -419,14 +492,11 @@ export default function ParentDashboardScreen() {
             </View>
           );
         })
-      )}
+      ))}
 
-      {/* ── Yesterday Recap section ─────────────────────────────────── */}
-      {!yesterdayLoading && !yesterdayHidden && (() => {
-        // Format yesterdayDate (YYYY-MM-DD) → "D.M" per SPEC §5 (option C)
-        const [, mm, dd] = yesterdayDate.split('-');
-        const formattedDate = `${parseInt(dd, 10)}.${parseInt(mm, 10)}`;
-        // Match children's display order; skip children with zero scheduled tasks
+      {/* ── Children cards (Yesterday view) ──────────────────────────────── */}
+      {/* Section header is the Yesterday pill above — no inner header here. */}
+      {effectiveView === 'yesterday' && (() => {
         const cards = children
           .map(child => {
             const recap = yesterdayRecaps[child.childId];
@@ -442,16 +512,7 @@ export default function ParentDashboardScreen() {
           })
           .filter(Boolean);
         if (cards.length === 0) return null;
-        return (
-          <View style={{ marginTop: 18 }}>
-            <View style={styles.sectionRow}>
-              <Text style={[styles.sectionTitle, { color: T.textMuted }]}>
-                {t('dashboard.yesterday')} · {formattedDate}
-              </Text>
-            </View>
-            {cards}
-          </View>
-        );
+        return <View>{cards}</View>;
       })()}
 
       {/* ── Anchor Recovery prompt (pkg/anchor-recovery Phase 2) ─────── */}
@@ -612,6 +673,15 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
   addChildBtn:  { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, backgroundColor: '#EDE9FE' },
   addChildText: { fontSize: 12, fontWeight: '700' },
+
+  // Today/Yesterday toggle pills — pkg/dashboard-today-yesterday-toggle
+  togglePills:            { flexDirection: 'row', backgroundColor: T.cardBorder, borderRadius: 10, padding: 2, gap: 2 },
+  togglePill:             { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, minWidth: 56, alignItems: 'center' },
+  togglePillActive:       { backgroundColor: T.card, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  togglePillInactive:     { backgroundColor: 'transparent' },
+  togglePillText:         { fontSize: 12, fontWeight: '700' },
+  togglePillTextActive:   { color: T.text },
+  togglePillTextInactive: { color: T.textMuted },
 
   // Child cards
   emptyCard:    { borderRadius: 16, padding: 24, borderWidth: 1, alignItems: 'center' },
