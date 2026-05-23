@@ -1612,5 +1612,14 @@
   "notificationFeed.row.task_completed": "{{name}} השלים/ה משימה",
   "notificationFeed.row.quest_milestone": "{{name}} הגיע/ה לאבן דרך",
   "notificationFeed.row.parent_engagement": "{{name}} פעיל/ה השבוע — בא לראות?",
-  "notificationFeed.row.family_joined": "{{name}} הצטרף/ה למשפחה"
+  "notificationFeed.row.family_joined": "{{name}} הצטרף/ה למשפחה",
+
+  "anchorRecovery.title": "כולנו צריכים התחלה חדשה לפעמים",
+  "anchorRecovery.body.single": "הנה דרך עדינה לעזור ל-{{name}} לחזור.",
+  "anchorRecovery.body.multi": "הנה דרך עדינה לעזור להם לחזור.",
+  "anchorRecovery.cta.vibe": "להוסיף Vibe Check",
+  "anchorRecovery.cta.vibe.a11y": "הוסף Vibe Check ל-{{name}}",
+  "anchorRecovery.cta.meds": "להוסיף תזכורת תרופה",
+  "anchorRecovery.cta.meds.a11y": "הוסף תזכורת תרופה ל-{{name}}",
+  "anchorRecovery.dismiss": "לא עכשיו"
 }
