@@ -353,4 +353,69 @@ A future package `pkg/task-library-from-ugc` can use this data (50+ tasks with c
 
 ---
 
+## Schema Verified (2026-05-23 via Supabase MCP)
+
+Phase 0 verification against `gfrongfnyigxsexuofrg`. The "Schema Changes" section earlier predicted no new tables; this addendum confirms it and locks the exact column shapes implementation must use.
+
+### `notifications` — verified ✓
+- `type` is plain `text NOT NULL DEFAULT 'reward_redeemed'`. **No enum, no check constraint** — `'anchor_recovery'` is insertable without migration.
+- Existing types in production: `parent_sos`, `quest_milestone`, `reward_redeemed`, `task_completed`.
+- Required for INSERT: `family_id`, `parent_id`, `child_id`, `child_name`, `type`. Optional: `entity_id`, `entity_name`. Defaults: `is_read=false`, `created_at=now()`.
+
+### `credit_vault` — verified ✓
+- `total_balance int NOT NULL DEFAULT 0`. `child_id` is **nullable** (legacy rows). For new awards, the implementation pattern is the same as `useDailyVibe.awardInstantBuff()`: SELECT existing → UPDATE or INSERT.
+
+### `tasks` — verified ✓
+- Anchor-task INSERT shape: `family_id`, `assigned_to=child_id`, `title`, `time`, `category`, `credits=5`, `icon` (optional), `schedule_days` (default `[0,1,2,3,4,5]`), **`is_system_generated=true`** (marks BUFF-added).
+
+### `child_vibes` — verified earlier (daily-vibe-check addendum, unchanged)
+- Composite key (child_id, date) is informal — UI gates duplicates via `hasVibedToday`. Phase 4 must respect that gate when adding the new 5-BUFF award.
+
+### `app_settings.pause_mode_active` — verified ✓
+- `bool NULL DEFAULT false`. Inactivity detector must skip families where this is `true`.
+
+### Discovery — surprise that re-shapes Phase 4
+
+**`INSTANT_BUFF_AMOUNT = 5` already exists in `src/hooks/useDailyVibe.ts`** (exported), exposed via the `awardInstantBuff()` action. **However, it is wired only to the Low Power Mode "Instant Buff" button** (self-care card shown after a low-vibe rating), NOT to regular Vibe Check.
+
+This means OQ5's "Vibe Check earns 5 BUFFs per day, cap 1/day" is **not currently implemented**. Phase 4 must add a **separate** credit award inside `recordVibe()` (or via a new function the dashboard calls right after `recordVibe`), keeping `awardInstantBuff` untouched so the Low Power Mode flow keeps working.
+
+**Net result:** No migration. Zero schema additions. One code-design refinement (Phase 4).
+
+---
+
+## Decisions Locked (Phase 0, 2026-05-23)
+
+These supersede the "Open Questions for Adi" section above. Open Questions remain as historical record of what was considered.
+
+Adi delegated OQ1-8 to CC ("תפתור את זה לבד, אין לי פה יתרון יחסי או אינפוט") and explicitly chose option C for OQ9. The decisions below are the implementation contract.
+
+| Q | Decision | Rationale |
+|---|---|---|
+| **OQ1** | Inactivity threshold = **5 days** of zero `daily_progress` for the child | Weekends + mild illness don't trigger; real breaks do. |
+| **OQ2** | Notification mechanism = **in-app only** (banner on ParentDashboard) for v1 | `pkg/fcm-push-notifications` is the path to push; not a blocker for v1. |
+| **OQ3** | Re-fire cadence after dismiss = **7 more days** of inactivity | Respects dismiss but doesn't abandon. |
+| **OQ4** | **Auto-add anchor + toast** with "edit task" link | Frictionless add (parent under low-bandwidth state needs one click) + visible edit path. |
+| **OQ5** | Vibe Check credit = **5 BUFFs per kid per day, cap 1/day**. Awarded inside `recordVibe()`, **separate** from existing `INSTANT_BUFF_AMOUNT`. | Cap enforced via existing `hasVibedToday` gate + defensive in-function check. |
+| **OQ6** | Meds anchor defaults: title `נטילת תרופה`, time `07:30`, credits `5`, category `self-care`, standalone (NOT bundled with breakfast), `is_system_generated=true`. | Mirrors Etay-Mattan standalone-meds pattern that survived war in our data. |
+| **OQ7** | "Already has standalone meds" heuristic = task title contains `תרופה` (case-insensitive) **AND** does NOT contain `ארוחת` OR `בוקר` OR `ערב`. | Catches bundled-meds families (Lavi, Pele) as "missing standalone" — bundled = fragile per anchor-theory. |
+| **OQ8** | Multi-kid families = **per-kid trigger** | A family with one active + one inactive kid gets a prompt for the inactive kid only. |
+| **OQ9** | **Parent prompt copy (HE):** `"כולנו צריכים התחלה חדשה לפעמים. הנה דרך עדינה לעזור ל-{שם הילד} לחזור."` <br><br> **EN (Phase 6 i18n):** `"Everyone needs a fresh start sometimes. Here's a gentle way to help {kid name} return."` | Normalizing framing — does NOT mention "inactivity", does NOT reference time elapsed, positions parent as helper not rescuer. Pillar 2 safest of three drafts. **Adi explicitly approved option C.** |
+| **EX-1** | Implementation branch = **`pkg/anchor-recovery-impl`** (not deleting merged `pkg/anchor-recovery`) | Verify-Before-Delete Protocol requires explicit "verified, clean up" — Adi delegated OQs but did not authorize deletion. Use new branch name; cleanup can happen in a follow-up. |
+| **EX-2** | New Vibe-Check credit award stays **separate** from `INSTANT_BUFF_AMOUNT` | The existing `INSTANT_BUFF_AMOUNT` belongs to Low Power Mode's "Instant Buff" button (entered via low-vibe rating). Keeping new daily Vibe credit as a distinct path preserves both features and avoids regression. |
+
+**Banned copy strings (auto-grep gate at Phase 2 close):** `פספסת` · `החמצת` · `לא הצליח` · `כבר X ימים` · `מאחור` · `missed` · `failed` · `inactive` (in user-facing copy).
+
+---
+
+## Phase 0 Close-out Note
+
+- Branch **`pkg/anchor-recovery-impl`** created off `origin/main`.
+- Schema verified via Supabase MCP — **no migration required**.
+- All 9 OQs locked. **OQ9 explicitly approved by Adi as option C.**
+- No `src/` code changed.
+- Awaiting Phase 1 plan approval.
+
+---
+
 **End of SPEC.**
