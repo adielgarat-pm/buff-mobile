@@ -3,9 +3,9 @@
 > מפת השטח של ADHD apps לילדים ומשפחות.
 > מסמך הפנייה לכל פוסט, ad, פיץ׳, או תגובה לפורום שבה צריך להגיד "ולמה אנחנו, ולא X?"
 
-**עודכן:** 11 במאי 2026
-**מקור:** מחקר ראשוני — fetches של 6 לנדינג-פייגז של מתחרים, ראיון Joon ב-PRD §3.2, BUFF_VALUES §Pillars
-**שפה:** הסברים בעברית. ציטוטי מתחרים תמיד במקור (אנגלית).
+**עודכן:** 2026-05-23
+**מקור:** מחקר ראשוני — fetches של 6 לנדינג-פייגז של מתחרים, ראיון Joon ב-PRD §3.2, BUFF_VALUES §Pillars. תוספת 2026-05-23: צפייה ראשונית ב-Generic Chore App indirect challenger (§3.8).
+**שפה:** הסברים בעברית. ציטוטי מתחרים תמיד במקור (עברית או אנגלית לפי המקור).
 
 ---
 
@@ -31,6 +31,7 @@
 | **Brili** | היה ADHD Kids, **התפנה למבוגרים** | 18+ | Dopamine micro-tracking | "Systematically boost dopamine and get things done." | 🟢 **התפנה — טריטוריה פנויה** |
 | **Tiimo** | Visual Planner | All ages, all neurotypes | Visual scheduling + EF support | "A visual AI planner built for real life." | 🟡 רוחבי, לא ADHD-family |
 | **Cozi Family** | Family Organizer | All families | Shared calendar | "FAMILY LIFE. SIMPLIFIED." | 🟢 לא ADHD בכלל, השוואה שגויה |
+| **Generic Chore Apps (HE indie)** | Non-ADHD chore-tracker | 6–10 (est) | Stars + leaderboard + collectibles | (HE only, no docs) | ⚪ **Indirect — case study §3.8** |
 | **Routinely** | (לא אומת — דומיין לא מגיב) | — | — | — | ⚪ unverified |
 
 **מסקנה מהירה:** Joon ו-Savvy Kid הם האיומים הישירים. Brili פינתה שטח. Goally הוא choke לאחור (hardware-locked, גילים נמוכים מדי).
@@ -243,6 +244,76 @@
 ### 3.7 Routinely — Unverified
 
 לא נמצא לדומיין חי. אם זה נחזיר זמין, להוסיף profile. אחרת — לטפל בו רק אם עולה בפורום.
+
+---
+
+### 3.8 Generic Chore Apps (Indirect Challengers) — case: David Ohana (HE) — observed 2026-05-21
+
+**הקטגוריה הראשונה במסמך זה שאינה ADHD-specific.** עד היום COMPETITORS.md מיפה רק מתחרים ישירים ב-ADHD-space. ה-Ohana case הוא הראשון בקטגוריה חדשה — **chore-tracker גנרי שגנב positioning move ש-BUFF החזיקה defensive בלבד**. אם הדפוס חוזר (מתחרה גנרי שני/שלישי בעברית) — לפצל לקטגוריה משלה ב-§1 ולעדכן את §2.
+
+**Source:** פוסט פייסבוק אורגני, מאת "David Ohana", בקבוצה ישראלית "מפרגנים לחברים שמפתחים אפליקציות", שלושה ימים לפני הצפייה (≈2026-05-18). נצפה ב-2026-05-23 על ידי Adi.
+
+**Tagline / opening hook (verbatim, HE):**
+> *"האם קרה לכם פעם שהילד בא וביקש לסדר את החדר? גם לי לא עד לא מזמן!"*
+
+**Audience:** הורים ישראלים לילדים ≈7–10. **לא ADHD-specific** — מציג את עצמו כפתרון אוניברסלי לקרבות סביב צחצוח שיניים, הכנת תיק, יציאה מהבית.
+
+**Distribution model:** Invite-only via Facebook DM. Free. ללא Play Store. אורגני mom-to-mom. **דגם הפצה peer-viral שלא תועד אצלנו** — FOUNDING_100_KIT הוא email→landing centralized.
+
+**Features observed (מתוך הצילומים בפוסט):**
+- משימות יומיומיות מוגדרות-הורה
+- כוכבים / נקודות / רמות
+- מזל שבועי (zodiac-style theme rotation)
+- איסוף חיות / collectibles
+- "היכל האגדות" — friend leaderboard עם דמויות מיוחדות
+
+**קטגוריית איום:** ⚪ **Indirect — אבל גנב positioning שלא הפעלנו עדיין.**
+
+#### מה Ohana תפס (שאנחנו צריכים ללמוד)
+
+1. **רשימת ❌ לפני ✅ כ-lead hook.** הפוסט מוביל ברשימה: ❌ אין פרסומות / ❌ אין השפעה של אינפלואנסרים / ❌ אין מעקב או אנליטיקה על הילד / ❌ אין פרסום / ❌ אין תכנים אקראיים מהאינטרנט / ❌ אין תכנים מסחריים מחברות זרות / ❌ אין שיתוף עם זרים — *לפני* שהוא מציג פיצ'ר אחד. אצלנו זה defensive בלבד ([BUFF_FAQ.md §E](BUFF_FAQ.md), [BUFF_BRAND.md §6](BUFF_BRAND.md), Forum Reply T5 ב-§4.7 למטה). **דפוס שלא תיעדנו כ-rhetorical device offensive.**
+2. **"הילדים שלי משתמשים חודש" כ-social proof.** Mom-to-mom, ילדיה (7 ו-9) ב-personal voice. עבור BUFF: Itay (15, co-designer) ניתן להזכרה בשם לפי [BUFF_FOUNDER_STORY.md §3.2](BUFF_FOUNDER_STORY.md). **אמי (9) privacy-gated** — לא להעמיד אותה כסוציאל-פרוף ציבורי.
+3. **DM-for-invite distribution.** "תכתבו לי בפרטי ואשלח קישור" יוצר exclusivity + מניע שיתוף אורגני + עוקף את ה-Play Store. דגם peer-viral שלא תועד אצלנו.
+
+#### מה זה עולה ל-Ohana
+
+- ❌ **אין positioning ADHD.** הילד עם ADHD צריך scaffolding של תפקודי-ניהול, לא רק sticker chart מהונדס.
+- ❌ **אין מענה למתבגרים (13+).** Pre-puberty product.
+- ❌ **"היכל האגדות" / friend leaderboard** = social pressure שיכול להחריף אצל ילדי ADHD. Anti-Pillar-2 ([BUFF_VALUES.md](BUFF_VALUES.md) — Positive Coaching).
+- ❌ **אין Pause Mode / disruption-recovery / outgrow model.**
+- ❌ **אין Real-life rewards model** — הפרס נשאר בתוך האפליקציה (כוכבים, חיות, היכל).
+
+#### מה Ohana מפנה לנו (טריטוריה ששלנו)
+
+- ADHD-specific scaffolding (executive function).
+- Teens (13–18) — Ohana לא נוגע בכלל.
+- Outgrow model.
+- Pause Mode.
+- Real-life rewards.
+- **אבל:** privacy-first lead hook — **כבר לא רק טריטוריה ריקה**; *הם נכנסו אליה לפנינו*. אצלנו זה מתועד defensive, אצלם offensive.
+
+#### Vs BUFF — short pitch (HE, founder voice)
+
+> *"האפליקציה של אוהנה הופכת סידור-חדר לכוכבים — לכל ילד. BUFF הופכת ילד עם ADHD למישהו שמסוגל לנהל את היום שלו לבד — ואז כבר לא צריך אותנו."*
+
+#### Persona match
+
+- ✅ **P5 (Coach-Curious)** — כבר בעולם של positive discipline. privacy-first hook מהדהד.
+- ✅ **P2 (Post-Diagnosis, cautious)** — מפחדת מעוד screen-time, פרטיות = ביטחון כניסה.
+- ❌ **לא P1 (Exhausted Morning)** — היא לא מחפשת privacy-first; היא מחפשת מערכת שמורידה את עומס הבוקר.
+
+#### מתי תשמעי על זה בפורומים ישראליים
+
+- *"אני כבר משתמשת באפליקציה של אוהנה"* → **תגובה:** *"נחמד לסידור-חדר ולמשימות יום-יומיות לכל ילד. BUFF היא מערכת ספציפית לילדים שצריכים scaffolding של תפקודים ניהוליים — זה לא אותו כאב. את יודעת אם הילד שלך מאובחן ADHD?"*
+- *"מצאתי אפליקציה ישראלית בטוחה לילדים בלי פרסומות"* → **תגובה:** לאמת את הצורך בפרטיות. להציג BUFF כ-ADHD-specific equivalent עם אותו DNA פרטיות (link → [BUFF_FAQ.md §E](BUFF_FAQ.md)). לא להתחרות על הפרטיות — לתת אותה כברירת מחדל ולהוסיף ADHD wedge.
+
+#### Cross-links
+
+- [BUFF_MARKETING_BACKLOG.md §6.5](BUFF_MARKETING_BACKLOG.md) — Track G מתעד תוכנית פעולה לעטיפת הלקח הזה לפוסט עברי בקול-מייסדת.
+- [BUFF_FOUNDER_STORY.md §3.2](BUFF_FOUNDER_STORY.md) — מי-בפומבי-בשם (Itay) vs מי-privacy-gated (אמי).
+- [BUFF_FAQ.md §E](BUFF_FAQ.md) — privacy answers ready-to-quote.
+- [BUFF_MESSAGING.md §8.1](BUFF_MESSAGING.md) — guidelines קיימים ל-FB ADHD groups (אנגלית-מוטות; HE FB groups לא מכוסים בנפרד).
+- [BUFF_FOUNDING_100_KIT.md](BUFF_FOUNDING_100_KIT.md) — email-led model; DM-led peer-viral הוא דגם משלים שלא תועד.
 
 ---
 
