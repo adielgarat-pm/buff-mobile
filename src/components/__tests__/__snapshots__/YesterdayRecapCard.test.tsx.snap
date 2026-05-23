@@ -1,0 +1,447 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`YesterdayRecapCard snapshot — locked render shapes collapsed mixed-completion 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "marginBottom": 10,
+        "paddingHorizontal": 14,
+        "paddingVertical": 10,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#E5E7EB",
+      },
+    ]
+  }
+>
+  <View
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": false,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+        "opacity": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "fontSize": 22,
+        }
+      }
+    >
+      🚀
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        [
+          {
+            "flex": 1,
+            "fontSize": 15,
+            "fontWeight": "600",
+          },
+          {
+            "color": "#1F2937",
+          },
+        ]
+      }
+    >
+      Matan
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 13,
+            "fontWeight": "600",
+          },
+          {
+            "color": "#9CA3AF",
+          },
+        ]
+      }
+    >
+      yesterdayRecap.summary
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "marginLeft": 4,
+          },
+          {
+            "color": "#9CA3AF",
+          },
+        ]
+      }
+    >
+      ▾
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`YesterdayRecapCard snapshot — locked render shapes collapsed zero-marked 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "marginBottom": 10,
+        "paddingHorizontal": 14,
+        "paddingVertical": 10,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#E5E7EB",
+      },
+    ]
+  }
+>
+  <View
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": false,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+        "opacity": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "fontSize": 22,
+        }
+      }
+    >
+      🚀
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        [
+          {
+            "flex": 1,
+            "fontSize": 15,
+            "fontWeight": "600",
+          },
+          {
+            "color": "#1F2937",
+          },
+        ]
+      }
+    >
+      Matan
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 13,
+            "fontWeight": "600",
+          },
+          {
+            "color": "#9CA3AF",
+          },
+        ]
+      }
+    >
+      yesterdayRecap.zeroMarked
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "marginLeft": 4,
+          },
+          {
+            "color": "#9CA3AF",
+          },
+        ]
+      }
+    >
+      ▾
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`YesterdayRecapCard snapshot — locked render shapes expanded all-complete 1`] = `
+<View
+  style={
+    [
+      {
+        "borderRadius": 12,
+        "borderWidth": 1,
+        "marginBottom": 10,
+        "paddingHorizontal": 14,
+        "paddingVertical": 10,
+      },
+      {
+        "backgroundColor": "#FFFFFF",
+        "borderColor": "#E5E7EB",
+      },
+    ]
+  }
+>
+  <View
+    accessibilityRole="button"
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": true,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "gap": 10,
+        "opacity": 1,
+      }
+    }
+  >
+    <Text
+      style={
+        {
+          "fontSize": 22,
+        }
+      }
+    >
+      🚀
+    </Text>
+    <Text
+      numberOfLines={1}
+      style={
+        [
+          {
+            "flex": 1,
+            "fontSize": 15,
+            "fontWeight": "600",
+          },
+          {
+            "color": "#1F2937",
+          },
+        ]
+      }
+    >
+      Matan
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 13,
+            "fontWeight": "600",
+          },
+          {
+            "color": "#9CA3AF",
+          },
+        ]
+      }
+    >
+      yesterdayRecap.summary
+    </Text>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 14,
+            "marginLeft": 4,
+          },
+          {
+            "color": "#9CA3AF",
+          },
+        ]
+      }
+    >
+      ▴
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "marginTop": 8,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "height": 1,
+            "marginBottom": 8,
+          },
+          {
+            "backgroundColor": "#E5E7EB",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "gap": 10,
+          "paddingVertical": 4,
+        }
+      }
+    >
+      <Text
+        accessibilityLabel="yesterdayRecap.a11y.completed"
+        style={
+          [
+            {
+              "fontSize": 16,
+              "fontWeight": "700",
+              "textAlign": "center",
+              "width": 18,
+            },
+            {
+              "color": "#059669",
+            },
+          ]
+        }
+      >
+        ✓
+      </Text>
+      <Text
+        style={
+          [
+            {
+              "fontSize": 12,
+              "width": 48,
+            },
+            {
+              "color": "#9CA3AF",
+            },
+          ]
+        }
+      >
+        07:00
+      </Text>
+      <Text
+        numberOfLines={1}
+        style={
+          [
+            {
+              "flex": 1,
+              "fontSize": 14,
+            },
+            {
+              "color": "#1F2937",
+            },
+          ]
+        }
+      >
+        Brush teeth
+      </Text>
+    </View>
+    <Text
+      style={
+        [
+          {
+            "fontSize": 13,
+            "fontWeight": "600",
+            "marginTop": 10,
+            "textAlign": "center",
+          },
+          {
+            "color": "#059669",
+          },
+        ]
+      }
+    >
+      yesterdayRecap.allComplete
+    </Text>
+  </View>
+</View>
+`;
