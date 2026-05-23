@@ -8,7 +8,7 @@
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
 | 1 — Hook + filter sieve | _passed_ | 2026-05-23 | (this commit) | 31/31 unit pass; banned-strings grep clean; tsc clean for new files | — |
-| 2 — UI integration | _pending_ | — | — | — | — |
+| 2 — UI integration | _blocked_ | 2026-05-23 | (this commit) | code complete, tsc clean, banned-string grep clean; awaiting Adi emulator tests per TESTS.md Phase 2 | — |
 | 3 — Edge case matrix + ship | _pending_ | — | — | — | — |
 
 ## Legend

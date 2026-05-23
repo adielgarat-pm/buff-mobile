@@ -27,8 +27,10 @@ import { useParentInsights } from '../../hooks/useParentInsights';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
 import { useParentNotifications } from '../../hooks/useParentNotifications';
+import { useYesterdayRecap } from '../../hooks/useYesterdayRecap';
 import LinkChildModal from '../../components/LinkChildModal';
 import PauseBanner from '../../components/PauseBanner';
+import YesterdayRecapCard from '../../components/YesterdayRecapCard';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -48,6 +50,14 @@ export default function ParentDashboardScreen() {
   // soft dot on the child's card. Auto-clears at midnight (filter is
   // today-only); no manual mark-as-read in v1.
   const { getSosForChild }                 = useParentNotifications();
+  // Yesterday's task completion per child — read-only section below "Today."
+  // Beta-driven (Shani 2026-05-21); SPEC at docs/sessions/yesterday-recap/.
+  const {
+    recapByChildId:    yesterdayRecaps,
+    shouldHide:        yesterdayHidden,
+    yesterdayDate,
+    loading:           yesterdayLoading,
+  } = useYesterdayRecap();
   const [linkTarget, setLinkTarget]        = useState<typeof unlinked[0] | null>(null);
   const autoLinkedRef                      = useRef(false);
 
@@ -360,6 +370,39 @@ export default function ParentDashboardScreen() {
           );
         })
       )}
+
+      {/* ── Yesterday Recap section ─────────────────────────────────── */}
+      {!yesterdayLoading && !yesterdayHidden && (() => {
+        // Format yesterdayDate (YYYY-MM-DD) → "D.M" per SPEC §5 (option C)
+        const [, mm, dd] = yesterdayDate.split('-');
+        const formattedDate = `${parseInt(dd, 10)}.${parseInt(mm, 10)}`;
+        // Match children's display order; skip children with zero scheduled tasks
+        const cards = children
+          .map(child => {
+            const recap = yesterdayRecaps[child.childId];
+            if (!recap || recap.totalScheduled === 0) return null;
+            return (
+              <YesterdayRecapCard
+                key={child.childId}
+                childName={child.displayName}
+                childAvatar={child.avatar}
+                recap={recap}
+              />
+            );
+          })
+          .filter(Boolean);
+        if (cards.length === 0) return null;
+        return (
+          <View style={{ marginTop: 18 }}>
+            <View style={styles.sectionRow}>
+              <Text style={[styles.sectionTitle, { color: T.textMuted }]}>
+                {t('dashboard.yesterday')} · {formattedDate}
+              </Text>
+            </View>
+            {cards}
+          </View>
+        );
+      })()}
 
       {/* ── Link child modal ─────────────────────────────────────────── */}
       <LinkChildModal
