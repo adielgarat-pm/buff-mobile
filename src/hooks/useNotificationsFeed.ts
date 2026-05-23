@@ -21,7 +21,7 @@
  *   - Filter by type (OQ-B4: chronological only in v1)
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -87,11 +87,37 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
     refetch();
   }, [refetch]);
 
-  // One Realtime channel per family per session (OQ-B11 + B19).
+  // Realtime channel per family — guarded against Strict-Mode double-mount
+  // and against Supabase's name-cached channel registry by using a unique
+  // suffix per effect invocation.
+  //
+  // Why this matters (BUG-2026-05-23-01):
+  //   - Previously the channel name was just `parent-feed-${familyId}`
+  //     and the cleanup `supabase.removeChannel(channel)` returns a
+  //     Promise (async). Strict-Mode double-invoke runs cleanup +
+  //     immediately a fresh effect — the new `.channel(name)` returns
+  //     the cached (still-subscribed) instance, then `.on(...)` throws
+  //     "cannot add `postgres_changes` callbacks after `subscribe()`"
+  //     and the dashboard render tree blows up in dev.
+  //   - With anchor-recovery-ui (PR #67) merged, two hooks now consume
+  //     useNotificationsFeed in a single render (useParentNotifications +
+  //     useAnchorRecoveryPrompts), which made the collision deterministic.
+  //
+  // Fix shape:
+  //   1. Channel name includes a per-mount random suffix → each effect
+  //      invocation gets a brand-new registry entry; no name collision
+  //      with stale entries still waiting for async removal.
+  //   2. `refetch` is read via a ref instead of being in the effect's
+  //      dep array, so familyId changes are the only trigger.
+  const refetchRef = useRef(refetch);
+  refetchRef.current = refetch;
+
   useEffect(() => {
     if (!familyId) return;
+    // Random 6-char suffix — generated once per effect invocation
+    const suffix = Math.random().toString(36).slice(2, 8);
     const channel = supabase
-      .channel(`parent-feed-${familyId}`)
+      .channel(`parent-feed-${familyId}-${suffix}`)
       .on(
         'postgres_changes',
         {
@@ -101,14 +127,14 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
           filter: `family_id=eq.${familyId}`,
         },
         () => {
-          refetch();
+          refetchRef.current();
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [familyId, refetch]);
+  }, [familyId]);
 
   // Optimistic mark-as-read for a single row.
   const markRead = useCallback(async (id: string) => {
