@@ -418,4 +418,51 @@ Adi delegated OQ1-8 to CC ("תפתור את זה לבד, אין לי פה יתר
 
 ---
 
+## Phase 1 Close-out Note (2026-05-23)
+
+### What shipped
+
+Migration `anchor_recovery_detector_and_cleanup` applied to `gfrongfnyigxsexuofrg` via Supabase MCP:
+- Function `public.scan_for_anchor_recovery()` — detector
+- Function `public.cleanup_anchor_recovery_on_resume()` — trigger function for daily_progress
+- Trigger `tr_cleanup_anchor_recovery_on_progress` AFTER INSERT ON `public.daily_progress`
+- pg_cron job `scan_for_anchor_recovery_daily` scheduled `5 6 * * *` (06:05 UTC, **staggered 5 minutes after the existing `scan_disengaged_users_daily` at 06:00**)
+
+### Test scenarios — all passing
+
+| # | Scenario | Result |
+|---|---|---|
+| 1 | Cron job exists with correct schedule | ✅ jobid=4, schedule=`5 6 * * *` |
+| 2 | First-run effect | ✅ 86 notifications inserted (consistent with snapshot ending 2026-04-09 + current 2026-05-23 → all eligible kids 44+ days inactive) |
+| 3 | Idempotency (second run) | ✅ 0 new inserts (re-fire gate works) |
+| 4 | All 8 known kids covered (3 iron-men + 5 churners) | ✅ All 8 have unread `anchor_recovery` rows |
+| 5 | Trigger on daily_progress INSERT (Leia simulation) | ✅ Leia's notification flipped to `is_read=true` automatically; test row cleaned up |
+| 6 | Pause Mode skip (Mattan's family activated, scan run) | ✅ 0 new notifications for Mattan during pause |
+| 7 | Pause Mode resume (deactivate + scan) | ✅ Mattan got a fresh notification after pause off |
+
+### Spec Drift acknowledged (not resolved by this package)
+
+`scan_disengaged_users()` already exists in production for `kid_engagement` + `parent_engagement` types using `profiles.last_seen_at` as the inactivity signal. Our `anchor_recovery` uses `MAX(daily_progress.created_at)` which is closer to the anchor-theory definition of "engagement" (completion, not opening).
+
+**Both functions now run independently:**
+- `scan_disengaged_users` at 06:00 UTC → `last_seen_at > 5 days` → `kid_engagement` (to kid) + `parent_engagement` (to parent self)
+- `scan_for_anchor_recovery` at 06:05 UTC → `daily_progress.created_at > 5 days ago` → `anchor_recovery` (to parent about kid)
+
+`pkg/parent-notification-feed` (sibling) will eventually render all three types in the parent's bell feed when its Phase 2-3 ship. UI integration of `anchor_recovery` is Phase 2 of THIS package — banner/modal on ParentDashboard (per OQ4 auto-add).
+
+### Decisions added during execution
+
+| ID | Decision | Rationale |
+|---|---|---|
+| **EX-3** | Parent selection within the function = parent profile with earliest `created_at` in the family (first parent registered). | Multi-parent families that need fairer rotation are v1.1. The first parent will get all anchor-recovery prompts for now. |
+| **EX-4** | Orphan families (no parent profile) silently skipped — `WHERE parent_id IS NOT NULL`. | No error, no notification. Phase 6 may surface as a data-quality flag. |
+| **EX-5** | pg_cron schedule = `5 6 * * *` (06:05 UTC), staggered 5 minutes after `scan_disengaged_users_daily`. | Both run independently; no shared state. Stagger is for log debuggability only. |
+| **EX-6** | Auto-cleanup via DB trigger on `daily_progress` INSERT (not a separate function call). | Decouples from app code — works regardless of which surface inserts the progress row (kid dashboard, parent override, eventual API). |
+
+### Files touched in repo
+
+None. `src/` untouched. Migration applied directly via Supabase MCP `apply_migration` (the repo has no `supabase/migrations/` folder — migrations are MCP-managed for this project).
+
+---
+
 **End of SPEC.**

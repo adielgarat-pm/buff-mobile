@@ -8,7 +8,8 @@
 **SPEC:** [SPEC.md](./SPEC.md)
 **Drafted:** 2026-05-23
 **Phase 0 closed:** 2026-05-23
-**Status:** `phase 0 closed — awaiting Phase 1 plan approval`
+**Phase 1 closed:** 2026-05-23
+**Status:** `phase 1 closed — awaiting Phase 2 plan approval (UI)`
 
 ---
 
@@ -17,7 +18,7 @@
 | Phase | Title | State | Started | Closed | Commit | Tests | Learnings | Notes |
 |---|---|---|---|---|---|---|---|---|
 | 0 | Setup + schema verification | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | schema OK, no migration | See SPEC § Schema Verified + Decisions Locked | OQ9 = C (Adi-approved); EX-1 = branch `pkg/anchor-recovery-impl`; EX-2 = Vibe-credit separate from INSTANT_BUFF |
-| 1 | Inactivity Detector backend | ⬜ not-started | — | — | — | — | — | Mirrors pg_cron pattern from pkg/buddy-v05-backend |
+| 1 | Inactivity Detector backend | ✅ closed | 2026-05-23 | 2026-05-23 | (this commit) | 7/7 scenarios passed | Spec drift: scan_disengaged_users coexists — both run independently | EX-3/4/5/6 added; migration `anchor_recovery_detector_and_cleanup` applied via MCP |
 | 2 | Parent Prompt UI | ⬜ not-started | — | — | — | — | — | Pillar 2 risk on copy — verify Adi-approved text rendered |
 | 3 | Auto-create anchor task | ⬜ not-started | — | — | — | — | — | |
 | 4 | Vibe Check credit | ⬜ not-started | — | — | — | — | — | Extends existing useDailyVibe hook |
