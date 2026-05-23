@@ -308,7 +308,11 @@ export default function ParentDashboardScreen() {
       )}
 
       {/* ── Unlinked children banner ───────────────────────────────────── */}
-      {unlinked.map(child => (
+      {/* Only show the "join family" banners when there's actually a profile
+          to link against — otherwise the kid is already in the family and
+          the banner is a no-op that duplicates the TODAY card below.
+          Fix per pkg/dashboard-clarity-cleanup Issue A (2026-05-23). */}
+      {linkable.length > 0 && unlinked.map(child => (
         <TouchableOpacity
           key={child.id}
           style={styles.unlinkBanner}
