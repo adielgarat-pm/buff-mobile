@@ -17,7 +17,10 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
-  useFocusEffect: jest.fn(),
+  // Invoke the callback synchronously so the focus-refetch wiring is
+  // actually exercised in tests (otherwise the new behavior is dead code
+  // to the test suite). See test below: "refetches buddy on mount/focus".
+  useFocusEffect: (cb: () => void | (() => void)) => { cb(); },
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
@@ -92,22 +95,33 @@ const baseRelationship: BuddyRelationship = {
 function mockBuddyHook(overrides: Partial<BuddyRelationship> | null = {}) {
   const setBuddyVisible = jest.fn().mockResolvedValue({ error: null });
   const setBuddyName    = jest.fn().mockResolvedValue({ error: null });
+  const refetch         = jest.fn();
   const relationship: BuddyRelationship | null =
     overrides === null ? null : { ...baseRelationship, ...overrides };
   mockedUseBuddy.mockReturnValue({
     relationship,
     loading: false,
     error: null,
-    refetch: jest.fn(),
+    refetch,
     setBuddyVisible,
     setBuddyName,
   } as any);
-  return { setBuddyVisible, setBuddyName };
+  return { setBuddyVisible, setBuddyName, refetch };
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 describe('ChildSettingsScreen — Buddy section', () => {
   beforeEach(() => mockedUseBuddy.mockReset());
+
+  // Guards against regression: if someone removes useFocusEffect from the
+  // screen, this test fails. The screen is one of 4 instances of
+  // useBuddyRelationship that must refetch on focus to stay in sync with
+  // mutations from sister screens. See pkg/buddy-relationship-cross-screen-sync.
+  test('refetches buddy relationship on focus', () => {
+    const { refetch } = mockBuddyHook();
+    render(<ChildSettingsScreen />);
+    expect(refetch).toHaveBeenCalled();
+  });
 
   test('renders both Buddy entries with "Showing" status + default name when buddy_visible=true and buddy_name=null', () => {
     mockBuddyHook({ buddy_visible: true, buddy_name: null, current_skin_id: 'wolf' });
