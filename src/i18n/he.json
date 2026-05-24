@@ -126,7 +126,7 @@
   "dashboard.today": "היום",
   "dashboard.yesterday": "אתמול",
   "dashboard.toggle.today": "היום",
-  "dashboard.toggle.yesterday": "אתמול · {{date}}",
+  "dashboard.toggle.yesterday": "אתמול",
   "dashboard.toggle.a11y.today": "הצג היום",
   "dashboard.toggle.a11y.yesterday": "הצג אתמול",
   "yesterdayRecap.summary": "{{completed}} מתוך {{total}}",

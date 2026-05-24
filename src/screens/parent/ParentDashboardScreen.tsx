@@ -92,6 +92,13 @@ export default function ParentDashboardScreen() {
         return `${parseInt(parts[2], 10)}.${parseInt(parts[1], 10)}`;
       })()
     : '';
+  // Today's date in the same D.M format — shown as a subtext under the
+  // "היום" pill so both pills carry parallel information (date parity)
+  // and balance to identical heights. pkg/dashboard-toggle-redesign §OQ-DTR-3.
+  const formattedToday = (() => {
+    const now = new Date();
+    return `${now.getDate()}.${now.getMonth() + 1}`;
+  })();
 
   // Auto-link when possible; show modal only if no match found
   useEffect(() => {
@@ -346,10 +353,12 @@ export default function ParentDashboardScreen() {
 
       {/* ── Section header — toggle pills when yesterday data is available,
               otherwise static "TODAY" label.
-              pkg/dashboard-today-yesterday-toggle (2026-05-23) per OQ-DTY-1/5. */}
+              pkg/dashboard-toggle-redesign (2026-05-24) — Big Segmented Pills:
+              full-width row, equal-width pills, date as subtext under each
+              day label, accent-fill active state. */}
       {yesterdayAvailable ? (
-        <View style={styles.sectionRow}>
-          <View style={styles.togglePills}>
+        <>
+          <View style={styles.toggleRow}>
             <TouchableOpacity
               style={[
                 styles.togglePill,
@@ -367,6 +376,12 @@ export default function ParentDashboardScreen() {
               ]}>
                 {t('dashboard.toggle.today')}
               </Text>
+              <Text style={[
+                styles.togglePillSubtext,
+                effectiveView === 'today' ? styles.togglePillSubtextActive : styles.togglePillSubtextInactive,
+              ]}>
+                {formattedToday}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[
@@ -383,20 +398,28 @@ export default function ParentDashboardScreen() {
                 styles.togglePillText,
                 effectiveView === 'yesterday' ? styles.togglePillTextActive : styles.togglePillTextInactive,
               ]}>
-                {t('dashboard.toggle.yesterday', { date: formattedYesterday })}
+                {t('dashboard.toggle.yesterday')}
+              </Text>
+              <Text style={[
+                styles.togglePillSubtext,
+                effectiveView === 'yesterday' ? styles.togglePillSubtextActive : styles.togglePillSubtextInactive,
+              ]}>
+                {formattedYesterday}
               </Text>
             </TouchableOpacity>
           </View>
-          {/* + Add Child hidden in Yesterday view (OQ-DTY-4) — adding a kid is
-              a today/future action, has no meaning in a read-only yesterday view. */}
+          {/* + Add Child hidden in Yesterday view (OQ-DTY-4). In Today view it
+              gets its own row below the full-width toggle (OQ-DTR-1). */}
           {effectiveView === 'today' && (
-            <TouchableOpacity style={styles.addChildBtn} onPress={handleAddChild}>
-              <Text style={[styles.addChildText, { color: T.accent }]}>
-                {t('dashboard.addChild')}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.addChildRow}>
+              <TouchableOpacity style={styles.addChildBtn} onPress={handleAddChild}>
+                <Text style={[styles.addChildText, { color: T.accent }]}>
+                  {t('dashboard.addChild')}
+                </Text>
+              </TouchableOpacity>
+            </View>
           )}
-        </View>
+        </>
       ) : (
         <View style={styles.sectionRow}>
           <Text style={[styles.sectionTitle, { color: T.textMuted }]}>
@@ -675,13 +698,41 @@ const styles = StyleSheet.create({
   addChildText: { fontSize: 12, fontWeight: '700' },
 
   // Today/Yesterday toggle pills — pkg/dashboard-today-yesterday-toggle
-  togglePills:            { flexDirection: 'row', backgroundColor: T.cardBorder, borderRadius: 10, padding: 2, gap: 2 },
-  togglePill:             { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, minWidth: 56, alignItems: 'center' },
-  togglePillActive:       { backgroundColor: T.card, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  togglePillInactive:     { backgroundColor: 'transparent' },
-  togglePillText:         { fontSize: 12, fontWeight: '700' },
-  togglePillTextActive:   { color: T.text },
-  togglePillTextInactive: { color: T.textMuted },
+  // ─── Toggle (pkg/dashboard-toggle-redesign) ─────────────────────────────
+  // Big Segmented Pills — full-width row, equal-width pills, accent-fill
+  // active state, bordered inactive state. Date renders as a small subtext
+  // under each day label so both pills carry parallel information and
+  // balance to identical heights.
+  toggleRow:                  { flexDirection: 'row', gap: 8, marginTop: 8 },
+  togglePill:                 {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  togglePillActive:           {
+    backgroundColor: T.accent,
+    borderColor: T.accent,
+    shadowColor: T.accent,
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  togglePillInactive:         {
+    backgroundColor: T.card,
+    borderColor: T.cardBorder,
+  },
+  togglePillText:             { fontSize: 16, fontWeight: '700' },
+  togglePillTextActive:       { color: '#FFFFFF' },
+  togglePillTextInactive:     { color: T.accent },
+  togglePillSubtext:          { fontSize: 12, fontWeight: '500', marginTop: 2 },
+  togglePillSubtextActive:    { color: 'rgba(255,255,255,0.78)' },
+  togglePillSubtextInactive:  { color: T.textMuted },
+  addChildRow:                { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 8 },
 
   // Child cards
   emptyCard:    { borderRadius: 16, padding: 24, borderWidth: 1, alignItems: 'center' },

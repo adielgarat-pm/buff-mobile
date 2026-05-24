@@ -126,7 +126,7 @@
   "dashboard.today": "Today",
   "dashboard.yesterday": "Yesterday",
   "dashboard.toggle.today": "Today",
-  "dashboard.toggle.yesterday": "Yesterday · {{date}}",
+  "dashboard.toggle.yesterday": "Yesterday",
   "dashboard.toggle.a11y.today": "Show today",
   "dashboard.toggle.a11y.yesterday": "Show yesterday",
   "yesterdayRecap.summary": "{{completed}} of {{total}}",
