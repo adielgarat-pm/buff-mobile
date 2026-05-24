@@ -9,14 +9,14 @@
  * Source design: docs/teen-ui-design/me-and-buddy/5a-with-buddy/
  * Behavior contract: docs/sessions/teen-ui-with-buddy-character/SPEC.md §3.4
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator,
   TouchableOpacity, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
@@ -57,7 +57,8 @@ export default function GamerMeAndBuddyScreen() {
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { relationship, loading: buddyLoading } = useBuddyRelationship(childId);
+  const { relationship, loading: buddyLoading, refetch: refetchBuddy } = useBuddyRelationship(childId);
+  useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
   const { stats, loading: statsLoading }        = useChildBuddyStats(childId);
   const { gifts, loading: giftsLoading }        = useChildBuddyGifts(childId);
   const { isPauseActive } = useAppSettings();

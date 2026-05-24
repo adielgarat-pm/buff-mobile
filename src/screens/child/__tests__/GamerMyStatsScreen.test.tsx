@@ -26,6 +26,10 @@ jest.mock('../../../contexts/ModeContext', () => ({
   useMode: () => ({ previewChildId: null, isChildPreview: false }),
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: jest.fn(),
+}));
+
 jest.mock('../../../hooks/useBuddyRelationship', () => ({
   useBuddyRelationship: jest.fn(),
 }));
