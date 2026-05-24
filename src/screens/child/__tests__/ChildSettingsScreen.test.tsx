@@ -17,6 +17,7 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('@react-native-async-storage/async-storage', () => ({

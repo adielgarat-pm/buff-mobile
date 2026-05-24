@@ -19,13 +19,13 @@
  * Pause Mode: respects useAppSettings.isPauseActive — shows PauseEmptyState
  * + WelcomeBackModal (per pause-mode SPEC) instead of task content.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
@@ -133,7 +133,8 @@ export default function GamerDashboardScreen() {
   const { tasks, totalBalance, loading: dataLoading } = useChildData(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
-  const { relationship, setBuddyVisible } = useBuddyRelationship(childId);
+  const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
+  useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by

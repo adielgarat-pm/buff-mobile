@@ -24,6 +24,7 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack }),
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('../../../contexts/AuthContext', () => ({

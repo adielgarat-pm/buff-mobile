@@ -3,9 +3,9 @@
  * Pet customisation, theme picker, sound, sign-out.
  */
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
@@ -41,7 +41,8 @@ export default function ChildSettingsScreen() {
   const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { relationship, setBuddyVisible, setBuddyName } = useBuddyRelationship(childId);
+  const { relationship, setBuddyVisible, setBuddyName, refetch: refetchBuddy } = useBuddyRelationship(childId);
+  useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
 
   const child = MOCK_MY_CHILD;
   const petCfg = PET_STAGES[child.petStage];

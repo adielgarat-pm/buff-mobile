@@ -16,12 +16,13 @@
  * Note: 5B does NOT render a buddy character image — that's 5A's job.
  * 5B is always full-layout regardless of buddy_visible (per SPEC §3.3).
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useAppSettings } from '../../hooks/useAppSettings';
@@ -52,7 +53,8 @@ export default function GamerMyStatsScreen() {
   const { previewChildId } = useMode();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { relationship, loading: buddyLoading } = useBuddyRelationship(childId);
+  const { relationship, loading: buddyLoading, refetch: refetchBuddy } = useBuddyRelationship(childId);
+  useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
   const { stats, loading: statsLoading }        = useChildBuddyStats(childId);
   const { gifts, loading: giftsLoading }        = useChildBuddyGifts(childId);
   const { isPauseActive } = useAppSettings();
