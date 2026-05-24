@@ -555,6 +555,37 @@
 
 ---
 
+### Lesson 2026-05-24 — Parallel CC session stepped on this session's work twice (IN-2026-05-24-01)
+
+**Symptom (two-phase incident):**
+
+*Phase A — during `pkg/buddy-relationship-cross-screen-sync`:* CC made 4 Edit-tool calls adding `useFocusEffect` wiring. All returned "updated successfully" and a subsequent `jest` run actually exercised the new code. Minutes later, `git diff --stat` returned empty — disk content was silently reverted across all 4 files. CC also discovered it was on `pkg/anchor-recovery-impl` instead of the explicitly-created `pkg/buddy-relationship-cross-screen-sync`. A spurious stash-as-commit (`dcb6fa9`) referencing "WIP preserved 2026-05-24 before pkg/anchor-recovery-impl" appeared in the reflog.
+
+*Phase B — during `pkg/buddy-sync-followups` (immediately after):* CC made 3 edits (LEARNINGS, STATUS.md, test file). Just before `git commit`, the branch silently switched to `main`, the changes were stashed by an unknown actor with message `On docs/yesterday-recap-visual-evidence: foreign WIP during cherry-pick`, and a brand-new branch `docs/yesterday-recap-visual-evidence` had appeared in the reflog with a commit `42fe322 docs(yesterday-recap): visual evidence + reusable preview harness` that CC had not authored. PR #73 was opened and merged for that branch while this session was working.
+
+**Discovery:** Reflog inspection revealed checkouts and a commit that CC never issued. Stash messages used the word "foreign" — which is not standard git language but is consistent with how a second CC session might label changes it didn't make. Process inspection showed **15+ active `claude` processes** on the machine, with multiple recent ones (3 from 2026-05-24 morning).
+
+**Root cause:** A **parallel Claude Code session** was running concurrently in the same repository and stepped on this session. The parallel session was working on `yesterday-recap-visual-evidence`, performed checkouts, stashed conflicting working-tree changes (this session's edits) as "foreign WIP", and cherry-picked its own commit onto a new branch. The branch-switches and disk reverts observed by this session were side effects of the parallel session's git operations, not a VS Code extension as initially hypothesized. The earlier hypothesis (VS Code Git extension) was wrong.
+
+**Recovery:** This session's work was preserved in stash@{0}. After Adi confirmed the parallel session had merged its PR, CC rebased on the new main, re-created the branch, popped the stash, verified content + tests, and proceeded.
+
+**Mitigation:**
+- **Do not run multiple Claude Code sessions against the same working directory.** They will fight over branch state and the working tree. The git operations of one will appear as silent reverts to the other.
+- If multiple sessions are needed in parallel, each must use a separate worktree (`git worktree add ../path branch-name`) so the working tree is not shared.
+- For CC: when `git diff --stat` is unexpectedly empty after Edits, treat as a "parallel-session stepped on me" event — check `git stash list` and `git reflog` BEFORE re-applying edits. Stash messages may say "foreign WIP" or reference a branch you did not create.
+- Always verify branch state with `git branch --show-current` before commit, not just after `git checkout -b`.
+
+**Pattern to watch:** Multi-session shared-working-tree is the classic concurrent-editor failure mode at the filesystem level. Git is built for it (worktrees), but not transparently — both sessions assume they own the working tree until something obviously breaks.
+
+**Asks of Adi:**
+- Audit running `claude` processes (`Get-Process claude`) and kill zombies from old sessions
+- If you want parallel CC sessions on the same repo, use `git worktree add` per session
+- Consider whether scheduled background tasks (CronCreate / TaskCreate-style routines) are spinning up CC sessions you don't see in the VS Code UI
+
+**FLAGs opened:** None — process / environment fix.
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
