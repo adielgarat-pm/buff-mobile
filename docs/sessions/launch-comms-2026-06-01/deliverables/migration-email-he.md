@@ -70,7 +70,7 @@
 Adi Elgarat German
 Founder @ BUFF | Mom of an ADHD teen
 On a mission to make the ADHD app your kid grows out of — and the home around it calmer.
-buffadhd.com · linkedin.com/in/adi-elgarat-german
+adi@buffadhd.com · buffadhd.com · linkedin.com/in/adi-elgarat-german
 ```
 
 ---
