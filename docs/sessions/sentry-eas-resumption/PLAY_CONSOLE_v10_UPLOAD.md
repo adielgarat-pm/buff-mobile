@@ -14,7 +14,21 @@
 
 ## Pre-flight (5 min)
 
-1. Confirm the build finished successfully:
+### 0. Verify Sentry source maps for v10 (30 sec — DO THIS FIRST)
+
+CC tried to verify via API but `SENTRY_AUTH_TOKEN` is marked **Secret** in EAS and is only accessible during a build (intentional security hardening — Adi set this up 2026-05-16). So this 30-sec dashboard check is the only way:
+
+1. Open https://buffadhd.sentry.io/releases/ (login with `adi@buffadhd.com`)
+2. Look at the top of the list — should see a release matching `com.buffapp.mobile@1.0.0+10` (or similar — Sentry RN plugin format) **with today's date** (2026-05-25)
+3. Click into it → **Source Maps** tab → should show JS bundle + map files uploaded
+
+**If the release exists with source maps:** great, proceed.
+
+**If the release exists but NO source maps:** stop — config issue. Ping CC. We'd need to investigate and likely rebuild v11.
+
+**If NO release for today:** stop — Sentry plugin didn't run during the build. Ping CC. Likely token rotation or plugin config issue.
+
+### 1. Confirm the build finished successfully:
    - Open https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/c9aa1828-8495-45ac-8365-3153e6e864cb
    - Status should show **Finished** (green checkmark)
    - If **Errored** → STOP, ping CC, do not upload anything
