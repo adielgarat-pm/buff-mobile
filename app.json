@@ -48,7 +48,8 @@
           "defaultChannel": "default"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@sentry/react-native"
     ],
     "notification": {
       "icon": "./assets/BUFF_LOGO.png",
