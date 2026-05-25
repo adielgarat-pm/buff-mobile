@@ -15,7 +15,7 @@
 import { useState, useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, Alert, StyleSheet, Platform,
+  ActivityIndicator, Alert, StyleSheet, Platform, Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -70,6 +70,7 @@ export default function TimetableScreen() {
   const [hasAutoTime,      setHasAutoTime]      = useState(false);
   const [hasReviewErrors,  setHasReviewErrors]  = useState(false);
   const [reviewDay,        setReviewDay]        = useState<WeekDay>('sunday');
+  const [dayPickerForId,   setDayPickerForId]   = useState<string | null>(null);
 
   // ── Manual ─────────────────────────────────────────────────────────────────
   const [manualTimetable, setManualTimetable] = useState<Timetable>({});
@@ -614,6 +615,24 @@ export default function TimetableScreen() {
                   placeholderTextColor={T.textMuted}
                 />
 
+                {/* Day picker chip — tap to change day for this row */}
+                <TouchableOpacity
+                  onPress={() => setDayPickerForId(period.id)}
+                  style={[
+                    styles.dayPickerChip,
+                    {
+                      borderColor: period.missingDay ? '#EF4444' : T.cardBorder,
+                      backgroundColor: period.missingDay ? '#FEE2E210' : '#F3F4F6',
+                    },
+                  ]}
+                  accessibilityLabel={t('timetable.changeDay')}
+                >
+                  <Text style={[styles.dayPickerChipText, { color: T.text }]}>
+                    {dayLabels[period.day]}
+                  </Text>
+                  <Ionicons name="chevron-down" size={10} color={T.textMuted} />
+                </TouchableOpacity>
+
                 {/* Delete */}
                 <TouchableOpacity onPress={() => deletePeriod(period.id)} style={styles.deleteBtn}>
                   <Ionicons name="trash-outline" size={18} color="#EF4444" />
@@ -622,6 +641,57 @@ export default function TimetableScreen() {
             );
           })}
         </ScrollView>
+
+        {/* Day picker modal */}
+        <Modal
+          visible={dayPickerForId !== null}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setDayPickerForId(null)}
+        >
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setDayPickerForId(null)}
+          >
+            <View style={[styles.dayPickerModal, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+              <Text style={[styles.dayPickerTitle, { color: T.text }]}>
+                {t('timetable.changeDay')}
+              </Text>
+              <View style={styles.dayPickerGrid}>
+                {WEEK_DAYS_WITH_FRIDAY.map(day => {
+                  const currentPeriod = parsedPeriods.find(p => p.id === dayPickerForId);
+                  const isActive = currentPeriod?.day === day;
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      onPress={() => {
+                        if (dayPickerForId) updatePeriod(dayPickerForId, { day });
+                        setDayPickerForId(null);
+                      }}
+                      style={[
+                        styles.dayPickerOption,
+                        {
+                          backgroundColor: isActive ? T.accent : 'transparent',
+                          borderColor: isActive ? T.accent : T.cardBorder,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.dayPickerOptionText,
+                          { color: isActive ? '#fff' : T.text },
+                        ]}
+                      >
+                        {dayLabels[day]}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         {/* Confirm */}
         <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
@@ -808,4 +878,16 @@ const styles = StyleSheet.create({
   addLessonBtn:  { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 12,
                    paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   addLessonText: { fontSize: 14, fontWeight: '600' },
+
+  dayPickerChip: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 8,
+                   height: 36, borderRadius: 8, borderWidth: 1.5 },
+  dayPickerChipText: { fontSize: 13, fontWeight: '600' },
+
+  modalBackdrop:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' },
+  dayPickerModal: { width: '80%', maxWidth: 320, padding: 20, borderRadius: 16, borderWidth: 1 },
+  dayPickerTitle: { fontSize: 16, fontWeight: '700', textAlign: 'center', marginBottom: 16 },
+  dayPickerGrid:  { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center' },
+  dayPickerOption:{ minWidth: 80, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12,
+                    borderWidth: 1.5, alignItems: 'center' },
+  dayPickerOptionText: { fontSize: 14, fontWeight: '600' },
 });
