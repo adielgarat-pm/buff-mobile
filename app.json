@@ -49,7 +49,14 @@
         }
       ],
       "expo-font",
-      "@sentry/react-native"
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "organization": "buffadhd",
+          "project": "react-native"
+        }
+      ]
     ],
     "notification": {
       "icon": "./assets/BUFF_LOGO.png",
