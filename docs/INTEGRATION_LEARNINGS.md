@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-05-25-02: Lost-work pattern — branches paused > 5 days are at deletion risk
+
+- **תאריך:** 2026-05-25 (discovered during `pkg/sentry-eas-resumption` Phase 0 diagnosis)
+- **מקור:** CC — full diagnosis of why `pkg/expo-health-and-eas-android` (Phases 0-3 done, AAB v8 built) + `pkg/sentry-crash-monitoring` (Phases 0-3 done, v9 IN_PROGRESS) had all their commits absent from `main` despite explicit pause-and-resume documentation (`RESUMPTION_NOTES_2026-05-16.md` in git history at `b5c723e`, never landed on main).
+- **תיאור:** Between 2026-05-16 (pause point) and 2026-05-25 (resumption attempt), both branches were deleted before regression testing resumed. Verify-Before-Delete Protocol (CLAUDE.md, post-2026-05-04 incident) was bypassed because the verbal "merged" check + branch cleanup happened with no merge actually performed. The branches were squash-merged or commits cherry-picked **without their Sentry/EAS work** — selective loss confirmed by 77 commits landing on main from 5/16 to 5/25 (vibe-check, teen-ui-buddy-character, FCM, buddy-sync, dashboard-toggle, timetable-import-fixes, anchor-recovery, yesterday-recap, dashboard-clarity-cleanup, parent-feed, mobile-quickstart) but **zero** Sentry/EAS commits.
+- **השפעה:**
+  - 9 days of phase-complete work erased. Recovery via `pkg/sentry-eas-resumption` (PR #85, merge commit `20fa598`, 2026-05-25) cost ~3 hours of CC time + 1 EAS build slot + 1 PR review cycle.
+  - Cloud-side artifacts survived (EAS keystore `dG1dqozJHO`, secret `SENTRY_AUTH_TOKEN` id `da05ed42`, Sentry DSN, Play Console listing) — only the **code** was lost. Recovery would have been much costlier had any of these been rotated/revoked.
+  - Mitigation: when pausing a package for > 5 days with phase-complete commits, **merge those commits to main via PR even mid-package** (don't wait for the package to fully complete). Phase-complete = passed TESTS.md criteria and committed. Subsequent phases can land in follow-up PRs. This requires no rule change to Verify-Before-Delete (the existing protocol is sufficient); it's a behavioral pattern to internalize before any pause that may extend past a week.
+  - Related observation: long-paused branches are also at higher risk of merge conflicts as main advances. The 9 days of feature work landed on top of where v8/v9 were built — even if the branches had survived, they'd have needed rebase + retest.
+- **סטטוס:** `resolved` — pattern documented, recovery shipped via `pkg/sentry-eas-resumption` (PR #85, merge `20fa598`). D-2026-05-25-02 ties this to Verify-Before-Delete Protocol reinforcement. Future packages: apply the 5-day rule.
+- **קשור ל:** D-2026-05-25-01 (Sentry re-adoption), D-2026-05-25-02 (protocol reinforcement), CLAUDE.md § Verify-Before-Delete Protocol, deleted branches `pkg/expo-health-and-eas-android` + `pkg/sentry-crash-monitoring` (recoverable only via `git show b5c723e:...`).
+
 ### IN-2026-05-25-01: First trigger on `public.profiles` introduced for lifetime-grant mechanism
 
 - **תאריך:** 2026-05-25
@@ -322,8 +335,8 @@
   3. Duplicate `expo-font` (55.0.6 vs 14.0.11) + duplicate `expo-constants` (same version ×3, harmless)
   4. `babel-preset-expo` major mismatch (expected ~54, found 55.0.15) + 8 patch-version mismatches across Expo packages
 - **השפעה:** Not blocking current work (Metro starts, app runs). May cause unexpected build errors in EAS Build. Patch mismatches are minor; babel-preset-expo major mismatch is more significant.
-- **סטטוס:** `open` — to address in a dedicated "expo-health" Improvement Package before EAS Build submission.
-- **קשור ל:** admin-dashboard-port Phase 2 (discovered), pkg/admin-dashboard-port-phase-2
+- **סטטוס:** `resolved` — shipped 2026-05-25 via `pkg/sentry-eas-resumption` Phase 1 (commit `8e78ba1`, merged in PR #85 merge `20fa598`). `npx expo-doctor` now returns 18/18 ✓. First fix attempt in `pkg/expo-health-and-eas-android` Phase 1 (commit `cd6bce8`, 2026-05-16) was lost when that branch was deleted without merge — see IN-2026-05-25-02 for lost-work pattern.
+- **קשור ל:** admin-dashboard-port Phase 2 (discovered), pkg/admin-dashboard-port-phase-2, pkg/sentry-eas-resumption (resolved), IN-2026-05-25-02 (lost-work pattern context).
 
 ---
 

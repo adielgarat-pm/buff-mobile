@@ -223,11 +223,12 @@ If Claude.ai is about to send Adi a 3+ step procedure involving terminals, file 
 - **Framework:** React Native via **Expo** (managed workflow)
 - **Backend:** Supabase (PostgreSQL + RLS + Auth)
 - **Auth:** Google OAuth (D-2026-04-28 — configured and signed)
-- **Distribution:** Internal testing on Google Play Console (currently). EAS Build / Submit decision pending DevEx session.
+- **Distribution:** Internal testing on Google Play Console; first production AAB v10 shipped 2026-05-25 (`pkg/sentry-eas-resumption` PR #85). EAS Build production profile is live; EAS Submit (Google Play service account JSON) deferred to a future package.
 - **Language:** TypeScript
 - **State management:** [verify in code — likely Zustand or Context]
 - **Navigation:** React Navigation
-- **Future:** RevenueCat (subscriptions), Sentry/Crashlytics (observability), FCM (notifications)
+- **Observability:** Sentry (`@sentry/react-native@~7.2.0`, project `buffadhd/react-native`) — crash monitoring with source-map symbolicated stack traces, aggressive PII scrubbing (`beforeSend` strips user.email/username/ip_address, `beforeBreadcrumb` regex-redacts emails to `[email]`) per Pillar 2 children's-app requirement. Dev profile DSN-less (init no-op, zero free-tier quota burn). See `App.tsx` + `eas.json`. EAS secret `SENTRY_AUTH_TOKEN` is Secret-type (build-only, not accessible via `eas env:exec`).
+- **Future:** RevenueCat (subscriptions), FCM (notifications)
 
 ---
 
@@ -288,7 +289,7 @@ If any of these show up in `git status` as untracked, **add them to `.gitignore`
 
 ---
 
-## Open FLAGs (last updated: 2026-05-14)
+## Open FLAGs (last updated: 2026-05-25)
 
 These are unresolved items tracked in `docs/INTEGRATION_LEARNINGS.md`. CC should be aware of them but not act on them without an Improvement Package:
 
@@ -301,6 +302,8 @@ These are unresolved items tracked in `docs/INTEGRATION_LEARNINGS.md`. CC should
 - 🚩 **`pkg/fix-runtime-theme-switch` (PR #41) verified via code only** — web preview was unreliable; Adi to verify on Android emulator the Mint↔Gamer toggle works without blanking the tab bar.
 
 **Resolved since last update:**
+- ✅ **Sentry crash monitoring + first production AAB v10** → `pkg/sentry-eas-resumption` (PR #85, merge `20fa598`, 2026-05-25). Recovered the 2026-05-16 work that was lost when `pkg/expo-health-and-eas-android` + `pkg/sentry-crash-monitoring` branches were deleted without merge. See D-2026-05-25-01, D-2026-05-25-02, IN-2026-05-25-02.
+- ✅ **expo-doctor 4 failures resolved** (F-2026-05-05-01) → same package, Phase 1 (commit `8e78ba1`).
 - ✅ Paywall CTAs visible to children (IN-2026-05-14-02) → `pkg/hide-paywall-from-child` (PR #40)
 - ✅ Pause Mode (was a critical-MVP open item) → shipped via pkg/pause-mode PRs #22-25
 - ✅ Pet Skin picker UI + Wolf as Gamer day-0 default → PR #27

@@ -6,6 +6,42 @@
 
 ---
 
+## 25 במאי 2026 — Sentry monitoring + first production AAB
+
+### D-2026-05-25-01: Sentry crash monitoring re-adopted + first production AAB v10 shipped
+
+**ההחלטה:** אחרי שעבודת ה-Sentry + EAS של 2026-05-16 אבדה (שני ה-branches `pkg/expo-health-and-eas-android` + `pkg/sentry-crash-monitoring` נמחקו לפני merge ל-main), שוחזרה כל החבילה ב-`pkg/sentry-eas-resumption` (PR #85, merge commit `20fa598`). Sentry React Native @~7.2.0 חי ב-production+preview עם source-map symbolication ו-PII scrubbing אגרסיבי. AAB v10 (build `c9aa1828`, https://expo.dev/artifacts/eas/qUkBTuTYYccCZjUm1kSd1t.aab) מוכן ל-Play Console Internal Testing לקראת launch של 2026-06-01.
+
+**הסיבה:**
+- 5/16 ה-decision שכבר נלקח (D-2026-05-16-02 — Sentry as crash monitor) אבד עם ה-branch. ההחלטה מאומצת מחדש בלי שינוי.
+- אותו vendor, אותו DSN, אותו project (`buffadhd/react-native`), אותו secret (`SENTRY_AUTH_TOKEN`) — כולם שרדו ב-EAS/Sentry cloud. אין הצדקה לשנות vendor או להחליף config.
+- ה-launch 2026-06-01 דורש crash visibility — בלעדיו beta WhatsApp = blind shipping.
+- Pillar 2 (Positive Coaching) מחייב PII scrubbing אגרסיבי כי BUFF היא אפליקציית ילדים. `beforeSend` מנקה email/username/ip_address, `beforeBreadcrumb` regex-redact emails ל-`[email]` literal. Dev profile DSN-less (init no-op) כדי לא לבזבז 5K/month free-tier quota.
+
+**מסמכים מושפעים:**
+- `CLAUDE.md` §Tech Stack — distribution + observability lines (this commit)
+- `CLAUDE.md` §Open FLAGs — added Resolved entries (this commit)
+- `docs/INTEGRATION_LEARNINGS.md` — F-2026-05-05-01 → resolved + new IN-2026-05-25-02 (this commit)
+- `docs/sessions/sentry-eas-resumption/` — full SPEC, ROADMAP, TESTS, SPEC_SYNC, STATUS, PR_DRAFT, PLAY_CONSOLE_v10_UPLOAD.md (PR #85)
+
+---
+
+### D-2026-05-25-02: Reinforce Verify-Before-Delete Protocol after 5/16 work-loss incident
+
+**ההחלטה:** Verify-Before-Delete Protocol מ-CLAUDE.md (introduced after the 2026-05-04 incident) הופעל בהצלחה ב-PR #85 לפני שCC נמחק את branch `pkg/sentry-eas-resumption` — אכיפה אופרטיבית של הכלל עובדת. בנוסף, חבילת `pkg/sentry-eas-resumption` הוסיפה דפוס חדש ל-INTEGRATION_LEARNINGS (`IN-2026-05-25-02`): "pause > 5 days → merge phase-complete commits to main via PR even mid-package", כדי למנוע חזרה על אובדן 2026-05-16.
+
+**הסיבה:**
+- 2026-05-16: שני packages נעצרו mid-Phase-4 עם branches שעמדו 9 ימים בלי merge. ה-branches נמחקו לפני שbase regression חזרה — וכל ה-work נעלם.
+- Verify-Before-Delete Protocol הקיים מ-2026-05-04 דורש "branch deletion → must verify content present in main first" — וזה נכון ועדיין מספיק.
+- מה שחסר היה: protocol לפני pause ארוך. Adi לא ידעה שbranch של 9 ימים בסיכון. ה-IN entry מוסיף את הקיים: כל pause > 5 days → merge מה שעבר tests עכשיו, גם אם החבילה כולה לא הסתיימה.
+- ה-tag הזה לא מוסיף rule חדש ל-CLAUDE.md (Adi's prerogative), רק מתעד את ה-lesson ב-INTEGRATION_LEARNINGS לקריאה עתידית.
+
+**מסמכים מושפעים:**
+- `docs/INTEGRATION_LEARNINGS.md` — IN-2026-05-25-02 (this commit)
+- `CLAUDE.md` § Verify-Before-Delete Protocol — לא נוגעים (כלל הקיים עובד; ה-lesson ב-IN המיועד לקריאה לפני pause ארוך)
+
+---
+
 ## 3 במאי 2026 — Workflow Foundation
 
 ### D-2026-05-03-30: ה-Workflow Foundation חי ב-main
