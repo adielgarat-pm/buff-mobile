@@ -119,12 +119,21 @@ const findSubjectFallback = (headers: string[], dayCol: string | null, timeCol: 
 // ─── Pivot / grid format ──────────────────────────────────────────────────────
 
 export const detectPivotFormat = (rawData: unknown[][]): { isPivot: boolean; headerRowIndex: number } => {
-  const dayHeaders = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
+  // Match either full Hebrew day names ("ראשון", "שני", ...) OR the abbreviated
+  // form ("יום א", "יום ב", ...) — many Israeli school exports use the latter.
+  const dayPatterns: RegExp[] = [
+    /ראשון|יום\s*א/,
+    /שני|יום\s*ב/,
+    /שלישי|יום\s*ג/,
+    /רביעי|יום\s*ד/,
+    /חמישי|יום\s*ה/,
+    /שישי|יום\s*ו/,
+  ];
   for (let rowIdx = 0; rowIdx <= Math.min(5, rawData.length - 1); rowIdx++) {
     const row = (rawData[rowIdx] || []) as unknown[];
     const rowStr = row.map(c => String(c ?? '').trim().toLowerCase());
-    const found = dayHeaders.filter(d => rowStr.some(cell => cell.includes(d)));
-    const hasTimeHeader = rowStr.some(cell => cell.includes('שעה') || cell.includes('יום'));
+    const found = dayPatterns.filter(p => rowStr.some(cell => p.test(cell)));
+    const hasTimeHeader = rowStr.some(cell => cell.includes('שעה'));
     if (found.length >= 3 || (found.length >= 2 && hasTimeHeader)) {
       return { isPivot: true, headerRowIndex: rowIdx };
     }
@@ -151,18 +160,19 @@ const mapColumnsToDay = (headers: string[]): Record<number, WeekDay> => {
   return map;
 };
 
-const parseTimeFromPivotCell = (cell: string): { startTime: string; lessonNumber: number } => {
+const parseTimeFromPivotCell = (cell: string): { startTime: string; lessonNumber: number; autoTime: boolean } => {
   const s = String(cell ?? '').trim();
   const rangeMatch = s.match(/(\d{1,2})[:\.]?\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  if (rangeMatch) return { lessonNumber: parseInt(rangeMatch[1], 10), startTime: rangeMatch[2] };
+  if (rangeMatch) return { lessonNumber: parseInt(rangeMatch[1], 10), startTime: rangeMatch[2], autoTime: false };
   const simpleMatch = s.match(/(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})/);
-  if (simpleMatch) return { lessonNumber: 0, startTime: simpleMatch[1] };
+  if (simpleMatch) return { lessonNumber: 0, startTime: simpleMatch[1], autoTime: false };
   const numMatch = s.match(/(\d+)/);
   if (numMatch) {
+    // Lesson-number-only cell ("1", "2"…) → we *generate* the time, so flag it as auto.
     const n = parseInt(numMatch[1], 10);
-    return { lessonNumber: n, startTime: generateBuffStandardTime(n - 1) };
+    return { lessonNumber: n, startTime: generateBuffStandardTime(n - 1), autoTime: true };
   }
-  return { lessonNumber: 0, startTime: '' };
+  return { lessonNumber: 0, startTime: '', autoTime: false };
 };
 
 const extractSubjectFromCell = (cell: string): string =>
@@ -182,9 +192,12 @@ export const parsePivotFormat = (rawData: unknown[][], headerRowIndex: number): 
     const row = (rawData[rowIdx] ?? []) as unknown[];
     const timeCell = String(row[0] ?? '').trim();
     if (!timeCell) continue;
-    const { startTime, lessonNumber } = parseTimeFromPivotCell(timeCell);
+    const { startTime, lessonNumber, autoTime: cellAutoTime } = parseTimeFromPivotCell(timeCell);
     const effectiveLesson = lessonNumber || (rowIdx - headerRowIndex);
     const effectiveTime   = startTime || generateBuffStandardTime(effectiveLesson - 1);
+    // autoTime is true when the cell didn't contain a real time, OR contained only
+    // a lesson number that we converted via Buff Standard.
+    const effectiveAutoTime = !startTime || cellAutoTime;
 
     for (const colIdx of dayCols) {
       const day = colToDay[colIdx];
@@ -195,7 +208,7 @@ export const parsePivotFormat = (rawData: unknown[][], headerRowIndex: number): 
       if (!subject) continue;
       periods.push({
         id: generateId(), subject, time: effectiveTime, day,
-        selected: true, autoTime: !startTime,
+        selected: true, autoTime: effectiveAutoTime,
         missingSubject: false, missingDay: false,
         lessonNumber: effectiveLesson, equipment: '',
       });
@@ -206,42 +219,20 @@ export const parsePivotFormat = (rawData: unknown[][], headerRowIndex: number): 
 
 // ─── Standard row-based Excel format ─────────────────────────────────────────
 
+/**
+ * Standard row-based Excel parser using raw cell arrays.
+ *
+ * Header-aware object mapping lives in `parseExcelBase64` because it needs the
+ * full WorkSheet (not just rawData). This function assumes the column order
+ * Day | Time | Subject | Equipment, skipping a header row if the first row
+ * doesn't start with a parseable day.
+ */
 export const parseStandardFormat = (rawData: unknown[][]): { periods: ParsedPeriod[]; hasAuto: boolean; hasErrors: boolean } => {
-  const firstRow = (rawData[0] ?? []) as unknown[];
-  const headers = firstRow.map(h => String(h ?? '').trim());
-
-  const dayCol  = findHeaderKey(headers, 'day');
-  let subjectCol = findHeaderKey(headers, 'subject');
-  const timeCol  = findHeaderKey(headers, 'time');
-  const equipCol = findHeaderKey(headers, 'equipment');
-
-  if (!subjectCol) subjectCol = findSubjectFallback(headers, dayCol, timeCol);
-
-  const hasHeaders = !!(dayCol || subjectCol || timeCol);
-
-  // Re-parse as object rows when we have headers
-  let dataRows: Array<{ day: string; time: string | number; subject: string; equipment: string }>;
-
-  if (hasHeaders) {
-    const jsonRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(
-      // We only have rawData here — caller must pass the sheet separately for JSON parsing.
-      // This function receives pre-processed rows instead.
-      {} as XLSX.WorkSheet,
-    );
-    // Fallback: use rawData directly with column indices
-    const startIndex = rawData.length > 1 && !parseDay(String((rawData[0] as unknown[])[0] ?? '')) ? 1 : 0;
-    dataRows = rawData.slice(startIndex).map(row => {
-      const r = row as unknown[];
-      return { day: String(r[0] ?? ''), time: String(r[1] ?? ''), subject: String(r[2] ?? ''), equipment: String(r[3] ?? '') };
-    });
-  } else {
-    const startIndex = rawData.length > 1 && !parseDay(String((rawData[0] as unknown[])[0] ?? '')) ? 1 : 0;
-    dataRows = rawData.slice(startIndex).map(row => {
-      const r = row as unknown[];
-      return { day: String(r[0] ?? ''), time: String(r[1] ?? ''), subject: String(r[2] ?? ''), equipment: String(r[3] ?? '') };
-    });
-  }
-
+  const startIndex = rawData.length > 1 && !parseDay(String((rawData[0] as unknown[])[0] ?? '')) ? 1 : 0;
+  const dataRows = rawData.slice(startIndex).map(row => {
+    const r = row as unknown[];
+    return { day: String(r[0] ?? ''), time: String(r[1] ?? ''), subject: String(r[2] ?? ''), equipment: String(r[3] ?? '') };
+  });
   return processDataRows(dataRows);
 };
 
@@ -379,6 +370,9 @@ export const processApiResponse = (
     const isMissingDay  = !t.day || !WEEK_DAYS_WITH_FRIDAY.includes(day);
     if (isMissingSubj && isMissingDay) continue;
     if (isMissingSubj || isMissingDay) hasErrors = true;
+    // Propagate per-task autoTime up to the aggregate flag so the review banner
+    // shows even when the AI provided a time but flagged it as auto-generated.
+    if (t.autoTime) hasAuto = true;
 
     const validDay = isMissingDay ? 'sunday' : day;
     let time       = t.time ?? '';
