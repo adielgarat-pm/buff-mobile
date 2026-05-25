@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-05-25-01: First trigger on `public.profiles` introduced for lifetime-grant mechanism
+
+- **תאריך:** 2026-05-25
+- **מקור:** CC — discovered during `pkg/pending-lifetime-grants` Phase 1 planning that the user's prompt assumed a `handle_new_user` trigger on `auth.users` to extend. Live-DB inspection: **no triggers existed on `auth.users` at all**, and `handle_new_user` did not exist.
+- **תיאור:** The package introduces the first AFTER INSERT trigger on `public.profiles`: `tg_profiles_after_insert_grants`. It calls two SECURITY DEFINER functions (`grant_lifetime_if_pending(profile_id)` + `grant_lifetime_if_in_window(profile_id)`) that auto-flip `profiles.is_lifetime_access=true` for Lovable migrants whose email is in `pending_lifetime_grants`, or for any parent signup during the 2026-05-30 → 2026-06-30 beta window.
+- **השפעה:**
+  - **Profile creation today is fully client-side** ([AuthContext.tsx:417](../src/contexts/AuthContext.tsx:417)). The new trigger fires *after* every profile insert regardless of the auth path — Google OAuth, email/password, ChildJoin, future providers. Any future package that creates profiles will pass through this trigger.
+  - **Open window is hard-coded (2026-05-30 .. 2026-06-30 Asia/Jerusalem)** in `grant_lifetime_if_in_window`. Self-disables silently after 6/30 — no cleanup needed. If Adi wants to extend, requires a follow-up migration that edits the function.
+  - **Edge case: orphan auth.users.** Anyone signed up via Google OAuth without completing onboarding (e.g., `moragnoa@gmail.com` 2026-05-21) has an `auth.users` row but NO `profiles` row. The trigger only fires on profile insert, so they get auto-granted only when they finish onboarding and a profile row is created.
+  - **Functions have EXECUTE revoked from PUBLIC** (only `postgres` + `service_role` retain it). The trigger itself runs in the inserting transaction's context with SECURITY DEFINER, so the REVOKE doesn't break trigger firing — verified via smoke test. The advisor warnings `anon_security_definer_function_executable` / `authenticated_security_definer_function_executable` are clean post-REVOKE.
+- **סטטוס:** `resolved` — shipped 2026-05-25 via migration 015. Hat-3 emulator verification deferred to Adi (TESTS.md Phase 4).
+- **קשור ל:** `pkg/pending-lifetime-grants`, `docs/sessions/beta-2026-06-01/TRACK_5_findings.md` (originating Option B recommendation), migration `migrations/015_pending_lifetime_grants.sql`.
+
 ### IN-2026-05-20-01: SPEC Decision 9 (gender-aware HE friendship labels) — column doesn't exist on profiles
 
 - **תאריך:** 2026-05-20
