@@ -624,6 +624,40 @@ Round 2 with two parent-submitted real-world fixtures (a high-school Excel with 
 
 ---
 
+### Lesson 2026-05-25 (2) — Import Schedule arc closed: 4 packages, 0 → 80% in one day
+
+**Summary:** What started as Adi's vague "Import Schedule isn't good enough" turned into a 4-package arc that closed 8 bugs, added 65 unit tests with two real parent files as fixtures, and added one new entry method (paste mode) the project already had the backend for.
+
+**The arc:**
+1. **`pkg/timetable-import-fixes`** (PR #77, merged) — 4 bug fixes surfaced by Lovable-parity diff: detectPivotFormat regex, parsePivotFormat autoTime, processApiResponse hasAuto propagation, parseStandardFormat dead code. 44 tests added.
+2. **`pkg/timetable-split-groups`** (PR #78, merged) — REG-1 + REG-4 closed. New `extractSubjectGroupsFromCell` helper splits cells on divider lines (────, ____, ====). New `slotKey`/`groupIndex`/`groupTotal`/`teacher` fields on ParsedPeriod. Continuation rows (empty time cell + content) now extend the previous slot. Purple banner + "1/3" badge in review UI. 8 new tests bringing total to 65 then 220 project-wide.
+3. **`pkg/timetable-review-day-select`** (PR #80, merged) — Per-row day chip + Modal picker in review screen. When OCR misclassifies a day, fix is 2 taps instead of delete + re-enter. No new deps.
+4. **`pkg/timetable-paste-mode`** (PR #81, merged) — 4th entry method: paste text from WhatsApp/school portal/Excel. Calls existing parse-schedule Edge Function with `fileType: 'text'` (the path was already deployed but had no UI). 9 new i18n keys, hint card + RTL textarea + live row count.
+
+**What's left for 100%** (documented as REG-tests, deferred):
+- 🚩 BUG-E: RTL Excel with שעה in rightmost column. Not seen in the wild yet.
+- 🚩 REG-5: Photo-style pivot (no time column) works because col 0 doubles as time-cell + first-day-data. Fragile but functional.
+- 🚩 Equipment surfacing in UI — data flows through but isn't rendered; rolls into separate P-05 "Bag Prep" feature in GAP_ANALYSIS.
+- 🚩 Real-image OCR validation against parent-submitted photos (we have one from 2026-05-25, never ran through the deployed Edge Fn end-to-end).
+- 🚩 TimetableScreen UI test suite (currently zero coverage — the screen is 1,000+ lines after all 4 packages).
+
+**Process lesson — parallel sessions stepping on each other:**
+
+While CC was executing A/B/C autonomously per Adi's "אני יוצאת לעבודה" delegation, two parallel sessions were active in the same working tree:
+- `docs/mobile-quickstart-2026-05-25` ran, committed, and reset CC's WIP Package B edits via `HEAD@{4}: reset: moving to HEAD`.
+- `pkg/sentry-eas-resumption` checked CC out to a completely different branch mid-stream (`docs/sessions/pending-lifetime-grants/` showed up untracked; CC's Package C work was stashed under a misleading "carried from pkg/timetable-review-day-select" message).
+
+CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: `git stash list` + `git reflog` *before* re-applying edits. Package C was recovered intact from `stash@{0}` after the cross-branch checkout. Package B was re-applied from scratch after the silent reset because no stash had been created.
+
+**Pattern reinforcement:** When two CC sessions share a working tree, `git pull origin main` + `git checkout` in one session will silently shift the branch HEAD under the feet of the other. The session that runs `git status` next sees what looks like its own clean state — but it isn't. Always run `git branch --show-current` *between* `git checkout -b` and the first `git commit` if there's any chance of parallel activity.
+
+**FLAGs opened:**
+- 🚩 Long-tail timetable bugs above (4 items) — none blocking, all documented as REG-tests in `src/utils/__tests__/timetableParser.test.ts`.
+
+**Linked:** Lesson 2026-05-25 (1) (Lovable-parity bug discovery), commits 4f3d830/036af0f/0807f5d/df6c584.
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
