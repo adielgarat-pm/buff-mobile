@@ -8,7 +8,7 @@
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
 | 0 — Session folder + branch setup | _passed_ | 2026-05-25 | (this commit) | Working tree clean on `pkg/sentry-eas-resumption` (branched from main `2d701cb`). All 5 session files present. Stash `stash@{0}` preserves WIP from `pkg/timetable-review-day-select` (AnchorRecoveryToast + parser). SPEC Values Check 9/9. | — |
-| 1 — expo-doctor 4 → 0 + doc drift fix | _pending_ | — | — | — | — |
+| 1 — expo-doctor 4 → 0 (doc drift fix N/A — F-2026-05-05-01 already accurate as `open`) | _passed_ | 2026-05-25 | (this commit) | 18/18 ✓ (was 14/18 — 4 failures). `tsc --noEmit` clean. Removed `android.supportsRTL` from app.json. `npx expo install` aligned 9 packages: expo-font (new peer dep, also auto-added as plugin), babel-preset-expo (^55.0.15 → ~54.0.10), expo, expo-auth-session, expo-crypto, expo-dev-client, expo-file-system, expo-image-picker, expo-updates, expo-web-browser (all to SDK 54 patches). Duplicate expo-font resolved automatically. F-2026-05-05-01 entry status stays `open` for this phase — gets updated to `resolved` at Closeout (single source of truth for the resolution commit). Working in worktree `.claude/worktrees/sentry-eas-resumption` (Phase 0 had a parallel-CC incident, see [[project-parallel-cc-pattern]] in memory). | — |
 | 2 — Install Sentry + verify EAS secrets | _pending_ | — | — | — | — |
 | 3 — Wire DSN + Sentry.init + PII scrubbers | _pending_ | — | — | — | — |
 | 4 — First production AAB v10 build + source-map upload | _pending_ | — | — | — | — |
@@ -39,6 +39,7 @@
 
 - Branch: `pkg/sentry-eas-resumption`
 - Branched from: `main` @ `2d701cb` (post PR #79 merge)
+- Worktree path: `C:\Users\adiel\buff-mobile\.claude\worktrees\sentry-eas-resumption` (Phase 1 onwards — parallel-CC incident moved work here from main worktree)
 - Plan file: `~/.claude/plans/linked-gliding-bear.md`
 - Historical lost-work reference: `git show b5c723e:docs/sessions/beta-2026-06-01/RESUMPTION_NOTES_2026-05-16.md` (only in git history, not on main)
-- Stashed WIP: `git stash list` → `stash@{0}` ("WIP: AnchorRecoveryToast + parser changes on pkg/timetable-split-groups (2026-05-25)")
+- Stashed WIP from Phase 0 setup: `git stash list` shows multiple — stash@{0}/{1} are paste-mode + AnchorRecoveryToast WIP (separate concerns from this package)
