@@ -37,7 +37,7 @@ import {
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Mode = 'view' | 'choose' | 'processing' | 'review' | 'manual';
+type Mode = 'view' | 'choose' | 'processing' | 'review' | 'manual' | 'paste';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -74,6 +74,10 @@ export default function TimetableScreen() {
   // ── Manual ─────────────────────────────────────────────────────────────────
   const [manualTimetable, setManualTimetable] = useState<Timetable>({});
   const [manualDay,       setManualDay]       = useState<WeekDay>('sunday');
+
+  // ── Paste ──────────────────────────────────────────────────────────────────
+  const [pasteText,    setPasteText]    = useState('');
+  const [pastePending, setPastePending] = useState(false);
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -222,6 +226,33 @@ export default function TimetableScreen() {
     abortRef.current = null;
     setMode('choose');
   }, []);
+
+  // ─── Paste mode ──────────────────────────────────────────────────────────────
+
+  const handleProcessPaste = useCallback(async () => {
+    const text = pasteText.trim();
+    if (!text) return;
+    setPastePending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('parse-schedule', {
+        body: { extractedText: text, fileType: 'text' },
+      });
+      if (error) throw new Error(error.message);
+      if (!data?.tasks?.length) {
+        Alert.alert('', t('timetable.noLessonsFound'));
+        return;
+      }
+      const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
+      // Clear the paste buffer once we've consumed it
+      setPasteText('');
+      openReview(periods, hasAuto, hasErrors);
+    } catch (err: unknown) {
+      console.error('[TimetableScreen] paste error:', err);
+      Alert.alert(t('timetable.parseError'), err instanceof Error ? err.message : '');
+    } finally {
+      setPastePending(false);
+    }
+  }, [pasteText, t, openReview]);
 
   // ─── Review mutations ─────────────────────────────────────────────────────────
 
@@ -490,6 +521,88 @@ export default function TimetableScreen() {
             <Ionicons name="create-outline" size={36} color={T.accent} />
             <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodManual')}</Text>
             <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodManualSub')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setMode('paste')}
+            style={[styles.methodCard, { borderColor: T.cardBorder, backgroundColor: T.card }]}
+          >
+            <Ionicons name="clipboard-outline" size={36} color={T.accent} />
+            <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodPaste')}</Text>
+            <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodPasteSub')}</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // ─── PASTE mode ──────────────────────────────────────────────────────────────
+
+  if (mode === 'paste') {
+    const lineCount = pasteText.split('\n').filter(l => l.trim()).length;
+    return (
+      <View style={[styles.container, { backgroundColor: T.bg }]}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => setMode('choose')}>
+            <Ionicons name="arrow-back" size={24} color={T.text} />
+          </TouchableOpacity>
+          <Text style={[styles.title, { color: T.text }]}>{t('timetable.pasteTitle')}</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <Text style={[styles.chooseSubtitle, { color: T.textMuted }]}>
+          {t('timetable.pasteSubtitle')}
+        </Text>
+
+        <View style={[styles.pasteHint, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+          <Ionicons name="information-circle-outline" size={18} color={T.accent} />
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.pasteHintTitle, { color: T.text }]}>
+              {t('timetable.pasteFormatsTitle')}
+            </Text>
+            <Text style={[styles.pasteHintLine,  { color: T.textMuted }]}>
+              {t('timetable.pasteFormat1')}
+            </Text>
+            <Text style={[styles.pasteHintLine,  { color: T.textMuted }]}>
+              {t('timetable.pasteFormat2')}
+            </Text>
+            <Text style={[styles.pasteHintLine,  { color: T.textMuted }]}>
+              {t('timetable.pasteFormat3')}
+            </Text>
+          </View>
+        </View>
+
+        <TextInput
+          value={pasteText}
+          onChangeText={setPasteText}
+          multiline
+          placeholder={t('timetable.pastePlaceholder')}
+          placeholderTextColor={T.textMuted}
+          style={[
+            styles.pasteTextarea,
+            { borderColor: T.cardBorder, color: T.text, backgroundColor: T.card },
+          ]}
+          textAlignVertical="top"
+        />
+
+        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+          <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
+            <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleProcessPaste}
+            disabled={lineCount === 0 || pastePending}
+            style={[
+              styles.confirmBtn,
+              { backgroundColor: (lineCount === 0 || pastePending) ? T.cardBorder : T.accent },
+            ]}
+          >
+            {pastePending
+              ? <ActivityIndicator size="small" color="#fff" />
+              : <Text style={styles.confirmBtnText}>
+                  {t('timetable.pasteParseBtn', { count: lineCount })}
+                </Text>
+            }
           </TouchableOpacity>
         </View>
       </View>
@@ -808,4 +921,11 @@ const styles = StyleSheet.create({
   addLessonBtn:  { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 12,
                    paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   addLessonText: { fontSize: 14, fontWeight: '600' },
+
+  pasteHint:     { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginHorizontal: 16,
+                   marginBottom: 12, padding: 12, borderRadius: 12, borderWidth: 1 },
+  pasteHintTitle:{ fontSize: 13, fontWeight: '700', marginBottom: 4 },
+  pasteHintLine: { fontSize: 12, lineHeight: 18 },
+  pasteTextarea: { marginHorizontal: 16, marginBottom: 12, minHeight: 220, borderRadius: 12,
+                   borderWidth: 1.5, padding: 12, fontSize: 14, textAlign: 'right' },
 });
