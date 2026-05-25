@@ -9,8 +9,8 @@
 |---|---|---|---|---|---|
 | 0 — Branch + scaffold | _passed_ | 2026-05-25 | 700755a | n/a | — |
 | 1 — Migration 015 (table+trigger+seed+backfill) | _passed_ | 2026-05-25 | 07fa10c | P1.1–P1.7 + smoke pass | (Phase 3) |
-| 2 — Cohort CSV + idempotency tests | _in_progress_ | 2026-05-25 | (this commit) | T1–T6 all PASS + leak check clean | (Phase 3) |
-| 3 — Exit deliverables + PR | _pending_ | — | — | — | — |
+| 2 — Cohort CSV + idempotency tests | _passed_ | 2026-05-25 | ebf9225 | T1–T6 all PASS + leak check clean | (Phase 3) |
+| 3 — Exit deliverables + PR | _in_progress_ | 2026-05-25 | (this commit) | n/a | IN-2026-05-25-01 added |
 
 ## Legend
 - `_pending_` — לא התחיל
@@ -21,13 +21,13 @@
 
 ## Closeout
 
-- [ ] כל הפאזות עברו
-- [ ] INTEGRATION_LEARNINGS.md עודכן (IN-2026-05-25-01)
-- [ ] Canonical docs מסונכרנים לפי SPEC_SYNC.md (likely no canonical changes)
+- [x] כל הפאזות עברו (0,1,2 done; 3 mid-commit)
+- [x] INTEGRATION_LEARNINGS.md עודכן (IN-2026-05-25-01)
+- [x] Canonical docs מסונכרנים לפי SPEC_SYNC.md (only INTEGRATION_LEARNINGS + TRACK_5 closing note; no PRD/BUDDY/GAP changes by design)
 - [ ] Decision draft הועתק ע"י Adi ל-BUFF_DECISIONS_LOG.md
 - [ ] PR ל-main, fast-forward merge, branch נמחק (Verify-Before-Delete Protocol)
-- [ ] Adi verified Hat-3 on Android emulator
-- [ ] הסשן מסומן closed
+- [ ] Adi verified Hat-3 on Android emulator (deferred to 2026-05-30+ for the in-window positive case)
+- [ ] הסשן מסומן closed (after PR merge)
 
 ---
 

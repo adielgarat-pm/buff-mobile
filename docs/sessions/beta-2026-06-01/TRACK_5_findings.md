@@ -165,3 +165,24 @@ The 8 cohort members with no recoverable email were either never emailed through
 - **If NO** (the 49 is a separate external list, e.g. MailerLite): Adi exports the 49 from her mailing tool and gives CC the CSV. CC then intersects: which of those 49 are in the qualifying 70-parents-with-kids subset on mobile.
 
 Either path, the next step is the same: build `pkg/pending-lifetime-grants` (Option B above) and seed the resolved cohort emails into it.
+
+---
+
+## Closing note — 2026-05-25
+
+**Status:** RESOLVED. Adi confirmed YES (mailing-list-49 ≈ `marketing_consent = true`, 48 on mobile DB).
+
+`pkg/pending-lifetime-grants` shipped 2026-05-25 (commits 700755a → 07fa10c → ebf9225 on branch `pkg/pending-lifetime-grants`). It implements:
+
+- Option B (pending-grants table) with the 16 recoverable cohort emails seeded
+- An open beta window (2026-05-30 → 2026-06-30) that auto-grants ANY new parent signup in the window — covers the 8 cohort members without recoverable email AND any WhatsApp newcomer
+- One-time backfill for existing matched profiles (0 matched in current state since most cohort users haven't yet signed up on mobile)
+- DB-side trigger on `public.profiles` AFTER INSERT — works regardless of auth path (Google OAuth, email/password, future providers)
+- Zero client code changes; the existing `useSubscription.is_lifetime_access` read continues to drive the paywall gate
+
+See:
+- `docs/sessions/pending-lifetime-grants/` for the package
+- `migrations/015_pending_lifetime_grants.sql` for the live SQL
+- INTEGRATION_LEARNINGS IN-2026-05-25-01 for long-term memory
+
+**Track 5 (cohort discovery) is closed.** Remaining beta-launch tracks (migration comms email, Hat-3 emulator verification, etc.) are tracked separately in `docs/sessions/beta-2026-06-01/`.
