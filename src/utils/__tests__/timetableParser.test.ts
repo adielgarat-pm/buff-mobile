@@ -31,6 +31,7 @@ import {
   processApiResponse,
   periodsToTimetable,
   parseExcelBase64,
+  extractSubjectGroupsFromCell,
 } from '../timetableParser';
 import type { WeekDay } from '../../types/timetable';
 
@@ -177,6 +178,61 @@ describe('generateBuffStandardTime', () => {
   });
 });
 
+// ─── Split-group extraction ───────────────────────────────────────────────────
+
+describe('extractSubjectGroupsFromCell', () => {
+  test('returns one group for a simple subject+teacher cell', () => {
+    const groups = extractSubjectGroupsFromCell('מתמטיקה\nשליט שליט\n128 (ט6)');
+    expect(groups).toEqual([{ subject: 'מתמטיקה', teacher: 'שליט שליט' }]);
+  });
+
+  test('returns one group for a bare subject (no teacher)', () => {
+    const groups = extractSubjectGroupsFromCell('ספורט');
+    expect(groups).toEqual([{ subject: 'ספורט', teacher: undefined }]);
+  });
+
+  test('splits two groups on a ──── divider line', () => {
+    const groups = extractSubjectGroupsFromCell(
+      'אנגלית מדוברת\nבלייב יוליה,\n────\nאנגלית מדוברת\nעשת מיכל',
+    );
+    expect(groups).toEqual([
+      { subject: 'אנגלית מדוברת', teacher: 'בלייב יוליה' },
+      { subject: 'אנגלית מדוברת', teacher: 'עשת מיכל' },
+    ]);
+  });
+
+  test('splits three groups on underscores/dashes', () => {
+    const groups = extractSubjectGroupsFromCell(
+      'מתמטיקה א\nכהן\n____\nמתמטיקה ב\nלוי\n----\nמתמטיקה ג\nאברהמי',
+    );
+    expect(groups).toEqual([
+      { subject: 'מתמטיקה א', teacher: 'כהן' },
+      { subject: 'מתמטיקה ב', teacher: 'לוי' },
+      { subject: 'מתמטיקה ג', teacher: 'אברהמי' },
+    ]);
+  });
+
+  test('ignores empty/trailing dividers', () => {
+    const groups = extractSubjectGroupsFromCell('שפה\n────\n────');
+    expect(groups).toEqual([{ subject: 'שפה', teacher: undefined }]);
+  });
+
+  test('returns empty for empty cell', () => {
+    expect(extractSubjectGroupsFromCell('')).toEqual([]);
+    expect(extractSubjectGroupsFromCell('   \n   ')).toEqual([]);
+  });
+
+  test('strips trailing parens (room info) from subject line', () => {
+    const groups = extractSubjectGroupsFromCell('כימיה (אשכול 2)\nדויטש');
+    expect(groups).toEqual([{ subject: 'כימיה', teacher: 'דויטש' }]);
+  });
+
+  test('does NOT pick a room code as a teacher', () => {
+    const groups = extractSubjectGroupsFromCell('מדעי המחשב\n217 (מחשבים)');
+    expect(groups).toEqual([{ subject: 'מדעי המחשב', teacher: undefined }]);
+  });
+});
+
 // ─── Pivot detection ──────────────────────────────────────────────────────────
 
 describe('detectPivotFormat', () => {
@@ -241,13 +297,20 @@ describe('parsePivotFormat — screenshot fixture', () => {
     expect(friLessonNumbers).toEqual([1, 2, 3, 4]); // rows 5 + 6 should be missing for Fri
   });
 
-  test('REG-1 (KNOWN BUG): split group cells lose the second group', () => {
-    // The Mon row 2 cell has TWO english groups (Yulia + Michal).
-    // Current parser takes only the first line ("אנגלית מדוברת") once.
-    // When this test starts failing, it means we fixed split-group support.
+  test('FIX-1: split group cells now emit BOTH groups (primary selected, alternate deselected)', () => {
+    // Mon row 2 cell has TWO english groups (Yulia + Michal) separated by ────.
+    // After pkg/timetable-split-groups, the parser captures both as separate periods
+    // with groupIndex 0 and 1, groupTotal 2.
     const monRow2 = periods.filter(p => p.day === 'monday' && p.lessonNumber === 2);
-    expect(monRow2.length).toBe(1); // currently 1; should ideally be 2
-    expect(monRow2[0].subject).toBe('אנגלית מדוברת');
+    expect(monRow2).toHaveLength(2);
+    expect(monRow2.map(p => p.subject)).toEqual(['אנגלית מדוברת', 'אנגלית מדוברת']);
+    expect(monRow2.map(p => p.teacher)).toEqual(['בלייב יוליה', 'עשת מיכל']);
+    expect(monRow2.map(p => p.groupIndex)).toEqual([0, 1]);
+    expect(monRow2.map(p => p.groupTotal)).toEqual([2, 2]);
+    // Primary selected; alternate not (parent must opt-in if their child is in group 2).
+    expect(monRow2.map(p => p.selected)).toEqual([true, false]);
+    // Both share the same slotKey so the UI can group them visually.
+    expect(monRow2[0].slotKey).toBe(monRow2[1].slotKey);
   });
 
   test('REG-2 (KNOWN BUG): RTL Excel with שעה in last column is misparsed', () => {
@@ -448,19 +511,33 @@ describe('real-world fixture: schedule-real-1.xlsx', () => {
     expect(csLessons.length).toBeGreaterThanOrEqual(4);
   });
 
-  test('REG-4 (KNOWN BUG): continuation rows with empty time cell drop second-group lessons', () => {
+  test('FIX-4: continuation rows now capture second-group lessons (פיזיקה under שני@1 + @2)', () => {
     // Row 5 (lesson 1): שני=כימיה.
     // Row 6 (no time cell): שני=פיזיקה — this is a SECOND group for the same slot.
-    // Parser skips rows with empty col 0, so פיזיקה@lesson1 and פיזיקה@lesson2 are LOST.
-    // When fixed, this test will need to be updated.
-    const physicsLessons = periods.filter(p => p.subject === 'פיזיקה');
-    const physicsAtSlot1or2 = physicsLessons.filter(
-      p => p.day === 'monday' && (p.lessonNumber === 1 || p.lessonNumber === 2),
+    // After pkg/timetable-split-groups, the continuation row is treated as an extension
+    // of the previous slot, so פיזיקה@lesson1 and פיזיקה@lesson2 are captured as
+    // alternates (groupIndex 1, selected: false).
+    const physicsAtSlot1 = periods.filter(
+      p => p.subject === 'פיזיקה' && p.day === 'monday' && p.lessonNumber === 1,
     );
-    expect(physicsAtSlot1or2.length).toBe(0); // currently 0; should ideally be 2
-    // Sanity: פיזיקה DOES appear in the late slots where it has its own time cell
-    const otherPhysics = physicsLessons.filter(p => p.lessonNumber === 7 || p.lessonNumber === 8);
-    expect(otherPhysics.length).toBeGreaterThan(0);
+    expect(physicsAtSlot1).toHaveLength(1);
+    expect(physicsAtSlot1[0].groupIndex).toBe(1);
+    expect(physicsAtSlot1[0].groupTotal).toBe(2);
+    expect(physicsAtSlot1[0].selected).toBe(false);
+
+    const physicsAtSlot2 = periods.filter(
+      p => p.subject === 'פיזיקה' && p.day === 'monday' && p.lessonNumber === 2,
+    );
+    expect(physicsAtSlot2).toHaveLength(1);
+    expect(physicsAtSlot2[0].groupIndex).toBe(1);
+
+    // The primary group (כימיה) for slot 1 has its groupTotal bumped to 2 retroactively
+    const chemAtSlot1 = periods.find(
+      p => p.subject === 'כימיה' && p.day === 'monday' && p.lessonNumber === 1,
+    );
+    expect(chemAtSlot1?.groupTotal).toBe(2);
+    expect(chemAtSlot1?.selected).toBe(true);
+    expect(chemAtSlot1?.slotKey).toBe(physicsAtSlot1[0].slotKey);
   });
 
   test('produces no validation errors (file is well-formed)', () => {
