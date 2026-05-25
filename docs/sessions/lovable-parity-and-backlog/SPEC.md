@@ -116,6 +116,23 @@
 6. **F-071 refined (post-commit-1):** הוגדר מחדש כ-"In-app reviews mechanism (submit → moderate → display)". בקוד Lovable יש flow מלא + טבלת `reviews` + `translate-review` edge function. **החלטת אדי: Play Store ratings מספיקות ל-MVP — לא בונים מערכת כפולה.** הביקורות הקיימות ב-Lovable יחולצו ויתורגמו לאנגלית כ-testimonials (משימה חיצונית — INTEGRATION_LEARNINGS F-2026-05-14-02).
 7. **F-075 הורחב למודל white-glove (Adi choice):** 2 המשתמשים הפעילים ב-Lovable יקבלו טיפול אישי — חשבונות מוכנים בסופאבייס החדש + מייל "set your password". ללא הגירת דאטה. F-075 effort עלה S→M.
 
+## F-074 — Static Marketing Landing: Acceptance Criteria (Expo Web Phase 2)
+
+> Captured 2026-05-25 in `pkg/launch-comms-2026-06-01`. Applies to the future
+> Expo Web Phase 2 landing page rebuild — **NOT** to the current buffadhd.com
+> (Lovable) site, which is managed in a parallel session.
+
+Acceptance criteria for the Expo Web Phase 2 landing page:
+
+- **AC-F074-01 — WhatsApp community links preservation:** Page must include
+  prominent invite links to BUFF's WhatsApp communities, identical in
+  placement and prominence to the current Lovable site's, to preserve the
+  organic community growth channels:
+  - **Hebrew community** (46 members, active): `https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5`
+  - **English community** (5 members, low-activity): `https://chat.whatsapp.com/KM1b9UmQO0cBGgCVI54W7R`
+  - **Rationale (Adi, 2026-05-25):** *"הקישור לוואטסאפ יושב בתוך האתר — צריך לשמר את זה גם אצלנו."*
+  - **Source:** `pkg/launch-comms-2026-06-01`.
+
 ## Out of Scope
 
 - כל שינוי קוד מובייל.
