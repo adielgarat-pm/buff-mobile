@@ -558,17 +558,30 @@ export default function TimetableScreen() {
         {/* Day tabs */}
         {renderDayTabs(reviewDay, setReviewDay, reviewDays)}
 
+        {/* Split-groups banner (shown once if any split slot exists in the parsed set) */}
+        {parsedPeriods.some(p => (p.groupTotal ?? 0) > 1) && (
+          <View style={[styles.banner, { backgroundColor: '#EEF2FF', borderColor: '#6366F1' }]}>
+            <Ionicons name="people-outline" size={16} color="#4338CA" />
+            <Text style={[styles.bannerText, { color: '#3730A3' }]}>
+              {t('timetable.splitGroupsBanner')}
+            </Text>
+          </View>
+        )}
+
         {/* Period rows */}
         <ScrollView contentContainerStyle={styles.periodList}>
           {dayPeriods.map(period => {
             const hasError = period.selected && (period.missingSubject || period.missingDay);
+            const isSplit  = (period.groupTotal ?? 0) > 1;
+            const isAlternate = isSplit && (period.groupIndex ?? 0) > 0;
             return (
               <View
                 key={period.id}
                 style={[
                   styles.reviewRow,
-                  { borderColor: hasError ? '#EF4444' : T.cardBorder },
+                  { borderColor: hasError ? '#EF4444' : (isSplit ? '#6366F1' : T.cardBorder) },
                   hasError && { backgroundColor: '#FEE2E210' },
+                  isAlternate && { backgroundColor: '#EEF2FF50' },
                 ]}
               >
                 {/* Select toggle */}
@@ -586,6 +599,20 @@ export default function TimetableScreen() {
                     <Text style={[styles.lessonBadgeText, { color: T.accent }]}>
                       {period.lessonNumber}
                     </Text>
+                  </View>
+                )}
+
+                {/* Split-group badge (e.g. "1/3") + teacher name */}
+                {isSplit && (
+                  <View style={styles.groupBadge}>
+                    <Text style={styles.groupBadgeText}>
+                      {(period.groupIndex ?? 0) + 1}/{period.groupTotal}
+                    </Text>
+                    {!!period.teacher && (
+                      <Text style={styles.groupTeacher} numberOfLines={1}>
+                        {period.teacher}
+                      </Text>
+                    )}
                   </View>
                 )}
 
@@ -878,6 +905,12 @@ const styles = StyleSheet.create({
   addLessonBtn:  { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 12,
                    paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   addLessonText: { fontSize: 14, fontWeight: '600' },
+
+  groupBadge:    { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,
+                   paddingVertical: 2, borderRadius: 8, backgroundColor: '#E0E7FF',
+                   borderWidth: 1, borderColor: '#6366F1', maxWidth: 80 },
+  groupBadgeText:{ fontSize: 11, fontWeight: '700', color: '#3730A3' },
+  groupTeacher:  { fontSize: 9, color: '#4338CA', marginTop: 1 },
 
   dayPickerChip: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 8,
                    height: 36, borderRadius: 8, borderWidth: 1.5 },
