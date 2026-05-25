@@ -23,6 +23,14 @@ export interface ParsedPeriod {
   missingDay?:     boolean;
   lessonNumber?:   number;
   equipment?:      string;
+  /** Stable key identifying the time-slot the period belongs to (day + lessonNumber). */
+  slotKey?:        string;
+  /** Index within a split-group slot (0 = primary, 1+ = alternate). undefined when not split. */
+  groupIndex?:     number;
+  /** Total number of groups in this slot (>= 2 when split). undefined when not split. */
+  groupTotal?:     number;
+  /** Teacher name extracted from the cell (used to distinguish groups visually). */
+  teacher?:        string;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -182,36 +190,170 @@ const extractSubjectFromCell = (cell: string): string =>
     .replace(/\s*\([^)]*\)\s*$/, '')
     .trim();
 
+/**
+ * Detects whether a line is a "divider" — only separator chars (dashes, equals,
+ * underscores, middle dots, etc.). Used to split a multi-group cell into its
+ * constituent groups (e.g., "אנגלית\nיוליה\n────\nאנגלית\nמיכל" → 2 groups).
+ */
+const isDividerLine = (line: string): boolean => {
+  const t = line.trim();
+  if (t.length < 3) return false;
+  return /^[\s\-_═━─–—=•·.*]+$/.test(t);
+};
+
+/** Returns `true` if a string looks like a teacher name (not a subject, no digits, 1-4 short words). */
+const looksLikeTeacher = (s: string): boolean => {
+  const t = s.trim();
+  if (!t || t.length < 2) return false;
+  if (/\d/.test(t)) return false;             // teachers don't contain digits
+  if (/^\(.*\)$/.test(t)) return false;       // (room info) — not a name
+  const words = t.split(/\s+/);
+  if (words.length < 1 || words.length > 4) return false;
+  return words.every(w => w.length >= 2 && w.length <= 15);
+};
+
+export interface ExtractedGroup {
+  subject:  string;
+  teacher?: string;
+}
+
+/**
+ * Extracts one OR MORE subject groups from a single cell. Groups are separated
+ * by a "divider line" (────, ____, ===, etc.). Within each group, the first
+ * non-divider line is the subject and a following teacher-like line (if any)
+ * is the teacher. Trailing lines that look like room codes "128 (ט6)" are
+ * ignored.
+ *
+ *   Input:  "אנגלית מדוברת\nבלייב יוליה\n────\nאנגלית מדוברת\nעשת מיכל"
+ *   Output: [{subject:"אנגלית מדוברת", teacher:"בלייב יוליה"},
+ *            {subject:"אנגלית מדוברת", teacher:"עשת מיכל"}]
+ *
+ *   Input:  "מתמטיקה\nשליט שליט\n128 (ט6)"
+ *   Output: [{subject:"מתמטיקה", teacher:"שליט שליט"}]
+ */
+export const extractSubjectGroupsFromCell = (cell: string): ExtractedGroup[] => {
+  const raw = String(cell ?? '').trim();
+  if (!raw) return [];
+
+  // Split into chunks by divider lines.
+  const lines = raw.split(/[\n\r]+/).map(l => l.trim()).filter(Boolean);
+  const chunks: string[][] = [[]];
+  for (const line of lines) {
+    if (isDividerLine(line)) {
+      if (chunks[chunks.length - 1].length > 0) chunks.push([]);
+    } else {
+      chunks[chunks.length - 1].push(line);
+    }
+  }
+
+  const groups: ExtractedGroup[] = [];
+  for (const chunk of chunks) {
+    if (chunk.length === 0) continue;
+    // First line = subject, with the same cleanup as extractSubjectFromCell.
+    const subject = chunk[0]
+      .replace(/^\d+\.\s*/, '')
+      .replace(/\s*\([^)]*\)\s*$/, '')
+      .trim();
+    if (!subject) continue;
+    // Second line, if teacher-shaped, becomes the teacher. Otherwise we drop it.
+    // (Room codes, addresses, etc. are silently ignored.)
+    let teacher: string | undefined;
+    if (chunk.length >= 2) {
+      const candidate = chunk[1].replace(/,$/, '').trim();
+      if (looksLikeTeacher(candidate)) teacher = candidate;
+    }
+    groups.push({ subject, teacher });
+  }
+  return groups;
+};
+
 export const parsePivotFormat = (rawData: unknown[][], headerRowIndex: number): ParsedPeriod[] => {
   const headers = ((rawData[headerRowIndex] ?? []) as unknown[]).map(h => String(h ?? '').trim());
   const colToDay = mapColumnsToDay(headers);
   const dayCols = Object.keys(colToDay).map(Number).sort((a, b) => a - b);
   const periods: ParsedPeriod[] = [];
 
+  // Track the previous slot so continuation rows (empty time cell) can extend it
+  // with additional split-group lessons (e.g. row N = math, row N+1 = physics
+  // under the same time slot).
+  let lastSlot: { time: string; lesson: number; autoTime: boolean } | null = null;
+
   for (let rowIdx = headerRowIndex + 1; rowIdx < rawData.length; rowIdx++) {
     const row = (rawData[rowIdx] ?? []) as unknown[];
     const timeCell = String(row[0] ?? '').trim();
-    if (!timeCell) continue;
-    const { startTime, lessonNumber, autoTime: cellAutoTime } = parseTimeFromPivotCell(timeCell);
-    const effectiveLesson = lessonNumber || (rowIdx - headerRowIndex);
-    const effectiveTime   = startTime || generateBuffStandardTime(effectiveLesson - 1);
-    // autoTime is true when the cell didn't contain a real time, OR contained only
-    // a lesson number that we converted via Buff Standard.
-    const effectiveAutoTime = !startTime || cellAutoTime;
+
+    let slot: { time: string; lesson: number; autoTime: boolean };
+    if (timeCell) {
+      const { startTime, lessonNumber, autoTime: cellAutoTime } = parseTimeFromPivotCell(timeCell);
+      const lesson = lessonNumber || (rowIdx - headerRowIndex);
+      slot = {
+        time:     startTime || generateBuffStandardTime(lesson - 1),
+        lesson,
+        autoTime: !startTime || cellAutoTime,
+      };
+      lastSlot = slot;
+    } else if (lastSlot && row.some(c => String(c ?? '').trim())) {
+      // Empty time cell but row has content → continuation of previous slot
+      slot = lastSlot;
+    } else {
+      continue; // truly empty row
+    }
 
     for (const colIdx of dayCols) {
       const day = colToDay[colIdx];
       if (!day) continue;
       const cell = String(row[colIdx] ?? '').trim();
       if (!cell) continue;
-      const subject = extractSubjectFromCell(cell);
-      if (!subject) continue;
-      periods.push({
-        id: generateId(), subject, time: effectiveTime, day,
-        selected: true, autoTime: effectiveAutoTime,
-        missingSubject: false, missingDay: false,
-        lessonNumber: effectiveLesson, equipment: '',
+
+      const groups = extractSubjectGroupsFromCell(cell);
+      if (groups.length === 0) continue;
+
+      // If a continuation row produced groups, see whether the same slot already
+      // has periods for this day from the parent row and append to the group set.
+      const existingForSlot = periods.filter(
+        p => p.day === day && p.lessonNumber === slot.lesson && p.time === slot.time,
+      );
+      const baseIndex = existingForSlot.length;
+      const newTotal  = baseIndex + groups.length;
+
+      groups.forEach((g, i) => {
+        const groupIndex = baseIndex + i;
+        periods.push({
+          id: generateId(),
+          subject: g.subject,
+          time: slot.time,
+          day,
+          // Primary group selected; alternates start deselected so the parent
+          // explicitly opts in if their child belongs to the alternate group.
+          selected: groupIndex === 0,
+          autoTime: slot.autoTime,
+          missingSubject: false,
+          missingDay: false,
+          lessonNumber: slot.lesson,
+          equipment: '',
+          slotKey: `${day}@${slot.lesson}`,
+          groupIndex,
+          groupTotal: newTotal,
+          teacher: g.teacher,
+        });
       });
+
+      // If we just added alternates to an existing slot, update the groupTotal
+      // on the previously-pushed periods so the UI shows "1 of 3" instead of
+      // "1 of 1".
+      if (baseIndex > 0 && newTotal > existingForSlot.length) {
+        existingForSlot.forEach(p => { p.groupTotal = newTotal; });
+      }
+    }
+  }
+
+  // Strip group metadata from slots that ended up with only one group
+  // (so single-group periods stay clean and don't render group UI).
+  for (const p of periods) {
+    if (p.groupTotal === 1) {
+      delete p.groupIndex;
+      delete p.groupTotal;
+      delete p.slotKey;
     }
   }
   return periods;

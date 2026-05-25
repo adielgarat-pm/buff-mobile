@@ -1479,6 +1479,7 @@
   "timetable.reviewSubtitle": "{{selected}} of {{total}} lessons selected",
   "timetable.autoTimeWarning": "Times marked in orange were filled automatically",
   "timetable.validationError": "Red rows are missing subject or day — fix or deselect",
+  "timetable.splitGroupsBanner": "Split-group lessons detected (purple) — select only your child's group",
   "timetable.confirmBtn": "Save {{count}} lessons",
   "timetable.fixErrors": "Fix {{count}} errors first",
   "timetable.saving": "Saving...",
