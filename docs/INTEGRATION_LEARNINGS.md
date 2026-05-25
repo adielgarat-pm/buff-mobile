@@ -637,6 +637,23 @@ Round 2 with two parent-submitted real-world fixtures (a high-school Excel with 
 
 ---
 
+### IN-2026-05-25-02: BUG — expo-document-picker crashes the dev build on file selection
+
+- **תאריך:** 2026-05-25
+- **מקור:** CC — discovered during Hat-3 smoke test of the Import Schedule arc (S4 split-groups via real Excel fixture).
+- **תיאור:** Flow: Schedule tab → Import Schedule → Excel/CSV → DocumentsUI opens → pick a file → app crashes (FATAL `java.lang.NullPointerException at java.util.Objects.requireNonNull at com.facebook.react.ReactActivityDelegate.onActivityResult:212`). The picker successfully returns the file URI (`content://com.android.providers.downloads.documents/...`) but RN's ReactActivityDelegate NPEs while delivering the result to MainActivity. Reproduces 100% on the dev build (`com.buffapp.mobile-dA5oo1ECFOtRKBGikFIflQ==`).
+- **השפעה:**
+  - **Excel/CSV import path is broken on the dev build** — Adi cannot verify Package A's split-groups detection via the real `schedule-real-1.xlsx` fixture (or any other Excel file) on the running app today.
+  - **Photo/OCR path likely shares the issue** (also uses an activity-result handoff, via expo-image-picker). Not yet verified.
+  - **Paste mode (Package C) is NOT affected** — verified working on emulator in the same session via `supabase.functions.invoke`, no document-picker dependency.
+  - **NOT a regression from A/B/C** — neither Package A (parser pure logic) nor Package B (review-screen Modal) nor Package C (paste-mode UI) touches expo-document-picker, expo-image-picker, or ReactActivityDelegate. The crash is in shared infra both flows used pre-A/B/C.
+  - **Root cause hypothesis:** version drift between `expo-document-picker` (declared `~14.0.8`) and the installed react-native ReactActivityDelegate inside the prebuilt APK. Possibly fallout from the parallel-session npm-install activity earlier today that mutated package.json (and was reverted, but the prebuilt APK on the emulator is from before either state). Needs a fresh `npx expo run:android` build to confirm whether it's an installed-app/source drift issue or a real package-version conflict.
+- **סטטוס:** `open` — unverified on production AAB build. Pending `pkg/diagnose-document-picker-crash`. If repro confirms on a clean `expo run:android`, the package fixes it; if only on the stale dev build, the fix is just "rebuild the dev client".
+- **קשור ל:** `pkg/timetable-split-groups` (the AC the smoke test was trying to verify), `pkg/timetable-paste-mode` (the unaffected entry path that worked end-to-end).
+- **Workaround for parents today:** use paste mode (Package C) — they paste the schedule text and the AI parses it. Excel/photo paths are confirmed-broken until this bug is fixed.
+
+---
+
 ### Lesson 2026-05-25 (2) — Import Schedule arc closed: 4 packages, 0 → 80% in one day
 
 **Summary:** What started as Adi's vague "Import Schedule isn't good enough" turned into a 4-package arc that closed 8 bugs, added 65 unit tests with two real parent files as fixtures, and added one new entry method (paste mode) the project already had the backend for.
