@@ -1490,6 +1490,7 @@
   "timetable.autoTimeWarning": "שעות בכתום הוזנו אוטומטית — ניתן לערוך",
   "timetable.validationError": "שורות אדומות חסר בהן יום או מקצוע — יש לתקן או לבטל",
   "timetable.splitGroupsBanner": "זוהו שיעורי קבוצות (סגול) — סמן את הקבוצה של הילד בלבד",
+  "timetable.changeDay": "שינוי יום",
   "timetable.confirmBtn": "שמירת {{count}} שיעורים",
   "timetable.fixErrors": "תקן {{count}} שגיאות קודם",
   "timetable.saving": "שומר...",
