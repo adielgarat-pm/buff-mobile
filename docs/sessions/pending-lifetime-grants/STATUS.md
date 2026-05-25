@@ -7,8 +7,8 @@
 
 | פאזה | מצב | תאריך | Commit | Tests | Learnings entry |
 |---|---|---|---|---|---|
-| 0 — Branch + scaffold | _in_progress_ | 2026-05-25 | — | n/a | — |
-| 1 — Migration 015 (table+trigger+seed+backfill) | _pending_ | — | — | — | — |
+| 0 — Branch + scaffold | _passed_ | 2026-05-25 | 700755a | n/a | — |
+| 1 — Migration 015 (table+trigger+seed+backfill) | _in_progress_ | 2026-05-25 | (this commit) | P1.1–P1.7 + smoke pass | (Phase 3) |
 | 2 — Cohort CSV + idempotency tests | _pending_ | — | — | — | — |
 | 3 — Exit deliverables + PR | _pending_ | — | — | — | — |
 
