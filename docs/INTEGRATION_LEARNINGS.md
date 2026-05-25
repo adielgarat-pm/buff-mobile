@@ -586,6 +586,31 @@
 
 ---
 
+### Lesson 2026-05-25 — Lovable-parity comparison as a bug-discovery technique
+
+**Symptom:** Adi flagged Import Schedule as "not good enough" without a specific bug report. CC fetched the original `adielgarat-pm/buff` (Lovable) `TimetableImporter.tsx` (1,393 lines), built a feature matrix, and wrote 44 unit tests for `timetableParser.ts`. The tests surfaced **3 bugs that no one had reported** plus 1 piece of dead code:
+- A: `detectPivotFormat` only matched full Hebrew day names ("ראשון"), not the abbreviated form ("יום א") that many school exports use
+- B: `parsePivotFormat` set `autoTime: false` even when the time was generated from a lesson number — orange "review me" banner never showed
+- C: `processApiResponse` lost `t.autoTime` aggregation during the port from Lovable (Lovable handles it correctly at line 220)
+- D: `parseStandardFormat` had a dead `if (hasHeaders)` branch calling `sheet_to_json({} as XLSX.WorkSheet)`
+
+Round 2 with two parent-submitted real-world fixtures (a high-school Excel with banner rows + continuation-row split groups, and a 1st-grade photo with no time column) added 13 more tests and surfaced REG-4 (continuation-row data loss) — captured as a known-bug regression for a future package.
+
+**Root cause:** No SPEC existed for the feature, no tests existed, so silent regressions accumulated during the Lovable→mobile port. "Lovable parity" was assumed because the parser file said "Ported from buff-lovable" — but parity was never verified.
+
+**Mitigation (pkg/timetable-import-fixes):**
+- 57 Jest tests covering pure helpers, pivot detection, pivot parsing, API response, and the two real-world parent files
+- Real Excel committed as test fixture (`src/utils/__tests__/fixtures/schedule-real-1.xlsx`)
+- 4 bug fixes shipped; 2 known-bugs documented as REG-tests (split groups + continuation rows)
+
+**Pattern to watch:** When code says "Ported from X", treat that as a hypothesis, not a guarantee. Bring the original alongside, diff feature-by-feature, and write tests against both. Vague feedback like "not good enough" is often a signal that the user can see something is off but can't articulate exactly what — a structured Lovable-parity diff turns that signal into a list.
+
+**FLAGs opened:**
+- 🚩 REG-4: Continuation-row split groups (e.g., row 5 = math, row 6 with empty time cell = physics under same slot) silently dropped. Pending `pkg/timetable-split-groups` (covers BUG-F + REG-4 — both need the same "which group is my child in?" product decision)
+- 🚩 REG-5: Photo-style pivot (no time column) works by accident because col 0 doubles as time-cell and first-day-data. Pending `pkg/timetable-col0-detection` (also covers BUG-E RTL pivot)
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
