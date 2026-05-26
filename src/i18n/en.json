@@ -1325,7 +1325,7 @@
   "onboarding.step7.optBSub": "We'll remind you in 24 hours",
   "onboarding.step7.optC": "No — I'll show them on my device",
   "onboarding.step7.optCSub": "Use 'View as Child' from your dashboard",
-  "onboarding.step7.inviteMessage": "Hey {{name}}! Your BUFF missions are ready 🚀\nDownload BUFF and enter family code: {{code}}",
+  "onboarding.step7.inviteMessage": "Hey {{name}}! Your BUFF missions are ready 🚀\nDownload BUFF: {{installUrl}}\nEnter family code: {{code}}",
   "onboarding.step7.reminderBody": "Don't forget to connect {{name}} to BUFF!",
   "onboarding.step7.noPhoneTipTitle": "Got it!",
   "onboarding.step7.noPhoneTipBody": "Tap 'View as Child' from your dashboard to show {{name}} their missions on your device.",

@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
+import { BUFF_URLS } from '../../../lib/buffConfig';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep7_Phone'>;
 type Route = RouteProp<RootStackParamList, 'UStep7_Phone'>;
@@ -38,6 +39,7 @@ export default function UStep7_Phone() {
     const message = t('onboarding.step7.inviteMessage', {
       name: params.childName,
       code,
+      installUrl: BUFF_URLS.playStoreInstall,
     });
     try {
       await Share.share({ message });
