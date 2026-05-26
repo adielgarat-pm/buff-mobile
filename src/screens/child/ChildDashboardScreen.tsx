@@ -14,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { usePetState } from '../../hooks/usePetState';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
@@ -100,8 +101,10 @@ function PastelChildDashboard() {
   const fuelPct    = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const atGoal     = fuelPct >= 70;
 
-  // Streak comes from pet state — keep from PetDisplay; show 0 until pet state loads
-  const streak = 0; // TODO: expose from usePetState once wired up
+  // Streak from pet state (AsyncStorage, per-device). Hidden when 0 to avoid
+  // a demotivating "0🔥" badge for new kids before their first task completion.
+  const { petState } = usePetState();
+  const streak = petState.daily_streak ?? 0;
 
   if (loading) {
     return (
@@ -143,10 +146,12 @@ function PastelChildDashboard() {
         </View>
         <View style={styles.headerRight}>
           <SosButton palette={pastelLPPalettes.sos} />
-          <View style={[styles.streakBadge, { backgroundColor: T.muted, borderColor: T.border }]}>
-            <Text style={styles.streakEmoji}>🔥</Text>
-            <Text style={[styles.streakCount, { color: T.streak }]}>{streak}</Text>
-          </View>
+          {streak > 0 && (
+            <View style={[styles.streakBadge, { backgroundColor: T.muted, borderColor: T.border }]}>
+              <Text style={styles.streakEmoji}>🔥</Text>
+              <Text style={[styles.streakCount, { color: T.streak }]}>{streak}</Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -271,12 +276,12 @@ function DashboardActiveContent({
             activeOpacity={0.8}
           >
             <Text style={styles.lockedPetEmoji}>🥚</Text>
-            <Text style={[styles.lockedPetTitle, { color: T.foreground }]}>Buddy locked 🔒</Text>
+            <Text style={[styles.lockedPetTitle, { color: T.foreground }]}>{t('parentLockedState.buddyTitle')}</Text>
             <Text style={[styles.lockedPetSub, { color: T.mutedForeground }]}>
-              Unlock BUFF Premium to hatch your pet
+              {t('parentLockedState.buddySub')}
             </Text>
             <View style={[styles.lockedPetCta, { backgroundColor: T.primary }]}>
-              <Text style={[styles.lockedPetCtaText, { color: T.primaryForeground }]}>Unlock ✨</Text>
+              <Text style={[styles.lockedPetCtaText, { color: T.primaryForeground }]}>{t('parentLockedState.unlockCta')}</Text>
             </View>
           </TouchableOpacity>
         )}
