@@ -68,6 +68,7 @@ const PARENT_RECIPIENT_TYPES = new Set([
   'reward_redeemed',
   'parent_engagement',
   'family_joined',
+  'anchor_recovery',
 ]);
 
 const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
@@ -104,6 +105,8 @@ function copyForType(
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
         return { title: `${name} הצטרף/ה למשפחה 👋`, body: '', data: {} };
+      case 'anchor_recovery':
+        return { title: `${name} לקח/ה הפסקה`, body: 'יש שתי הצעות עדינות לפתיחה מחדש', data: {} };
       case 'kid_engagement':
         return { title: buddy, body: 'פה, מוכן/ה כשתרצה', data: {} };
       case 'reward_approved':
@@ -122,6 +125,8 @@ function copyForType(
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':
       return { title: `${name} joined the family 👋`, body: '', data: {} };
+    case 'anchor_recovery':
+      return { title: `${name} took a pause`, body: 'two gentle ways to open the door again', data: {} };
     case 'kid_engagement':
       return { title: buddy, body: 'here, ready when you are', data: {} };
     case 'reward_approved':
