@@ -223,6 +223,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && newSession?.user) {
+        // On a fresh sign-in, setUser fires synchronously above but setProfile
+        // is awaited inside the setTimeout below — leaving a render window with
+        // user-set + profile-null. RootNavigator falls through to AuthCallback,
+        // which flashes the role-selection UI until the profile arrives.
+        // Setting loading=true here makes RootNavigator's loader gate kick in
+        // for that window. TOKEN_REFRESHED is excluded so background refreshes
+        // don't flash a spinner over the live UI.
+        if (event === 'SIGNED_IN') {
+          setLoading(true);
+        }
         if (!fetchingProfile.current) {
           setTimeout(async () => {
             if (!isMounted || fetchingProfile.current) return;
