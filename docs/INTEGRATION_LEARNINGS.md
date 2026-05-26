@@ -250,8 +250,12 @@
   - Pre-fill של `SignupScreen` עם invite code
   - הוספת Universal Links לתמיכה ב-HTTPS domain
 - **השפעה:** Invite flow המלא עוד לא ממומש. כרגע Option A (קוד-בלבד, ללא deep link) פעיל.
-- **סטטוס:** `open`
-- **קשור ל:** Adi הורתה לא להוסיף ל-GAP_ANALYSIS חד-צדדית. ידון בסשן עתידי.
+- **סטטוס (עודכן 2026-05-26):** `partially-resolved` — `pkg/fix-childjoin-install-link` (PR פתוח) מיישם 2 מתוך 3 הסעיפים המקוריים:
+  - ✅ **רישום `buff://join/:code`** — `src/navigation/linking.ts:30` (`ChildJoin: 'join/:code'`)
+  - ✅ **Pre-fill עם invite code** — `src/screens/auth/ChildJoinScreen.tsx:24-32` (`useRoute<Route>()` + initialState מ-`params?.code`)
+  - ⚠️ **Universal Links (HTTPS)** — עוד לא ממומש. עומד מאחור כי דורש עבודה ב-Lovable (`buffadhd.com/join/:code` route + assetlinks.json hosted on domain) + intentFilters ב-app.json + AAB חדש. **נשאר `open` כסעיף יחיד** — slug מוצע `pkg/childjoin-universal-link`. מצריך גם domain decision (`buffadhd.com` או `buff.app`).
+- **Trigger לתיקון:** Adi בקשה 2026-05-26 (אחרי שצילמה הזמנה ל-Emi ב-WhatsApp ש-v12 הפיק — הודעה ללא URL כלל). תחילה אדי תיקנה רק את ה-URL (PR phase 1+2), אז ביקשה גם prefilled code (phase 3). RevenueCat דדליין 1.5.2026 כבר עבר; הדחייה המקורית כבר לא חוסמת.
+- **קשור ל:** `pkg/fix-childjoin-install-link` (PR), `src/lib/buffConfig.ts` `buildJoinDeepLink()`, F-2026-05-26-01 (icon — מאותו בקר WhatsApp screenshot session).
 
 ---
 

@@ -26,7 +26,7 @@ export type RootStackParamList = {
   RoleSelection: undefined;
   Login:         undefined;
   Signup:        { initialRole?: 'parent' | 'child' } | undefined;
-  ChildJoin:     undefined;
+  ChildJoin:     { code?: string } | undefined;
   AuthCallback:  undefined;
 
   // ── Unified onboarding flow ───────────────────────────────────────────

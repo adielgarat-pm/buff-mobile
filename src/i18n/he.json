@@ -1325,7 +1325,7 @@
   "onboarding.step7.optBSub": "נזכיר לך תוך 24 שעות",
   "onboarding.step7.optC": "לא — אראה לו/לה במכשיר שלי",
   "onboarding.step7.optCSub": "השתמש/י ב'תצוגת ילד' מהדשבורד שלך",
-  "onboarding.step7.inviteMessage": "היי {{name}} 🌱\nBUFF פה לידך — בקצב שלך, בלי לחץ.\nהורד/י: {{installUrl}}\nקוד משפחה: {{code}}",
+  "onboarding.step7.inviteMessage": "היי {{name}} 🌱\nBUFF פה לידך — בקצב שלך, בלי לחץ.\n\n📲 התקנה: {{installUrl}}\n🔗 אחרי ההתקנה לחצ/י כאן: {{joinDeepLink}}\n\n(אם הקישור לא פתח את האפליקציה — קוד משפחה: {{code}})",
   "onboarding.step7.reminderBody": "אל תשכח/תשכחי לחבר את {{name}} ל-BUFF!",
   "onboarding.step7.noPhoneTipTitle": "הבנתי!",
   "onboarding.step7.noPhoneTipBody": "לחץ/י על 'תצוגת ילד' מהדשבורד שלך כדי להראות ל{{name}} את המשימות על המכשיר שלך.",
