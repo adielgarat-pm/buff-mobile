@@ -21,9 +21,9 @@ const GENDERS: { value: Gender; labelKey: string }[] = [
   { value: 'other', labelKey: 'onboarding.gender.other' },
 ];
 
-/** Format a Date as "19 Oct 1998" */
-function formatDate(d: Date): string {
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+/** Format a Date for display. Locale follows the app language (en → "19 Oct 1998", he → "19 באוק׳ 1998"). */
+function formatDate(d: Date, locale: string): string {
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 /** ISO date string "YYYY-MM-DD" stored in params */
@@ -33,7 +33,7 @@ function toISODate(d: Date): string {
 
 export default function UStep1_ChildProfile() {
   const navigation = useNavigation<Nav>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, profile, refreshProfile } = useAuth();
 
   // Determine if we need to collect the parent's name
@@ -188,7 +188,7 @@ export default function UStep1_ChildProfile() {
           activeOpacity={0.8}
         >
           <Text style={[styles.dateBtnText, !!birthDate && styles.dateBtnTextFilled]}>
-            {birthDate ? formatDate(birthDate) : t('onboarding.step1.birthdayPlaceholder')}
+            {birthDate ? formatDate(birthDate, i18n.language) : t('onboarding.step1.birthdayPlaceholder')}
           </Text>
           <Text style={styles.dateBtnIcon}>📅</Text>
         </TouchableOpacity>
