@@ -15,8 +15,10 @@ export const EVOLUTION_THRESHOLDS: Record<EvolutionStage, number> = {
 export function getEvolutionStage(days: number): EvolutionStage {
   if (days >= 13) return 'guardian';
   if (days >= 7)  return 'scout';
-  if (days >= 3)  return 'hatchling';
-  return 'egg';
+  // Egg stage removed per IN-2026-05-16-01 (Pillar 1/2/3 violation).
+  // pkg/drop-egg-evolution-stage will fully retire the type; this is the
+  // beta-readiness workaround so the child sees their character from day 0.
+  return 'hatchling';
 }
 
 export function getNextEvolutionThreshold(stage: EvolutionStage): number {
@@ -52,7 +54,7 @@ export const DEFAULT_PET_STATE: PetState = {
   energy_level:              50,
   current_skin:              'puppy',
   last_interaction:          null,
-  evolution_stage:           'egg',
+  evolution_stage:           'hatchling',
   evolution_days_count:      0,
   daily_streak:              0,
   rest_cards_balance:        1,
