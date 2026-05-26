@@ -14,6 +14,46 @@
 
 ## Implementation Notes
 
+### IN-2026-05-26-03: v16 AAB / preview APK divergence during beta-launch-readiness
+
+- **תאריך:** 2026-05-26 (surfaced during `pkg/beta-launch-readiness-2026-06-01` Phase 1)
+- **מקור:** CC — discovered while listing recent EAS builds before kicking off the preview APK build. Adi had already built `v16` AAB earlier in the day (5/26 08:40 → 12:00 Israel time) from `main@3d1f20a` for Play Store production. The preview APK in beta-launch-readiness is being built from `91e3f49` (`3d1f20a` + the egg-stage retirement workaround).
+- **תיאור:** Two artifacts now exist with different code from the same release week:
+  - **v16 AAB** (`d63603a8-...`, production profile, store distribution) — commit `3d1f20a`, **contains the egg-stage bug** that the WhatsApp APK will not have.
+  - **Preview APK** (`be870057-...`, preview profile, internal distribution) — commit `91e3f49`, egg-stage retired per IN-2026-05-16-01 visual workaround.
+- **השפעה:**
+  - **Symmetric experience tension.** If v16 AAB is uploaded to Play Store as-is, Play Store installers (random Google searchers, parents finding the listing) will see the 🥚 + egg-crack mechanic on Pastel dashboard. WhatsApp cohort (cohort emails + window auto-grant) on the preview APK will see their character from day 0. Same product, two experiences in the same week.
+  - **Trust-fragility direction matters.** The WhatsApp cohort = ex-Lovable users we already lost once (project_buff_war_non_return). They get the better experience. The Play Store cohort = strangers / weaker bond. Cost of asymmetry is low if v16 AAB stays paused in Play Console internal-testing — but visible if it ramps to production.
+  - **No technical conflict.** Different versionCodes are not in play (preview profile doesn't autoIncrement; both got versionCode 16 because they share `appVersionSource: remote`). The artifacts are kept apart by Play Store rules: preview profile = internal distribution APK, never uploaded to Play Console.
+- **Decision deferred to PR merge:** at PR merge time for pkg/beta-launch-readiness, Adi chooses:
+  - **(α) Rebuild v17 AAB** from post-merge main (which will include the egg workaround) and replace v16 in Play Console. Cost: 1 EAS build slot + ~10 min wait + re-uploaded AAB. Benefit: symmetric experience.
+  - **(β) Ship v16 AAB to Play Store as-is** with the egg bug; preview APK to WhatsApp without. Acceptable if Play Console exposure is low (internal testing, no production push). The egg workaround would land in a later v17 AAB whenever the next production build happens.
+- **סטטוס:** `open` — flag for Adi at PR merge.
+- **קשור ל:** [[IN-2026-05-26-02]] (egg workaround application), IN-2026-05-16-01 (origin of the egg removal decision), v16 AAB commit `3d1f20a`, preview APK commit `91e3f49`, `pkg/drop-egg-evolution-stage` (queued for full retirement).
+
+### IN-2026-05-26-02: Egg-stage retirement workaround applied in beta-launch-readiness
+
+- **תאריך:** 2026-05-26 (`pkg/beta-launch-readiness-2026-06-01` Phase 0)
+- **מקור:** Adi — during beta-launch-readiness Plan Mode, Adi raised "אמרנו שנוותר על הביצה ואני עדיין רואה אותה." CC searched docs, found the original decision in IN-2026-05-16-01 ("Egg/evolution-stage removal queued"), confirmed `pkg/drop-egg-evolution-stage` was queued but never ran, and traced where the egg still rendered in current code.
+- **תיאור:** Despite IN-2026-05-16-01's "open / queued" status, the egg state was still reachable at runtime for the Pastel theme (Children Mode default). [src/screens/child/ChildDashboardScreen.tsx](../src/screens/child/ChildDashboardScreen.tsx) uses `PetDisplay`, which renders 🥚 + egg-crack mechanic at `DEFAULT_PET_STATE.evolution_stage='egg'` from day 0 until 3 successful days. Gamer theme already routes through `BuddyHero` which day-0 shows the character — only Pastel was hit. Adi confirmed via emulator on 2026-05-26 that the egg was still visible.
+- **Workaround applied (4-line minimal fix in commit `91e3f49`):**
+  1. `getEvolutionStage(days<3)` now returns `'hatchling'` instead of `'egg'`
+  2. `DEFAULT_PET_STATE.evolution_stage = 'hatchling'`
+  3. `EmojiPet` default param `evolutionStage = 'hatchling'`
+  4. `EmojiPet` always shows `skin.emoji` (no `evolutionStage === 'egg' ? '🥚' : ...` branch)
+- **What's still there (intentional — full retirement is a separate package):**
+  - `EvolutionStage` type still includes `'egg'` as a literal
+  - `EVOLUTION_THRESHOLDS.egg = 0`, `STAGE_VISUALS[theme].egg = { badgeEmoji: '🥚', labelKey: 'pet.stage.egg' }` still defined
+  - `PetDisplay`'s `EGG_CRACK_KEYS`, `getEggCrackStage`, `EGG_CRACK_EMOJIS`, `crackOverlay`, `crackMessage` effect all still in code — but the data flow makes them unreachable (`petState.evolution_stage === 'egg'` is now false at runtime)
+  - i18n keys `pet.stage.egg`, `pet.eggCrack1..3`, `pet.hatching` still in `he.json` / `en.json`
+- **השפעה:**
+  - **Beta cohort safe:** WhatsApp installers on the preview APK will see their character (default 🐶 puppy for Mint) from day 0. No Pillar 1/2/3 violation.
+  - **Stage badge still reads "🐣 Hatchling"** — workaround compromise. Full retirement removes the stage badge entirely or replaces with a no-stage label.
+  - **AsyncStorage-stored state pre-existing** is the one risk: a kid who installed the v8 AAB pre-5/16 has `evolution_stage='egg'` stored in `buff_pet_state` AsyncStorage key. Upgrading to the new APK without uninstall: `usePetState` reads the stored value, sees `'egg'`, and shows the egg-crack overlay until manually advanced. Mitigation: WhatsApp cohort = fresh install (Lovable migrants, not v8 testers), so AsyncStorage is empty → DEFAULT_PET_STATE applies. Document in APK_DISTRIBUTION.md install instructions: "uninstall any prior BUFF first."
+  - **Tests:** typecheck clean, jest 220/220 pass after the workaround.
+- **סטטוס:** `resolved` (workaround shipped in pkg/beta-launch-readiness commit `91e3f49`). **`pkg/drop-egg-evolution-stage` remains `open`** for the full type/EGG_CRACK_KEYS/STAGE_VISUALS retirement + BUFF_BUDDY_SYSTEM.md Spec Sync (still describes egg as Children Mode mechanic at §92-§101).
+- **קשור ל:** IN-2026-05-16-01 (the original "queued" decision that never ran), [[IN-2026-05-26-03]] (resulting v16-AAB-vs-preview-APK divergence), `pkg/drop-egg-evolution-stage` (the full follow-up), `pkg/beta-launch-readiness-2026-06-01` (this workaround), BUFF_BUDDY_SYSTEM.md §92-§101 (target-spec still mentions egg — Spec Sync deferred).
+
 ### IN-2026-05-25-02: Lost-work pattern — branches paused > 5 days are at deletion risk
 
 - **תאריך:** 2026-05-25 (discovered during `pkg/sentry-eas-resumption` Phase 0 diagnosis)
