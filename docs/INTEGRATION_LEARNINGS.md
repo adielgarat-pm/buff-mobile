@@ -414,6 +414,23 @@
 
 ---
 
+### F-2026-05-26-01: Generic Android-robot icon on Play Store install dialog (not BUFF logo)
+
+- **תאריך:** 2026-05-26
+- **מקור:** Adi — screenshot of Play Store internal-testing install dialog (06:55, com.buffapp.mobile (unreviewed), AAB ~30MB) shows the default Android-robot silhouette instead of the BUFF logo.
+- **תיאור:** Internal-testing track installer in Hebrew Play Store displays the generic Android robot icon in the install confirmation dialog. The expected icon is the BUFF logo defined in [app.json:8](../app.json:8) (`./assets/BUFF_LOGO.png`, also wired for android.adaptiveIcon.foregroundImage at [app.json:24](../app.json:24)). Source asset exists (`assets/BUFF_LOGO.png`, 156KB, last modified 2026-04-16) but rendering on-device shows fallback.
+- **Two distinct surfaces this could be hitting (verify both):**
+  1. **Launcher / in-app icon** — embedded in the AAB from `android.adaptiveIcon.foregroundImage`. Likely cause: `BUFF_LOGO.png` is the full-bleed logo with no Android adaptive-icon safe zone (foreground should be 432×432 with the brand-critical mark inside the central 264×264 to survive circle/squircle/square cropping by launchers). If the source PNG doesn't follow the safe-zone spec, some launchers fall back to the system robot.
+  2. **Play Console Store Listing icon** — a separate 512×512 PNG uploaded in Play Console → Store Listing → Graphic assets → App icon. Not in the AAB. If this slot is empty or has been replaced with a placeholder, the Play Store install dialog uses a generic icon. **The screenshot's "(unreviewed)" + "ללא סיווג" labels strongly suggest this surface — internal testing tracks fall back to the Play Console listing icon, not the AAB icon, on the install dialog.**
+- **השפעה:**
+  - **Beta launch optics (2026-06-01).** First impression for Lovable migrants installing the AAB will be a generic-Android icon, not the BUFF brand. Trust + brand recognition hit during the most critical install moment.
+  - **Affects every install dialog** — Play Store opens this whenever a user clicks "Install" on the listing, whether through a direct link or browsing.
+  - Unverified whether the *launcher* icon (post-install, on the home screen / app drawer) is also affected — needs Hat-4 device check.
+- **סטטוס:** `open` — needs investigation before 1.6. Proposed package slug: `pkg/fix-app-icon-play-and-launcher`. Phase 0 = verify which surface(s) are broken (Play Console listing vs AAB-embedded) before any asset work. If Play Console listing only → Adi-only fix (upload 512×512 in Play Console, no code change). If launcher too → regenerate adaptive-icon assets with proper safe zone + new AAB build.
+- **קשור ל:** beta-2026-06-01, `pkg/sentry-eas-resumption` (the package that produced v10/v11/v12 AABs), Play Console Store Listing (Adi-managed).
+
+---
+
 ### F-2026-05-18-01: Empty Dashboard for newly-joined child (no tasks → cold-start moment lost)
 
 - **תאריך:** 2026-05-18
