@@ -5,6 +5,7 @@
  *
  * Currently registered deep links:
  *   buff://founding-100  →  FoundingHundred screen
+ *   buff://join/:code    →  ChildJoinScreen prefilled with family code
  *
  * NOT in this config: buff://auth/callback (handled separately in
  * AuthContext.handleDeepLink — OAuth state needs to be parsed from
@@ -28,9 +29,9 @@ export const linking: LinkingOptions<RootStackParamList> = {
   config: {
     screens: {
       FoundingHundred: 'founding-100',
+      ChildJoin:       'join/:code',
       // Future deep-linkable screens go here, e.g.:
       // Paywall: 'paywall',
-      // ChildJoin: 'join/:code',
     },
   },
 };

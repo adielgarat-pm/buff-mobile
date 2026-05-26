@@ -5,13 +5,14 @@ import {
   Platform, Alert, ScrollView, SafeAreaView, StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import type { RootStackParamList } from '../../navigation/types';
 
-type Nav = StackNavigationProp<RootStackParamList, 'ChildJoin'>;
+type Nav   = StackNavigationProp<RootStackParamList, 'ChildJoin'>;
+type Route = RouteProp<RootStackParamList, 'ChildJoin'>;
 
 const BG         = '#0f0d1a';
 const CARD_BG    = '#1a1728';
@@ -24,9 +25,15 @@ export default function ChildJoinScreen() {
   const { t }              = useTranslation();
   const { signUp, signIn } = useAuth();
   const navigation         = useNavigation<Nav>();
+  const { params }         = useRoute<Route>();
+
+  // Pre-fill from buff://join/:code deep link. React Navigation makes params
+  // available synchronously at mount when arriving via a deep link, so a
+  // useState initializer is enough — no useEffect race.
+  const initialCode = params?.code ? params.code.toUpperCase().slice(0, 6) : '';
 
   const [name, setName]             = useState('');
-  const [familyCode, setFamilyCode] = useState('');
+  const [familyCode, setFamilyCode] = useState(initialCode);
   const [loading, setLoading]       = useState(false);
 
   const handleJoin = async () => {
