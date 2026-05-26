@@ -26,7 +26,7 @@ const FONT_SIZE: Record<'sm' | 'md' | 'lg', number> = { sm: 32, md: 52, lg: 72 }
 export function EmojiPet({
   skinId        = 'puppy',
   petName       = 'Buddy',
-  evolutionStage = 'egg',
+  evolutionStage = 'hatchling',
   isResting     = false,
   size          = 'md',
 }: Props) {
@@ -36,7 +36,8 @@ export function EmojiPet({
 
   const skin  = PET_SKINS[skinId] ?? PET_SKINS.puppy;
   const stage = STAGE_VISUALS[themeName][evolutionStage];
-  const emoji = evolutionStage === 'egg' ? '🥚' : (isResting ? '😴' : skin.emoji);
+  // Egg stage removed per IN-2026-05-16-01 — always show the skin emoji.
+  const emoji = isResting ? '😴' : skin.emoji;
 
   // ── Floating bob animation ───────────────────────────────────────────────
   const floatY  = useRef(new Animated.Value(0)).current;
