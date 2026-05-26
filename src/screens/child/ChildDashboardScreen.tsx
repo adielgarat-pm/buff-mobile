@@ -131,7 +131,7 @@ function PastelChildDashboard() {
           onPress={exitChildPreview}
         >
           <Text style={[styles.previewText, { color: T.primaryForeground }]}>
-            👁 Parent Preview — tap to exit
+            {t('childDashboard.previewBanner')}
           </Text>
         </TouchableOpacity>
       )}
@@ -139,9 +139,9 @@ function PastelChildDashboard() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, { color: T.mutedForeground }]}>Hey,</Text>
+          <Text style={[styles.greeting, { color: T.mutedForeground }]}>{t('childDashboard.greeting')}</Text>
           <Text style={[styles.name, { color: T.primary }]}>
-            {isChildPreview ? 'Preview' : (profile?.display_name ?? 'Hero')} ⚡
+            {isChildPreview ? t('childDashboard.previewName') : (profile?.display_name ?? t('childDashboard.fallbackName'))} ⚡
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -157,9 +157,9 @@ function PastelChildDashboard() {
 
       {/* Buffs total (from credit_vault) — visible even during pause to reassure */}
       <View style={[styles.buffsCard, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
-        <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>TOTAL BUFFS</Text>
+        <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>{t('childDashboard.totalBuffs')}</Text>
         <Text style={[styles.buffsCount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
-        <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>Spend them in the Shop →</Text>
+        <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>{t('childDashboard.spendHint')}</Text>
       </View>
 
       {/* Pause state — short-circuits the rest of the dashboard */}
@@ -225,7 +225,7 @@ function DashboardActiveContent({
       {/* Focus fuel meter */}
       <View style={[styles.fuelCard, { backgroundColor: T.card, borderColor: T.border }]}>
         <View style={styles.fuelHeader}>
-          <Text style={[styles.fuelLabel, { color: T.foreground }]}>⚡ Focus Fuel</Text>
+          <Text style={[styles.fuelLabel, { color: T.foreground }]}>{t('childDashboard.focusFuel')}</Text>
           <Text style={[styles.fuelPct, { color: atGoal ? T.success : T.primary }]}>
             {doneTasks}/{totalTasks}
           </Text>
@@ -239,7 +239,7 @@ function DashboardActiveContent({
         <View style={styles.goalRow}>
           <View style={[styles.goalLine, { left: '70%', borderColor: T.accent }]} />
           <Text style={[styles.goalHint, { color: T.mutedForeground }]}>
-            70% = Ignition! 🏆
+            {t('childDashboard.goalHint')}
           </Text>
         </View>
       </View>
@@ -248,7 +248,7 @@ function DashboardActiveContent({
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
         {isSubscribed ? (
           <PetDisplay
-            childName={isChildPreview ? 'Preview' : profileName}
+            childName={isChildPreview ? t('childDashboard.previewName') : profileName}
             justCompletedTask={justCompletedTask}
             onTaskCompletionAck={() => setJustCompletedTask(false)}
             completedToday={doneTasks}
@@ -290,11 +290,11 @@ function DashboardActiveContent({
       {/* Quick stat tiles */}
       <View style={styles.statsRow}>
         {[
-          { emoji: '✅', value: doneTasks,             label: 'Done',   color: T.success },
-          { emoji: '⏳', value: totalTasks - doneTasks, label: 'Left',   color: T.foreground },
-          { emoji: '⚡', value: totalBalance,           label: 'Buffs',  color: T.buff },
+          { id: 'done',  emoji: '✅', value: doneTasks,              label: t('childDashboard.statDone'),  color: T.success },
+          { id: 'left',  emoji: '⏳', value: totalTasks - doneTasks, label: t('childDashboard.statLeft'),  color: T.foreground },
+          { id: 'buffs', emoji: '⚡', value: totalBalance,           label: t('childDashboard.statBuffs'), color: T.buff },
         ].map(stat => (
-          <View key={stat.label}
+          <View key={stat.id}
             style={[styles.statCard, { backgroundColor: T.card, borderColor: T.border }]}
           >
             <Text style={styles.statEmoji}>{stat.emoji}</Text>
