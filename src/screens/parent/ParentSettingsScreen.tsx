@@ -56,8 +56,8 @@ export default function ParentSettingsScreen() {
     {
       title: t('settings.sectionFamily'),
       rows: [
-        { label: t('settings.rowAddChild'), onPress: () => { /* navigates to onboarding flow */ } },
-        { label: t('settings.rowManageChildren') },
+        { label: t('settings.rowAddChild'),       onPress: () => navigation.navigate('UStep1') },
+        { label: t('settings.rowManageChildren'), onPress: () => navigation.navigate('ManageChildren') },
       ],
     },
     {

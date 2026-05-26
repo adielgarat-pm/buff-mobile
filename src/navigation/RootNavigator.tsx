@@ -44,6 +44,8 @@ import FoundingHundredScreen from '../screens/FoundingHundredScreen';
 import PhilosophyScreen      from '../screens/parent/PhilosophyScreen';
 import GamerMeAndBuddyScreen from '../screens/child/GamerMeAndBuddyScreen';
 import NotificationFeedScreen from '../screens/parent/NotificationFeedScreen';
+import ManageChildrenScreen  from '../screens/parent/ManageChildrenScreen';
+import EditChildScreen       from '../screens/parent/EditChildScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -154,6 +156,16 @@ export default function RootNavigator() {
             <Stack.Screen
               name="NotificationFeed"
               component={NotificationFeedScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="ManageChildren"
+              component={ManageChildrenScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="EditChild"
+              component={EditChildScreen}
               options={{ presentation: 'modal', headerShown: false }}
             />
             <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
