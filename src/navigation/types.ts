@@ -58,6 +58,10 @@ export type RootStackParamList = {
 
   // ── Parent notification feed (modal pushed above ParentApp) ──────────
   NotificationFeed: undefined;
+
+  // ── Family / child management (parent-only, pushed above ParentApp) ──
+  ManageChildren: undefined;
+  EditChild:      { childId: string };
 };
 
 export type ParentTabsParamList = {
