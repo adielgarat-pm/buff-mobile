@@ -28,10 +28,12 @@
 ## Closeout
 
 - [x] כל הפאזות עברו (3/3 _passed_)
-- [x] INTEGRATION_LEARNINGS.md עודכן: F-2026-05-21-01 → `resolved` (this commit)
-- [x] BUFF_PRD §7 includes "Yesterday Recap" (commit 4a2479c)
-- [ ] BUFF_GAP_ANALYSIS row added by Adi (CC proposed draft in chat; Adi-owned doc per CLAUDE.md)
-- [x] Git tag `pkg/yesterday-recap/v1` נוצר (this commit)
-- [ ] PR ל-main, fast-forward merge, branch נמחק (per Verify-Before-Delete protocol) — awaiting Adi's explicit go for push/PR
-- [ ] Adi sent Shani the "feature live" WhatsApp message (post-merge)
-- [ ] הסשן מסומן closed (post-merge)
+- [x] INTEGRATION_LEARNINGS.md עודכן: F-2026-05-21-01 → `resolved` (commit `d593985`)
+- [x] BUFF_PRD §7 includes "Yesterday Recap" (commit `4a2479c` via PR #64)
+- [x] BUFF_GAP_ANALYSIS P-21 row added + counters bumped (commit `b93256a` via PR #66, merged 2026-05-23 `43a1660`)
+- [x] Git tag `pkg/yesterday-recap/v1` נוצר ונדחף ל-origin
+- [x] PR #64 ל-main, merged 2026-05-23 (`110b099`), branch `pkg/yesterday-recap` deleted per Verify-Before-Delete
+- [x] PR #73 visual evidence + reusable harness, merged 2026-05-24 (`d1a9737`), branch `docs/yesterday-recap-visual-evidence` deleted per Verify-Before-Delete
+- [x] Visual verification of TESTS.md Phase 2 scenarios A–D recorded in `SCREENSHOTS.md` (2026-05-24)
+- [x] הסשן מסומן closed — ראי [CLOSEOUT.md](./CLOSEOUT.md) למסמך-על
+- [ ] Adi sent Shani the "feature live" WhatsApp message *(open — Adi's action, doesn't block closure)*
