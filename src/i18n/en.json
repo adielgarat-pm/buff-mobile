@@ -1227,7 +1227,7 @@
   "inviteCard.shareBtn": "📤 Share invite",
   "inviteCard.copyBtn": "Copy",
   "inviteCard.copiedBtn": "Copied ✓",
-  "inviteCard.shareMessage": "Hey! I joined BUFF — an app that helps me organize myself 💪\n\nDownload the app from Google Play or the App Store, and during sign-up enter the code:\n\n{code}",
+  "inviteCard.shareMessage": "Hey! I joined BUFF — an app that helps me organize myself 💪\n\nDownload the app from Google Play or the App Store, and during sign-up enter the code:\n\n{{code}}",
   "footer.lovableAttribution": "Made with love using",
   "v2.stepOf": "Step {current} of {total}",
   "v2.continue": "Continue",
