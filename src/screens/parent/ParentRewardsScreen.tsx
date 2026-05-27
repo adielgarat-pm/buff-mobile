@@ -16,12 +16,14 @@ import PhilosophyTip from '../../components/PhilosophyTip';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
+import { pickI18nColumn } from '../../lib/i18nString';
 
 interface StoreReward {
-  id: string;
-  title: string;
-  emoji: string;
-  size: string;
+  id:             string;
+  title:          string;
+  title_he?:      string | null;
+  emoji:          string;
+  size:           string;
   credits_needed: number;
 }
 
@@ -38,7 +40,7 @@ const DEFAULT_CREDITS: Record<RewardSize, number> = {
 };
 
 export default function ParentRewardsScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { familyId } = useAuth();
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export default function ParentRewardsScreen() {
     setRewardsLoading(true);
     const { data, error } = await supabase
       .from('store_rewards')
-      .select('id, title, emoji, size, credits_needed')
+      .select('id, title, title_he, emoji, size, credits_needed')
       .eq('child_id', childId)
       .eq('is_redeemed', false);
     if (error) console.error('[ParentRewards] fetch error:', error.message);
@@ -203,7 +205,7 @@ export default function ParentRewardsScreen() {
               <View key={reward.id} style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
                 <Text style={styles.rewardIcon}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.rewardTitle, { color: T.text }]}>{reward.title}</Text>
+                  <Text style={[styles.rewardTitle, { color: T.text }]}>{pickI18nColumn(reward, i18n.language)}</Text>
                   <Text style={[styles.rewardDesc, { color: T.textMuted }]}>
                     {t('parentRewards.rewardGoal', { size: t(`parentRewards.size.${reward.size as RewardSize}`) })}
                   </Text>
