@@ -116,7 +116,7 @@ function PastelChildRewards() {
         <View style={[styles.walletBadge, { backgroundColor: T.card, borderColor: T.border }]}>
           <Text style={styles.walletIcon}>⚡</Text>
           <Text style={[styles.walletAmount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
-          <Text style={[styles.walletLabel, { color: T.mutedForeground }]}> Buffs</Text>
+          <Text style={[styles.walletLabel, { color: T.mutedForeground }]}>{t('childRewards.walletLabel')}</Text>
         </View>
       </View>
 
