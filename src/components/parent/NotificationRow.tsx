@@ -33,7 +33,7 @@ function iconForType(type: string): IconName {
   switch (type) {
     case 'parent_sos':         return 'chatbubble-ellipses-outline';
     case 'reward_redeemed':    return 'gift-outline';
-    case 'task_completed':     return 'checkmark-circle-outline';
+    case 'task_completed':     return 'flag-outline';
     case 'quest_milestone':    return 'trophy-outline';
     case 'parent_engagement':  return 'leaf-outline';
     case 'family_joined':      return 'people-outline';

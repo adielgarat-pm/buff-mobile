@@ -18,6 +18,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -42,12 +43,24 @@ export const ParentNotificationBell: React.FC = () => {
   const badgeLabel = unreadCount > 99 ? '99+' : String(unreadCount);
   const a11yLabel = t('notificationBell.a11y', { count: unreadCount });
 
+  // Solid icon when there are unread items — signals "active button, has content".
+  // Outline icon when the queue is empty — passive but still discoverable.
+  const hasUnread = unreadCount > 0;
+  const iconName = hasUnread ? 'notifications' : 'notifications-outline';
+
+  const handlePress = () => {
+    // Light haptic on press makes the bell clearly read as a button.
+    // Failure is benign (e.g. emulator without haptics) — swallow.
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    navigation.navigate('NotificationFeed');
+  };
+
   return (
     <View
       style={[styles.container, { top: insets.top + 8 }]}
     >
       <Pressable
-        onPress={() => navigation.navigate('NotificationFeed')}
+        onPress={handlePress}
         accessibilityRole="button"
         accessibilityLabel={a11yLabel}
         style={({ pressed }) => [
@@ -56,7 +69,7 @@ export const ParentNotificationBell: React.FC = () => {
         ]}
         hitSlop={12}
       >
-        <Ionicons name="notifications-outline" size={22} color={PARENT_THEME.text} />
+        <Ionicons name={iconName} size={22} color={PARENT_THEME.text} />
         {unreadCount > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{badgeLabel}</Text>
