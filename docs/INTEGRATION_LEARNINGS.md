@@ -14,6 +14,18 @@
 
 ## Implementation Notes
 
+### IN-2026-05-27-02: Family code was unreachable from the Dashboard
+
+- **תאריך:** 2026-05-27
+- **מקור:** Adi — reported that Noa (real user) couldn't find a way to send Leia the join link after finishing onboarding. CC investigation confirmed the gap.
+- **תיאור:** The family code (`families.short_code`) is shown to the parent in exactly two places today: (1) a big purple card at the end of unified onboarding (`UStep8_Complete.tsx:145-154`) with `codeHint`, and (2) Settings → Account → Family code (`ParentSettingsScreen.tsx:42-53`) as a tap-to-copy row. **No surface on the Parent Dashboard.** Noa saw the code at end-of-onboarding, didn't copy it on the spot, and after returning to the dashboard had no way to retrieve it without digging into Settings → Account — a surface she didn't think to check.
+- **השפעה:**
+  - **The "kids never log in" design (per CLAUDE.md memory `feedback_kids_never_login`) hinges on parents being able to share the family code with kids who have a separate device.** Without an accessible surface, that flow is broken in practice even though the mechanism (`ChildJoinScreen` + orphan-claim RPCs) is fully implemented.
+  - **Pre-written i18n keys went unused.** `familyCode.share`, `familyCode.showQR`, `familyCode.sendInvite`, `familyCode.microcopy`, `familyCode.addChild`, `familyCode.scanToJoin`, etc. (en.json + he.json L1195-1223) describe a richer "Add child / share / QR / scan" UI that was planned but never built. Recommend treating those as a future package (slug suggestion: `pkg/family-code-rich-share` — would add QR + scan-to-join flows; gated on `buildJoinUrl` deep link becoming usable, which is Option B / post-RevenueCat per CLAUDE.md FLAGs).
+  - **`useChildrenDashboard` doesn't expose `user_id`/join-state.** Adding a per-child "Send invite" affordance (one approach considered) would require extending the hook. The chosen approach (family-level card below the children list) sidesteps this since the code is family-scoped anyway.
+- **סטטוס:** `resolved` — fixed in `pkg/invite-card-on-dashboard` (this commit). A new `inviteCard.*` i18n namespace was added (7 keys, en+he) and a family-level card was inserted in `ParentDashboardScreen.tsx` below the Today children loop. The card uses React Native's built-in `Share.share()` (no new dependency) and reuses the dynamic `expo-clipboard` import pattern from Settings. The `shareMessage` is a draft (`inviteCard.shareMessage`); Adi can rewrite it without code changes.
+- **קשור ל:** `pkg/invite-card-on-dashboard`, CLAUDE.md memory `feedback_kids_never_login`, `feedback_marketing_why_what`, open FLAG "Invite Link Option B (deep link `buff://join/:code`, post-RevenueCat)", `src/lib/buffConfig.ts:26` (`buildJoinUrl` — unused for now).
+
 ### IN-2026-05-27-01: View-as-Child was implemented as read-only — broke the majority use case
 
 - **תאריך:** 2026-05-27
