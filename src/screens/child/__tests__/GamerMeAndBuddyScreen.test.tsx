@@ -51,6 +51,10 @@ jest.mock('../../../hooks/useAppSettings', () => ({
   useAppSettings: jest.fn(),
 }));
 
+jest.mock('../../../hooks/usePetState', () => ({
+  usePetState: jest.fn(),
+}));
+
 jest.mock('../../../components/WelcomeBackModal', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -72,11 +76,13 @@ import { useBuddyRelationship } from '../../../hooks/useBuddyRelationship';
 import { useChildBuddyStats } from '../../../hooks/useChildBuddyStats';
 import { useChildBuddyGifts } from '../../../hooks/useChildBuddyGifts';
 import { useAppSettings } from '../../../hooks/useAppSettings';
+import { usePetState } from '../../../hooks/usePetState';
 
 const mockedUseBuddy       = useBuddyRelationship as jest.MockedFunction<typeof useBuddyRelationship>;
 const mockedUseStats       = useChildBuddyStats   as jest.MockedFunction<typeof useChildBuddyStats>;
 const mockedUseGifts       = useChildBuddyGifts   as jest.MockedFunction<typeof useChildBuddyGifts>;
 const mockedUseAppSettings = useAppSettings       as jest.MockedFunction<typeof useAppSettings>;
+const mockedUsePetState    = usePetState          as jest.MockedFunction<typeof usePetState>;
 
 const baseRelationship: BuddyRelationship = {
   id: 'rel-1',
@@ -100,11 +106,13 @@ function setHooks({
   daysTogether = 12,
   tasksCompleted = 47,
   isPauseActive = false,
+  petSkin = 'wolf',
 }: Partial<{
   relationship: BuddyRelationship | null;
   daysTogether: number;
   tasksCompleted: number;
   isPauseActive: boolean;
+  petSkin: string;
 }> = {}) {
   mockedUseBuddy.mockReturnValue({
     relationship, loading: false, error: null, refetch: jest.fn(),
@@ -117,6 +125,10 @@ function setHooks({
     gifts: [], loading: false, error: null, refetch: jest.fn(),
   } as any);
   mockedUseAppSettings.mockReturnValue({ isPauseActive } as any);
+  mockedUsePetState.mockReturnValue({
+    petState: { current_skin: petSkin } as any,
+    loading: false,
+  } as any);
 }
 
 describe('GamerMeAndBuddyScreen', () => {
@@ -165,14 +177,33 @@ describe('GamerMeAndBuddyScreen', () => {
     expect(queryByText('LEVEL 2')).toBeNull();
   });
 
-  test('fresh-child fallback: null relationship renders L1 + Buddy fallback name', () => {
+  test('fresh-child fallback: null relationship renders L1 + pet-skin default name (wolf → STORMY)', () => {
     setHooks({ relationship: null, daysTogether: 0, tasksCompleted: 0 });
 
     const { getByText } = render(<GamerMeAndBuddyScreen />);
     expect(getByText('LEVEL 1')).toBeTruthy();
-    expect(getByText('Buddy')).toBeTruthy();
+    // Pet skin defaults to 'wolf' in Gamer mode → STORMY is the buddy default
+    expect(getByText('STORMY')).toBeTruthy();
     expect(getByText('buddy.friendshipLevel.L1.other')).toBeTruthy();
     expect(getByText('gamerMyStats.progressToNextLevel:2')).toBeTruthy();
+  });
+
+  test('pet skin drives default name when current_skin_id is null (wolf → STORMY)', () => {
+    setHooks({
+      relationship: { ...baseRelationship, current_skin_id: null },
+      petSkin: 'wolf',
+    });
+    const { getByText } = render(<GamerMeAndBuddyScreen />);
+    expect(getByText('STORMY')).toBeTruthy();
+  });
+
+  test('non-buddy pet skin (tiger) falls back to "Buddy" name', () => {
+    setHooks({
+      relationship: { ...baseRelationship, current_skin_id: null, buddy_name: null },
+      petSkin: 'tiger',
+    });
+    const { getByText } = render(<GamerMeAndBuddyScreen />);
+    expect(getByText('Buddy')).toBeTruthy();
   });
 
   test('back button navigates back', () => {

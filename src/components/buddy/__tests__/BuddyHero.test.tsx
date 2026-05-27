@@ -54,18 +54,30 @@ describe('BuddyHero', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  test('falls back to wolf silhouette for unknown skin', () => {
-    // Smoke-level — we just verify the container renders without throwing.
+  test('renders emoji from PET_SKINS for a known skin (panda)', () => {
     const { getByTestId } = render(
       <BuddyHero size="screen" skinId="panda" level={2} />,
     );
     expect(getByTestId('buddy-hero-container')).toBeTruthy();
+    expect(getByTestId('buddy-hero-emoji').props.children).toBe('🐼');
+  });
+
+  test('renders emoji for heroic skins (tiger, shark, dragon)', () => {
+    const tiger = render(<BuddyHero size="dashboard" skinId="tiger" level={1} />);
+    expect(tiger.getByTestId('buddy-hero-emoji').props.children).toBe('🐯');
+
+    const shark = render(<BuddyHero size="dashboard" skinId="shark" level={3} />);
+    expect(shark.getByTestId('buddy-hero-emoji').props.children).toBe('🦈');
+
+    const dragon = render(<BuddyHero size="dashboard" skinId="epic_dragon" level={5} />);
+    expect(dragon.getByTestId('buddy-hero-emoji').props.children).toBe('🐉');
   });
 
   test('handles null skinId (fresh child) — defaults to wolf silhouette', () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <BuddyHero size="dashboard" skinId={null} level={1} />,
     );
     expect(getByTestId('buddy-hero-container')).toBeTruthy();
+    expect(queryByTestId('buddy-hero-emoji')).toBeNull();
   });
 });

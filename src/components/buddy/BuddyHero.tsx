@@ -6,15 +6,17 @@
  *   - GamerMeAndBuddyScreen / 5A (size='screen') — larger hero on the
  *     dedicated buddy screen.
  *
- * Asset selection per pkg/teen-ui-with-buddy-character SPEC §"Architectural
- * Decision 3": static `require()` map keyed by skin × level. Today the map
- * returns null (BUDDY_ASSETS_READY = false) → component falls back to the
- * per-skin SVG silhouette. When PNGs land, a single 1-line PR flips the
- * registry and BuddyHero starts rendering raster art with zero call-site
- * changes.
+ * Render priority:
+ *   1. PNG asset from buddyAssets (when BUDDY_ASSETS_READY === true)
+ *   2. Emoji from PET_SKINS (any heroic/sweet skin the child picked via
+ *      PetSkinPicker — tiger, shark, dragon, puppy, cat, etc.) — keeps the
+ *      Gamer dashboard hero in sync with the child's actual selection
+ *      instead of forcing a wolf silhouette
+ *   3. SVG silhouette (wolf/capybara) — legacy fallback only when skinId
+ *      is null/unknown
  */
 import type { FC } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Image, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { BuddyRelationship } from '../../types/buddy';
 import {
@@ -24,6 +26,7 @@ import {
 } from './buddyAssets';
 import { WolfSilhouette } from './WolfSilhouette';
 import { CapybaraSilhouette } from './CapybaraSilhouette';
+import { PET_SKINS } from '../../types/pet';
 
 const COLORS = {
   surface:    '#2D2546',
@@ -119,6 +122,24 @@ function renderCharacter(
     );
   }
 
+  // Emoji path — honors the kid's PetSkinPicker selection (wolf, tiger,
+  // shark, dragon, puppy, cat, etc.) so the Gamer hero matches what they
+  // see in the Pet area / Mint dashboard.
+  const skinDef = skinId ? PET_SKINS[skinId] : undefined;
+  if (skinDef) {
+    return (
+      <Text
+        style={{ fontSize: px * 0.7, lineHeight: px }}
+        accessibilityRole="image"
+        accessibilityLabel="buddy"
+        testID="buddy-hero-emoji"
+      >
+        {skinDef.emoji}
+      </Text>
+    );
+  }
+
+  // Legacy silhouette fallback — only when skinId is null or unrecognized.
   const resolvedSkin: BuddySkinId = isKnownBuddySkin(skinId) ? skinId : 'wolf';
   if (resolvedSkin === 'capybara') {
     return <CapybaraSilhouette level={level} size={px} />;
