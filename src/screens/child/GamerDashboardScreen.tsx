@@ -138,7 +138,9 @@ export default function GamerDashboardScreen() {
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
-  // Pause and skipped during parent preview. See SPEC § Scenario C.
+  // Pause. Fires under view-as-child as well, since on shared devices
+  // (~65% of families) view-as-child IS the kid's actual interface.
+  // See SPEC § Scenario C.
   const vibe = useDailyVibe(childId);
   const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
@@ -148,8 +150,7 @@ export default function GamerDashboardScreen() {
     !!childId &&
     !isPauseActive &&
     !hasVibedToday &&
-    !vibeDismissedToday &&
-    !isChildPreview;
+    !vibeDismissedToday;
 
   const lowPowerValue: LowPowerContextValue = useMemo(() => ({
     isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff,

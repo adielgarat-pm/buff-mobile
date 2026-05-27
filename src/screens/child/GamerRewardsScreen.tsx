@@ -75,7 +75,7 @@ interface StoreReward {
 export default function GamerRewardsScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, isChildPreview, viewMode } = useMode();
+  const { previewChildId, viewMode } = useMode();
   const { isSubscribed } = useSubscription();
   const isChildViewer = viewMode === 'child';
 
@@ -118,8 +118,10 @@ export default function GamerRewardsScreen() {
   }, [rewards, totalBalance]);
 
   // ── Claim handler (same UX as pastel version — Alert for now) ───────────
+  // No view-as-child gate: on shared devices the parent hands the phone
+  // to the kid, who taps redeem themselves. The action is attributed
+  // to the previewed child via `childId` derivation above.
   const handleClaim = (reward: StoreReward) => {
-    if (isChildPreview) return;
     if (totalBalance < reward.credits_needed) {
       Alert.alert(
         t('childRewards.notEnoughTitle'),
@@ -262,7 +264,6 @@ export default function GamerRewardsScreen() {
                           <TouchableOpacity
                             style={styles.redeemBtn}
                             onPress={() => handleClaim(reward)}
-                            disabled={isChildPreview}
                           >
                             <Text style={styles.redeemBtnText}>{t('gamerRewards.redeem')}</Text>
                           </TouchableOpacity>
@@ -288,7 +289,6 @@ export default function GamerRewardsScreen() {
               <TouchableOpacity
                 style={styles.suggestBtn}
                 onPress={() => { /* TODO: hook into reward-suggest flow when designed */ }}
-                disabled={isChildPreview}
               >
                 <Ionicons name="add" size={18} color={COLORS.textMuted} />
                 <Text style={styles.suggestText}>{t('gamerRewards.suggestReward')}</Text>

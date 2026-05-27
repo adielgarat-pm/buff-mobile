@@ -59,8 +59,10 @@ function PastelChildDashboard() {
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — once per day, gated by Pause (Pause wins per SPEC
-  // Scenario C). Skipped entirely during parent preview to avoid corrupting
-  // the kid's data with parent taps.
+  // Scenario C). View-as-child IS the kid's actual interface on shared
+  // devices, so the modal fires there too; the recordVibe write goes
+  // under `previewChildId` and `daily_vibe` RLS accepts the parent's
+  // auth session for any child in the family.
   const vibe = useDailyVibe(childId);
   const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
@@ -70,8 +72,7 @@ function PastelChildDashboard() {
     !!childId &&
     !isPauseActive &&
     !hasVibedToday &&
-    !vibeDismissedToday &&
-    !isChildPreview;
+    !vibeDismissedToday;
 
   // Low Power Mode value (consumed by SosButton / InstantBuffCard /
   // LowPowerBanner via context to avoid each component spinning up its
