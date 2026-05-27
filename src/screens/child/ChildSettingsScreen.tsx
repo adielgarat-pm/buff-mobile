@@ -24,9 +24,12 @@ type Nav = StackNavigationProp<RootStackParamList>;
 
 const PET_SKINS = ['🐶', '🐱', '🐰', '🐼', '🐉', '🦄', '🐯', '🦊', '🦈', '🦁', '🦫'];
 
-const THEME_OPTIONS: { name: ChildThemeName; label: string; emoji: string; desc: string }[] = [
-  { name: 'mint',  label: 'Mint',  emoji: '🌿', desc: 'Light & playful' },
-  { name: 'gamer', label: 'Gamer', emoji: '🎮', desc: 'Dark neon energy' },
+// Theme options — label/desc resolved via t() inside the component so they
+// stay reactive to language switches. labelKey/descKey are stable i18n
+// lookups; the emoji is a glyph (no translation needed).
+const THEME_OPTIONS: { name: ChildThemeName; labelKey: string; descKey: string; emoji: string }[] = [
+  { name: 'mint',  labelKey: 'childSettings.themes.mint.label',  descKey: 'childSettings.themes.mint.desc',  emoji: '🌿' },
+  { name: 'gamer', labelKey: 'childSettings.themes.gamer.label', descKey: 'childSettings.themes.gamer.desc', emoji: '🎮' },
 ];
 
 export default function ChildSettingsScreen() {
@@ -79,11 +82,11 @@ export default function ChildSettingsScreen() {
           style={[styles.exitBanner, { backgroundColor: T.accent }]}
           onPress={exitChildPreview}
         >
-          <Text style={[styles.exitText, { color: T.primaryForeground }]}>← Exit Child Preview</Text>
+          <Text style={[styles.exitText, { color: T.primaryForeground }]}>{t('childSettings.exitChildPreview')}</Text>
         </TouchableOpacity>
       )}
 
-      <Text style={[styles.pageTitle, { color: T.primary }]}>Menu</Text>
+      <Text style={[styles.pageTitle, { color: T.primary }]}>{t('childSettings.menuTitle')}</Text>
 
       {/* Profile card */}
       <View style={[styles.profileCard, { backgroundColor: T.card, borderColor: T.border }]}>
@@ -96,13 +99,13 @@ export default function ChildSettingsScreen() {
             {child.petName} · {petCfg.label}
           </Text>
           <Text style={[styles.profileBuffs, { color: T.buff }]}>
-            {child.buffs.toLocaleString()} Buffs ⚡
+            {child.buffs.toLocaleString()} {t('childSettings.buffsSuffix')}
           </Text>
         </View>
       </View>
 
       {/* ── Theme picker ───────────────────────────────────────────────────── */}
-      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Theme</Text>
+      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.themesSection')}</Text>
       <View style={[styles.themeRow]}>
         {THEME_OPTIONS.map((opt) => {
           const preview = CHILD_THEMES[opt.name];
@@ -128,12 +131,12 @@ export default function ChildSettingsScreen() {
                 ))}
               </View>
               <Text style={styles.themeEmoji}>{opt.emoji}</Text>
-              <Text style={[styles.themeLabel, { color: preview.foreground }]}>{opt.label}</Text>
-              <Text style={[styles.themeDesc, { color: preview.mutedForeground }]}>{opt.desc}</Text>
+              <Text style={[styles.themeLabel, { color: preview.foreground }]}>{t(opt.labelKey)}</Text>
+              <Text style={[styles.themeDesc, { color: preview.mutedForeground }]}>{t(opt.descKey)}</Text>
               {active && (
                 <View style={[styles.themeActiveBadge, { backgroundColor: preview.primary }]}>
                   <Text style={[styles.themeActiveBadgeText, { color: preview.primaryForeground }]}>
-                    Active
+                    {t('childSettings.themeActive')}
                   </Text>
                 </View>
               )}
@@ -144,12 +147,12 @@ export default function ChildSettingsScreen() {
 
       {/* ── Pet skin ───────────────────────────────────────────────────────── */}
       <View style={styles.sectionHeaderRow}>
-        <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Pet Skin</Text>
+        <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.petSkinSection')}</Text>
         {/* "✨ Premium" badge only shown to parent viewers — children should not
             be shown subscription CTAs. The locked overlays on the skins stay
             so children still see what's possible to unlock. */}
         {!isSubscribed && !isChildViewer && (
-          <Text style={[styles.premiumBadge, { color: T.accent }]}>✨ Premium</Text>
+          <Text style={[styles.premiumBadge, { color: T.accent }]}>{t('childSettings.premiumBadge')}</Text>
         )}
       </View>
       <View style={[styles.skinGrid, { backgroundColor: T.card, borderColor: T.border }]}>
@@ -183,7 +186,7 @@ export default function ChildSettingsScreen() {
       </View>
 
       {/* ── Buddy section ──────────────────────────────────────────────────── */}
-      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>Buddy</Text>
+      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.buddySection')}</Text>
       <TouchableOpacity
         style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
         onPress={() => setToggleModalVisible(true)}
@@ -214,7 +217,7 @@ export default function ChildSettingsScreen() {
 
       {/* ── Haptics toggle ─────────────────────────────────────────────────── */}
       <View style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}>
-        <Text style={[styles.settingLabel, { color: T.foreground }]}>📳 Completion Haptics</Text>
+        <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('childSettings.haptics')}</Text>
         <Switch
           value={hapticsOn}
           onValueChange={handleHapticsToggle}

@@ -118,7 +118,7 @@ function PastelChildTasks() {
         <Text style={[styles.heading, { color: T.primary }]}>{t('child.heading.quests')}</Text>
         <View style={[styles.buffBadge, { backgroundColor: T.card, borderColor: T.border }]}>
           <Text style={[styles.buffEarned, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
-          <Text style={[styles.buffSep,    { color: T.mutedForeground }]}> ⚡ Buffs</Text>
+          <Text style={[styles.buffSep,    { color: T.mutedForeground }]}>{t('childTasks.buffsSuffix')}</Text>
         </View>
       </View>
 

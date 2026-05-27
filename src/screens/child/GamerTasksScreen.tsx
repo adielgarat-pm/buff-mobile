@@ -196,7 +196,7 @@ export default function GamerTasksScreen() {
           </View>
           <View style={styles.buffsBadge}>
             <Text style={styles.buffsValue}>{totalBalance.toLocaleString()}</Text>
-            <Text style={styles.buffsLabel}> ⚡ Buffs</Text>
+            <Text style={styles.buffsLabel}>{t('gamerTasks.buffsLabel')}</Text>
           </View>
         </View>
 
