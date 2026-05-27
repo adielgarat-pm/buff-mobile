@@ -14,6 +14,18 @@
 
 ## Implementation Notes
 
+### IN-2026-05-27-05: daily_progress upsert silently failed in prod since 2026-04-09
+
+- **תאריך:** 2026-05-27 (Hat-3 regression test of PR #100)
+- **מקור:** CC — discovered during post-merge Hat-3 testing on Pixel_7 emulator. Tapped a task to mark complete; UI flipped to ✓ with "Phase Complete!" but DB row never appeared. SQL query confirmed last successful `daily_progress` write was 2026-04-09 — 48 days of silent failures.
+- **תיאור:** `useChildProgress.completeTask` (`src/hooks/useChildProgress.ts:310-330`) used `supabase.from('daily_progress').upsert(...,  { onConflict: 'family_id,child_id,date,task_id' })`. supabase-js translates this to PostgREST `POST` with `on_conflict=family_id,child_id,date,task_id`, which generates `INSERT ... ON CONFLICT (family_id,child_id,date,task_id) DO UPDATE`. **But `daily_progress` had no unique index/constraint matching that column tuple** — Postgres returned `42P10: there is no unique or exclusion constraint matching the ON CONFLICT specification`. supabase-js surfaced this as a non-null `error`; the client's `if (!error)` guard suppressed the subsequent `credit_vault` update; React state never reverted the optimistic flip. Net effect: kid taps ✓, sees BUFFs incremented, reloads → ✗ back, balance reset.
+- **השפעה:**
+  - **48 days of broken task completion** for any kid using the mobile app. Lovable (web) likely used a different code path and was unaffected — explains why Adi's 3 returning kids (Etay/Leia/Mattan per `project_buff_war_non_return`) seemed to engage while mobile users churned.
+  - **PR #100 (view-as-child) hot-spot:** the gate-removal in this PR newly allowed parent-in-preview taps to reach the mutation. Before #100, the read-only gate prevented `completeTask` from firing in view-as-child Gamer mode. Removing the gate exposed the latent bug — but the bug pre-dates #100 (Mint kids on mobile have been hitting it since 2026-04-09).
+  - **Children Mode users on shared parent devices** (~65% of families per design doc) — every task completion since April 9 has been silently lost. The "tap, see ✓, reload, see ✗" feedback loop is consistent with the habit-fragility hypothesis in `project_buff_anchor_theory`.
+- **סטטוס:** `resolved` — fixed in `pkg/daily-progress-upsert-fix` (this commit). Migration 016 adds `CREATE UNIQUE INDEX daily_progress_family_child_date_task_unique ON daily_progress (family_id, child_id, date, task_id)`. Pre-flight verified 0 duplicate groups in 1,372 prod rows → index creates cleanly with no data migration. Verified end-to-end on emulator: post-migration tap created a real row attributed to the correct child (`child_id` = אמי, not parent עדי). Test row + credit_vault row deleted as cleanup.
+- **קשור ל:** `pkg/daily-progress-upsert-fix`, PR #100 (`pkg/view-as-child-interactive`, which exposed the bug), `project_buff_war_non_return` (memory), `useChildProgress.completeTask` / `useChildProgress.uncompleteTask` (`src/hooks/useChildProgress.ts:310-351`).
+
 ### IN-2026-05-27-04: Bilingual plumbing regression class — onboarding inserted English tasks into Hebrew users' DBs
 
 - **תאריך:** 2026-05-27
