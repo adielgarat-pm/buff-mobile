@@ -1227,7 +1227,7 @@
   "inviteCard.shareBtn": "📤 שתף קישור",
   "inviteCard.copyBtn": "העתק",
   "inviteCard.copiedBtn": "הועתק ✓",
-  "inviteCard.shareMessage": "היי! נרשמתי ל-BUFF — אפליקציה שעוזרת לי לארגן את עצמי 💪\n\nתוריד/י את האפליקציה מ-Google Play או App Store, ובהרשמה תקליד/י את הקוד:\n\n{code}",
+  "inviteCard.shareMessage": "היי! נרשמתי ל-BUFF — אפליקציה שעוזרת לי לארגן את עצמי 💪\n\nתוריד/י את האפליקציה מ-Google Play או App Store, ובהרשמה תקליד/י את הקוד:\n\n{{code}}",
   "footer.lovableAttribution": "פותח באהבה באמצעות",
   "v2.stepOf": "שלב {current} מתוך {total}",
   "v2.continue": "המשך",
