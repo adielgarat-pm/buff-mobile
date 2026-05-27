@@ -219,7 +219,7 @@ export default function SignupScreen() {
         {/* Back to login */}
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ marginTop: 24 }}>
           <Text style={styles.loginLink}>
-            Already have an account?{' '}
+            {t('auth.alreadyHaveAccount')}{' '}
             <Text style={{ color: '#A78BFA' }}>{t('auth.login')}</Text>
           </Text>
         </TouchableOpacity>
