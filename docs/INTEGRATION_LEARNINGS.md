@@ -14,6 +14,22 @@
 
 ## Implementation Notes
 
+### IN-2026-05-27-03: `task_completed` notification icon read as a checkbox affordance
+
+- **תאריך:** 2026-05-27
+- **מקור:** Noa Morag (parent user) → Adi 2026-05-27 feedback: "יש סיבה שהמשימות מופיעות בסימון של יכולת בחירה אבל אין אפשרות בחירה?". Adi framed it broadly as "the notification bell isn't intuitive enough"; CC narrowed it to the row-level icon after reading `NotificationRow.tsx`.
+- **תיאור:** `NotificationRow.tsx:36` rendered `task_completed` rows with `checkmark-circle-outline` as the leading type-tag icon. The icon was chosen semantically (✓ = task done) but visually overlaps with the universal checkbox / toggle affordance — a circle with a check inside is the standard "select me" / "mark off" UI control. Users (parents reading the feed) saw the icon next to "X completed task Y" rows and tried to interact with the icon as if it were a control; the icon is purely decorative and the whole row Pressable is the actual hit target. Affordance ≠ behavior → friction + a feeling of "this surface doesn't respond to me."
+- **השפעה:**
+  - User-facing: parents (per Noa's report) feel the surface is broken even though the bell tap and row tap both work.
+  - Pillar 2 risk: a feeling that the parent surface "doesn't respond" trains the parent to ignore the feed — exactly opposite to the design goal of a calm, glanceable history.
+  - General lesson for future feed/list UIs: **decorative type-icons must not visually overlap with interactive control patterns** (checkbox, toggle, radio). When picking an icon for a type-tag, prefer shapes that read as labels (flag, bookmark, tag, leaf, gift) over shapes that read as toggles (check-in-circle, radio-on, switch).
+  - The original SPEC for `pkg/parent-notification-feed` (OQ-B13 — equal-weight rows decision) was right about the principle (no per-type color emphasis, neutral row), but missed that the specific `checkmark-circle-outline` icon read as interactive. SPEC review checklist gap.
+- **תיקון:** `fix/parent-notification-affordance` (this commit). Two small changes:
+  1. `NotificationRow.tsx:36` — `checkmark-circle-outline` → `flag-outline` (neutral type-tag, no toggle affordance).
+  2. `ParentNotificationBell.tsx` — added light haptic on press + solid `notifications` icon when there are unread items (outline when zero). The bell pressed-opacity stays at 0.7. These polish touches reinforce that the bell is a button without changing any SPEC-locked behavior.
+- **סטטוס:** `resolved` — shipped 2026-05-27 in `fix/parent-notification-affordance`. Hat-4 emulator verification by Adi pending: tap the bell on the parent dashboard, confirm haptic + solid icon when unread; open NotificationFeed and confirm `task_completed` rows show a flag icon (not check-circle) and tapping the row marks read + navigates.
+- **קשור ל:** `docs/sessions/parent-notification-feed/SPEC.md` OQ-B13 (equal-weight rows), `fix/parent-notification-affordance`. Noa's other 2026-05-27 feedback: IN-2026-05-27-01 (read-only view-as-child), IN-2026-05-27-02 (family code surface), PR #101 (i18n sweep).
+
 ### IN-2026-05-27-02: Family code was unreachable from the Dashboard
 
 - **תאריך:** 2026-05-27
