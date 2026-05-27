@@ -43,6 +43,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { PaywallContent } from '../PaywallScreen';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
+import { pickI18nColumn } from '../../lib/i18nString';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -65,6 +66,7 @@ type TabKey = 'parent' | 'buddy';
 interface StoreReward {
   id:             string;
   title:          string;
+  title_he?:      string | null;
   emoji:          string;
   size:           string | null;
   credits_needed: number;
@@ -73,7 +75,7 @@ interface StoreReward {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 export default function GamerRewardsScreen() {
-  const { t }       = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const { previewChildId, viewMode } = useMode();
   const { isSubscribed } = useSubscription();
@@ -99,7 +101,7 @@ export default function GamerRewardsScreen() {
     setLoading(true);
     supabase
       .from('store_rewards')
-      .select('id, title, emoji, size, credits_needed, is_redeemed')
+      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
@@ -122,18 +124,19 @@ export default function GamerRewardsScreen() {
   // to the kid, who taps redeem themselves. The action is attributed
   // to the previewed child via `childId` derivation above.
   const handleClaim = (reward: StoreReward) => {
+    const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
       Alert.alert(
         t('childRewards.notEnoughTitle'),
         t('childRewards.notEnoughMsg', {
           count: reward.credits_needed - totalBalance,
-          title: reward.title,
+          title: displayTitle,
         }),
       );
     } else {
       Alert.alert(
         t('childRewards.claimTitle'),
-        t('childRewards.claimMsg', { title: reward.title }),
+        t('childRewards.claimMsg', { title: displayTitle }),
       );
     }
   };
@@ -251,7 +254,7 @@ export default function GamerRewardsScreen() {
                           style={[styles.cardTitle, !isUnlocked && { opacity: 0.7 }]}
                           numberOfLines={2}
                         >
-                          {reward.title}
+                          {pickI18nColumn(reward, i18n.language)}
                         </Text>
                         <Text style={[
                           styles.cardCost,

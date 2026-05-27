@@ -31,6 +31,7 @@ import {
 } from './onboardingData';
 import type { AgeGroup } from './onboardingData';
 import type { TaskCategory } from '../../../types/task';
+import { pickLang, bilingualForDb } from '../../../lib/i18nString';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
 type Route = RouteProp<RootStackParamList, 'UStep5_Preview'>;
@@ -172,11 +173,15 @@ export default function UStep5_Preview() {
       // ── 2. INSERT tasks ──────────────────────────────────────────────────
       console.log(`${TAG} [2/3] Inserting ${tasks.length} tasks for childProfileId=${id}...`);
 
-      // Main challenge tasks (up to 3, spread across Morning / Afternoon / Evening)
+      // Main challenge tasks (up to 3, spread across Morning / Afternoon / Evening).
+      // `tasks` table has a single-column `title` — we pick locale-appropriate
+      // text via `pickLang`. Hebrew interface → Hebrew titles in DB. The active
+      // locale is read fresh from i18n so a late language switch is respected.
+      const activeLang = i18n.language;
       const mainTaskRows = tasks.map((t, index) => ({
         family_id:     familyId,
         assigned_to:   id,
-        title:         t.title.en,
+        title:         pickLang(t.title, activeLang),
         category:      getCategoryForChallenge(params.mainChallenge),
         time:          TASK_TIMES[index] ?? '08:00',
         credits:       t.buff_value,
@@ -193,7 +198,7 @@ export default function UStep5_Preview() {
           return {
             family_id:     familyId,
             assigned_to:   id,
-            title:         t.title.en,
+            title:         pickLang(t.title, activeLang),
             category:      getCategoryForChallenge(challenge),
             time:          ADDITIONAL_TASK_TIMES[index] ?? '12:00',
             credits:       t.buff_value,
@@ -219,11 +224,13 @@ export default function UStep5_Preview() {
       // ── 3. INSERT store_rewards ──────────────────────────────────────────
       console.log(`${TAG} [3/3] Inserting ${rewards.length} rewards for childProfileId=${id}...`);
 
+      // `store_rewards` has both `title` (en) and `title_he` columns —
+      // `bilingualForDb` spreads them in one line. The read side
+      // (3 reward screens) picks the right column via `pickI18nColumn`.
       const rewardRows = rewards.map(r => ({
         family_id:      familyId,
         child_id:       id,
-        title:          r.title.en,
-        title_he:       r.title.he,
+        ...bilingualForDb(r.title),
         emoji:          r.emoji,
         size:           r.size,
         credits_needed: calcRewardCreditsDefault(r.size),

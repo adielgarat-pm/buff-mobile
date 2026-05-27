@@ -5,7 +5,7 @@
  * of `src/<area>/__tests__/<file>.test.ts`. The source for these helpers
  * lives in `src/lib/i18nString.ts`.
  */
-import { pickLang, pickI18nColumn } from '../i18nString';
+import { pickLang, pickI18nColumn, bilingualForDb } from '../i18nString';
 
 describe('pickLang', () => {
   const literal = { en: 'Brush teeth', he: 'לצחצח שיניים' };
@@ -76,5 +76,23 @@ describe('pickI18nColumn', () => {
     expect(
       pickI18nColumn({ title: 'Family movie', title_he: 'ערב סרט' }, 'he-IL'),
     ).toBe('ערב סרט');
+  });
+});
+
+describe('bilingualForDb', () => {
+  it('maps en → title and he → title_he', () => {
+    const result = bilingualForDb({ en: 'Family movie', he: 'ערב סרט' });
+    expect(result).toEqual({ title: 'Family movie', title_he: 'ערב סרט' });
+  });
+
+  it('returns the exact two-key shape (no extra keys)', () => {
+    const result = bilingualForDb({ en: 'a', he: 'ב' });
+    expect(Object.keys(result).sort()).toEqual(['title', 'title_he']);
+  });
+
+  it('preserves empty Hebrew string as empty (not stripped)', () => {
+    // Empty he is unusual but we don't fabricate a value — the row will
+    // just have an empty title_he and the read-side fallback handles it.
+    expect(bilingualForDb({ en: 'a', he: '' })).toEqual({ title: 'a', title_he: '' });
   });
 });

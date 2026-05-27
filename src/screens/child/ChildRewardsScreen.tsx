@@ -21,14 +21,16 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { supabase } from '../../integrations/supabase/client';
 import { PaywallContent } from '../PaywallScreen';
 import GamerRewardsScreen from './GamerRewardsScreen';
+import { pickI18nColumn } from '../../lib/i18nString';
 
 interface StoreReward {
-  id: string;
-  title: string;
-  emoji: string;
-  size: string;
+  id:             string;
+  title:          string;
+  title_he?:      string | null;
+  emoji:          string;
+  size:           string;
   credits_needed: number;
-  is_redeemed: boolean;
+  is_redeemed:    boolean;
 }
 
 // ─── Top-level router ────────────────────────────────────────────────────────
@@ -44,7 +46,7 @@ export default function ChildRewardsScreen() {
 // ─── Pastel (mint theme) implementation ──────────────────────────────────────
 
 function PastelChildRewards() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const T = useChildTheme();
   const { profile } = useAuth();
   const { previewChildId, viewMode } = useMode();
@@ -66,7 +68,7 @@ function PastelChildRewards() {
     setLoading(true);
     supabase
       .from('store_rewards')
-      .select('id, title, emoji, size, credits_needed, is_redeemed')
+      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
@@ -97,13 +99,14 @@ function PastelChildRewards() {
   }
 
   const handleClaim = (reward: StoreReward) => {
+    const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
       Alert.alert(
         t('childRewards.notEnoughTitle'),
-        t('childRewards.notEnoughMsg', { count: reward.credits_needed - totalBalance, title: reward.title })
+        t('childRewards.notEnoughMsg', { count: reward.credits_needed - totalBalance, title: displayTitle })
       );
     } else {
-      Alert.alert(t('childRewards.claimTitle'), t('childRewards.claimMsg', { title: reward.title }));
+      Alert.alert(t('childRewards.claimTitle'), t('childRewards.claimMsg', { title: displayTitle }));
     }
   };
 
@@ -151,7 +154,7 @@ function PastelChildRewards() {
               >
                 <Text style={styles.rewardIcon}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.rewardTitle, { color: T.foreground }]}>{reward.title}</Text>
+                  <Text style={[styles.rewardTitle, { color: T.foreground }]}>{pickI18nColumn(reward, i18n.language)}</Text>
                   <Text style={[styles.rewardDesc, { color: T.mutedForeground }]}>
                     {t('childRewards.needed', { count: reward.credits_needed.toLocaleString() })}
                   </Text>

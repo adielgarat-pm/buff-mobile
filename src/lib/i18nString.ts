@@ -98,3 +98,25 @@ export function pickI18nColumn(row: BilingualColumns, lang: string): string {
   if (lang.startsWith('he') && row.title_he) return row.title_he;
   return row.title;
 }
+
+/**
+ * Convert a bilingual `I18nString` literal into the DB column shape used
+ * by tables that store both languages side-by-side (e.g. `store_rewards`).
+ *
+ * Use this at INSERT time when the target table has both `title` and
+ * `title_he` columns. Spread the result directly into the row object.
+ *
+ * The English value is preserved verbatim into `title` (the legacy
+ * column); the Hebrew value goes into `title_he`. This convention is
+ * mirrored at read time by `pickI18nColumn`.
+ *
+ * @example
+ *   const rewardRow = {
+ *     family_id: familyId,
+ *     ...bilingualForDb(reward.title),  // adds title + title_he
+ *     emoji: reward.emoji,
+ *   };
+ */
+export function bilingualForDb(s: I18nString): { title: string; title_he: string } {
+  return { title: s.en, title_he: s.he };
+}
