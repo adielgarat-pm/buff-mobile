@@ -161,7 +161,11 @@ export default function GamerDashboardScreen() {
 
   const buddyVisible = relationship?.buddy_visible ?? true;
   const buddyLevel = relationship?.friendship_level ?? 1;
-  const buddySkinId = relationship?.current_skin_id ?? null;
+  // BUDDY skin follows the child's PetSkinPicker choice (pet_state.current_skin)
+  // when buddy_relationships.current_skin_id is null — which is the live state
+  // today (no code path writes to current_skin_id yet). Keeps the Gamer hero
+  // in sync with what the child picked instead of forcing a wolf silhouette.
+  const buddySkinId = relationship?.current_skin_id ?? petState.current_skin;
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
   const filteredTasks = useMemo(() => {

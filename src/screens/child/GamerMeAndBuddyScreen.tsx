@@ -24,6 +24,7 @@ import { useAppSettings } from '../../hooks/useAppSettings';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useChildBuddyStats } from '../../hooks/useChildBuddyStats';
 import { useChildBuddyGifts } from '../../hooks/useChildBuddyGifts';
+import { usePetState } from '../../hooks/usePetState';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { LevelPill } from '../../components/buddy/LevelPill';
@@ -61,12 +62,13 @@ export default function GamerMeAndBuddyScreen() {
   useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
   const { stats, loading: statsLoading }        = useChildBuddyStats(childId);
   const { gifts, loading: giftsLoading }        = useChildBuddyGifts(childId);
+  const { petState, loading: petLoading }       = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
 
   const [carouselAlertShown, setCarouselAlertShown] = useState(false);
 
-  if (buddyLoading || statsLoading || giftsLoading) {
+  if (buddyLoading || statsLoading || giftsLoading || petLoading) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color={COLORS.lime} />
@@ -79,7 +81,13 @@ export default function GamerMeAndBuddyScreen() {
   const daysTogether   = stats?.daysTogether   ?? 0;
   const tasksCompleted = stats?.tasksCompleted ?? 0;
 
-  const skinId = relationship?.current_skin_id ?? null;
+  // BUDDY skin follows the child's PetSkinPicker choice when
+  // buddy_relationships.current_skin_id is null (see GamerDashboardScreen
+  // for the same fallback). The default-name lookup still uses the
+  // buddy-specific identity (STORMY/LUNA) — non-buddy skins (tiger, shark,
+  // dragon, …) fall back to the generic "Buddy" label and the kid can
+  // rename via the BuddyNameModal.
+  const skinId = relationship?.current_skin_id ?? petState.current_skin;
   const defaultName = getBuddyDefaultName(skinId) ?? 'Buddy';
   const buddyName = relationship?.buddy_name ?? defaultName;
 
