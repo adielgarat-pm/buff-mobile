@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-05-27-01: View-as-Child was implemented as read-only — broke the majority use case
+
+- **תאריך:** 2026-05-27
+- **מקור:** Adi — reported via bug-report prompt. The parent's "צפה כילד" mode rendered the task list (and rewards / Vibe Check) as non-interactive. CC investigation confirmed via grep + read of the four affected screens.
+- **תיאור:** Six client-side gates keyed on `ModeContext.isChildPreview` short-circuited child interactions whenever a parent entered preview-as-child. Locations: `GamerTasksScreen.tsx` (early-return in `onTaskTap` + `disabled` on the check-circle + `disabled` on Suggest CTA), `GamerRewardsScreen.tsx` (early-return in `handleClaim` + `disabled` on redeem + `disabled` on Suggest), `ChildDashboardScreen.tsx` (`!isChildPreview` in `shouldPromptVibe`), `GamerDashboardScreen.tsx` (`!isChildPreview` in `shouldPromptVibe`). Per the L61–63 comment in `ChildDashboardScreen.tsx`, the original intent was "skipped entirely during parent preview to avoid corrupting the kid's data with parent taps" — a design assumption that contradicts the actual deployment reality.
+- **השפעה:**
+  - **The "preview" framing was wrong for the majority of families.** Per current product design (CLAUDE.md + Adi's memory `feedback_kids_never_login`), kids never see a login screen and ~65% of children use the parent's device. In those families view-as-child IS the kid's actual interface — not a preview, not a parent-supervised "what would the kid see" inspection mode. The read-only behavior made the app unusable for those kids: they could not complete a task, redeem a reward, or log a vibe.
+  - **No mutation / RLS change was needed.** `useChildProgress.completeTask` (`src/hooks/useChildProgress.ts:310-330`) already derived `childId = previewChildId ?? profile?.id`, so the write would have been attributed correctly. RLS on `daily_progress`, `credit_vault`, `store_rewards`, `tasks`, `daily_vibe` is family-scoped (`family_id = get_my_family_id()`), and the parent's auth session passes the policy for any child in the family — verified via Supabase MCP `pg_policies` query on 2026-05-27. The whole bug was a client-side gate.
+  - **Visual cues retained.** The "Parent Preview — tap to exit" banner (ChildTabs L96, ChildDashboard L129, ChildSettings L77, GamerDashboard L215) and the `'Preview'` display-name swap in greetings stay — they help the parent recognize they're in preview without blocking the kid's interactions.
+  - **Mint-mode task card was never gated.** `PhaseTaskCard.tsx` had no `isChildPreview` check, so Mint kids on a parent device were already able to complete tasks end-to-end. The bug was Gamer-specific (impacting Itay's UX and any teen on shared device) plus the Vibe Check on both themes.
+- **סטטוס:** `resolved` — fixed in `pkg/view-as-child-interactive` (this commit). Hat-3 emulator verification deferred to Adi: she should confirm on the Android emulator that (a) tap-to-complete works in view-as-child on both Mint and Gamer themes; (b) reward redeem fires the Alert; (c) Vibe Check modal opens on first entry of the day; (d) the completion shows up under the correct child when she switches back to the parent dashboard.
+- **קשור ל:** `pkg/view-as-child-interactive`, CLAUDE.md memory `feedback_kids_never_login`, `src/contexts/ModeContext.tsx`. Proposes a new DECISIONS_LOG entry (Adi to author): "View-as-child is the kid's actual interface on shared devices — no read-only gates."
+
 ### IN-2026-05-25-02: Lost-work pattern — branches paused > 5 days are at deletion risk
 
 - **תאריך:** 2026-05-25 (discovered during `pkg/sentry-eas-resumption` Phase 0 diagnosis)
