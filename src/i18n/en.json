@@ -153,6 +153,7 @@
   "dashboard.bonusConfirm": "Send Bonus",
   "dashboard.bonusSent": "Bonus sent! ⚡",
   "dashboard.stickerNotReady": "Stickers will be available once you connect {{name}}'s phone 📱",
+  "dashboard.joinedFamily": "👋 {{name}} joined the family — tap to link",
   "task.morning": "Morning",
   "task.afternoon": "Afternoon",
   "task.evening": "Evening",

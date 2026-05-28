@@ -6,14 +6,15 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList, 'RoleSelection'>;
 
-const BG         = '#ede8ff';
-const ACCENT     = '#5b21b6';
-const TEXT_DARK  = '#26215C';
-const TEXT_MUTED = '#5a4e7a';
+const BG         = PASTEL_MODE.canvas;     // #F4F0FA — brand Pastel canvas
+const ACCENT     = PASTEL_MODE.accent;     // #7C3AED
+const TEXT_DARK  = PASTEL_MODE.text;       // #1a1636
+const TEXT_MUTED = PASTEL_MODE.textMuted;  // #6B5B8A
 
 export default function RoleSelectionScreen() {
   const navigation = useNavigation<Nav>();
@@ -103,10 +104,10 @@ const styles = StyleSheet.create({
 
   card: {
     width:            '100%',
-    backgroundColor:  '#ffffff',
+    backgroundColor:  PASTEL_MODE.card,
     borderRadius:     16,
     borderWidth:      1.5,
-    borderColor:      '#c8bef5',
+    borderColor:      PASTEL_MODE.cardBorder,
     padding:          24,
     alignItems:       'center',
     marginBottom:     16,
