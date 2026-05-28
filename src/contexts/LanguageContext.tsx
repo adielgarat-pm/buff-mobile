@@ -85,10 +85,29 @@ function detectDeviceLanguage(): SupportedLanguage {
   return 'en';
 }
 
-/** Reload the app to apply a changed RTL layout direction. */
+/**
+ * Apply a changed RTL layout direction. The native layout engine only reads
+ * I18nManager.isRTL at startup, so a he↔en flip needs a full reload. We ask
+ * first (a silent restart would be jarring), then reload via expo-updates. In
+ * dev clients / Expo Go reloadAsync throws — the new strings + forceRTL flag
+ * are already applied, so the flip lands on the next manual restart.
+ */
 async function reloadApp(): Promise<void> {
-  // In Expo Go, reloadAsync is not available - skip silently
-  return;
+  Alert.alert(
+    i18n.t('language.restartTitle'),
+    i18n.t('language.restartMessage'),
+    [
+      { text: i18n.t('language.restartCancel'), style: 'cancel' },
+      {
+        text: i18n.t('language.restartConfirm'),
+        onPress: () => {
+          Updates.reloadAsync().catch(() => {
+            // dev client / Expo Go: cannot auto-reload; manual restart finishes it
+          });
+        },
+      },
+    ],
+  );
 }
 
 // ─── Context ─────────────────────────────────────────────────────────────────

@@ -11,11 +11,12 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useTheme, useChildTheme, CHILD_THEMES, type ChildThemeName } from '../../contexts/ThemeContext';
-import { useRTLStyles } from '../../contexts/LanguageContext';
+import { useRTLStyles, useLanguage } from '../../contexts/LanguageContext';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
 import { BuddyNameModal } from '../../components/buddy/BuddyNameModal';
+import LanguagePickerModal from '../../components/LanguagePickerModal';
 import { getBuddyDefaultName } from '../../components/buddy/buddyAssets';
 import { MOCK_MY_CHILD, PET_STAGES } from '../../mock/data';
 import type { RootStackParamList } from '../../navigation/types';
@@ -39,6 +40,7 @@ export default function ChildSettingsScreen() {
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
+  const { language } = useLanguage();
   const { isSubscribed } = useSubscription();
   const { t } = useTranslation();
   const isChildViewer = viewMode === 'child';
@@ -53,6 +55,7 @@ export default function ChildSettingsScreen() {
   const [selectedSkin, setSelectedSkin] = useState('🐉');
   const [toggleModalVisible, setToggleModalVisible] = useState(false);
   const [nameModalVisible,   setNameModalVisible]   = useState(false);
+  const [langModalOpen,      setLangModalOpen]      = useState(false);
 
   const buddyVisible = relationship?.buddy_visible ?? true;
   const toggleMode: 'hide' | 'show' = buddyVisible ? 'hide' : 'show';
@@ -226,6 +229,20 @@ export default function ChildSettingsScreen() {
         />
       </View>
 
+      {/* ── General ────────────────────────────────────────────────────────── */}
+      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.generalSection')}</Text>
+      <TouchableOpacity
+        style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
+        onPress={() => setLangModalOpen(true)}
+        accessibilityRole="button"
+        testID="language-entry"
+      >
+        <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('settings.rowLanguage')}</Text>
+        <Text style={[styles.settingStatus, { color: T.mutedForeground }]}>
+          {language === 'he' ? 'עברית' : 'English'}
+        </Text>
+      </TouchableOpacity>
+
       <BuddyToggleModal
         visible={toggleModalVisible}
         mode={toggleMode}
@@ -245,6 +262,11 @@ export default function ChildSettingsScreen() {
           await setBuddyName(name);
         }}
         onCancel={() => setNameModalVisible(false)}
+      />
+
+      <LanguagePickerModal
+        visible={langModalOpen}
+        onClose={() => setLangModalOpen(false)}
       />
     </ScrollView>
   );
