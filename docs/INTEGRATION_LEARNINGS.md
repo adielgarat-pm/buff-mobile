@@ -14,6 +14,24 @@
 
 ## Implementation Notes
 
+### IN-2026-05-28-01: Vibe Check Gamer selector — bars→battery (the split already half-existed)
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — `pkg/vibe-check-battery`. Adi asked to replace the Gamer-mode energy bars with a recharging-battery metaphor for teens, keeping Mint smileys for young kids.
+- **תיאור:** Three things surprised the investigation:
+  1. **The theme split already existed.** `VibeCheckScreen` already branched `isGamer` → `<VibeBars/>` vs Pastel → `<VibeFaces/>`. The task was a component swap inside an existing fork, not a new branch. Decision (Adi-confirmed): **keep the split by THEME** (`mint`/`gamer`), not by age — smallest blast radius, and `themeOverride` preview/View-as-Child keep working.
+  2. **The copy was already values-safe.** `vibeCheck.subtitle` is literally "Pick whichever fits — there's no wrong answer" (en) / "בחר/י את מה שמתאים — אין תשובה לא נכונה" (he). No copy change needed.
+  3. **The a11y labels are energy-framed, not bar-framed** (`level1`="Very low energy" … `level5`="High energy"). They map 1:1 onto battery charge, so VibeBattery **reused the exact keys → 0 new i18n keys → `i18n:check` trivially green**.
+- **החלטות:**
+  - **`vibe_type='battery'`** for teens (was `'bars'`). The DB column is free `text` — verified via Supabase MCP that `child_vibes` has **no CHECK constraint** on `vibe_type` (only `vibe_level` 1-5, FKs, PK, UNIQUE(child_id,date)). All 5 existing rows are `'emoji'`. EOD cron + parent SOS trigger are `vibe_type`-agnostic, so no functional impact and no migration. `VibeType` widened to `'emoji' | 'bars' | 'battery'` (kept `'bars'` for forward-compat with any historical rows).
+  - **Parent visibility (Adi scope decision):** Adi initially said "the parent should really see the child's battery status." Surfaced that the parent sees **no** daily energy gauge today — only a child-initiated SOS dot — and that auto-broadcasting daily energy would be a Pillar-2/3 surveillance drift (PRD §6.4). Adi chose **"just restyle the existing SOS signal"** → the amber dot became a low-charge `BatteryGlyph`; consent model unchanged (child-initiated only). A standalone daily-gauge feature was explicitly **not** built.
+  - **Shared `BatteryGlyph`** primitive serves both the kid selector (5 interactive cells) and the parent indicator (1 static low-charge glyph). Two real consumers → justified DRY, not premature abstraction.
+- **Values (Pillar 2 — the sensitive one):** the selected cell glows the **same lime at every level** — deliberately **no** red-low/green-high danger gradient — so a low pick reads as a valid state, not failure. The battery is the kid's own charge self-report, **never a creature to keep alive** (not the Joon-Doter pattern).
+- **Dep note:** charging bolt uses `@expo/vector-icons` Ionicons `flash` — already a dependency (used across the Gamer screens), so **no new dependency**.
+- **Verification:** `tsc` clean, `jest` 250/250 (the 2 first-run failures were a flaky `EditChildScreen` timeout — green on re-run, unrelated to this diff), `i18n:check` clean. Web render was **attempted** via the `__VibeCheckPreviewHarness` on Expo web from the worktree (node_modules junction → `npm --prefix` launch config on port 8097), but the dev server proved unstable (died mid-bundle) and no faithful capture was obtained — consistent with the project precedent that react-native-web is low-fidelity/unreliable for theme-gated UI (see `pkg/fix-runtime-theme-switch` FLAG). Authoritative Android-emulator visual sign-off is therefore Adi's (or a `buff-testing` Hat-3 run).
+- **סטטוס:** `open` — pending Adi merge + emulator sign-off. Spec-sync flag: `BUFF_BRAND.md` §7 (~line 350) still lists "energy bars ב-Gamer" as an allowed visual; proposed wording update pending Adi (not edited unilaterally — brand doc).
+- **קשור ל:** `pkg/vibe-check-battery`, `docs/sessions/daily-vibe-check/` (origin of the selector + `vibe_type` contract), `pkg/fix-runtime-theme-switch` (web-preview-unreliable precedent), `BUFF_BRAND.md` §7.5 (Gamer palette).
+
 ### IN-2026-05-27-05: daily_progress upsert silently failed in prod since 2026-04-09
 
 - **תאריך:** 2026-05-27 (Hat-3 regression test of PR #100)

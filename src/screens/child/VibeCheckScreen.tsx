@@ -1,8 +1,8 @@
 /**
  * VibeCheckScreen — full-screen daily Vibe Check prompt.
  *
- * Theme-aware: routes between Pastel (emoji faces) and Gamer (lime
- * energy bars) per SPEC § Decisions OQ6 / OQ7.
+ * Theme-aware: routes between Pastel (emoji faces) and Gamer (a
+ * recharging battery) per SPEC § Decisions OQ6 / OQ7.
  *
  * Pure presentational — wiring to useDailyVibe lives in the dashboard
  * that mounts this. Dashboard combines `hasVibedToday + !isPauseActive`
@@ -19,8 +19,8 @@ import {
   Modal, View, Text, TouchableOpacity, StyleSheet, SafeAreaView,
 } from 'react-native';
 import { useChildTheme } from '../../contexts/ThemeContext';
-import { VibeFaces } from '../../components/VibeFaces';
-import { VibeBars }  from '../../components/VibeBars';
+import { VibeFaces }   from '../../components/VibeFaces';
+import { VibeBattery } from '../../components/VibeBattery';
 import type { VibeLevel, VibeType } from '../../utils/vibeUtils';
 
 // ─── BUFF Gamer palette (matches GamerDashboardScreen — BUFF_BRAND.md §7.5) ──
@@ -44,7 +44,7 @@ export interface VibeCheckScreenProps {
   visible: boolean;
   /** Called when a level is selected. `type` is passed back so the
    *  caller can persist it to `child_vibes.vibe_type` ('emoji' for
-   *  Pastel, 'bars' for Gamer). */
+   *  Pastel, 'battery' for Gamer). */
   onSelect:  (level: VibeLevel, type: VibeType) => void;
   /** Called when the kid dismisses without selecting. */
   onDismiss: () => void;
@@ -174,7 +174,7 @@ function GamerCheckContent({ onSelect, onDismiss }: GamerProps) {
 
   const handleSelect = (level: VibeLevel) => {
     setSelected(level);
-    setTimeout(() => onSelect(level, 'bars'), 180);
+    setTimeout(() => onSelect(level, 'battery'), 180);
   };
 
   return (
@@ -188,16 +188,18 @@ function GamerCheckContent({ onSelect, onDismiss }: GamerProps) {
             {t('vibeCheck.subtitle')}
           </Text>
 
-          <View style={gamerStyles.barsRow}>
-            <VibeBars
+          <View style={gamerStyles.batteryRow}>
+            <VibeBattery
               selectedLevel={selected}
               onSelect={handleSelect}
               palette={{
-                barBg:        GAMER_PALETTE.surface,
-                barBorder:    GAMER_PALETTE.border,
-                selectedFill: GAMER_PALETTE.lime,
-                selectedGlow: GAMER_PALETTE.lime,
-                labelColor:   GAMER_PALETTE.textMuted,
+                trackBg:        GAMER_PALETTE.surface,
+                border:         GAMER_PALETTE.border,
+                unselectedFill: GAMER_PALETTE.violet,
+                selectedFill:   GAMER_PALETTE.lime,
+                selectedGlow:   GAMER_PALETTE.lime,
+                boltColor:      GAMER_PALETTE.canvas,
+                labelColor:     GAMER_PALETTE.textMuted,
               }}
             />
           </View>
@@ -242,7 +244,7 @@ const gamerStyles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  barsRow: { marginBottom: 24 },
+  batteryRow: { marginBottom: 24 },
   dismissBtn: { alignSelf: 'center', paddingVertical: 12, paddingHorizontal: 20 },
   dismissText: {
     color: GAMER_PALETTE.textFaint,
