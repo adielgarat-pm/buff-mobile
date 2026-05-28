@@ -3,14 +3,19 @@
  * Shows all tasks grouped by phase for the selected child.
  * Data comes from Supabase via useChildrenDashboard + useChildData.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useChildData } from '../../hooks/useChildProgress';
 import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
+import { supabase } from '../../integrations/supabase/client';
+import type { RootStackParamList } from '../../navigation/types';
+import type { AgeGroup, Gender } from '../onboarding/unified/onboardingData';
 
 const STAGE_IDS: Phase[] = ['morning', 'school', 'afternoon', 'evening'];
 
@@ -24,6 +29,7 @@ const stageForTime = (time: string): Phase => {
 
 export default function ParentTasksScreen() {
   const { t, i18n } = useTranslation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
@@ -34,7 +40,50 @@ export default function ParentTasksScreen() {
     }
   }, [children, selectedChildId]);
 
-  const { tasks, loading: tasksLoading } = useChildData(selectedChildId);
+  const { tasks, loading: tasksLoading, refetch } = useChildData(selectedChildId);
+
+  // Tasks created via the empty-state CTA land back here while this tab is still
+  // mounted — useChildData has no focus/realtime refetch, so re-pull on focus.
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedChildId) refetch();
+    }, [selectedChildId, refetch])
+  );
+
+  const selectedChild = children.find((c) => c.childId === selectedChildId);
+  const selectedChildName = selectedChild?.displayName ?? '';
+
+  const handleSetupTasks = async () => {
+    if (!selectedChildId) return;
+
+    // The child's stored age group drives the challenge options on UStep2. It
+    // lives in pro_settings (not exposed by the dashboard hook), so fetch it.
+    const { data } = await supabase
+      .from('profiles')
+      .select('pro_settings')
+      .eq('id', selectedChildId)
+      .single();
+
+    const pro = ((data?.pro_settings ?? {}) as unknown) as {
+      age_group?: AgeGroup; gender?: Gender; birth_date?: string;
+    };
+
+    if (pro.age_group) {
+      navigation.navigate('UStep2_Goal', {
+        childName:       selectedChildName,
+        ageGroup:        pro.age_group,
+        gender:          pro.gender     ?? undefined,
+        birthDate:       pro.birth_date ?? undefined,
+        existingChildId: selectedChildId,
+      });
+    } else {
+      // No stored age — collect it in UStep1 first, then continue the flow.
+      navigation.navigate('UStep1', {
+        existingChildId: selectedChildId,
+        prefillName:     selectedChildName,
+      });
+    }
+  };
 
   const isLoading = childrenLoading || (!!selectedChildId && tasksLoading);
 
@@ -72,7 +121,27 @@ export default function ParentTasksScreen() {
       ) : tasks.length === 0 ? (
         <View style={styles.centered}>
           <PhilosophyTip tipKey="tips.firstTask" dismissible />
-          <Text style={{ color: T.textMuted }}>{t('parentTasks.empty')}</Text>
+          {selectedChildId ? (
+            <>
+              <Text style={[styles.emptyTitle, { color: T.text }]}>
+                {t('parentTasks.emptyTitle', { name: selectedChildName })}
+              </Text>
+              <Text style={[styles.emptyBody, { color: T.textMuted }]}>
+                {t('parentTasks.emptyBody')}
+              </Text>
+              <TouchableOpacity
+                style={[styles.setupCta, { backgroundColor: T.accent }]}
+                onPress={handleSetupTasks}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.setupCtaText}>
+                  {t('parentTasks.setupCta', { name: selectedChildName })}
+                </Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <Text style={{ color: T.textMuted }}>{t('parentTasks.empty')}</Text>
+          )}
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.content}>
@@ -123,5 +192,9 @@ const styles = StyleSheet.create({
   checkCircle:   { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
   taskTitle:     { fontSize: 15, fontWeight: '500', marginBottom: 2 },
   taskMeta:      { fontSize: 12 },
-  centered:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centered:      { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  emptyTitle:    { fontSize: 18, fontWeight: '700', textAlign: 'center', marginTop: 8 },
+  emptyBody:     { fontSize: 14, textAlign: 'center', marginTop: 8, marginBottom: 20, lineHeight: 20 },
+  setupCta:      { borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center' },
+  setupCtaText:  { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

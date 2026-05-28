@@ -1349,6 +1349,7 @@
   "onboarding.step5.missions": "המשימות הראשונות",
   "onboarding.step5.rewards":  "הפרסים הראשונים",
   "onboarding.step5.cta":      "{{arrow}} קשר את הטלפון של {{name}}",
+  "onboarding.step5.ctaExistingChild": "{{arrow}} המשימות של {{name}}",
   "onboarding.step5.skip":     "לא עכשיו",
   "onboarding.step5.buffs":    "{{count}} BUFFs",
 
@@ -1460,6 +1461,9 @@
 
   "parentTasks.title": "משימות",
   "parentTasks.empty": "אין משימות לילד זה.",
+  "parentTasks.emptyTitle": "בואו נתחיל עם {{name}}",
+  "parentTasks.emptyBody": "בחרו תחום מיקוד ו-BUFF יגדיר כמה משימות פתיחה.",
+  "parentTasks.setupCta": "הגדרת משימות ל{{name}}",
 
   "parentRewards.title": "פרסים",
   "parentRewards.addBtn": "+ הוסף פרס",
