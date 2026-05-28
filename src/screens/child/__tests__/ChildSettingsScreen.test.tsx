@@ -77,9 +77,8 @@ jest.mock('../../../hooks/useBuddyRelationship', () => ({
   useBuddyRelationship: jest.fn(),
 }));
 
-jest.mock('../../../mock/data', () => ({
-  MOCK_MY_CHILD: { name: 'TestKid', petName: 'STORMY', petStage: 'hatchling', buffs: 100 },
-  PET_STAGES: { hatchling: { label: 'Hatchling' } },
+jest.mock('../../../hooks/useChildProgress', () => ({
+  useChildData: () => ({ totalBalance: 4242 }),
 }));
 
 import { useBuddyRelationship } from '../../../hooks/useBuddyRelationship';
@@ -202,5 +201,17 @@ describe('ChildSettingsScreen — Buddy section', () => {
     fireEvent.press(getByTestId('rename-buddy-entry'));
 
     expect(getByText('buddy.nameModal.title')).toBeTruthy();
+  });
+
+  // Regression guard for BUG-2026-05-20-02: the profile card must show the
+  // child's real balance (useChildData.totalBalance), not the old MOCK_MY_CHILD
+  // hardcoded 1,240 Buffs.
+  test('profile card shows real balance from useChildData, not mock 1,240', () => {
+    mockBuddyHook({});
+
+    const { getByText, queryByText } = render(<ChildSettingsScreen />);
+
+    expect(getByText(/4,242/)).toBeTruthy();
+    expect(queryByText(/1,240/)).toBeNull();
   });
 });
