@@ -73,7 +73,7 @@ export default function SignupScreen() {
       if (isDuplicate && role === 'child') {
         Alert.alert(t('auth.usernameTaken'));
       } else {
-        Alert.alert('Sign up failed', error.message);
+        Alert.alert(t('auth.error.signupFailedTitle'));
       }
     }
     // On success, auth state change triggers navigation automatically via RootNavigator

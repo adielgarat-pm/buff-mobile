@@ -37,7 +37,7 @@ export default function AuthCallbackScreen() {
           .single();
 
         if (familyError) {
-          Alert.alert('Error creating family');
+          Alert.alert(t('auth.error.createFamily'));
           return;
         }
         familyId = (newFamily as { id: string }).id;
@@ -51,7 +51,7 @@ export default function AuthCallbackScreen() {
           .eq('user_id', user.id);
         if (error) {
           console.error('[AuthCallback] Error updating profile:', JSON.stringify(error, null, 2));
-          Alert.alert('Error updating profile');
+          Alert.alert(t('auth.error.updateProfile'));
           return;
         }
       } else {
@@ -70,7 +70,7 @@ export default function AuthCallbackScreen() {
           .upsert(insertPayload as never, { onConflict: 'user_id', ignoreDuplicates: true });
         if (error) {
           console.error('[AuthCallback] Error creating profile:', JSON.stringify(error, null, 2));
-          Alert.alert('Error creating profile');
+          Alert.alert(t('auth.error.createProfile'));
           return;
         }
       }
