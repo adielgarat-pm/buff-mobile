@@ -10,6 +10,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLanguage } from '../contexts/LanguageContext';
+import { VIOLET_ACCENT } from '../theme/palette';
 import LanguagePickerModal from './LanguagePickerModal';
 
 export default function LanguagePicker() {
@@ -31,7 +32,7 @@ export default function LanguagePicker() {
         accessibilityLabel="Change language"
         accessibilityRole="button"
       >
-        <Ionicons name="globe-outline" size={20} color="#A78BFA" />
+        <Ionicons name="globe-outline" size={20} color={VIOLET_ACCENT} />
       </TouchableOpacity>
 
       <LanguagePickerModal visible={open} onClose={() => setOpen(false)} />
@@ -42,7 +43,8 @@ export default function LanguagePicker() {
 const styles = StyleSheet.create({
   trigger: {
     position:        'absolute',
-    backgroundColor: 'rgba(167,139,250,0.12)',
+    // Stronger lavender tint so the globe reads on the light Pastel canvas.
+    backgroundColor: 'rgba(124,58,237,0.10)',
     width:           36,
     height:          36,
     borderRadius:    18,

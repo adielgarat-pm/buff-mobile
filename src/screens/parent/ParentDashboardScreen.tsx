@@ -348,7 +348,7 @@ export default function ParentDashboardScreen() {
           activeOpacity={0.85}
         >
           <Text style={styles.unlinkBannerText}>
-            👋 <Text style={{ fontWeight: '700' }}>{child.displayName}</Text> הצטרף למשפחה — לחץ לחיבור
+            {t('dashboard.joinedFamily', { name: child.displayName })}
           </Text>
         </TouchableOpacity>
       ))}

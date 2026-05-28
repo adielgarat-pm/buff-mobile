@@ -35,6 +35,7 @@ import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
 import { AuthProvider, useAuth }         from './src/contexts/AuthContext';
 import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
+import { LAVENDER_BG }                    from './src/theme/palette';
 import RootNavigator                     from './src/navigation/RootNavigator';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
@@ -96,8 +97,10 @@ function AppContent() {
   if (isHydrating) {
     // Blank screen during the ~1 AsyncStorage read.
     // Keeps the native splash visible (Expo splashscreen will still overlay
-    // until the first render completes).
-    return <View style={{ flex: 1, backgroundColor: '#0F0F1A' }} />;
+    // until the first render completes). Lavender (Pastel home base) instead of
+    // the old cold #0F0F1A — the app's first painted surface (auth/onboarding) is
+    // LIGHT, so this avoids a dark flash on launch (color-consolidation).
+    return <View style={{ flex: 1, backgroundColor: LAVENDER_BG }} />;
   }
 
   return (

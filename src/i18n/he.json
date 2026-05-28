@@ -153,6 +153,7 @@
   "dashboard.bonusConfirm": "שלח בונוס",
   "dashboard.bonusSent": "הבונוס נשלח! ⚡",
   "dashboard.stickerNotReady": "מדבקות יהיו זמינות ברגע שתחברו את הטלפון של {{name}} 📱",
+  "dashboard.joinedFamily": "👋 {{name}} הצטרף למשפחה — לחץ לחיבור",
   "task.morning": "בוקר",
   "task.afternoon": "צהריים",
   "task.evening": "ערב",
