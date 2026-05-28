@@ -1349,6 +1349,7 @@
   "onboarding.step5.missions": "First quests",
   "onboarding.step5.rewards":  "First rewards",
   "onboarding.step5.cta":      "Connect {{name}}'s phone {{arrow}}",
+  "onboarding.step5.ctaExistingChild": "See {{name}}'s tasks {{arrow}}",
   "onboarding.step5.skip":     "Skip for now",
   "onboarding.step5.buffs":    "{{count}} BUFFs",
 
@@ -1467,6 +1468,9 @@
 
   "parentTasks.title": "Tasks",
   "parentTasks.empty": "No tasks for this child.",
+  "parentTasks.emptyTitle": "Let's get {{name}} started",
+  "parentTasks.emptyBody": "Pick a focus and BUFF will set up a few starter tasks.",
+  "parentTasks.setupCta": "Set up tasks for {{name}}",
 
   "parentRewards.title": "Rewards",
   "parentRewards.addBtn": "+ Add Reward",

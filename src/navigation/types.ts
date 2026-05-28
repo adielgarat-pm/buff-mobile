@@ -11,6 +11,10 @@ type UBase = {
   ageGroup:   AgeGroup;
   gender?:    Gender;
   birthDate?: string;
+  // When set, the flow attaches tasks/rewards to this existing child profile
+  // instead of creating a new one (empty-task-state re-entry). UStep5 skips the
+  // profile insert; UStep1 (age-less fallback) threads it forward.
+  existingChildId?: string;
 };
 
 type UWithGoal        = UBase           & { mainChallenge: string };
@@ -31,7 +35,7 @@ export type RootStackParamList = {
 
   // ── Unified onboarding flow ───────────────────────────────────────────
   Welcome:             undefined;        // First screen — shown before UStep1
-  UStep1:              undefined;        // Entry — no incoming params
+  UStep1:              { existingChildId?: string; prefillName?: string } | undefined; // Entry; params only set on empty-state re-entry (age-less child)
   UStep2_Goal:         UBase;
   UStep3_Challenges:   UWithGoal;
   UStep4_Motivator:    UWithChallenges;

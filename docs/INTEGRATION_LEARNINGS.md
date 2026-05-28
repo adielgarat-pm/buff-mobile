@@ -587,6 +587,28 @@
 - **סטטוס:** `open` (idea logged; not in any backlog yet)
 - **קשור ל:** pkg/fcm-push-notifications E5, BUFF_VALUES.md (all 3 pillars), BUFF_BUDDY_SYSTEM.md (BUDDY voice constraints), F-2026-05-18-01 (cold-start moment — adjacent concern)
 
+### F-2026-05-28-01: Parent empty-task-state → existing-child task setup (pkg/empty-state-onboarding)
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — pkg/empty-state-onboarding (parent-side counterpart to the cold-start problem)
+- **תיאור:** A parent viewing the Tasks tab for a child with **0 tasks** had only a neutral "No tasks" line — a dead end. This package adds a CTA ("Set up tasks for {name}") that launches the existing challenge-selection flow for **that existing child**. A new `existingChildId` param threads through onboarding (added to `UBase`, auto-spread by every step); UStep5 skips the profile INSERT and attaches tasks + rewards to the existing id, then returns the parent to the Tasks tab.
+- **Adjacency to F-2026-05-18-01 (important):** F-2026-05-18-01 is the **child-side** empty Dashboard, where Adi's leaning hypothesis was a **BUDDY welcome bridge, NOT default tasks** (silent imposed tasks risk Pillar 1/3). This package is the **parent-side** empty *task* state and creates tasks only via the **deliberate challenge + motivator selection** (identical to shipped onboarding), so it sidesteps the "silent defaults" concern. **It does NOT resolve F-2026-05-18-01** — different surface, different solution direction. Kept open.
+- **Surprising finding (Supabase, 2026-05-28):** only **3 of ~90** child profiles have `pro_settings.age_group` set (most are Lovable-era / pre-age-persistence). Since UStep2_Goal needs `ageGroup` to render options, the **UStep1 age-less fallback is the COMMON path, not an edge case.** Decision to build it (Adi) was load-bearing.
+- **השפעה:** New parent affordance; no schema change; no product-contract change. Reuses the onboarding task/reward insert verbatim.
+- **סטטוס:** `open` (code complete; pending Adi Hat-4 device verification + PR merge)
+- **קשור ל:** F-2026-05-18-01 (adjacent, child-side), IN-2026-05-14-03 / CLAUDE.md FLAG (ChildJoin duplicate-profile — the `existingChildId` guard avoids a second profile), IN-2026-05-28-01
+
+### IN-2026-05-28-01: useChildData has no focus/realtime refetch on tasks; UStep8 overwrites parent pro_settings
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — pkg/empty-state-onboarding investigation
+- **תיאור:** Two pre-existing behaviours surfaced while wiring the empty-state CTA:
+  1. **`useChildData` (`src/hooks/useChildProgress.ts`)** fetches tasks only on mount/`childId` change — no `useFocusEffect`, no realtime subscription on the `tasks` table (unlike `daily_progress`/`credit_vault`). Returning to a still-mounted ParentTasksScreen after creating tasks would show an empty list. Mitigated **in this package** by adding `useFocusEffect(refetch)` to ParentTasksScreen. Other screens reading `useChildData` may have the same staleness if tasks change while mounted.
+  2. **`UStep8_Complete` (`src/screens/onboarding/unified/UStep8_Complete.tsx`)** does `update({ pro_settings: { onboarding_complete, onboarding_child_name, onboarding_child_id } })` — which **replaces the parent's entire `pro_settings`**, dropping any other keys. Latent risk for the existing "Add Child" flow (an already-onboarded parent). **Avoided in this package** by routing the existing-child path back to ParentApp and skipping UStep8 entirely. Not fixed here (out of scope) — flagged for a future fix (use `jsonb_set`/merge instead of replace).
+- **השפעה:** Item 1 mitigated locally. Item 2 untouched — a real latent bug in Add-Child.
+- **סטטוס:** `open` (item 2 deserves a small dedicated fix: merge `pro_settings` instead of overwriting)
+- **קשור ל:** pkg/empty-state-onboarding, F-2026-05-28-01
+
 ---
 
 ## רשומות שנפתרו (Resolved)
