@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-05-28-01: LanguageContext.reloadApp() was a no-op — he↔en switch never restarted the layout
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — discovered while building `pkg/settings-language` (in-app language switcher in Settings).
+- **תיאור:** The header doc-comment on `src/contexts/LanguageContext.tsx` claimed a he↔en switch triggers an expo-updates reload OR a manual-restart Alert. In reality `reloadApp()` was an empty `return;` no-op. `setLanguage()` updated the i18n strings and called `I18nManager.forceRTL(targetRTL)` (which only takes effect at the *next* app launch), then `await reloadApp()` did nothing — no reload, no prompt. Net effect: switching language flipped the text immediately but left the layout direction (RTL↔LTR) wrong until the user manually killed and reopened the app, with no indication that was needed. This latent gap also affected the existing auth-screen globe `LanguagePicker` — the only place the picker was wired up before this package.
+- **השפעה:** UX — the language switch appeared half-broken (text flips, layout doesn't). The new Settings "Language" rows (parent + child) would have shipped with the same defect had we "reused the existing flow" as originally scoped.
+- **סטטוס:** `resolved` — fixed in `pkg/settings-language` (this commit). `reloadApp()` now shows a confirm Alert (new `language.restart{Title,Message,Confirm,Cancel}` keys) and on confirm calls `Updates.reloadAsync()` with a `.catch()` fallback for dev clients / Expo Go (where `reloadAsync` throws — strings + `forceRTL` are already applied, so the flip lands on the next manual restart).
+- **קשור ל:** `pkg/settings-language`, `src/contexts/LanguageContext.tsx`, `src/components/LanguagePicker.tsx` (auth-screen picker shared the bug), `src/components/LanguagePickerModal.tsx` (new shared modal).
+
 ### IN-2026-05-27-05: daily_progress upsert silently failed in prod since 2026-04-09
 
 - **תאריך:** 2026-05-27 (Hat-3 regression test of PR #100)
