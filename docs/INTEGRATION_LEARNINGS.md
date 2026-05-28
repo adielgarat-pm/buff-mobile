@@ -14,7 +14,7 @@
 
 ## Implementation Notes
 
-### IN-2026-05-28-01: Vibe Check Gamer selector — bars→battery (the split already half-existed)
+### IN-2026-05-28-02: Vibe Check Gamer selector — bars→battery (the split already half-existed)
 
 - **תאריך:** 2026-05-28
 - **מקור:** CC — `pkg/vibe-check-battery`. Adi asked to replace the Gamer-mode energy bars with a recharging-battery metaphor for teens, keeping Mint smileys for young kids.
@@ -31,6 +31,15 @@
 - **Verification:** `tsc` clean, `jest` 250/250 (the 2 first-run failures were a flaky `EditChildScreen` timeout — green on re-run, unrelated to this diff), `i18n:check` clean. Web render was **attempted** via the `__VibeCheckPreviewHarness` on Expo web from the worktree (node_modules junction → `npm --prefix` launch config on port 8097), but the dev server proved unstable (died mid-bundle) and no faithful capture was obtained — consistent with the project precedent that react-native-web is low-fidelity/unreliable for theme-gated UI (see `pkg/fix-runtime-theme-switch` FLAG). Authoritative Android-emulator visual sign-off is therefore Adi's (or a `buff-testing` Hat-3 run).
 - **סטטוס:** `open` — pending Adi merge + emulator sign-off. Spec-sync flag: `BUFF_BRAND.md` §7 (~line 350) still lists "energy bars ב-Gamer" as an allowed visual; proposed wording update pending Adi (not edited unilaterally — brand doc).
 - **קשור ל:** `pkg/vibe-check-battery`, `docs/sessions/daily-vibe-check/` (origin of the selector + `vibe_type` contract), `pkg/fix-runtime-theme-switch` (web-preview-unreliable precedent), `BUFF_BRAND.md` §7.5 (Gamer palette).
+
+### IN-2026-05-28-01: LanguageContext.reloadApp() was a no-op — he↔en switch never restarted the layout
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — discovered while building `pkg/settings-language` (in-app language switcher in Settings).
+- **תיאור:** The header doc-comment on `src/contexts/LanguageContext.tsx` claimed a he↔en switch triggers an expo-updates reload OR a manual-restart Alert. In reality `reloadApp()` was an empty `return;` no-op. `setLanguage()` updated the i18n strings and called `I18nManager.forceRTL(targetRTL)` (which only takes effect at the *next* app launch), then `await reloadApp()` did nothing — no reload, no prompt. Net effect: switching language flipped the text immediately but left the layout direction (RTL↔LTR) wrong until the user manually killed and reopened the app, with no indication that was needed. This latent gap also affected the existing auth-screen globe `LanguagePicker` — the only place the picker was wired up before this package.
+- **השפעה:** UX — the language switch appeared half-broken (text flips, layout doesn't). The new Settings "Language" rows (parent + child) would have shipped with the same defect had we "reused the existing flow" as originally scoped.
+- **סטטוס:** `resolved` — fixed in `pkg/settings-language` (this commit). `reloadApp()` now shows a confirm Alert (new `language.restart{Title,Message,Confirm,Cancel}` keys) and on confirm calls `Updates.reloadAsync()` with a `.catch()` fallback for dev clients / Expo Go (where `reloadAsync` throws — strings + `forceRTL` are already applied, so the flip lands on the next manual restart).
+- **קשור ל:** `pkg/settings-language`, `src/contexts/LanguageContext.tsx`, `src/components/LanguagePicker.tsx` (auth-screen picker shared the bug), `src/components/LanguagePickerModal.tsx` (new shared modal).
 
 ### IN-2026-05-27-05: daily_progress upsert silently failed in prod since 2026-04-09
 
@@ -595,6 +604,28 @@
 - **השפעה:** Out of MVP scope. Should land as its own `pkg/parent-reengagement-tools` after beta-2026-06-01, with full Values Check + session design with Adi + Itay (Teen UI co-creator).
 - **סטטוס:** `open` (idea logged; not in any backlog yet)
 - **קשור ל:** pkg/fcm-push-notifications E5, BUFF_VALUES.md (all 3 pillars), BUFF_BUDDY_SYSTEM.md (BUDDY voice constraints), F-2026-05-18-01 (cold-start moment — adjacent concern)
+
+### F-2026-05-28-01: Parent empty-task-state → existing-child task setup (pkg/empty-state-onboarding)
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — pkg/empty-state-onboarding (parent-side counterpart to the cold-start problem)
+- **תיאור:** A parent viewing the Tasks tab for a child with **0 tasks** had only a neutral "No tasks" line — a dead end. This package adds a CTA ("Set up tasks for {name}") that launches the existing challenge-selection flow for **that existing child**. A new `existingChildId` param threads through onboarding (added to `UBase`, auto-spread by every step); UStep5 skips the profile INSERT and attaches tasks + rewards to the existing id, then returns the parent to the Tasks tab.
+- **Adjacency to F-2026-05-18-01 (important):** F-2026-05-18-01 is the **child-side** empty Dashboard, where Adi's leaning hypothesis was a **BUDDY welcome bridge, NOT default tasks** (silent imposed tasks risk Pillar 1/3). This package is the **parent-side** empty *task* state and creates tasks only via the **deliberate challenge + motivator selection** (identical to shipped onboarding), so it sidesteps the "silent defaults" concern. **It does NOT resolve F-2026-05-18-01** — different surface, different solution direction. Kept open.
+- **Surprising finding (Supabase, 2026-05-28):** only **3 of ~90** child profiles have `pro_settings.age_group` set (most are Lovable-era / pre-age-persistence). Since UStep2_Goal needs `ageGroup` to render options, the **UStep1 age-less fallback is the COMMON path, not an edge case.** Decision to build it (Adi) was load-bearing.
+- **השפעה:** New parent affordance; no schema change; no product-contract change. Reuses the onboarding task/reward insert verbatim.
+- **סטטוס:** `open` (code complete; pending Adi Hat-4 device verification + PR merge)
+- **קשור ל:** F-2026-05-18-01 (adjacent, child-side), IN-2026-05-14-03 / CLAUDE.md FLAG (ChildJoin duplicate-profile — the `existingChildId` guard avoids a second profile), IN-2026-05-28-01
+
+### IN-2026-05-28-01: useChildData has no focus/realtime refetch on tasks; UStep8 overwrites parent pro_settings
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — pkg/empty-state-onboarding investigation
+- **תיאור:** Two pre-existing behaviours surfaced while wiring the empty-state CTA:
+  1. **`useChildData` (`src/hooks/useChildProgress.ts`)** fetches tasks only on mount/`childId` change — no `useFocusEffect`, no realtime subscription on the `tasks` table (unlike `daily_progress`/`credit_vault`). Returning to a still-mounted ParentTasksScreen after creating tasks would show an empty list. Mitigated **in this package** by adding `useFocusEffect(refetch)` to ParentTasksScreen. Other screens reading `useChildData` may have the same staleness if tasks change while mounted.
+  2. **`UStep8_Complete` (`src/screens/onboarding/unified/UStep8_Complete.tsx`)** does `update({ pro_settings: { onboarding_complete, onboarding_child_name, onboarding_child_id } })` — which **replaces the parent's entire `pro_settings`**, dropping any other keys. Latent risk for the existing "Add Child" flow (an already-onboarded parent). **Avoided in this package** by routing the existing-child path back to ParentApp and skipping UStep8 entirely. Not fixed here (out of scope) — flagged for a future fix (use `jsonb_set`/merge instead of replace).
+- **השפעה:** Item 1 mitigated locally. Item 2 untouched — a real latent bug in Add-Child.
+- **סטטוס:** `open` (item 2 deserves a small dedicated fix: merge `pro_settings` instead of overwriting)
+- **קשור ל:** pkg/empty-state-onboarding, F-2026-05-28-01
 
 ---
 

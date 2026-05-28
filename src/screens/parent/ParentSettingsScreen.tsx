@@ -14,6 +14,8 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 import PauseModeCard from '../../components/PauseModeCard';
+import LanguagePickerModal from '../../components/LanguagePickerModal';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SettingsRow {
   label: string;
@@ -32,6 +34,8 @@ export default function ParentSettingsScreen() {
   const { enterChildPreview, isChildPreview } = useMode();
   const { isSubscribed, isLifetimeAccess, isGracePeriod, simulateSubscribed, setSimulateSubscribed } = useSubscription();
   const [codeCopied, setCodeCopied] = useState(false);
+  const { language } = useLanguage();
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {
@@ -78,6 +82,17 @@ export default function ParentSettingsScreen() {
             : isSubscribed
             ? '✅ Family plan'
             : 'Free (1 child)',
+        },
+      ],
+    },
+    {
+      title: t('settings.sectionGeneral'),
+      rows: [
+        {
+          label:   t('settings.rowLanguage'),
+          value:   language === 'he' ? 'עברית' : 'English',
+          icon:    'globe-outline' as const,
+          onPress: () => setLangModalOpen(true),
         },
       ],
     },
@@ -176,6 +191,11 @@ export default function ParentSettingsScreen() {
           </View>
         </View>
       ))}
+
+      <LanguagePickerModal
+        visible={langModalOpen}
+        onClose={() => setLangModalOpen(false)}
+      />
     </ScrollView>
   );
 }

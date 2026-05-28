@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet } from 'react-native';
 import LanguagePicker from '../../../components/LanguagePicker';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
@@ -12,7 +12,8 @@ import type { AgeGroup, Gender } from './onboardingData';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 
-type Nav = StackNavigationProp<RootStackParamList, 'UStep1'>;
+type Nav   = StackNavigationProp<RootStackParamList, 'UStep1'>;
+type Route = RouteProp<RootStackParamList, 'UStep1'>;
 
 const AGE_GROUPS: AgeGroup[] = ['6-8', '9-11', '12-14', '15-18'];
 const GENDERS: { value: Gender; labelKey: string }[] = [
@@ -33,8 +34,14 @@ function toISODate(d: Date): string {
 
 export default function UStep1_ChildProfile() {
   const navigation = useNavigation<Nav>();
+  const { params }  = useRoute<Route>();
   const { t, i18n } = useTranslation();
   const { user, profile, refreshProfile } = useAuth();
+
+  // Empty-state re-entry: attach the flow to an existing child instead of
+  // creating a new profile. prefillName seeds the name field; existingChildId
+  // threads through to UStep5 which then skips the profile insert.
+  const existingChildId = params?.existingChildId;
 
   // Determine if we need to collect the parent's name
   // (missing or looks like an email address / placeholder)
@@ -43,7 +50,7 @@ export default function UStep1_ChildProfile() {
   const needsParentName = !existingName || nameIsEmail;
 
   const [parentName,      setParentName]     = useState(needsParentName ? '' : existingName);
-  const [childName,       setChildName]      = useState('');
+  const [childName,       setChildName]      = useState(params?.prefillName ?? '');
   const [ageGroup,        setAgeGroup]       = useState<AgeGroup | null>(null);
   const [gender,          setGender]         = useState<Gender | null>(null);
   const [birthDate,       setBirthDate]      = useState<Date | null>(null);
@@ -79,6 +86,7 @@ export default function UStep1_ChildProfile() {
       ageGroup,
       gender:    gender    ?? undefined,
       birthDate: birthDate ? toISODate(birthDate) : undefined,
+      existingChildId,
     });
   };
 

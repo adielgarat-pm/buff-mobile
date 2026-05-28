@@ -13,6 +13,9 @@ import type { BuddyRelationship } from '../../../types/buddy';
 // ── Mock dependencies ──────────────────────────────────────────────────────
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
+  // LanguagePickerModal pulls in src/i18n, which calls i18n.use(initReactI18next).
+  // Keep a stub plugin so that init doesn't throw under this mock.
+  initReactI18next: { type: '3rdParty', init: () => {} },
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -57,6 +60,13 @@ jest.mock('../../../contexts/ThemeContext', () => ({
 
 jest.mock('../../../contexts/LanguageContext', () => ({
   useRTLStyles: () => ({ rowDirection: 'row' }),
+  useLanguage: () => ({
+    language: 'en',
+    setLanguage: jest.fn(),
+    isRTL: false,
+    direction: 'ltr',
+    isHydrating: false,
+  }),
 }));
 
 jest.mock('../../../hooks/useSubscription', () => ({

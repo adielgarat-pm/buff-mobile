@@ -132,43 +132,54 @@ export default function UStep5_Preview() {
     }
 
     try {
-      // ── 1. INSERT child profile ──────────────────────────────────────────
-      console.log(`${TAG} [1/3] Inserting child profile for "${params.childName}"...`);
-      console.log('[DEBUG] familyId at insert time:', familyId);
+      // ── 1. Resolve child profile ─────────────────────────────────────────
+      // Empty-state re-entry (params.existingChildId set): attach tasks/rewards
+      // to the existing child instead of creating a new profile. This is the
+      // duplicate-profile guard — see IN-2026-05-14-03.
+      let id: string;
 
-      const profilePayload = {
-        user_id:           null,              // null until child signs up with family code
-        family_id:         familyId,
-        display_name:      params.childName,
-        role:              'child' as const,
-        marketing_consent: false,
-        pro_settings: {
-          age_group:  params.ageGroup,
-          gender:     params.gender    ?? null,
-          birth_date: params.birthDate ?? null,
-          onboarding_data: {
-            mainChallenge:        params.mainChallenge,
-            additionalChallenges: params.additionalChallenges,
-            motivators:           params.motivators,
+      if (params.existingChildId) {
+        id = params.existingChildId;
+        console.log(`${TAG} [1/3] Reusing existing child profile — childProfileId: ${id} (skipping insert)`);
+        setChildProfileId(id);
+      } else {
+        console.log(`${TAG} [1/3] Inserting child profile for "${params.childName}"...`);
+        console.log('[DEBUG] familyId at insert time:', familyId);
+
+        const profilePayload = {
+          user_id:           null,              // null until child signs up with family code
+          family_id:         familyId,
+          display_name:      params.childName,
+          role:              'child' as const,
+          marketing_consent: false,
+          pro_settings: {
+            age_group:  params.ageGroup,
+            gender:     params.gender    ?? null,
+            birth_date: params.birthDate ?? null,
+            onboarding_data: {
+              mainChallenge:        params.mainChallenge,
+              additionalChallenges: params.additionalChallenges,
+              motivators:           params.motivators,
+            },
           },
-        },
-      };
-      console.log('[DEBUG] profile insert payload:', JSON.stringify(profilePayload));
+        };
+        console.log('[DEBUG] profile insert payload:', JSON.stringify(profilePayload));
 
-      const { data: profileData, error: profileErr } = await supabase
-        .from('profiles')
-        .insert(profilePayload as never)
-        .select('id')
-        .single();
+        const { data: profileData, error: profileErr } = await supabase
+          .from('profiles')
+          .insert(profilePayload as never)
+          .select('id')
+          .single();
 
-      if (profileErr || !profileData) {
-        console.error(`${TAG} [1/3] Profile insert FAILED:`, profileErr?.message);
-        throw new Error(profileErr?.message ?? 'Profile creation failed');
+        if (profileErr || !profileData) {
+          console.error(`${TAG} [1/3] Profile insert FAILED:`, profileErr?.message);
+          throw new Error(profileErr?.message ?? 'Profile creation failed');
+        }
+
+        id = (profileData as { id: string }).id;
+        console.log(`${TAG} [1/3] Profile insert SUCCESS — childProfileId: ${id}`);
+        setChildProfileId(id);
       }
-
-      const id = (profileData as { id: string }).id;
-      console.log(`${TAG} [1/3] Profile insert SUCCESS — childProfileId: ${id}`);
-      setChildProfileId(id);
 
       // ── 2. INSERT tasks ──────────────────────────────────────────────────
       console.log(`${TAG} [2/3] Inserting ${tasks.length} tasks for childProfileId=${id}...`);
@@ -264,6 +275,15 @@ export default function UStep5_Preview() {
     if (!childProfileId) {
       console.warn(`${TAG} goNext called but childProfileId not yet available — retrying save`);
       saveAll();
+      return;
+    }
+    // Empty-state re-entry: tasks are now attached to the existing child, so
+    // return straight to the parent app (Tasks tab). Skips UStep7_Phone (the
+    // child already exists) and UStep8_Complete (which would overwrite the
+    // already-onboarded parent's pro_settings).
+    if (params.existingChildId) {
+      console.log(`${TAG} Existing child — returning to ParentApp`);
+      navigation.navigate('ParentApp');
       return;
     }
     console.log(`${TAG} Navigating to UStep7_Phone with childProfileId=${childProfileId}`);
@@ -393,13 +413,18 @@ export default function UStep5_Preview() {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.ctaText}>
-              {t('onboarding.step5.cta', { name: params.childName, arrow })}
+              {t(
+                params.existingChildId ? 'onboarding.step5.ctaExistingChild' : 'onboarding.step5.cta',
+                { name: params.childName, arrow }
+              )}
             </Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={goNext} activeOpacity={0.7} style={styles.skipBtn} disabled={!!saveErr}>
-          <Text style={styles.skipText}>{t('onboarding.step5.skip')}</Text>
-        </TouchableOpacity>
+        {!params.existingChildId && (
+          <TouchableOpacity onPress={goNext} activeOpacity={0.7} style={styles.skipBtn} disabled={!!saveErr}>
+            <Text style={styles.skipText}>{t('onboarding.step5.skip')}</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
