@@ -9,14 +9,17 @@
  */
 
 export type VibeLevel = 1 | 2 | 3 | 4 | 5;
-export type VibeType  = 'emoji' | 'bars';
+// 'bars' retained for the historical Gamer selector; 'battery' is the
+// current Gamer selector (pkg/vibe-check-battery). vibe_type is free text
+// at the DB (no CHECK constraint), so old rows keep their value.
+export type VibeType  = 'emoji' | 'bars' | 'battery';
 
 /** Shape of a single row in public.child_vibes, scoped to the fields the hook uses. */
 export interface VibeSnapshot {
   vibe_level:      number;   // CHECK 1-5 at the DB
   low_power_mode:  boolean;
   parent_sos_sent: boolean;
-  vibe_type:       string;   // 'emoji' | 'bars' in practice
+  vibe_type:       string;   // 'emoji' | 'bars' | 'battery' in practice
   date:            string;   // 'YYYY-MM-DD'
 }
 

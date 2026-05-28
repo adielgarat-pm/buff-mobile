@@ -14,6 +14,7 @@ import {
   Platform, Share,
 } from 'react-native';
 import AppModal from '../../components/AppModal';
+import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import PhilosophyTip from '../../components/PhilosophyTip';
 import { useNavigation } from '@react-navigation/native';
@@ -454,14 +455,25 @@ export default function ParentDashboardScreen() {
                 <View style={{ flex: 1 }}>
                   <View style={styles.childNameRow}>
                     <Text style={[styles.childName, { color: T.text }]}>{child.displayName}</Text>
-                    {/* Soft SOS dot — Pillar 2: warm amber (matches kid-side
-                        SOS button T.warning #F59E0B), not alarming red.
-                        Persists until midnight. */}
+                    {/* Soft SOS indicator — Pillar 2: a low-charge battery in
+                        warm amber (matches kid-side SOS button #F59E0B), not
+                        alarming red. Child-initiated only; persists until
+                        midnight. */}
                     {sos && (
                       <View
-                        style={styles.sosDot}
+                        accessible
                         accessibilityLabel={t('parentNotifications.sosInline.a11y', { name: child.displayName })}
-                      />
+                      >
+                        <BatteryGlyph
+                          level={1}
+                          maxLevel={5}
+                          width={13}
+                          height={22}
+                          fillColor="#F59E0B"
+                          trackColor="#F3F4F6"
+                          borderColor={T.cardBorder}
+                        />
+                      </View>
                     )}
                   </View>
                   <Text style={[styles.childSub, { color: T.textMuted }]}>
@@ -793,7 +805,6 @@ const styles = StyleSheet.create({
   childAvatar:  { fontSize: 30, marginRight: 12 },
   childNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
   childName:    { fontSize: 17, fontWeight: '700' },
-  sosDot:       { width: 8, height: 8, borderRadius: 4, backgroundColor: '#F59E0B' },
   sosInline:    { fontSize: 13, fontWeight: '500', fontStyle: 'italic', marginTop: 4, marginBottom: 8 },
   childSub:     { fontSize: 13 },
   badge:        { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
