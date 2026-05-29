@@ -21,7 +21,7 @@
       "package": "com.buffapp.mobile",
       "versionCode": 1,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/BUFF_LOGO.png",
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
         "backgroundColor": "#1a1636"
       },
       "edgeToEdgeEnabled": true,

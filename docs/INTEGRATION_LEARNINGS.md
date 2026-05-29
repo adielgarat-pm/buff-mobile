@@ -629,6 +629,20 @@
 
 ---
 
+### IN-2026-05-28-02: color-consolidation — missing COLOR_PLAN, dead tailwind config, child Gamer theme drift
+
+- **תאריך:** 2026-05-28
+- **מקור:** CC — pkg/color-consolidation execution
+- **תיאור:** Three things surfaced while consolidating the app's colour journey to "light home base, dark = teen Gamer only":
+  1. **`docs/sessions/color-consolidation/COLOR_PLAN.md` did not exist** (nor did the session folder). The task prompt referenced it as the full plan. CC proceeded using `docs/BUFF_BRAND.md` §7.2 (the named source of truth for hex) + the phase/token mapping inlined in the task prompt, and created the session folder fresh. No ambiguity blocked the work because §7 is authoritative for every hex.
+  2. **`tailwind.config.js` is dead config.** `nativewind` is NOT installed (absent from package-lock) and no `className=`/`gamer-bg`/`zen-bg` usage exists anywhere in `src/`. The RN runtime never reads it. The real launch "dark flash" source was `App.tsx`'s `isHydrating` fallback (`#0F0F1A`), now `#F4F0FA` lavender. The tailwind `gamer-bg` value was still corrected `#0F0F1A`→`#1a1636` for doc correctness (closes BUFF_BRAND §7.9 audit item 5), but it has zero runtime effect.
+  3. **Child Gamer theme (`contexts/ThemeContext.tsx`) does NOT match BUFF_BRAND §7.5.** It ships `background:#171C2E` (cold navy) + `primary:#22D3EE` (cyan neon), whereas the brand Gamer canvas is `#1a1636` (warm deep-violet) + violet/lime accents. This is a **spec↔code drift** in the *runtime* teen theme. It was deliberately LEFT UNTOUCHED — the task scope was the auth/onboarding/parent light journey + a brand-canonical `GAMER_MODE` reference object in `theme/modes.ts`; rewiring the persisted per-child theme would change shipped child UI and is out of scope. Flagged for Adi: a future `pkg/gamer-theme-brand-align` to reconcile ThemeContext.GAMER with §7.5.
+- **השפעה:** Items 1–2 resolved/neutral. Item 3 is a real drift between the runtime child Gamer theme and BUFF_BRAND §7.5 — needs a decision (align code to brand, or update brand to match shipped cyan).
+- **סטטוס:** `open` (item 3 — child Gamer theme brand alignment, future package)
+- **קשור ל:** docs/sessions/color-consolidation/, BUFF_BRAND §7.5 / §7.9 item 5, `pkg/fix-runtime-theme-switch` FLAG
+
+---
+
 ## רשומות שנפתרו (Resolved)
 
 ### F-2026-05-21-01 (RESOLVED 2026-05-23): סייגים ל"פספוסים" בתצוגת "סיכום אתמול"
