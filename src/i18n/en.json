@@ -1450,6 +1450,8 @@
   "editChild.birthdayLabel": "Birthday",
   "editChild.birthdayPlaceholder": "Pick a date",
   "editChild.ageGroupLabel": "Age group",
+  "editChild.languageLabel": "Language",
+  "editChild.languageNote": "Sets the language your child sees in the app and the language new tasks are created in. Existing task names stay in their original language.",
   "editChild.save": "Save",
   "editChild.cancel": "Cancel",
   "editChild.saving": "Saving…",

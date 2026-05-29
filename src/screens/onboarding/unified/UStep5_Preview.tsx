@@ -31,7 +31,7 @@ import {
 } from './onboardingData';
 import type { AgeGroup, TimeOfDay } from './onboardingData';
 import type { TaskCategory } from '../../../types/task';
-import { pickLang, bilingualForDb, detectLangFromName } from '../../../lib/i18nString';
+import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
 type Route = RouteProp<RootStackParamList, 'UStep5_Preview'>;
@@ -78,9 +78,13 @@ export default function UStep5_Preview() {
   const { familyId, user } = useAuth();
 
   const lang  = i18n.language.startsWith('he') ? 'he' : 'en';
-  // Task titles are written/shown in the language of the CHILD's name (Hebrew
-  // name → Hebrew tasks, Latin name → English), independent of the app locale.
-  const childLang = detectLangFromName(params.childName);
+  // Per-child language. At onboarding the profile doesn't exist yet, so this
+  // is the name-script default (Hebrew name → Hebrew, Latin → English, falling
+  // back to the device language for a nameless child). It is BOTH persisted to
+  // pro_settings.language below AND used to bake the task titles, so the stored
+  // field is the single source of truth that EditChild and the child's own
+  // device later read back via resolveChildLang.
+  const childLang = resolveChildLang({ display_name: params.childName }, lang);
   const isRTL = I18nManager.isRTL;
 
   const [saveErr,        setSaveErr]        = useState<string | null>(null);
@@ -166,6 +170,7 @@ export default function UStep5_Preview() {
             age_group:  params.ageGroup,
             gender:     params.gender    ?? null,
             birth_date: params.birthDate ?? null,
+            language:   childLang,        // per-child language (parent-editable later)
             onboarding_data: {
               mainChallenge:        params.mainChallenge,
               additionalChallenges: params.additionalChallenges,

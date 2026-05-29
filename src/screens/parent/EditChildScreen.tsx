@@ -15,6 +15,8 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../integrations/supabase/client';
 import { useRTLStyles } from '../../contexts/LanguageContext';
+import { resolveChildLang } from '../../lib/i18nString';
+import type { SupportedLanguage } from '../../i18n';
 import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -51,6 +53,7 @@ export default function EditChildScreen() {
   const [avatar,   setAvatar]    = useState('🚀');
   const [birth,    setBirth]     = useState<Date | null>(null);
   const [ageGroup, setAgeGroup]  = useState<string | null>(null);
+  const [language, setLanguage]  = useState<SupportedLanguage>('he');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [saving,   setSaving]    = useState(false);
@@ -83,13 +86,16 @@ export default function EditChildScreen() {
         display_name: string | null;
         avatar: string | null;
         birth_date: string | null;
-        pro_settings: { age_group?: string } | null;
+        pro_settings: { age_group?: string; language?: string } | null;
       };
 
       setName(row.display_name ?? '');
       setAvatar(row.avatar ?? '🚀');
       setBirth(row.birth_date ? new Date(row.birth_date) : null);
       setAgeGroup(row.pro_settings?.age_group ?? null);
+      // Seed the toggle from the stored per-child language, falling back to the
+      // name-script default for children onboarded before this field existed.
+      setLanguage(resolveChildLang({ pro_settings: row.pro_settings, display_name: row.display_name }));
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -129,7 +135,7 @@ export default function EditChildScreen() {
     const prevSettings = ((existing as { pro_settings: Record<string, unknown> | null } | null)
       ?.pro_settings) ?? {};
 
-    const nextSettings = { ...prevSettings, age_group: ageGroup ?? null };
+    const nextSettings = { ...prevSettings, age_group: ageGroup ?? null, language };
 
     const { error: updateErr } = await supabase
       .from('profiles')
@@ -279,6 +285,30 @@ export default function EditChildScreen() {
           })}
         </View>
 
+        {/* ── Language ─────────────────────────────────────────────────── */}
+        <Text style={[styles.label, { textAlign, marginTop: 24 }]}>{t('editChild.languageLabel')}</Text>
+        <View style={[styles.pillRow, { flexDirection: rowDirection }]}>
+          {(['he', 'en'] as SupportedLanguage[]).map((lng) => {
+            const active = language === lng;
+            return (
+              <TouchableOpacity
+                key={lng}
+                style={[styles.pill, active && styles.pillActive]}
+                onPress={() => setLanguage(lng)}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                testID={`edit-child-language-${lng}`}
+              >
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                  {lng === 'he' ? 'עברית' : 'English'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={[styles.helperNote, { textAlign }]}>{t('editChild.languageNote')}</Text>
+
         {saveErr && (
           <Text style={[styles.errorText, { marginTop: 16 }]}>{saveErr}</Text>
         )}
@@ -387,6 +417,8 @@ const styles = StyleSheet.create({
   pillActive:   { backgroundColor: T.accent, borderColor: T.accent },
   pillText:     { color: T.textMuted, fontWeight: '600', fontSize: 14 },
   pillTextActive: { color: '#fff' },
+
+  helperNote:   { color: T.textMuted, fontSize: 12, lineHeight: 17, marginTop: 8 },
 
   errorText:    { color: '#DC2626', fontSize: 13, textAlign: 'center' },
 

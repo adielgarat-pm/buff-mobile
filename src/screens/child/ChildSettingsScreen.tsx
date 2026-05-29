@@ -226,18 +226,26 @@ export default function ChildSettingsScreen() {
       </View>
 
       {/* ── General ────────────────────────────────────────────────────────── */}
-      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.generalSection')}</Text>
-      <TouchableOpacity
-        style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
-        onPress={() => setLangModalOpen(true)}
-        accessibilityRole="button"
-        testID="language-entry"
-      >
-        <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('settings.rowLanguage')}</Text>
-        <Text style={[styles.settingStatus, { color: T.mutedForeground }]}>
-          {language === 'he' ? 'עברית' : 'English'}
-        </Text>
-      </TouchableOpacity>
+      {/* Language is parent-owned (per-child language lives on EditChild). A
+          child cannot change it on their own device, and in View-as-Child the
+          picker would wrongly flip the parent's DEVICE language — so the whole
+          section is hidden for any child viewer (real child or parent preview). */}
+      {!isChildViewer && (
+        <>
+          <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.generalSection')}</Text>
+          <TouchableOpacity
+            style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
+            onPress={() => setLangModalOpen(true)}
+            accessibilityRole="button"
+            testID="language-entry"
+          >
+            <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('settings.rowLanguage')}</Text>
+            <Text style={[styles.settingStatus, { color: T.mutedForeground }]}>
+              {language === 'he' ? 'עברית' : 'English'}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       <BuddyToggleModal
         visible={toggleModalVisible}
