@@ -130,7 +130,7 @@ export default function GamerDashboardScreen() {
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, loading: dataLoading } = useChildData(childId);
+  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask } = useChildData(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
@@ -166,6 +166,14 @@ export default function GamerDashboardScreen() {
   // today (no code path writes to current_skin_id yet). Keeps the Gamer hero
   // in sync with what the child picked instead of forcing a wolf silhouette.
   const buddySkinId = relationship?.current_skin_id ?? petState.current_skin;
+
+  // Tap a task anywhere it appears (HQ list) to toggle completion — same
+  // contract as the Quests tab (GamerTasksScreen). Writes under previewChildId
+  // in view-as-child; RLS allows the family member to write daily_progress.
+  const onTaskTap = (taskId: string, completed: boolean) => {
+    if (completed) uncompleteTask(taskId);
+    else           completeTask(taskId);
+  };
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
   const filteredTasks = useMemo(() => {
@@ -349,12 +357,18 @@ export default function GamerDashboardScreen() {
         </View>
       ) : (
         displayedTasks.map(task => (
-          <View
+          <TouchableOpacity
             key={task.id}
             style={[
               styles.taskCard,
               task.completed && styles.taskCardDone,
             ]}
+            onPress={() => onTaskTap(task.id, task.completed)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={task.completed
+              ? t('gamerTasks.markIncomplete')
+              : t('gamerTasks.markComplete')}
           >
             <View style={[
               styles.checkCircle,
@@ -376,7 +390,7 @@ export default function GamerDashboardScreen() {
             <Text style={styles.taskCredits}>
               +{task.credits} BUFFs
             </Text>
-          </View>
+          </TouchableOpacity>
         ))
       )}
 
