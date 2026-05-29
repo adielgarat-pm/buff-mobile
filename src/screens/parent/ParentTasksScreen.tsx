@@ -4,13 +4,19 @@
  * Data comes from Supabase via useChildrenDashboard + useChildData.
  */
 import { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
+  Modal, TextInput, Alert, KeyboardAvoidingView, Platform,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
+import { useAuth } from '../../contexts/AuthContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
+import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
 import { supabase } from '../../integrations/supabase/client';
@@ -30,6 +36,7 @@ const stageForTime = (time: string): Phase => {
 export default function ParentTasksScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { familyId } = useAuth();
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
@@ -42,13 +49,78 @@ export default function ParentTasksScreen() {
 
   const { tasks, loading: tasksLoading, refetch } = useChildData(selectedChildId);
 
+  const {
+    suggestions,
+    markApproved,
+    markDiscussing,
+    refetch: refetchSuggestions,
+  } = usePendingSuggestions(selectedChildId);
+
+  // Approve-task modal state ("Yes, let's do it"). The parent sets time +
+  // Buffs so the economy stays in their hands; category defaults to
+  // 'responsibility' and the task runs every day.
+  const [approveOpen, setApproveOpen]       = useState(false);
+  const [approvingId, setApprovingId]       = useState<string | null>(null);
+  const [approveTitle, setApproveTitle]     = useState('');
+  const [approveTime, setApproveTime]       = useState('16:00');
+  const [approveCredits, setApproveCredits] = useState('10');
+  const [approveSaving, setApproveSaving]   = useState(false);
+
   // Tasks created via the empty-state CTA land back here while this tab is still
   // mounted — useChildData has no focus/realtime refetch, so re-pull on focus.
   useFocusEffect(
     useCallback(() => {
-      if (selectedChildId) refetch();
-    }, [selectedChildId, refetch])
+      if (selectedChildId) { refetch(); refetchSuggestions(); }
+    }, [selectedChildId, refetch, refetchSuggestions])
   );
+
+  const handleApproveSuggestion = (s: ChildSuggestion) => {
+    setApprovingId(s.id);
+    setApproveTitle(s.title);
+    setApproveTime('16:00');
+    setApproveCredits('10');
+    setApproveOpen(true);
+  };
+
+  const handleLetsTalk = async (s: ChildSuggestion) => {
+    await markDiscussing(s.id);
+  };
+
+  const handleConfirmApprove = async () => {
+    if (!selectedChildId || !approvingId || approveSaving) return;
+    const title = approveTitle.trim();
+    if (!title) return;
+    const credits = parseInt(approveCredits, 10) || 10;
+
+    if (!familyId) return;
+    setApproveSaving(true);
+    const { data, error } = await supabase.from('tasks').insert({
+      family_id:         familyId,
+      assigned_to:       selectedChildId,
+      title,
+      time:              approveTime,
+      category:          'responsibility',
+      credits,
+      schedule_days:     [0, 1, 2, 3, 4, 5, 6],
+      proposed_by_child: true,
+    } as never).select('id').single();
+
+    if (!error && data) {
+      await markApproved(approvingId, (data as { id: string }).id);
+      await refetchSuggestions();
+      await refetch();
+    }
+    setApproveSaving(false);
+
+    if (error) {
+      console.error('[ParentTasks] approve insert error:', error.message);
+      Alert.alert(t('common.error'), t('common.errorGeneric'));
+      return;
+    }
+
+    setApprovingId(null);
+    setApproveOpen(false);
+  };
 
   const selectedChild = children.find((c) => c.childId === selectedChildId);
   const selectedChildName = selectedChild?.displayName ?? '';
@@ -113,6 +185,19 @@ export default function ParentTasksScreen() {
         })}
       </ScrollView>
 
+      {/* Child's task ideas awaiting a deal */}
+      {suggestions.length > 0 && (
+        <View style={styles.suggestionsWrap}>
+          <PendingSuggestions
+            suggestions={suggestions}
+            kind="task"
+            childName={selectedChildName}
+            onApprove={handleApproveSuggestion}
+            onLetsTalk={handleLetsTalk}
+          />
+        </View>
+      )}
+
       {/* Content */}
       {isLoading ? (
         <View style={styles.centered}>
@@ -173,6 +258,62 @@ export default function ParentTasksScreen() {
           })}
         </ScrollView>
       )}
+
+      {/* ── Approve-task modal ("Yes, let's do it") ──────────────────────── */}
+      <Modal
+        visible={approveOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setApproveOpen(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setApproveOpen(false)} />
+          <View style={[styles.sheet, { backgroundColor: T.card }]}>
+            <Text style={[styles.sheetTitle, { color: T.text }]}>{t('childSuggest.approve.taskHeading')}</Text>
+
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.titleLabel')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={approveTitle}
+              onChangeText={setApproveTitle}
+              maxLength={60}
+            />
+
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.timeLabel')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={approveTime}
+              onChangeText={setApproveTime}
+              placeholder="16:00"
+              placeholderTextColor={T.textMuted}
+              maxLength={5}
+            />
+
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.creditsLabel')}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={approveCredits}
+              onChangeText={v => setApproveCredits(v.replace(/[^0-9]/g, ''))}
+              keyboardType="number-pad"
+              maxLength={5}
+              selectTextOnFocus
+            />
+
+            <TouchableOpacity
+              style={[styles.confirmBtn, { backgroundColor: T.accent }, (approveSaving || !approveTitle.trim()) && { opacity: 0.6 }]}
+              onPress={handleConfirmApprove}
+              disabled={approveSaving || !approveTitle.trim()}
+            >
+              {approveSaving
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.confirmText}>{t('childSuggest.approve.confirm')}</Text>}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -197,4 +338,15 @@ const styles = StyleSheet.create({
   emptyBody:     { fontSize: 14, textAlign: 'center', marginTop: 8, marginBottom: 20, lineHeight: 20 },
   setupCta:      { borderRadius: 14, paddingVertical: 14, paddingHorizontal: 24, alignItems: 'center' },
   setupCtaText:  { color: '#fff', fontSize: 15, fontWeight: '700' },
+
+  suggestionsWrap: { paddingHorizontal: 20, paddingTop: 4 },
+
+  // Approve-task modal
+  modalOverlay:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  sheet:         { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+  sheetTitle:    { fontSize: 20, fontWeight: '800', marginBottom: 16 },
+  inputLabel:    { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  input:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16 },
+  confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
+  confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
 });
