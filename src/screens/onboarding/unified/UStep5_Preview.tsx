@@ -232,14 +232,28 @@ export default function UStep5_Preview() {
       const taskRows = [...mainTaskRows, ...additionalTaskRows].slice(0, 5);
       console.log(`${TAG} [2/3] Task rows (${taskRows.length}):`, JSON.stringify(taskRows.map(r => `${r.time} ${r.title}`)));
 
-      const { error: tasksErr } = await supabase
+      // Idempotency: skip if the child already has tasks. saveAll re-runs on
+      // remount / error-retry / null-childProfileId goNext, and the empty-state
+      // CTA attaches to an existing child — without this a second run duplicated
+      // the whole task set (IN-2026-05-29-08). Gated per-table so a partial prior
+      // failure still backfills the missing side.
+      const { count: existingTaskCount } = await supabase
         .from('tasks')
-        .insert(taskRows as never);
+        .select('*', { count: 'exact', head: true })
+        .eq('assigned_to', id);
 
-      if (tasksErr) {
-        console.warn(`${TAG} [2/3] Tasks insert error (non-fatal):`, tasksErr.message);
+      if (existingTaskCount && existingTaskCount > 0) {
+        console.log(`${TAG} [2/3] Child already has ${existingTaskCount} task(s) — skipping insert (idempotent)`);
       } else {
-        console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+        const { error: tasksErr } = await supabase
+          .from('tasks')
+          .insert(taskRows as never);
+
+        if (tasksErr) {
+          console.warn(`${TAG} [2/3] Tasks insert error (non-fatal):`, tasksErr.message);
+        } else {
+          console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+        }
       }
 
       // ── 3. INSERT store_rewards ──────────────────────────────────────────
@@ -259,14 +273,25 @@ export default function UStep5_Preview() {
       }));
       console.log(`${TAG} [3/3] Reward rows:`, JSON.stringify(rewardRows.map(r => r.title)));
 
-      const { error: rewardsErr } = await supabase
+      // Idempotency (mirror of the task guard above): skip if the child already
+      // has rewards. See IN-2026-05-29-08.
+      const { count: existingRewardCount } = await supabase
         .from('store_rewards')
-        .insert(rewardRows as never);
+        .select('*', { count: 'exact', head: true })
+        .eq('child_id', id);
 
-      if (rewardsErr) {
-        console.warn(`${TAG} [3/3] store_rewards insert error (non-fatal — table may not exist yet):`, rewardsErr.message);
+      if (existingRewardCount && existingRewardCount > 0) {
+        console.log(`${TAG} [3/3] Child already has ${existingRewardCount} reward(s) — skipping insert (idempotent)`);
       } else {
-        console.log(`${TAG} [3/3] Rewards insert SUCCESS`);
+        const { error: rewardsErr } = await supabase
+          .from('store_rewards')
+          .insert(rewardRows as never);
+
+        if (rewardsErr) {
+          console.warn(`${TAG} [3/3] store_rewards insert error (non-fatal — table may not exist yet):`, rewardsErr.message);
+        } else {
+          console.log(`${TAG} [3/3] Rewards insert SUCCESS`);
+        }
       }
 
       console.log(`${TAG} saveAll complete ✓`);
@@ -292,8 +317,8 @@ export default function UStep5_Preview() {
     // child already exists) and UStep8_Complete (which would overwrite the
     // already-onboarded parent's pro_settings).
     if (params.existingChildId) {
-      console.log(`${TAG} Existing child — returning to ParentApp`);
-      navigation.navigate('ParentApp');
+      console.log(`${TAG} Existing child — returning to Parent Tasks tab`);
+      navigation.navigate('ParentApp', { screen: 'ParentTasks' });
       return;
     }
     console.log(`${TAG} Navigating to UStep7_Phone with childProfileId=${childProfileId}`);
