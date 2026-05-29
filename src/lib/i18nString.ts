@@ -120,3 +120,27 @@ export function pickI18nColumn(row: BilingualColumns, lang: string): string {
 export function bilingualForDb(s: I18nString): { title: string; title_he: string } {
   return { title: s.en, title_he: s.he };
 }
+
+/**
+ * Infer the intended language for a child from the script their display
+ * name was typed in. Used when writing per-child monolingual content (e.g.
+ * onboarding starter task titles, which live in the single `tasks.title`
+ * column) so a Hebrew-named child gets Hebrew tasks and a Latin-named child
+ * gets English ones — independent of the app's global UI locale.
+ *
+ * - Any Hebrew letter present → 'he' (Hebrew wins for mixed-script names,
+ *   matching the Israel-first MVP default).
+ * - Otherwise any Latin letter present → 'en'.
+ * - Neither (empty, digits, emoji only) → 'he' (Israel-first fallback).
+ *
+ * @example
+ *   detectLangFromName('איתי')  // → 'he'
+ *   detectLangFromName('Emi')   // → 'en'
+ *   detectLangFromName('')      // → 'he'
+ */
+export function detectLangFromName(name: string | null | undefined): 'he' | 'en' {
+  if (!name) return 'he';
+  if (/[֐-׿]/.test(name)) return 'he';
+  if (/[A-Za-z]/.test(name)) return 'en';
+  return 'he';
+}

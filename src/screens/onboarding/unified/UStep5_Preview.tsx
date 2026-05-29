@@ -29,9 +29,9 @@ import {
   FALLBACK_REWARDS,
   calcRewardCreditsDefault,
 } from './onboardingData';
-import type { AgeGroup } from './onboardingData';
+import type { AgeGroup, TimeOfDay } from './onboardingData';
 import type { TaskCategory } from '../../../types/task';
-import { pickLang, bilingualForDb } from '../../../lib/i18nString';
+import { pickLang, bilingualForDb, detectLangFromName } from '../../../lib/i18nString';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
 type Route = RouteProp<RootStackParamList, 'UStep5_Preview'>;
@@ -41,11 +41,18 @@ const TAG  = '[UStep5_Preview]';
 
 const SIZE_LABEL: Record<string, string> = { small: '3d', medium: '7d', large: '14d' };
 
-/** Times spread across Morning / Afternoon / Evening phases for the 3 main tasks. */
+/** Positional fallback times (only used if a task has no timeOfDay). */
 const TASK_TIMES = ['08:00', '16:00', '20:00'] as const;
 
 /** Times for up to 2 additional-challenge bonus tasks (slot into unused gaps). */
 const ADDITIONAL_TASK_TIMES = ['12:00', '18:00'] as const;
+
+/** Clock time per time-of-day bucket — a task's `timeOfDay` drives its schedule. */
+const TIME_OF_DAY_CLOCK: Record<TimeOfDay, string> = {
+  morning:   '08:00',
+  afternoon: '16:00',
+  evening:   '20:00',
+};
 
 /** Map the onboarding challenge ID to the correct TaskCategory. */
 function getCategoryForChallenge(challenge: string): TaskCategory {
@@ -71,6 +78,9 @@ export default function UStep5_Preview() {
   const { familyId, user } = useAuth();
 
   const lang  = i18n.language.startsWith('he') ? 'he' : 'en';
+  // Task titles are written/shown in the language of the CHILD's name (Hebrew
+  // name → Hebrew tasks, Latin name → English), independent of the app locale.
+  const childLang = detectLangFromName(params.childName);
   const isRTL = I18nManager.isRTL;
 
   const [saveErr,        setSaveErr]        = useState<string | null>(null);
@@ -184,17 +194,17 @@ export default function UStep5_Preview() {
       // ── 2. INSERT tasks ──────────────────────────────────────────────────
       console.log(`${TAG} [2/3] Inserting ${tasks.length} tasks for childProfileId=${id}...`);
 
-      // Main challenge tasks (up to 3, spread across Morning / Afternoon / Evening).
-      // `tasks` table has a single-column `title` — we pick locale-appropriate
-      // text via `pickLang`. Hebrew interface → Hebrew titles in DB. The active
-      // locale is read fresh from i18n so a late language switch is respected.
-      const activeLang = i18n.language;
+      // Main challenge tasks (up to 3). `tasks` has a single-column `title`, so
+      // we pick the language from the CHILD's name script (childLang) — not the
+      // app locale — so each child gets tasks in their own language. The clock
+      // time comes from each task's `timeOfDay` (positional TASK_TIMES is only a
+      // fallback for any task missing the field).
       const mainTaskRows = tasks.map((t, index) => ({
         family_id:     familyId,
         assigned_to:   id,
-        title:         pickLang(t.title, activeLang),
+        title:         pickLang(t.title, childLang),
         category:      getCategoryForChallenge(params.mainChallenge),
-        time:          TASK_TIMES[index] ?? '08:00',
+        time:          TIME_OF_DAY_CLOCK[t.timeOfDay] ?? TASK_TIMES[index] ?? '08:00',
         credits:       t.buff_value,
         icon:          '⭐',
         schedule_days: [0, 1, 2, 3, 4, 5],
@@ -209,9 +219,9 @@ export default function UStep5_Preview() {
           return {
             family_id:     familyId,
             assigned_to:   id,
-            title:         pickLang(t.title, activeLang),
+            title:         pickLang(t.title, childLang),
             category:      getCategoryForChallenge(challenge),
-            time:          ADDITIONAL_TASK_TIMES[index] ?? '12:00',
+            time:          TIME_OF_DAY_CLOCK[t.timeOfDay] ?? ADDITIONAL_TASK_TIMES[index] ?? '12:00',
             credits:       t.buff_value,
             icon:          '⭐',
             schedule_days: [0, 1, 2, 3, 4, 5],
@@ -351,7 +361,7 @@ export default function UStep5_Preview() {
             <View style={[styles.cardRow, isRTL && styles.rowReverse]}>
               <Text style={styles.buffIcon}>⚡</Text>
               <Text style={[styles.cardTitle, isRTL && styles.textRight]}>
-                {task.title[lang]}
+                {pickLang(task.title, childLang)}
               </Text>
               <Text style={styles.buffBadge}>
                 {t('onboarding.step5.buffs', { count: task.buff_value })}
@@ -382,7 +392,7 @@ export default function UStep5_Preview() {
                 <Text style={styles.rewardEmoji}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.cardTitle, isRTL && styles.textRight]}>
-                    {reward.title[lang]}
+                    {pickLang(reward.title, lang)}
                   </Text>
                   <View style={[styles.rewardMeta, isRTL && styles.rowReverse]}>
                     <View style={styles.sizeBadge}>
