@@ -93,10 +93,16 @@ Confirmed via Supabase MCP (project `gfrongfnyigxsexuofrg`, 2026-05-29):
   (currently shows all days) and apply the weekend/`hide_on_weekend` filter.
 
 ### 4.3 UI
-- **Task editor (parent):** add a toggle "Hide on weekends / school-days only"
-  (Hebrew wording TBD — see Open Questions) that sets `hide_on_weekend`.
-- **Parent settings:** surface the `friday_enabled` toggle (the setting exists in
-  DB but has no mobile UI). Mirror Lovable's ParentDashboard switch.
+- **Parent settings (DONE — Chunk 2):** `friday_enabled` toggle in
+  `ParentSettingsScreen` (the setting exists in DB; this surfaces it). Added
+  `useAppSettings.setFridayEnabled` + a Switch card + i18n keys.
+- **Per-task day editor — DEFERRED (separate package).** Mobile has **no
+  standalone task add/edit UI**: `useChildProgress.addTask/updateTask` are not
+  called anywhere; tasks are created only via the onboarding wizard, which
+  hardcodes `schedule_days = [0,1,2,3,4,5]` with no day picker (UStep5_Preview).
+  So a parent cannot set per-task days (or `hide_on_weekend`) at all today.
+  Adding a day picker requires first building a task editor — out of scope for
+  this parity package. Tracked as a follow-up: **pkg/parent-task-editor**.
 
 ---
 

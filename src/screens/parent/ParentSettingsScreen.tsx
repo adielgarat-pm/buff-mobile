@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useSubscription } from '../../hooks/useSubscription';
+import { useAppSettings } from '../../hooks/useAppSettings';
 import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 import PauseModeCard from '../../components/PauseModeCard';
@@ -36,6 +37,7 @@ export default function ParentSettingsScreen() {
   const [codeCopied, setCodeCopied] = useState(false);
   const { language } = useLanguage();
   const [langModalOpen, setLangModalOpen] = useState(false);
+  const { fridayEnabled, setFridayEnabled } = useAppSettings();
 
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {
@@ -145,6 +147,21 @@ export default function ParentSettingsScreen() {
       {/* Pause Mode — parent control */}
       <PauseModeCard />
 
+      {/* School week — is Friday a school day for this family? Drives which
+          days school tasks + the School phase appear (pkg/school-free-day-parity). */}
+      <View style={[styles.devCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+        <View style={{ flex: 1, marginRight: 12 }}>
+          <Text style={[styles.fridayLabel, { color: T.text }]}>{t('settings.fridaySchoolLabel')}</Text>
+          <Text style={[styles.devLabel, { color: T.textMuted }]}>{t('settings.fridaySchoolHint')}</Text>
+        </View>
+        <Switch
+          value={fridayEnabled}
+          onValueChange={(v) => { void setFridayEnabled(v); }}
+          trackColor={{ false: '#D1D5DB', true: T.accent }}
+          thumbColor="#fff"
+        />
+      </View>
+
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>
           <Text style={[styles.sectionTitle, { color: T.textMuted }]}>{section.title}</Text>
@@ -211,6 +228,7 @@ const styles = StyleSheet.create({
   profileRole:  { fontSize: 13 },
   devCard:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: 12, padding: 14, marginBottom: 20, borderWidth: 1 },
   devLabel:     { fontSize: 13 },
+  fridayLabel:  { fontSize: 15, fontWeight: '600', marginBottom: 2 },
   section:      { marginBottom: 20 },
   sectionTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
   sectionCard:  { borderRadius: 14, borderWidth: 1, overflow: 'hidden' },
