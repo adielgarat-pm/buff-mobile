@@ -17,6 +17,8 @@ import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
 import { pickI18nColumn } from '../../lib/i18nString';
+import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
+import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 
 interface StoreReward {
   id:             string;
@@ -54,6 +56,16 @@ export default function ParentRewardsScreen() {
   const [newCredits, setNewCredits]   = useState('100');
   const [newSize, setNewSize]         = useState<RewardSize>('small');
   const [saving, setSaving]           = useState(false);
+  // When approving a child's suggestion, the add-reward modal is reused as the
+  // "Yes" editor; this holds the suggestion id so we can mark it approved.
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const {
+    suggestions,
+    markApproved,
+    markDiscussing,
+    refetch: refetchSuggestions,
+  } = usePendingSuggestions(selectedChildId);
 
   // Auto-select first child once list loads
   useEffect(() => {
@@ -87,11 +99,27 @@ export default function ParentRewardsScreen() {
   };
 
   const openModal = () => {
+    setApprovingId(null);
     setNewTitle('');
     setNewEmoji('🎁');
     setNewSize('small');
     setNewCredits(String(DEFAULT_CREDITS.small));
     setShowModal(true);
+  };
+
+  // "Yes, let's do it" — reuse the add-reward modal, prefilled with the child's
+  // idea. The parent sets size/credits (keeps the economy in the parent's hands).
+  const handleApproveSuggestion = (s: ChildSuggestion) => {
+    setApprovingId(s.id);
+    setNewTitle(s.title);
+    setNewEmoji(s.emoji?.trim() || '🎁');
+    setNewSize('small');
+    setNewCredits(String(DEFAULT_CREDITS.small));
+    setShowModal(true);
+  };
+
+  const handleLetsTalk = async (s: ChildSuggestion) => {
+    await markDiscussing(s.id);
   };
 
   const handleAddReward = async () => {
@@ -108,15 +136,21 @@ export default function ParentRewardsScreen() {
     }
 
     setSaving(true);
-    const { error } = await supabase.from('store_rewards').insert({
-      family_id:      familyId,
-      child_id:       selectedChildId,
+    const { data, error } = await supabase.from('store_rewards').insert({
+      family_id:         familyId,
+      child_id:          selectedChildId,
       title,
-      emoji:          newEmoji.trim() || '🎁',
-      credits_needed: credits,
-      size:           newSize,
-      is_redeemed:    false,
-    } as never);
+      emoji:             newEmoji.trim() || '🎁',
+      credits_needed:    credits,
+      size:              newSize,
+      is_redeemed:       false,
+      proposed_by_child: !!approvingId,
+    } as never).select('id').single();
+
+    if (!error && approvingId && data) {
+      await markApproved(approvingId, (data as { id: string }).id);
+      await refetchSuggestions();
+    }
     setSaving(false);
 
     if (error) {
@@ -125,6 +159,7 @@ export default function ParentRewardsScreen() {
       return;
     }
 
+    setApprovingId(null);
     setShowModal(false);
     fetchRewards(selectedChildId);
   };
@@ -190,6 +225,15 @@ export default function ParentRewardsScreen() {
               </View>
             </View>
           )}
+
+          {/* Child's reward ideas awaiting a deal */}
+          <PendingSuggestions
+            suggestions={suggestions}
+            kind="reward"
+            childName={selectedChild?.displayName ?? ''}
+            onApprove={handleApproveSuggestion}
+            onLetsTalk={handleLetsTalk}
+          />
 
           {/* Rewards list */}
           <Text style={[styles.sectionLabel, { color: T.textMuted }]}>{t('parentRewards.catalog')}</Text>

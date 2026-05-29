@@ -44,6 +44,8 @@ import { PaywallContent } from '../PaywallScreen';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { pickI18nColumn } from '../../lib/i18nString';
+import { useChildSuggestions } from '../../hooks/useChildSuggestions';
+import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -60,6 +62,17 @@ const COLORS = {
   limeGlow:     'rgba(168, 230, 62, 0.10)',
   violet:       '#8b5cf6',
 } as const;
+
+const SUGGEST_PALETTE: SuggestPalette = {
+  overlay:    'rgba(0,0,0,0.55)',
+  surface:    COLORS.surface,
+  text:       COLORS.text,
+  textMuted:  COLORS.textMuted,
+  accent:     COLORS.lime,
+  accentText: COLORS.canvas,
+  inputBg:    COLORS.surfaceDim,
+  border:     COLORS.border,
+};
 
 type TabKey = 'parent' | 'buddy';
 
@@ -86,6 +99,9 @@ export default function GamerRewardsScreen() {
 
   const { isPauseActive } = useAppSettings();
   const welcomeBack       = useWelcomeBack();
+
+  const { suggestions, submit, withdraw } = useChildSuggestions(childId);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   const [tab, setTab]         = useState<TabKey>('parent');
   const [rewards, setRewards] = useState<StoreReward[]>([]);
@@ -287,16 +303,23 @@ export default function GamerRewardsScreen() {
               </>
             )}
 
-            {/* Suggest CTA */}
+            {/* Suggest CTA + the kid's own open ideas */}
             <View style={styles.suggestRow}>
               <TouchableOpacity
                 style={styles.suggestBtn}
-                onPress={() => { /* TODO: hook into reward-suggest flow when designed */ }}
+                onPress={() => setSuggestOpen(true)}
               >
                 <Ionicons name="add" size={18} color={COLORS.textMuted} />
-                <Text style={styles.suggestText}>{t('gamerRewards.suggestReward')}</Text>
+                <Text style={styles.suggestText}>{t('childSuggest.reward.cta')}</Text>
               </TouchableOpacity>
             </View>
+
+            <SuggestionStatusList
+              suggestions={suggestions}
+              kind="reward"
+              palette={SUGGEST_PALETTE}
+              onWithdraw={withdraw}
+            />
           </>
         ) : (
           // FROM BUDDY tab — boosters system not yet implemented (BUDDY V0 scope)
@@ -311,6 +334,13 @@ export default function GamerRewardsScreen() {
         )}
       </ScrollView>
 
+      <SuggestModal
+        visible={suggestOpen}
+        kind="reward"
+        palette={SUGGEST_PALETTE}
+        onClose={() => setSuggestOpen(false)}
+        onSubmit={({ title, emoji }) => submit({ kind: 'reward', title, emoji })}
+      />
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
     </SafeAreaView>
   );

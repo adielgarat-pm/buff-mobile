@@ -18,6 +18,9 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { useChildSuggestions } from '../../hooks/useChildSuggestions';
+import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../integrations/supabase/client';
 import { PaywallContent } from '../PaywallScreen';
 import GamerRewardsScreen from './GamerRewardsScreen';
@@ -55,6 +58,20 @@ function PastelChildRewards() {
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { totalBalance } = useChildData(childId);
+
+  const { suggestions, submit, withdraw } = useChildSuggestions(childId);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+
+  const suggestPalette: SuggestPalette = {
+    overlay:    'rgba(0,0,0,0.45)',
+    surface:    T.card,
+    text:       T.foreground,
+    textMuted:  T.mutedForeground,
+    accent:     T.primary,
+    accentText: T.primaryForeground,
+    inputBg:    T.background,
+    border:     T.border,
+  };
 
   const [rewards, setRewards] = useState<StoreReward[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,6 +205,32 @@ function PastelChildRewards() {
           </View>
         </ScrollView>
       )}
+
+      {/* Suggest-a-reward footer + the kid's own open ideas */}
+      <View style={[styles.suggestFooter, { borderTopColor: T.border }]}>
+        <SuggestionStatusList
+          suggestions={suggestions}
+          kind="reward"
+          palette={suggestPalette}
+          onWithdraw={withdraw}
+        />
+        <TouchableOpacity
+          style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.border }]}
+          onPress={() => setSuggestOpen(true)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add" size={18} color={T.primary} />
+          <Text style={[styles.suggestText, { color: T.primary }]}>{t('childSuggest.reward.cta')}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <SuggestModal
+        visible={suggestOpen}
+        kind="reward"
+        palette={suggestPalette}
+        onClose={() => setSuggestOpen(false)}
+        onSubmit={({ title, emoji }) => submit({ kind: 'reward', title, emoji })}
+      />
     </View>
   );
 }
@@ -216,4 +259,8 @@ const styles = StyleSheet.create({
   lockedShopEmoji:   { fontSize: 64, marginBottom: 16 },
   lockedShopTitle:   { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8, lineHeight: 24 },
   lockedShopSub:     { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+
+  suggestFooter:     { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20, borderTopWidth: 1 },
+  suggestBtn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999, borderWidth: 1, marginTop: 8 },
+  suggestText:       { fontSize: 13, fontWeight: '700' },
 });

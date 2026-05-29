@@ -44,6 +44,8 @@ import {
 import { isWeekendToday } from '../../utils/schoolDay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
+import { useChildSuggestions } from '../../hooks/useChildSuggestions';
+import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -59,6 +61,17 @@ const COLORS = {
   limeGlow:     'rgba(168, 230, 62, 0.12)',
   violet:       '#8b5cf6',
 } as const;
+
+const SUGGEST_PALETTE: SuggestPalette = {
+  overlay:    'rgba(0,0,0,0.55)',
+  surface:    COLORS.surface,
+  text:       COLORS.text,
+  textMuted:  COLORS.textMuted,
+  accent:     COLORS.lime,
+  accentText: COLORS.canvas,
+  inputBg:    COLORS.surfaceDim,
+  border:     COLORS.border,
+};
 
 // ─── Phase metadata for icons + ordering ─────────────────────────────────────
 const PHASE_ICONS: Record<Phase, keyof typeof Ionicons.glyphMap> = {
@@ -99,6 +112,9 @@ export default function GamerTasksScreen() {
   const { settings, isPauseActive } = useAppSettings();
   const fridayEnabled     = settings?.friday_enabled ?? false;
   const welcomeBack       = useWelcomeBack();
+
+  const { suggestions, submit, withdraw } = useChildSuggestions(childId);
+  const [suggestOpen, setSuggestOpen] = useState(false);
 
   const [hapticsOn, setHapticsOn] = useState(true);
   useEffect(() => {
@@ -342,22 +358,36 @@ export default function GamerTasksScreen() {
           );
         })}
 
-        {/* ── Suggest-a-task CTA (stub) ────────────────────────────────── */}
+        {/* ── Suggest-a-task CTA + the kid's own open ideas ────────────── */}
         <View style={styles.suggestRow}>
           <TouchableOpacity
             style={styles.suggestBtn}
-            onPress={() => { /* TODO: hook into task-suggest flow when designed */ }}
+            onPress={() => setSuggestOpen(true)}
           >
             <Ionicons name="add" size={18} color={COLORS.lime} />
-            <Text style={styles.suggestText}>{t('gamerTasks.suggestTask')}</Text>
+            <Text style={styles.suggestText}>{t('childSuggest.task.cta')}</Text>
           </TouchableOpacity>
         </View>
+
+        <SuggestionStatusList
+          suggestions={suggestions}
+          kind="task"
+          palette={SUGGEST_PALETTE}
+          onWithdraw={withdraw}
+        />
 
         {/* Haptics flag is read but unused in this screen — kept for future
             wiring to per-task haptic feedback. */}
         {hapticsOn ? null : null}
       </ScrollView>
 
+      <SuggestModal
+        visible={suggestOpen}
+        kind="task"
+        palette={SUGGEST_PALETTE}
+        onClose={() => setSuggestOpen(false)}
+        onSubmit={({ title }) => submit({ kind: 'task', title })}
+      />
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
     </SafeAreaView>
   );

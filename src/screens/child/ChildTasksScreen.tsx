@@ -19,6 +19,9 @@ import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { useChildSuggestions } from '../../hooks/useChildSuggestions';
+import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { isWeekendToday } from '../../utils/schoolDay';
 import GamerTasksScreen from './GamerTasksScreen';
@@ -60,6 +63,20 @@ function PastelChildTasks() {
   } = useChildData(childId);
   const { settings } = useAppSettings();
   const fridayEnabled = settings?.friday_enabled ?? false;
+
+  const { suggestions, submit, withdraw } = useChildSuggestions(childId);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+
+  const suggestPalette: SuggestPalette = {
+    overlay:    'rgba(0,0,0,0.45)',
+    surface:    T.card,
+    text:       T.foreground,
+    textMuted:  T.mutedForeground,
+    accent:     T.primary,
+    accentText: T.primaryForeground,
+    inputBg:    T.background,
+    border:     T.border,
+  };
 
   const resolvedSchoolEndTime = schoolEndTime ?? '14:00';
   const isWeekend             = isWeekendToday(fridayEnabled);
@@ -165,7 +182,36 @@ function PastelChildTasks() {
           onUncompleteTask={uncompleteTask}
           hapticsEnabled={hapticsOn}
         />
+
+        {/* Suggest-a-task CTA + the kid's own open ideas */}
+        <View style={styles.suggestRow}>
+          <TouchableOpacity
+            style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.border }]}
+            onPress={() => setSuggestOpen(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="add" size={18} color={T.primary} />
+            <Text style={[styles.suggestText, { color: T.primary }]}>{t('childSuggest.task.cta')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ paddingHorizontal: 20 }}>
+          <SuggestionStatusList
+            suggestions={suggestions}
+            kind="task"
+            palette={suggestPalette}
+            onWithdraw={withdraw}
+          />
+        </View>
       </ScrollView>
+
+      <SuggestModal
+        visible={suggestOpen}
+        kind="task"
+        palette={suggestPalette}
+        onClose={() => setSuggestOpen(false)}
+        onSubmit={({ title }) => submit({ kind: 'task', title })}
+      />
     </SafeAreaView>
   );
 }
@@ -186,4 +232,8 @@ const styles = StyleSheet.create({
 
   scroll:        { flex: 1 },
   scrollContent: { paddingBottom: 32 },
+
+  suggestRow:    { alignItems: 'center', marginTop: 20, paddingHorizontal: 20 },
+  suggestBtn:    { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, borderWidth: 1 },
+  suggestText:   { fontSize: 13, fontWeight: '700' },
 });
