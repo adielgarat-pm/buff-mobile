@@ -182,6 +182,29 @@ export function useAppSettings() {
       .eq('family_id', familyId);
   }, [familyId, settings]);
 
+  /**
+   * Toggle whether Friday is a school day for this family
+   * (app_settings.friday_enabled). Family-level, mirroring Lovable.
+   */
+  const setFridayEnabled = useCallback(async (enabled: boolean): Promise<{ error: Error | null }> => {
+    if (!familyId) return { error: new Error('No family_id available') };
+
+    // Optimistic
+    if (settings) setSettings({ ...settings, friday_enabled: enabled });
+
+    const { error: updateError } = await supabase
+      .from('app_settings')
+      .update({ friday_enabled: enabled } as never)
+      .eq('family_id', familyId);
+
+    if (updateError) {
+      console.error('[useAppSettings] setFridayEnabled failed:', updateError);
+      await refetch(); // roll back optimistic update
+      return { error: updateError as unknown as Error };
+    }
+    return { error: null };
+  }, [familyId, settings, refetch]);
+
   return {
     // State
     settings,
@@ -192,10 +215,12 @@ export function useAppSettings() {
     pauseUntil: settings?.pause_until ?? null,
     pauseModeActive: settings?.pause_mode_active ?? false,
     lastChildActivity: settings?.last_child_activity ?? null,
+    fridayEnabled: settings?.friday_enabled ?? false,
     // Actions
     togglePause,
     resumePause,
     recordChildActivity,
+    setFridayEnabled,
     refetch,
   };
 }

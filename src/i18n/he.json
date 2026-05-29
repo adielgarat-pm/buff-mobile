@@ -1461,6 +1461,8 @@
   "settings.rowSignOut": "התנתק",
   "settings.sectionGeneral": "כללי",
   "settings.rowLanguage": "שפה",
+  "settings.fridaySchoolLabel": "לימודים בשישי",
+  "settings.fridaySchoolHint": "האם שישי הוא יום לימודים אצלכם?",
   "language.pickerTitle": "שפה",
   "language.restartTitle": "הפעלה מחדש להחלת השפה",
   "language.restartMessage": "BUFF יופעל מחדש כדי לסיים את החלפת השפה. הכול נשמר 💚",

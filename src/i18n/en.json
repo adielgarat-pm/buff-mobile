@@ -1461,6 +1461,8 @@
   "settings.rowSignOut": "Sign out",
   "settings.sectionGeneral": "General",
   "settings.rowLanguage": "Language",
+  "settings.fridaySchoolLabel": "School on Fridays",
+  "settings.fridaySchoolHint": "Is Friday a school day in your family?",
   "language.pickerTitle": "Language",
   "language.restartTitle": "Restart to apply",
   "language.restartMessage": "BUFF will restart to finish switching the language. Everything is saved 💚",
