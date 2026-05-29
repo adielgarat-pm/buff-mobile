@@ -21,10 +21,14 @@ export interface OnboardingOption {
   labelKey: string; // i18n key
 }
 
+/** When in the day a starter task naturally belongs (drives its clock time). */
+export type TimeOfDay = 'morning' | 'afternoon' | 'evening';
+
 export interface StarterTask {
   id:         string;
   title:      I18nString;
   buff_value: number;
+  timeOfDay:  TimeOfDay;
 }
 
 export interface RewardItem {
@@ -101,127 +105,137 @@ export const MISSION_PICKS: Record<string, string[]> = {
   life_independence:  ['Cook one meal per week', 'Manage weekly allowance', 'Book your own appointment'],
 };
 
-// ── Starter tasks by challenge (3 per challenge, bilingual) ──────────────────
+// ── Starter tasks by challenge (3 per challenge, bilingual, time-of-day aware) ──
+//
+// Built from docs/sessions/onboarding-starter-tasks/STARTER_TASK_TABLE.md (v1.1).
+// Each challenge ID maps to its age group (per OPTIONS_BY_AGE) and gets the 3
+// age-appropriate tasks from the table. `timeOfDay` drives the clock time at
+// INSERT (see UStep5_Preview), replacing the old positional assignment.
+// `task.id` is a React key only — it is NOT written to the DB, so the same id
+// may recur across challenges (e.g. a shared task).
 
 const V = ONBOARDING_CONFIG.DEFAULT_BUFF_VALUE;
 
 export const STARTER_TASKS_BY_CHALLENGE: Record<string, StarterTask[]> = {
-  morning_routine: [
-    { id: 'mr_1', title: { en: 'Brush teeth & wash face',          he: 'לצחצח שיניים ולשטוף פנים'          }, buff_value: V },
-    { id: 'mr_2', title: { en: 'Pack school bag the night before', he: 'לארוז את התיק בערב'                 }, buff_value: V },
-    { id: 'mr_3', title: { en: 'Be ready to leave on time',        he: 'להיות מוכן לצאת בזמן'              }, buff_value: V },
-  ],
-  homework_focus: [
-    { id: 'hf_1', title: { en: '15-minute focused homework sprint', he: 'ספרינט שיעורי בית של 15 דקות'     }, buff_value: V },
-    { id: 'hf_2', title: { en: 'No phone during homework time',     he: 'בלי טלפון בזמן שיעורי בית'        }, buff_value: V },
-    { id: 'hf_3', title: { en: 'One subject at a time',             he: 'מקצוע אחד בכל פעם'                }, buff_value: V },
-  ],
-  organisation_memory: [
-    { id: 'om_1', title: { en: 'Set out clothes the night before',  he: 'להכין בגדים בערב'                  }, buff_value: V },
-    { id: 'om_2', title: { en: 'Check school bag checklist',        he: 'לבדוק רשימת תיק בית ספר'           }, buff_value: V },
-    { id: 'om_3', title: { en: "Write tomorrow's tasks before bed", he: 'לכתוב משימות למחר לפני השינה'      }, buff_value: V },
-  ],
-  organisation: [
-    { id: 'om_1', title: { en: 'Set out clothes the night before',  he: 'להכין בגדים בערב'                  }, buff_value: V },
-    { id: 'om_2', title: { en: 'Check school bag checklist',        he: 'לבדוק רשימת תיק בית ספר'           }, buff_value: V },
-    { id: 'om_3', title: { en: "Write tomorrow's tasks before bed", he: 'לכתוב משימות למחר לפני השינה'      }, buff_value: V },
-  ],
-  screen_time: [
-    { id: 'st_1', title: { en: 'No phone during meals',             he: 'בלי טלפון בזמן ארוחות'             }, buff_value: V },
-    { id: 'st_2', title: { en: 'Screens off 30 min before bed',     he: 'מסכים כבויים 30 דקות לפני שינה'   }, buff_value: V },
-    { id: 'st_3', title: { en: 'Earn screen time after tasks done', he: 'זמן מסך רק אחרי משימות'            }, buff_value: V },
-  ],
-  screen_balance: [
-    { id: 'st_1', title: { en: 'No phone during meals',             he: 'בלי טלפון בזמן ארוחות'             }, buff_value: V },
-    { id: 'st_2', title: { en: 'Screens off 30 min before bed',     he: 'מסכים כבויים 30 דקות לפני שינה'   }, buff_value: V },
-    { id: 'st_3', title: { en: 'Earn screen time after tasks done', he: 'זמן מסך רק אחרי משימות'            }, buff_value: V },
-  ],
-  screen_limits: [
-    { id: 'st_1', title: { en: 'No phone during meals',             he: 'בלי טלפון בזמן ארוחות'             }, buff_value: V },
-    { id: 'st_2', title: { en: 'Screens off 30 min before bed',     he: 'מסכים כבויים 30 דקות לפני שינה'   }, buff_value: V },
-    { id: 'st_3', title: { en: 'Earn screen time after tasks done', he: 'זמן מסך רק אחרי משימות'            }, buff_value: V },
-  ],
-  time_management: [
-    { id: 'tm_1', title: { en: 'Use a 25-min timer for tasks',      he: 'להשתמש בטיימר של 25 דקות'         }, buff_value: V },
-    { id: 'tm_2', title: { en: 'Write 3 priorities each morning',   he: 'לכתוב 3 עדיפויות כל בוקר'         }, buff_value: V },
-    { id: 'tm_3', title: { en: 'Check off completed tasks daily',   he: 'לסמן משימות שהושלמו כל יום'       }, buff_value: V },
-  ],
-  confidence: [
-    { id: 'cf_1', title: { en: 'Do one thing that scares you today', he: 'לעשות דבר אחד שמפחיד אותך היום'  }, buff_value: V },
-    { id: 'cf_2', title: { en: 'Give yourself a compliment',         he: 'לתת לעצמך מחמאה'                  }, buff_value: V },
-    { id: 'cf_3', title: { en: 'Help someone at home or school',     he: 'לעזור למישהו בבית או בבית ספר'   }, buff_value: V },
-  ],
-  confidence_friends: [
-    { id: 'sf_1', title: { en: 'Say hi to someone new this week',    he: 'להגיד שלום למישהו חדש השבוע'     }, buff_value: V },
-    { id: 'sf_2', title: { en: 'Do something kind for a friend',     he: 'לעשות מעשה טוב לחבר'              }, buff_value: V },
-    { id: 'sf_3', title: { en: 'Join one group activity',            he: 'להצטרף לפעילות קבוצתית אחת'      }, buff_value: V },
-  ],
-  social_friendships: [
-    { id: 'sf_1', title: { en: 'Say hi to someone new this week',    he: 'להגיד שלום למישהו חדש השבוע'     }, buff_value: V },
-    { id: 'sf_2', title: { en: 'Do something kind for a friend',     he: 'לעשות מעשה טוב לחבר'              }, buff_value: V },
-    { id: 'sf_3', title: { en: 'Join one group activity',            he: 'להצטרף לפעילות קבוצתית אחת'      }, buff_value: V },
-  ],
-  independence: [
-    { id: 'in_1', title: { en: 'Make your own breakfast',            he: 'להכין ארוחת בוקר לבד'             }, buff_value: V },
-    { id: 'in_2', title: { en: 'Solve a small problem yourself',     he: 'לפתור בעיה קטנה לבד'              }, buff_value: V },
-    { id: 'in_3', title: { en: 'Ask for help when stuck',            he: 'לבקש עזרה כשנתקעים'              }, buff_value: V },
-  ],
-  life_independence: [
-    { id: 'in_1', title: { en: 'Make your own breakfast',            he: 'להכין ארוחת בוקר לבד'             }, buff_value: V },
-    { id: 'in_2', title: { en: 'Solve a small problem yourself',     he: 'לפתור בעיה קטנה לבד'              }, buff_value: V },
-    { id: 'in_3', title: { en: 'Ask for help when stuck',            he: 'לבקש עזרה כשנתקעים'              }, buff_value: V },
-  ],
-  focus_planning: [
-    { id: 'fp_1', title: { en: 'Brain dump — write all worries down',  he: 'לרוקן את הראש — לכתוב כל מה שמטריד' }, buff_value: V },
-    { id: 'fp_2', title: { en: 'Break big tasks into small steps',     he: 'לפרק משימות גדולות לצעדים קטנים'    }, buff_value: V },
-    { id: 'fp_3', title: { en: '5-min tidy before starting homework',  he: '5 דקות סידור לפני שיעורי בית'       }, buff_value: V },
-  ],
-  planning_org: [
-    { id: 'fp_1', title: { en: 'Brain dump — write all worries down',  he: 'לרוקן את הראש — לכתוב כל מה שמטריד' }, buff_value: V },
-    { id: 'fp_2', title: { en: 'Break big tasks into small steps',     he: 'לפרק משימות גדולות לצעדים קטנים'    }, buff_value: V },
-    { id: 'fp_3', title: { en: '5-min tidy before starting homework',  he: '5 דקות סידור לפני שיעורי בית'       }, buff_value: V },
-  ],
-  social_media: [
-    { id: 'sm_1', title: { en: 'Social media only after 6pm',          he: 'רשתות חברתיות רק אחרי 18:00'         }, buff_value: V },
-    { id: 'sm_2', title: { en: 'No TikTok/Instagram before school',    he: 'בלי טיקטוק/אינסטגרם לפני בית ספר'   }, buff_value: V },
-    { id: 'sm_3', title: { en: 'Phone-free hour before sleep',         he: 'שעה ללא טלפון לפני שינה'             }, buff_value: V },
-  ],
-  self_management: [
-    { id: 'tm_1', title: { en: 'Use a 25-min timer for tasks',         he: 'להשתמש בטיימר של 25 דקות'           }, buff_value: V },
-    { id: 'tm_2', title: { en: 'Write 3 priorities each morning',      he: 'לכתוב 3 עדיפויות כל בוקר'           }, buff_value: V },
-    { id: 'tm_3', title: { en: 'Check off completed tasks daily',      he: 'לסמן משימות שהושלמו כל יום'         }, buff_value: V },
-  ],
-  academic_perf: [
-    { id: 'hf_1', title: { en: '15-minute focused homework sprint',    he: 'ספרינט שיעורי בית של 15 דקות'       }, buff_value: V },
-    { id: 'fp_2', title: { en: 'Break big tasks into small steps',     he: 'לפרק משימות גדולות לצעדים קטנים'    }, buff_value: V },
-    { id: 'hf_2', title: { en: 'No phone during homework time',        he: 'בלי טלפון בזמן שיעורי בית'          }, buff_value: V },
-  ],
-  // Legacy keys from old flow
+  // ── 6-8 ──────────────────────────────────────────────────────────────────
   calm_mornings: [
-    { id: 'mr_1', title: { en: 'Brush teeth & wash face',          he: 'לצחצח שיניים ולשטוף פנים'          }, buff_value: V },
-    { id: 'mr_2', title: { en: 'Pack school bag the night before', he: 'לארוז את התיק בערב'                 }, buff_value: V },
-    { id: 'mr_3', title: { en: 'Be ready to leave on time',        he: 'להיות מוכן לצאת בזמן'              }, buff_value: V },
-  ],
-  homework_reading: [
-    { id: 'hf_1', title: { en: '15-minute focused homework sprint', he: 'ספרינט שיעורי בית של 15 דקות'     }, buff_value: V },
-    { id: 'hf_2', title: { en: 'No phone during homework time',     he: 'בלי טלפון בזמן שיעורי בית'        }, buff_value: V },
-    { id: 'hf_3', title: { en: 'One subject at a time',             he: 'מקצוע אחד בכל פעם'                }, buff_value: V },
+    { id: 'brush_teeth',    title: { en: 'Brush teeth & wash face',     he: 'לצחצח שיניים ולשטוף פנים' }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'breakfast_meds', title: { en: 'Breakfast before meds',       he: 'ארוחת בוקר לפני כדור'      }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'clothes_eve',    title: { en: "Lay out tomorrow's clothes",  he: 'להכין בגדים לבוקר'        }, buff_value: V, timeOfDay: 'evening' },
   ],
   getting_ready: [
-    { id: 'mr_1', title: { en: 'Brush teeth & wash face',          he: 'לצחצח שיניים ולשטוף פנים'          }, buff_value: V },
-    { id: 'mr_2', title: { en: 'Pack school bag the night before', he: 'לארוז את התיק בערב'                 }, buff_value: V },
-    { id: 'mr_3', title: { en: 'Be ready to leave on time',        he: 'להיות מוכן לצאת בזמן'              }, buff_value: V },
+    { id: 'get_ready',   title: { en: 'Get ready & leave on time',  he: 'להתארגן ולצאת בזמן'       }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'brush_teeth', title: { en: 'Brush teeth & wash face',    he: 'לצחצח שיניים ולשטוף פנים' }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'clothes_eve', title: { en: "Lay out tomorrow's clothes", he: 'להכין בגדים לבוקר'        }, buff_value: V, timeOfDay: 'evening' },
   ],
+  homework_reading: [
+    { id: 'hw_before_screen', title: { en: 'Homework before screens',                he: 'שיעורי בית לפני מסך'             }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_same_time',     title: { en: 'Do homework at the same time each day',  he: 'לעשות שיעורים באותו זמן כל יום' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_easy_first',    title: { en: 'Start with the easiest task',            he: 'להתחיל מהמטלה הקלה'              }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  screen_time: [
+    { id: 'read_15',            title: { en: 'Read for 15 minutes',           he: 'לקרוא 15 דקות'                }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'screens_off_bed',    title: { en: 'Screens off 30 min before bed', he: 'מסכים כבויים 30 דקות לפני שינה' }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'screen_after_tasks', title: { en: 'Screen time only after tasks',  he: 'זמן מסך רק אחרי משימות'        }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  confidence: [
+    { id: 'compliment',  title: { en: 'Give myself a compliment',       he: 'לתת לעצמי מחמאה'        }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'kind_friend', title: { en: 'Do something kind for a friend',  he: 'לעשות מעשה טוב לחבר/ה' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'write_win',   title: { en: 'Write one win from today',        he: 'לכתוב הצלחה אחת מהיום'  }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  // ── 9-11 ─────────────────────────────────────────────────────────────────
+  morning_routine: [
+    { id: 'up_alarm',       title: { en: 'Up on the first alarm',       he: 'לקום עם הצלצול הראשון' }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'breakfast_meds', title: { en: 'Breakfast before meds',       he: 'ארוחת בוקר לפני כדור'  }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'clothes_eve',    title: { en: "Lay out tomorrow's clothes",  he: 'להכין בגדים לבוקר'    }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  homework_focus: [
+    { id: 'hw_sprint',    title: { en: '15-min focused homework sprint',        he: 'ספרינט שיעורים של 15 דקות'      }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_no_phone',  title: { en: 'No phone during homework',              he: 'בלי טלפון בזמן שיעורים'         }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_same_time', title: { en: 'Do homework at the same time each day', he: 'לעשות שיעורים באותו זמן כל יום' }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  organisation: [
+    { id: 'pack_bag',        title: { en: 'Pack your own bag per the timetable', he: 'לסדר תיק לבד לפי המערכת'        }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'check_timetable', title: { en: 'Check the timetable in the morning',  he: 'לבדוק את מערכת השעות בבוקר'    }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'write_tomorrow',  title: { en: "Write tomorrow's tasks before bed",  he: 'לכתוב את משימות מחר לפני השינה' }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  organisation_memory: [
+    { id: 'pack_bag',        title: { en: 'Pack your own bag per the timetable', he: 'לסדר תיק לבד לפי המערכת'        }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'check_timetable', title: { en: 'Check the timetable in the morning',  he: 'לבדוק את מערכת השעות בבוקר'    }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'write_tomorrow',  title: { en: "Write tomorrow's tasks before bed",  he: 'לכתוב את משימות מחר לפני השינה' }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  screen_balance: [
+    { id: 'no_phone_meals',     title: { en: 'No phone during meals',         he: 'בלי טלפון בזמן ארוחות'          }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'screens_off_bed',    title: { en: 'Screens off 30 min before bed', he: 'מסכים כבויים 30 דקות לפני שינה' }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'screen_after_tasks', title: { en: 'Screen time only after tasks',  he: 'זמן מסך רק אחרי משימות'         }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  confidence_friends: [
+    { id: 'compliment',  title: { en: 'Give myself a compliment',      he: 'לתת לעצמי מחמאה'        }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'kind_friend', title: { en: 'Do something kind for a friend', he: 'לעשות מעשה טוב לחבר/ה' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'say_hi',      title: { en: 'Say hi to someone new',         he: 'להגיד שלום למישהו חדש'  }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  social_friendships: [
+    { id: 'kind_friend', title: { en: 'Do something kind for a friend', he: 'לעשות מעשה טוב לחבר/ה' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'say_hi',      title: { en: 'Say hi to someone new',         he: 'להגיד שלום למישהו חדש'  }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'write_win',   title: { en: 'Write one win from today',      he: 'לכתוב הצלחה אחת מהיום'  }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  // ── 12-14 ────────────────────────────────────────────────────────────────
   homework_focus_adv: [
-    { id: 'hf_1', title: { en: '15-minute focused homework sprint', he: 'ספרינט שיעורי בית של 15 דקות'     }, buff_value: V },
-    { id: 'hf_2', title: { en: 'No phone during homework time',     he: 'בלי טלפון בזמן שיעורי בית'        }, buff_value: V },
-    { id: 'hf_3', title: { en: 'One subject at a time',             he: 'מקצוע אחד בכל פעם'                }, buff_value: V },
+    { id: 'hw_sprint',      title: { en: '15-min focused homework sprint', he: 'ספרינט שיעורים של 15 דקות' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_no_phone',    title: { en: 'No phone during homework',       he: 'בלי טלפון בזמן שיעורים'    }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_one_subject', title: { en: 'One subject at a time',          he: 'מקצוע אחד בכל פעם'         }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  screen_limits: [
+    { id: 'no_phone_meals',   title: { en: 'No phone during meals',         he: 'בלי טלפון בזמן ארוחות'          }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'screens_off_bed',  title: { en: 'Screens off 30 min before bed', he: 'מסכים כבויים 30 דקות לפני שינה' }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'no_social_school', title: { en: 'No social media before school', he: 'בלי רשתות חברתיות לפני בית ספר' }, buff_value: V, timeOfDay: 'morning' },
+  ],
+  time_management: [
+    { id: 'prio_3',       title: { en: "Write today's 3 priorities", he: 'לכתוב 3 עדיפויות להיום'  }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'timer_25',     title: { en: '25-min timer for a task',    he: 'טיימר של 25 דקות למשימה' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'plan_tonight', title: { en: 'Plan tomorrow tonight',      he: 'לתכנן את מחר הערב'        }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  independence: [
+    { id: 'solve_problem', title: { en: 'Solve a small problem yourself',      he: 'לפתור בעיה קטנה לבד'    }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'wake_self',     title: { en: 'Wake up on your own',                 he: 'להתעורר לבד'            }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'pack_bag',      title: { en: 'Pack your own bag per the timetable', he: 'לסדר תיק לבד לפי המערכת' }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  // ── 15-18 ────────────────────────────────────────────────────────────────
+  academic_perf: [
+    { id: 'study_30',     title: { en: '30 min of focused studying',        he: '30 דקות לימוד ממוקד'              }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'hw_no_phone',  title: { en: 'No phone during homework',          he: 'בלי טלפון בזמן שיעורים'           }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'review_today', title: { en: "Go over today's material — 10 min", he: 'לעבור על מה שלמדת היום — 10 דקות' }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  planning_org: [
+    { id: 'braindump',  title: { en: "Brain dump — write down what's on your mind", he: 'לרוקן את הראש — לכתוב מה שמטריד' }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'top3',       title: { en: "Today's top-3 list",                          he: 'רשימת 3 הדברים החשובים להיום'  }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'break_task', title: { en: 'Break a big task into steps',                 he: 'לפרק משימה גדולה לצעדים'       }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  focus_planning: [
+    { id: 'braindump',  title: { en: "Brain dump — write down what's on your mind", he: 'לרוקן את הראש — לכתוב מה שמטריד' }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'top3',       title: { en: "Today's top-3 list",                          he: 'רשימת 3 הדברים החשובים להיום'  }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'break_task', title: { en: 'Break a big task into steps',                 he: 'לפרק משימה גדולה לצעדים'       }, buff_value: V, timeOfDay: 'afternoon' },
+  ],
+  social_media: [
+    { id: 'no_social_school', title: { en: 'No social media before school', he: 'בלי רשתות חברתיות לפני בית ספר' }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'phonefree_hour',   title: { en: 'Phone-free hour before sleep',  he: 'שעה ללא טלפון לפני שינה'        }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'screens_off_bed',  title: { en: 'Screens off 30 min before bed', he: 'מסכים כבויים 30 דקות לפני שינה' }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  self_management: [
+    { id: 'prio_3',    title: { en: "Write today's 3 priorities",     he: 'לכתוב 3 עדיפויות להיום'  }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'timer_25',  title: { en: '25-min timer for a task',        he: 'טיימר של 25 דקות למשימה' }, buff_value: V, timeOfDay: 'afternoon' },
+    { id: 'sumup_day', title: { en: 'Sum up the day in one sentence', he: 'לסכם את היום במשפט אחד'  }, buff_value: V, timeOfDay: 'evening' },
+  ],
+  life_independence: [
+    { id: 'make_breakfast',   title: { en: 'Make your own breakfast',             he: 'להכין ארוחת בוקר לבד'   }, buff_value: V, timeOfDay: 'morning' },
+    { id: 'pack_bag',         title: { en: 'Pack your own bag per the timetable', he: 'לסדר תיק לבד לפי המערכת' }, buff_value: V, timeOfDay: 'evening' },
+    { id: 'manage_allowance', title: { en: 'Manage your weekly allowance',        he: 'לנהל דמי כיס שבועיים'    }, buff_value: V, timeOfDay: 'afternoon' },
   ],
 };
 
 /** Fallback when challenge ID has no matching tasks */
 export const FALLBACK_TASKS: StarterTask[] = [
-  { id: 'fallback_1', title: { en: 'Complete your daily routine', he: 'להשלים את השגרה היומית' }, buff_value: ONBOARDING_CONFIG.DEFAULT_BUFF_VALUE },
+  { id: 'fallback_1', title: { en: 'Complete your daily routine', he: 'להשלים את השגרה היומית' }, buff_value: ONBOARDING_CONFIG.DEFAULT_BUFF_VALUE, timeOfDay: 'morning' },
 ];
 
 // ── Reward picks by motivator → age group ────────────────────────────────────

@@ -5,7 +5,7 @@
  * of `src/<area>/__tests__/<file>.test.ts`. The source for these helpers
  * lives in `src/lib/i18nString.ts`.
  */
-import { pickLang, pickI18nColumn, bilingualForDb } from '../i18nString';
+import { pickLang, pickI18nColumn, bilingualForDb, detectLangFromName } from '../i18nString';
 
 describe('pickLang', () => {
   const literal = { en: 'Brush teeth', he: 'לצחצח שיניים' };
@@ -94,5 +94,37 @@ describe('bilingualForDb', () => {
     // Empty he is unusual but we don't fabricate a value — the row will
     // just have an empty title_he and the read-side fallback handles it.
     expect(bilingualForDb({ en: 'a', he: '' })).toEqual({ title: 'a', title_he: '' });
+  });
+});
+
+describe('detectLangFromName', () => {
+  it('returns "he" for a Hebrew name', () => {
+    expect(detectLangFromName('איתי')).toBe('he');
+  });
+
+  it('returns "en" for a Latin name', () => {
+    expect(detectLangFromName('Emi')).toBe('en');
+  });
+
+  it('Hebrew wins for a mixed-script name (Israel-first)', () => {
+    expect(detectLangFromName('Dani דני')).toBe('he');
+  });
+
+  it('defaults to "he" for an empty string', () => {
+    expect(detectLangFromName('')).toBe('he');
+  });
+
+  it('defaults to "he" for null / undefined', () => {
+    expect(detectLangFromName(null)).toBe('he');
+    expect(detectLangFromName(undefined)).toBe('he');
+  });
+
+  it('defaults to "he" for a name with no letters (digits / emoji only)', () => {
+    expect(detectLangFromName('123')).toBe('he');
+    expect(detectLangFromName('🙂')).toBe('he');
+  });
+
+  it('handles a Latin name with surrounding whitespace', () => {
+    expect(detectLangFromName('  Noa  ')).toBe('en');
   });
 });
