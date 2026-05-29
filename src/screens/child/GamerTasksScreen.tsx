@@ -41,6 +41,7 @@ import { useAppSettings } from '../../hooks/useAppSettings';
 import {
   Phase, PHASES, getSmartPhaseForTime, getCurrentPhase,
 } from '../../types/phase';
+import { isWeekendToday } from '../../utils/schoolDay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 
@@ -66,12 +67,6 @@ const PHASE_ICONS: Record<Phase, keyof typeof Ionicons.glyphMap> = {
   afternoon: 'partly-sunny-outline',
   evening:   'moon-outline',
 };
-
-/** True on Mon–Fri. Duplicated from ChildTasksScreen to keep this screen self-contained. */
-function isWeekday(): boolean {
-  const day = new Date().getDay();
-  return day >= 1 && day <= 5;
-}
 
 /** Format today as "Wednesday, May 7" / Hebrew equivalent. */
 function formatToday(locale: 'en' | 'he'): string {
@@ -101,7 +96,8 @@ export default function GamerTasksScreen() {
     uncompleteTask,
   } = useChildData(childId);
 
-  const { isPauseActive } = useAppSettings();
+  const { settings, isPauseActive } = useAppSettings();
+  const fridayEnabled     = settings?.friday_enabled ?? false;
   const welcomeBack       = useWelcomeBack();
 
   const [hapticsOn, setHapticsOn] = useState(true);
@@ -112,7 +108,8 @@ export default function GamerTasksScreen() {
   }, []);
 
   const resolvedSchoolEnd = schoolEndTime ?? '14:00';
-  const isSchoolDay       = schoolQuestEnabled && isWeekday();
+  const isWeekend         = isWeekendToday(fridayEnabled);
+  const isSchoolDay       = schoolQuestEnabled && !isWeekend;
 
   // ── Active phase (clock-derived) ─────────────────────────────────────────
   const activePhase: Phase = useMemo(() => {
@@ -124,21 +121,35 @@ export default function GamerTasksScreen() {
     return base;
   }, [isSchoolDay]);
 
+  // ── Today's visible tasks (filter by schedule_days + weekend) ────────────
+  // Mirrors PhaseView + Lovable: a task only appears on its scheduled weekdays,
+  // and school-day-only tasks (hideOnWeekend) drop out on weekends. Previously
+  // this screen grouped ALL of the child's tasks regardless of day.
+  const visibleTasks = useMemo(() => {
+    const today = new Date().getDay(); // 0=Sun … 6=Sat
+    return tasks.filter(task => {
+      const scheduleDays = task.scheduleDays ?? [0, 1, 2, 3, 4, 5];
+      if (!scheduleDays.includes(today)) return false;
+      if (isWeekend && task.hideOnWeekend) return false;
+      return true;
+    });
+  }, [tasks, isWeekend]);
+
   // ── Group tasks by phase ─────────────────────────────────────────────────
   const tasksByPhase = useMemo(() => {
     const groups: Record<Phase, typeof tasks> = {
       morning: [], school: [], afternoon: [], evening: [],
     };
-    for (const task of tasks) {
+    for (const task of visibleTasks) {
       const phase = getSmartPhaseForTime(task.time, resolvedSchoolEnd, isSchoolDay);
       groups[phase].push(task);
     }
     return groups;
-  }, [tasks, resolvedSchoolEnd, isSchoolDay]);
+  }, [visibleTasks, resolvedSchoolEnd, isSchoolDay]);
 
   // ── Totals ───────────────────────────────────────────────────────────────
-  const doneCount  = tasks.filter(t => t.completed).length;
-  const totalCount = tasks.length;
+  const doneCount  = visibleTasks.filter(t => t.completed).length;
+  const totalCount = visibleTasks.length;
   const pct        = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
   const atGoal     = pct >= 70;
 

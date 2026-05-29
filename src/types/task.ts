@@ -35,6 +35,11 @@ export interface Task {
   icon?: string;
   /** Days of week (0 = Sunday … 6 = Saturday). Defaults to [0,1,2,3,4,5] (Sun–Fri). */
   scheduleDays?: number[];
+  /**
+   * School-day-only task: hidden on weekend days. Weekend = Sat always,
+   * Fri unless app_settings.friday_enabled. Mirrors Lovable's hideOnWeekend.
+   */
+  hideOnWeekend?: boolean;
   assignedTo?: string;
   strategyId?: string;
 }
