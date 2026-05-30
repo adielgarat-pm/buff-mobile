@@ -42,9 +42,10 @@
 
 ---
 
-## Open decision (pending Adi)
+## Decisions (Adi delegated to CC, 2026-05-30 — "תמליץ לי")
 
-The spec says draw a lime dot only on shots the strategy session marks as **"key feature."** The strategy docs don't carry an explicit per-shot key-feature flag. Based on their language — Shot 4 Vibe Check ("Unique to BUFF; no competitor does this") and Shot 3 Rewards ("the core difference parents are looking for") — **recommendation: lime dot on Shots 3 and 4 only** (medium confidence). All other shots: band, no dot. Confirm or adjust before the production run.
+- **Lime key-feature dot → Shots 3 (Rewards) and 4 (Vibe Check) only.** These are the strategy docs' explicit differentiators ("the core difference parents are looking for" / "Unique to BUFF; no competitor does this"). All other shots: band, no dot. (`-KeyFeature` set on Shots 3 + 4 in the production run.)
+- **Overlay copy / colors / font → no changes.** Strings are the approved `OVERLAY_COPY.md`; band/text/accent match `BUFF_BRAND.md`. Upcoming fixes are assumed app-side; the pipeline ingests whatever raws land.
 
 ---
 
@@ -56,8 +57,8 @@ Overlay strings are verbatim from `OVERLAY_COPY.md`. Placement from `SHOT_LIST.m
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | _pending_ | `final/EN/01-parent-dashboard.png` | `final/HE/01-parent-dashboard.png` | Mornings without the nagging | בקרים בלי נדנודים | top | no | — | — |
 | 2 | _pending_ | `final/EN/02-child-dashboard-buddy.png` | `final/HE/02-child-dashboard-buddy.png` | A kid who feels capable | ילד שמרגיש מסוגל | bottom | no | — | — |
-| 3 | _pending_ | `final/EN/03-child-rewards.png` | `final/HE/03-child-rewards.png` | Working toward what they really want | מתקדמים למה שבאמת רוצים | top | **yes (pending)** | — | — |
-| 4 | _pending_ | `final/EN/04-vibe-check.png` | `final/HE/04-vibe-check.png` | Starts with how they feel | מתחילים מאיך שמרגישים | bottom | **yes (pending)** | — | — |
+| 3 | _pending_ | `final/EN/03-child-rewards.png` | `final/HE/03-child-rewards.png` | Working toward what they really want | מתקדמים למה שבאמת רוצים | top | yes | — | — |
+| 4 | _pending_ | `final/EN/04-vibe-check.png` | `final/HE/04-vibe-check.png` | Starts with how they feel | מתחילים מאיך שמרגישים | bottom | yes | — | — |
 | 5 | _pending_ | `final/EN/05-parent-tasks.png` | `final/HE/05-parent-tasks.png` | The whole day, finally calm | כל היום, סוף סוף רגוע | top | no | — | — |
 | 6 | _pending_ | `final/EN/06-manage-children.png` | `final/HE/06-manage-children.png` | Grows with every kid, every age | גדל עם כל ילד, בכל גיל | bottom | no | — | — |
 | 7 *(opt)* | _pending_ | `final/EN/07-gamer-dashboard.png` | `final/HE/07-gamer-dashboard.png` | Until they don't need us | עד שהם כבר לא יזדקקו לנו | bottom | no | — | — |
