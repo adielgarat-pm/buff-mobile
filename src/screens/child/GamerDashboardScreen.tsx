@@ -126,7 +126,7 @@ function timeBucket(time: string | undefined): TimeFilter {
 export default function GamerDashboardScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, isChildPreview } = useMode();
+  const { previewChildId, previewChildName, isChildPreview } = useMode();
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
@@ -238,7 +238,9 @@ export default function GamerDashboardScreen() {
             {t('gamerDashboard.greetingPrefix')}
           </Text>
           <Text style={styles.greetingName}>
-            {isChildPreview ? t('gamerDashboard.previewName') : (profile?.display_name ?? t('gamerDashboard.fallbackName'))}
+            {isChildPreview
+              ? (previewChildName ?? profile?.display_name ?? t('gamerDashboard.fallbackName'))
+              : (profile?.display_name ?? t('gamerDashboard.fallbackName'))}
           </Text>
         </View>
         <View style={styles.iconRow}>
@@ -436,7 +438,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   greetingLabel: { color: COLORS.textMuted, fontSize: 13, marginBottom: 2 },
-  greetingName:  { color: COLORS.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  greetingName:  { color: COLORS.text, fontSize: 22, fontWeight: '900', letterSpacing: -0.5 },
   iconRow:       { flexDirection: 'row', gap: 8 },
   iconBtn: {
     width: 36,

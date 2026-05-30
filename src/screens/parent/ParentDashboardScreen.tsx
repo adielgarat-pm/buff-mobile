@@ -520,7 +520,7 @@ export default function ParentDashboardScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionBtn, { borderColor: T.cardBorder }]}
-                  onPress={() => enterChildPreview(child.childId)}
+                  onPress={() => enterChildPreview(child.childId, child.displayName)}
                 >
                   <Text style={[styles.actionBtnText, { color: T.accent }]}>👁 {t('overview.viewAsChild')}</Text>
                 </TouchableOpacity>
