@@ -9,4 +9,5 @@ export const ONBOARDING_CONFIG = {
     large:  14,
   },
   REWARD_CREDITS_RATIO: 0.7,  // 70% of max daily BUFFs × days
+  MONEY_REWARD_DAYS:    5,    // BUFFs→cash anchor: 5 weekdays × 70% of daily BUFFs (pocket-money pace)
 } as const;

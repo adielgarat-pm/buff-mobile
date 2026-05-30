@@ -79,7 +79,11 @@ export const MOTIVATORS: OnboardingOption[] = [
   { id: 'creative',    emoji: '🎨', labelKey: 'onboarding.mot.creative'          },
   { id: 'social',      emoji: '❤️', labelKey: 'onboarding.mot.socialFamily'      },
   { id: 'privileges',  emoji: '🌟', labelKey: 'onboarding.mot.privilegesRewards' },
+  { id: 'money',       emoji: '💰', labelKey: 'onboarding.mot.moneyEarning'      },
 ];
+
+/** Motivator id signalling a money-driven child — gates the cash-conversion suggestion. */
+export const MONEY_MOTIVATOR_ID = 'money';
 
 // ── Mission quick-picks by main challenge (kept for reference) ────────────────
 
@@ -328,9 +332,23 @@ export const REWARD_PICKS: Record<string, Record<AgeGroup, RewardItem[]>> = {
     ],
     '15-18': [
       { id: 'pr_3', title: { en: 'Chef for a night or pick a takeout', he: 'שף לערב אחד או לבחור משלוח'     }, emoji: '🍕🥡', size: 'medium' },
-      { id: 'pr_4', title: { en: 'Convert BUFFs to money',             he: 'להמיר BUFFs לכסף'               }, emoji: '💰',   size: 'large'  },
+      { id: 'pr_5', title: { en: 'Pick the weekend plan',              he: 'לבחור את תוכנית הסופ״ש'         }, emoji: '🗓️',   size: 'medium' },
     ],
   },
+};
+
+// ── Money-conversion reward (parent-confirmed, never auto-seeded) ─────────────
+// Real money is the most extrinsic reward in BUFF (Pillar 1), so it is NOT part
+// of REWARD_PICKS — it is never silently inserted at onboarding. The parent adds
+// it deliberately from the Rewards screen and sets the cash amount. The BUFF cost
+// is anchored to MONEY_REWARD_DAYS × 70% of the child's daily BUFFs (pocket-money
+// pace), so the cash payout stays cheap for the parent.
+
+export const MONEY_CONVERSION_REWARD: RewardItem = {
+  id:    'money_conversion',
+  title: { en: 'Convert BUFFs to cash', he: 'להמיר BUFFs לכסף' },
+  emoji: '💰',
+  size:  'medium',
 };
 
 /** Safe fallback rewards when motivator/ageGroup combo isn't found */
@@ -349,6 +367,19 @@ export function calcRewardCredits(
   const maxDailyBuffs = tasks.reduce((sum, t) => sum + (t.buff_value ?? 0), 0);
   const days = ONBOARDING_CONFIG.REWARD_DAYS[size];
   return Math.round(ONBOARDING_CONFIG.REWARD_CREDITS_RATIO * maxDailyBuffs * days);
+}
+
+/**
+ * BUFF cost of the cash-conversion reward: MONEY_REWARD_DAYS (5 weekdays) × 70%
+ * of the child's daily BUFFs. Deliberately high so converting to cash is a
+ * weekly pocket-money pace, not an everyday drain on the parent's wallet.
+ */
+export function calcMoneyRewardCredits(dailyBuffs: number): number {
+  return Math.round(
+    ONBOARDING_CONFIG.REWARD_CREDITS_RATIO *
+      dailyBuffs *
+      ONBOARDING_CONFIG.MONEY_REWARD_DAYS,
+  );
 }
 
 /** Fallback when tasks are not yet saved */
