@@ -240,9 +240,17 @@ export default function ParentTasksScreen() {
                 <Text style={[styles.stageLabel, { color: T.textMuted }]}>{stageLabel}</Text>
                 {stageTasks.map((task) => (
                   <View key={task.id} style={[styles.taskRow, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-                    <View style={[styles.checkCircle, task.completed && { backgroundColor: T.success, borderColor: T.success }]}>
-                      {task.completed && <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>}
-                    </View>
+                    {/* Status-only indicator — the parent cannot complete tasks here,
+                        so this must read as status, not a tappable checkbox. */}
+                    {task.completed ? (
+                      <View style={[styles.statusDone, { backgroundColor: T.success }]}>
+                        <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.statusPending}>
+                        <View style={[styles.statusDot, { backgroundColor: T.textMuted }]} />
+                      </View>
+                    )}
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.taskTitle, { color: task.completed ? T.textMuted : T.text }]}>
                         {task.title}
@@ -330,7 +338,9 @@ const styles = StyleSheet.create({
   stageSection:  { marginBottom: 20 },
   stageLabel:    { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
   taskRow:       { flexDirection: 'row', alignItems: 'center', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1, gap: 12 },
-  checkCircle:   { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#D1D5DB', alignItems: 'center', justifyContent: 'center' },
+  statusDone:    { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  statusPending: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
+  statusDot:     { width: 8, height: 8, borderRadius: 4, opacity: 0.5 },
   taskTitle:     { fontSize: 15, fontWeight: '500', marginBottom: 2 },
   taskMeta:      { fontSize: 12 },
   centered:      { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },

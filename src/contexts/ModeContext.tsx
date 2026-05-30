@@ -28,7 +28,8 @@ interface ModeContextType {
   viewMode: ViewMode;
   isChildPreview: boolean; // true when a parent is in child-preview mode
   previewChildId: string | null;
-  enterChildPreview: (childId: string) => void;
+  previewChildName: string | null; // the previewed child's real display name, if known
+  enterChildPreview: (childId: string, childName?: string) => void;
   exitChildPreview: () => void;
 }
 
@@ -39,6 +40,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   const { language: deviceLanguage } = useLanguage();
   const [isChildPreview, setIsChildPreview] = useState(false);
   const [previewChildId, setPreviewChildId] = useState<string | null>(null);
+  const [previewChildName, setPreviewChildName] = useState<string | null>(null);
 
   // Natural mode follows the profile role; falls back to 'parent' while loading
   const naturalMode: ViewMode = profile?.role === 'child' ? 'child' : 'parent';
@@ -47,9 +49,10 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   const viewMode: ViewMode =
     naturalMode === 'parent' && isChildPreview ? 'child' : naturalMode;
 
-  const enterChildPreview = (childId: string) => {
+  const enterChildPreview = (childId: string, childName?: string) => {
     if (profile?.role !== 'parent') return;
     setPreviewChildId(childId);
+    setPreviewChildName(childName ?? null); // synchronous when the caller knows it
     setIsChildPreview(true);
 
     // Switch i18n strings to the previewed child's language (strings-only — see
@@ -62,6 +65,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
         .eq('id', childId)
         .single();
       if (error || !data) return;
+      if (data.display_name) setPreviewChildName(data.display_name);
       const childLang = resolveChildLang(data as never, deviceLanguage);
       if (childLang !== i18n.language) {
         i18n.changeLanguage(childLang).catch(() => { /* non-fatal */ });
@@ -72,6 +76,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   const exitChildPreview = () => {
     setIsChildPreview(false);
     setPreviewChildId(null);
+    setPreviewChildName(null);
     // Restore the parent's device language. Direction never changed during the
     // preview, so this is a strings-only swap with no restart and no flicker.
     if (i18n.language !== deviceLanguage) {
@@ -80,7 +85,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ModeContext.Provider value={{ viewMode, isChildPreview, previewChildId, enterChildPreview, exitChildPreview }}>
+    <ModeContext.Provider value={{ viewMode, isChildPreview, previewChildId, previewChildName, enterChildPreview, exitChildPreview }}>
       {children}
     </ModeContext.Provider>
   );
