@@ -1479,6 +1479,8 @@
   "editChild.birthdayLabel": "תאריך לידה",
   "editChild.birthdayPlaceholder": "בחר/י תאריך",
   "editChild.ageGroupLabel": "קבוצת גיל",
+  "editChild.languageLabel": "שפה",
+  "editChild.languageNote": "קובע את השפה שהילד/ה רואה באפליקציה ואת השפה שבה נוצרות משימות חדשות. שמות של משימות קיימות יישארו בשפתן המקורית.",
   "editChild.save": "שמור",
   "editChild.cancel": "ביטול",
   "editChild.saving": "שומר…",

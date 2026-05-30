@@ -14,6 +14,18 @@
 
 ## Implementation Notes
 
+### IN-2026-05-29-07: Per-child language — backfill data contradicts the SPEC's expectation (Itay/Emi/Leia have English tasks)
+
+- **תאריך:** 2026-05-29
+- **מקור:** CC — `pkg/per-child-language` Phase 1, backfill dry-run via Supabase MCP (mobile DB `gfrongfnyigxsexuofrg`).
+- **תיאור:** Phase 1 adds an explicit per-child language: `pro_settings.language` (`'he'|'en'`, JSON, no migration) + `resolveChildLang(child, deviceLang)` (`src/lib/i18nString.ts`) = stored language → `detectLangFromName(display_name)` → device. Onboarding ([UStep5_Preview.tsx](../src/screens/onboarding/unified/UStep5_Preview.tsx)) now persists the field and bakes task titles from it; EditChild gained a parent toggle; the child's own device hydrates language from the profile via a new `ChildLanguageBinder` in [App.tsx](../App.tsx) (restart-once on RTL direction change); View-as-Child switches i18n **strings only** (no `forceRTL`, no restart — LOCKED OQ-1) in [ModeContext.tsx](../src/contexts/ModeContext.tsx); the ChildSettings language picker is hidden for child viewers (LOCKED OQ-2a).
+- **ההפתעה (surprising):** SPEC §6.3 (OQ-3 option b) predicted title-inference would give "Itay→he per current DB." The actual mobile DB shows the opposite: **Itay (6), Emi (5), and Leia (13) all have English-only task titles**, so title-inference would set them to **`en`** — despite being Hebrew speakers (IN-2026-05-29-04) and Leia being the active v18 demo family. 19 of 92 children inferred `en` (incl. Hebrew-named אור/ניקול whose tasks are English); 68 inferred `he`; 5 default `he` (no tasks). None had `language` set beforehand.
+- **החלטה (Adi, 2026-05-29):** **backfill SKIPPED.** Existing children keep `pro_settings.language = null`; `resolveChildLang` falls back to name-script/device at render, so they are unaffected until a parent sets the toggle or onboards a new child. No DB write was made.
+- **השפעה:** The feature is fully live for **new** children (onboarding writes the field) and for **any** child once a parent uses the EditChild toggle. The data-vs-spec mismatch means a future backfill cannot blindly trust task-title script — it needs a per-child review or a different rule (e.g. Hebrew-name-forces-he). The 17 Latin-named English-task kids (incl. Adi's) would still mis-infer.
+- **Verification:** `tsc` clean; `jest` **271/271** (21 suites); `i18n:check` clean (2 new `editChild.language*` keys, en+he parity); `check:i18n-access` clean. **Hat-4 (Adi, real device):** the RTL restart on a child's OWN ChildJoin device — the emulator can't fully exercise the persistent-session restart feel.
+- **סטטוס:** `resolved` for the feature (Phase 1 shipped); **supersedes/closes IN-2026-05-29-04** (per-child task language now sourced from the stored field, not app locale). Backfill = `deferred` (Adi's call). Phase 2 (`pkg/bilingual-tasks`) — making `tasks.title` bilingual so a language flip retro-updates existing task names — remains separate/optional.
+- **קשור ל:** IN-2026-05-29-04 (closed by this), `pkg/per-child-language` SPEC §6.3/§10 (OQ-3), `pkg/settings-language` (device-level picker this layers on), `pkg/bilingual-tasks` (deferred Phase 2), `src/lib/i18nString.ts`, `project_v18_internal_testing` (Leia demo family).
+
 ### IN-2026-05-28-02: Vibe Check Gamer selector — bars→battery (the split already half-existed)
 
 - **תאריך:** 2026-05-28

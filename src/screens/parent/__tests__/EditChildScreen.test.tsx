@@ -176,7 +176,48 @@ describe('EditChildScreen', () => {
       age_group:       '9-11',
       gender:          'girl',
       onboarding_data: { foo: 'bar' },
+      // Seeded from the Latin name "Lia" (no stored language) → 'en'.
+      language:        'en',
     });
+  });
+
+  test('language toggle writes the chosen pro_settings.language', async () => {
+    const updateSpy = installSupabaseMock({
+      loadRow:         baseChild,
+      prevProSettings: { age_group: '9-11', gender: 'girl' },
+    });
+
+    const { getByTestId } = render(<EditChildScreen />);
+    await waitFor(() => expect(getByTestId('edit-child-language-he')).toBeTruthy());
+
+    // Latin name "Lia" seeds the toggle to English; parent overrides to Hebrew.
+    fireEvent.press(getByTestId('edit-child-language-he'));
+    fireEvent.press(getByTestId('edit-child-save'));
+
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+
+    const payload = updateSpy.mock.calls[0][0] as { pro_settings: Record<string, unknown> };
+    expect(payload.pro_settings.language).toBe('he');
+  });
+
+  test('seeds the toggle from a stored pro_settings.language (overrides name script)', async () => {
+    const updateSpy = installSupabaseMock({
+      // Latin name but parent previously stored Hebrew → toggle must reflect 'he'.
+      loadRow:         { ...baseChild, pro_settings: { age_group: '9-11', language: 'he' } },
+      prevProSettings: { age_group: '9-11', language: 'he' },
+    });
+
+    const { getByTestId } = render(<EditChildScreen />);
+    await waitFor(() => expect(getByTestId('edit-child-language-he')).toBeTruthy());
+
+    expect(getByTestId('edit-child-language-he').props.accessibilityState).toEqual({ selected: true });
+    expect(getByTestId('edit-child-language-en').props.accessibilityState).toEqual({ selected: false });
+
+    // Saving without touching the toggle preserves the stored language.
+    fireEvent.press(getByTestId('edit-child-save'));
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+    const payload = updateSpy.mock.calls[0][0] as { pro_settings: Record<string, unknown> };
+    expect(payload.pro_settings.language).toBe('he');
   });
 
   test('cancel navigates back without writing', async () => {
