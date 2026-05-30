@@ -130,11 +130,17 @@ export default function GamerDashboardScreen() {
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask } = useChildData(childId);
+  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData } = useChildData(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
-  useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
+  // Refetch tasks/balance AND the buddy on focus — completing a task on the
+  // Quests tab writes to a separate useChildData instance, so the dashboard's
+  // copy is stale until we re-pull on return.
+  useFocusEffect(useCallback(() => {
+    refetchBuddy();
+    refetchChildData();
+  }, [refetchBuddy, refetchChildData]));
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
