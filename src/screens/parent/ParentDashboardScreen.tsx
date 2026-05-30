@@ -16,7 +16,6 @@ import {
 import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
-import PhilosophyTip from '../../components/PhilosophyTip';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -319,7 +318,9 @@ export default function ParentDashboardScreen() {
         </TouchableOpacity>
       ) : (
         <View style={[styles.insightCard, { backgroundColor: T.accent }]}>
-          <Text style={styles.insightTag}>{topInsight!.icon} {t('parent.insights')}</Text>
+          <Text style={styles.insightTag}>
+            {topInsight!.icon} {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
+          </Text>
           <Text style={styles.insightStat}>
             {topInsight!.completionRate !== undefined ? `${topInsight!.completionRate}%` : '—'}
           </Text>
@@ -327,12 +328,6 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightDesc}>{topInsight!.description}</Text>
           <Text style={styles.insightTip}>💬 {topInsight!.suggestion}</Text>
         </View>
-      )}
-
-      <DisclaimerFooter variant="short" />
-
-      {(children?.some(c => ((c?.tasksTotal ?? 0) - (c?.tasksCompleted ?? 0)) >= 3) ?? false) && (
-        <PhilosophyTip tipKey="tips.breakItDown" dismissible />
       )}
 
       {/* ── Unlinked children banner ───────────────────────────────────── */}
@@ -600,6 +595,8 @@ export default function ParentDashboardScreen() {
         if (cards.length === 0) return null;
         return <View>{cards}</View>;
       })()}
+
+      <DisclaimerFooter variant="short" />
 
       {/* ── Anchor Recovery prompt (pkg/anchor-recovery Phase 2) ─────── */}
       <AnchorRecoveryPromptModal
