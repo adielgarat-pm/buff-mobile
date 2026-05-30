@@ -1440,6 +1440,7 @@
   "onboarding.mot.creative": "פעילויות יצירתיות",
   "onboarding.mot.socialFamily": "חיברות ומשפחה",
   "onboarding.mot.privilegesRewards": "הרוויח הרשאות ופרסים",
+  "onboarding.mot.moneyEarning": "להרוויח ולחסוך כסף",
 
   "tabs.parent.dashboard": "דשבורד",
   "tabs.parent.tasks": "משימות",
@@ -1532,6 +1533,12 @@
   "parentRewards.sizeHint.small": "~3 ימים",
   "parentRewards.sizeHint.medium": "~7 ימים",
   "parentRewards.sizeHint.large": "~14 ימים",
+  "parentRewards.cashSuggest.title": "💰 להמיר BUFFs לכסף",
+  "parentRewards.cashSuggest.body": "{{name}} רוצה להרוויח כסף אמיתי. הגדירו את סכום הכסף — עלות ה-BUFFs גבוהה בכוונה כדי שזה יהיה בקצב של דמי כיס שבועיים.",
+  "parentRewards.cashSuggest.cta": "להגדיר פרס כספי",
+  "parentRewards.modal.cashLabel": "סכום כסף ({{symbol}})",
+  "parentRewards.modal.cashHint": "{{credits}} BUFFs = {{symbol}}{{amount}}",
+  "parentRewards.cashBadge": "= {{symbol}}{{amount}}",
 
   "childRewards.title": "חנות",
   "childRewards.empty": "אין פרסים עדיין.",

@@ -44,6 +44,7 @@ import { PaywallContent } from '../PaywallScreen';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { pickI18nColumn } from '../../lib/i18nString';
+import { getCurrencySymbol } from '../../lib/currency';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 
@@ -84,6 +85,7 @@ interface StoreReward {
   size:           string | null;
   credits_needed: number;
   is_redeemed:    boolean;
+  cash_value?:    number | null;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -117,7 +119,7 @@ export default function GamerRewardsScreen() {
     setLoading(true);
     supabase
       .from('store_rewards')
-      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed')
+      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed, cash_value')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
@@ -278,6 +280,11 @@ export default function GamerRewardsScreen() {
                         ]}>
                           💎 {reward.credits_needed}
                         </Text>
+                        {reward.cash_value != null && (
+                          <Text style={[styles.cardCost, { color: COLORS.textMuted }]}>
+                            {t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })}
+                          </Text>
+                        )}
 
                         {isUnlocked ? (
                           <TouchableOpacity

@@ -1440,6 +1440,7 @@
   "onboarding.mot.creative": "Creative activities",
   "onboarding.mot.socialFamily": "Social connection & family time",
   "onboarding.mot.privilegesRewards": "Earning privileges & rewards",
+  "onboarding.mot.moneyEarning": "Earning & saving money",
 
   "tabs.parent.dashboard": "Dashboard",
   "tabs.parent.tasks": "Tasks",
@@ -1532,6 +1533,12 @@
   "parentRewards.sizeHint.small": "~3 days",
   "parentRewards.sizeHint.medium": "~7 days",
   "parentRewards.sizeHint.large": "~14 days",
+  "parentRewards.cashSuggest.title": "💰 Convert BUFFs to cash",
+  "parentRewards.cashSuggest.body": "{{name}} wants to earn real money. Set the cash amount — the BUFF cost is set high so it's a weekly pocket-money pace.",
+  "parentRewards.cashSuggest.cta": "Set up cash reward",
+  "parentRewards.modal.cashLabel": "Cash amount ({{symbol}})",
+  "parentRewards.modal.cashHint": "{{credits}} BUFFs = {{symbol}}{{amount}}",
+  "parentRewards.cashBadge": "= {{symbol}}{{amount}}",
 
   "childRewards.title": "Shop",
   "childRewards.empty": "No rewards yet.",

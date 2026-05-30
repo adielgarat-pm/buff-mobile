@@ -14,6 +14,21 @@
 
 ## Implementation Notes
 
+### IN-2026-05-30-01: BUFFs→cash conversion reward shipped — parent-confirmed, currency-agnostic, never auto-seeded
+
+- **תאריך:** 2026-05-30
+- **מקור:** CC — `pkg/money-conversion-reward`. Adi: *"a store reward that converts BUFFs to cash, each at their own rate by country"* + *"5 days × 70% of the child's daily BUFFs, like pocket money."* Implements IN-2026-05-29-03 (a/b/c).
+- **מה נבנה:** (a) the cash reward is reachable for money-motivated kids of **any age**; (b) new `money` motivator (`onboarding.mot.moneyEarning`); (c) cost anchor `MONEY_REWARD_DAYS = 5` → `calcMoneyRewardCredits(dailyBuffs) = round(0.7 × dailyBuffs × 5)`. New nullable `store_rewards.cash_value numeric`. Parent surfaces it via a gated suggestion card on `ParentRewardsScreen` → cash-mode add-reward modal; both child shops (`ChildRewardsScreen`, `GamerRewardsScreen`) show `⚡ = {symbol}{amount}`.
+- **הפתעות (surprising):**
+  1. **The source entry IN-2026-05-29-03 is NOT in `main`** — it exists only as an uncommitted edit to `docs/INTEGRATION_LEARNINGS.md` in another working dir (same for IN-2026-05-29-01..06). The committed history jumps to IN-2026-05-29-07. **Flag for Adi:** those local notes need committing or they'll be lost. This entry is the committed record of the work.
+  2. **"Convert BUFFs to money" had no automated mechanic.** `pr_4` was just a manually-fulfilled `store_rewards` row; the "exchange rate" only ever governs `credits_needed`. So (c) is a *default cost*, not a runtime conversion.
+  3. **No country/currency is stored anywhere** (checked `profiles`/`families`/`store_rewards`). `expo-localization` `getLocales()[0].currencySymbol` gives the symbol at runtime → currency-agnostic storage, fallback `₪`.
+  4. **The parent add-reward modal wrote only `title`** (single column, no `title_he`). The cash reward writes **both** via `bilingualForDb` so the child sees it in their language.
+  5. **`pr_4` was auto-seeded** for privileges×15-18 onboarding. Real money must never be a silent default (Pillar 1), so it was **removed from `REWARD_PICKS`** and replaced with non-cash `pr_5` ("Pick the weekend plan"); the cash reward now lives only behind the parent suggestion.
+- **Verification:** `tsc` clean; `jest` **271/271** (the 2 first-run failures `EditChildScreen`/`ManageChildrenScreen` are the known flaky full-suite timeouts — green on isolated re-run); `i18n:check` clean. Migration `add_cash_value_to_store_rewards` applied to mobile DB (no prod users). **Hat-4 (Adi, real device):** onboard a money-motivated child → cash suggestion appears on Parent→Rewards → set amount → child sees the goal in both shops. Auth-gated → no headless check.
+- **סטטוס:** `resolved` (code complete; awaiting Hat-4 + PR merge). Closes IN-2026-05-29-03. **Not yet in `BUFF_GAP_ANALYSIS.md`** — proposed row pending Adi (her doc).
+- **קשור ל:** IN-2026-05-29-03 (source ask, uncommitted), `onboardingData.ts` (`MOTIVATORS`, `MONEY_CONVERSION_REWARD`, `calcMoneyRewardCredits`), `src/lib/currency.ts`, `ParentRewardsScreen.tsx`, `docs/sessions/money-conversion-reward/SPEC.md`.
+
 ### IN-2026-05-29-07: Per-child language — backfill data contradicts the SPEC's expectation (Itay/Emi/Leia have English tasks)
 
 - **תאריך:** 2026-05-29
