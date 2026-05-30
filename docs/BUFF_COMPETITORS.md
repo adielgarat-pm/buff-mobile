@@ -3,8 +3,8 @@
 > מפת השטח של ADHD apps לילדים ומשפחות.
 > מסמך הפנייה לכל פוסט, ad, פיץ׳, או תגובה לפורום שבה צריך להגיד "ולמה אנחנו, ולא X?"
 
-**עודכן:** 2026-05-23
-**מקור:** מחקר ראשוני — fetches של 6 לנדינג-פייגז של מתחרים, ראיון Joon ב-PRD §3.2, BUFF_VALUES §Pillars. תוספת 2026-05-23: צפייה ראשונית ב-Generic Chore App indirect challenger (§3.8).
+**עודכן:** 2026-05-30
+**מקור:** מחקר ראשוני — fetches של 6 לנדינג-פייגז של מתחרים, ראיון Joon ב-PRD §3.2, BUFF_VALUES §Pillars. תוספת 2026-05-23: צפייה ראשונית ב-Generic Chore App indirect challenger (§3.8). תוספת 2026-05-30: live competitive ad-creative research — actual Reels/TikToks/ads per competitor + cross-cutting patterns (§3.9).
 **שפה:** הסברים בעברית. ציטוטי מתחרים תמיד במקור (עברית או אנגלית לפי המקור).
 
 ---
@@ -88,6 +88,14 @@
 **Vs BUFF — short pitch:**
 > *"Joon is for kids. BUFF is for your family. Joon's pet needs your kid. BUFF's rewards are your kid's actual life."*
 
+**Creative execution (2026-05-30 research):**
+- **Formula:** *"Turn chores into a quest your kid wants — backed by a stat (90% of kids finish all tasks) and a clinician quote."*
+- **Hook style:** Doter screen-recording dominates. Cartoon, primary-color UI. No live-action child face in product shots.
+- **Clinician UGC stack:** sponsored TikToks from pediatric psychs (e.g., Dr. Carrie Jackson @dr.carriejackson) with "Joon is my favorite tool" — clinician-credentialing dominates over parent emotion.
+- **What they nail:** clinician trust signals, clean product demo, "90% of kids" stat as social proof.
+- **What they miss:** parent-emotion register absent. No founder/parent confessional. The "I yelled at my kid" pain that *organic* ADHD parent Reels go viral on — Joon doesn't touch it.
+- **Active Meta ads as of May 2026:** unverified (Meta Ad Library returns 403 to automated fetch — manual check recommended before BUFF-vs-Joon copy testing).
+
 **מתי תשמעי על Joon בפורומים:**
 - "I've been using Joon for 2 months but my kid lost interest" → AHA: extrinsic burnout. **תגובה:** "That's the dopamine pattern — virtual rewards lose novelty fast. Have you tried tying tasks to real-world rewards instead?"
 - "Joon is great but my teen says it's babyish" → AHA: 13+ vacuum. **תגובה:** "Joon caps at 12. There's a separate app — BUFF — built specifically for the 13–18 transition. Same family, two interfaces."
@@ -128,6 +136,15 @@
 **Vs BUFF — short pitch:**
 > *"Savvy Kid is for the emotional moments. BUFF is for the operational ones. We turn 'just get ready!' into a system your kid runs — and then doesn't need."*
 
+**Creative execution (2026-05-30 research):**
+- **Formula:** *"Lead with a reframe ('what looks like defiance is actually X') → educational explainer → soft app mention at the end."*
+- **Hook style:** text reframe in first 1-2s, no product, no logo. Example IG Reel hooks: *"Here's what to stop doing if…"* (Reel DBaP8yevg0G); *"Homework can look like defiance from the outside"* (Reel DV6jjVwj6eN).
+- **Account:** @savvy.parent on IG — 140K followers, organic-first.
+- **Positioning verbatim:** *"Making ADHD parenting easier without yelling and stress."* This is the closest competitor to BUFF's Pillar 2 (Positive Coaching) tonal commitment.
+- **What they nail:** explicit anti-yelling promise; huge organic following feeding warm Reel ads; educator-talking-head format builds trust.
+- **What they miss:** mostly talking-head educational format — not yet running cinematic / high-production-value ads. The "tool that does the work" story is not theirs.
+- **Direct overlap risk for BUFF:** Savvy Kid owns "soft empathetic ADHD parenting voice" organically. **Don't compete on tone — compete on mechanism** (we have a product, they're mostly content).
+
 **מתי תשמעי על Savvy Kid בפורומים:**
 - "Savvy Kid sounds nice but I don't understand what the app actually does" → AHA: vagueness. **תגובה:** מציגה את ה-flow המקונקרטי של BUFF — task → 70% → real reward.
 
@@ -166,6 +183,17 @@
 **Vs BUFF — short pitch:**
 > *"Goally locks the device. BUFF unlocks the kid. We work on the phone they already have."*
 
+**Creative execution (2026-05-30 research):**
+- **Formula:** *"Show the device + a kid's hand + visual schedule → drive a 'Comment KEYWORD for DM' opt-in."*
+- **Hook style:** hardware-led. Tablet shot or kid hand on screen in first 2s. Heavy caption-text-on-video.
+- **Account:** @goallyapps on TikTok.
+- **Example creatives (verbatim captions surfaced):**
+  - TikTok 7309581196571331883: *"Why Goally? 1. AAC Talker… 2. Life Skills Classes… 3. CoPilot Visual Schedules…"* ending *"Comment 'Tablet' down below and we'll DM you a link to every app on Goally!"* — **DM-funnel CTA, not link-in-bio.**
+  - TikTok 7213849436378746158: *"Teaching kids executive functioning skills is a challenge every parent, therapist, and teacher faces — so we wanted to make it easier (and WAY more fun)."* Hashtags: #executivefunctioning #autismparent #adhdparenting.
+- **What they nail:** DM keyword funnel (high-intent capture); clear bedtime/morning pain framing; BCBA / clinical-psychologist credentialing.
+- **What they miss:** hardware-first opener is a barrier — first frame is a device, not a child's face or parent emotion; reads "assistive tech" not "family support"; clinical register can feel cold.
+- **CTA pattern worth copying (for BUFF):** *"Comment BUDDY for the link"* funnel — confirmed as a category-winning CTA pattern.
+
 **מתי תשמעי על Goally בפורומים:**
 - "Goally is too expensive" → **תגובה:** מציעים BUFF — free / freemium, על המכשיר הקיים.
 - "My kid grew out of Goally" → **תגובה:** "Goally caps at 8. BUFF starts at 6 and follows them to 18 — same product, different mode."
@@ -188,6 +216,13 @@
 - ה-positioning המקורי שלהם ("boost dopamine") עדיין רלוונטי לקופי שלנו — אבל למבוגרים לא מציעים את זה לילדים יותר
 
 **Vs BUFF:** לא בתחרות ישירה. אם הוזכרו — לציין שהם עברו למבוגרים, אנחנו פה לילדים ומתבגרים.
+
+**Creative execution (2026-05-30 research):**
+- **Formula:** *"Founder-and-son origin story + parent quote about calmer mornings."* Authentic founder-family story — like Adi's, but for younger kids.
+- **Verbatim parent testimonial featured:** *"the house has never been so calm and relaxed in the morning!"*
+- **Brand DNA:** Indiegogo-era, "routines as well-paced playlists" — visual planner metaphor.
+- **Active paid social 2025-2026:** no evidence of an active paid presence — feels like a small team without performance-marketing muscle. **Confirmed null on Meta Ad Library** (unverified due to 403).
+- **Lesson for BUFF:** authentic founder-with-kid origin works (we have it stronger — Adi + Itay co-design + Emi persona basis), but **the production cadence has to be sustained**. Brili shot once and went quiet.
 
 ---
 
@@ -221,6 +256,13 @@
 
 **Vs BUFF — short pitch:**
 > *"Tiimo is a planner for one. BUFF is a system for the family. We work where the conflict actually happens — between parent and kid."*
+
+**Creative execution (2026-05-30 research):**
+- **Formula:** *"Soft, no-judgment, sensory-friendly visual planner for neurodivergent adults."* Influencer/UGC partnerships with discount codes.
+- **Tonal positioning:** *"getting through the day in a way that's good for you,"* *"we'll help you reschedule without judgment."*
+- **Voice testing:** Tiimo explicitly tested copy with neurodivergent users because *"the wrong phrase can cause instant shutdown."* — a tonal-rigor practice worth adopting.
+- **Visual:** clean, soft-pastel, sensory-low-load.
+- **Lesson for BUFF:** not a creative competitor (different audience), but the **tonal benchmark for neurodivergent-safe language**. Worth mining their copy when refining BUFF's app-internal microcopy and Teen Mode voice.
 
 ---
 
@@ -314,6 +356,107 @@
 - [BUFF_FAQ.md §E](BUFF_FAQ.md) — privacy answers ready-to-quote.
 - [BUFF_MESSAGING.md §8.1](BUFF_MESSAGING.md) — guidelines קיימים ל-FB ADHD groups (אנגלית-מוטות; HE FB groups לא מכוסים בנפרד).
 - [BUFF_FOUNDING_100_KIT.md](BUFF_FOUNDING_100_KIT.md) — email-led model; DM-led peer-viral הוא דגם משלים שלא תועד.
+
+---
+
+### 3.9 Category Creative Execution Patterns (2026-05-30 research)
+
+**הסעיף הזה לא על מתחרה ספציפי — אלא על *איך* קטגוריית ADHD apps מפרסמת בפועל.** ה-source הוא live web research של פרסומות אמיתיות (Joon clinician UGC, Goally TikToks, Savvy Kid Reels, Brili origin story) + adjacent wellness brands (Calm, Headspace, BetterHelp) + ADHD parent creators (@adhd_love 1.3M, @savvy.parent 140K, @biglittlefeelings, @additudemag).
+
+> **כלל ברזל:** לפני כתיבת קריאייטיב חדש ל-BUFF — לקרוא את §3.9 כדי לדעת מה רווי, מה ריק, ואיפה אנחנו מנצחים.
+
+#### Dominant patterns (מה כולם עושים)
+
+1. **Product-demo-first hook** — Joon פותחת על Doter screen recording, Goally על יד הילד על טאבלט. **טריטוריה רוויה.**
+2. **Clinician / expert credentialing** — Joon = Dr. Carrie Jackson sponsored TikTok. Goally = "Built by BCBAs". ADDitude = MD pull quotes. **טריטוריה רוויה.**
+3. **Pain wedge = "morning chaos" or "bedtime"** — Brili, Goally, רוב ה-ADDitude-adjacent content. **רוויה במיוחד.**
+4. **DM-keyword funnel CTA** — Goally's *"Comment 'Tablet' for the link"*. **דפוס מנצח, BUFF מאמצת ל-CTA הראשונה.**
+
+#### Underused patterns (הטריטוריה הריקה)
+
+1. **Parent-as-protagonist** — Calm עושה את זה ("you can change this for your kid"). ADHD apps מדברים תמיד *על הילד* להורה, **לא אל ההורה על עצמו**. הטריטוריה הריקה הכי גדולה.
+2. **Stat-as-hope** (not stat-as-product-proof) — Joon משתמשת ב-90% completion (product proof). **אף מתחרה לא משתמש ב-Dodson "20,000 corrective messages by age 10" stat** — למרות שזו הסטטיסטיקה הכי-meshared בקהילת הורי-ADHD (ADDitude editorial, Holderness Family viral post, אבל אפס פרסומות בתשלום). **BUFF's open lane #1.**
+3. **Kid-led voice** — Savvy Kid מסבירה מבחוץ; Joon מציגה את ה-Doter; אף אחד לא נותן ל-*ילד* לדבר למצלמה על איך זה מרגיש מבפנים.
+4. **Production-value cinema** — כל הקטגוריה נראית UGC / screen-recording / talking-head. **אין Headspace-style atmospheric ad ב-ADHD-kids land.** BUFF's brand palette (שחור + ירוק ניאון, fintech-minimal-meets-gaming-tactical) מנצח כאן.
+5. **The 20,000 stat itself** — *"By age 10, a child with ADHD has heard ~20,000 corrective messages. For every 15 negatives, only 1 positive."* (Source: Dr. William Dodson, ADDitude editorial.) **Verifiable, authoritative, unused in paid creative.**
+
+#### UGC / creator benchmarks (high-engagement formula)
+
+ההורמולה ש**כל** ה-creator-style Reels המצליחים בקטגוריה משתמשים בה:
+
+1. **0:00–0:02** — text reframe או vulnerable admission, **לא** product, **לא** logo, **לא** שאלה לצופה. הצהרה.
+2. **0:03–0:08** — talking head מספק את ה-reframe. *"What's actually happening is…"*
+3. **0:09–0:18** — **The pivot moment.** *"Here's what worked / what I learned / what changed."* ה-solution נכנס - בדרך כלל כ-tactic, לא כ-product mention.
+4. **0:18–0:25** — soft CTA. *"Save this," "comment 'X' for the guide," "link in bio."* product mention עדין, כמעט מהוסס.
+
+**Length retention sweet spot:**
+- **Paid:** 15-30s vertical (UGC ad-spy data).
+- **Organic ADHD parent Reels:** 30-60s (זמן ל-reframe arc).
+
+**Vulnerability handling:** light-to-medium confessional dominates. *Full* vulnerability ("I cried in the bathroom") רואים בתוכן אורגני אבל **נדיר ב-brand-owned creative — טריטוריה ריקה לטעימה זהירה.**
+
+**Visual rule:** **אסור להראות פני ילד.** Joon פותר עם Doter cartoon. Goally פותר עם hand-on-tablet. BUFF פותר עם back-of-head + BUDDY avatar overlay.
+
+**Reels read muted:** 50% מ-Reels נצפים מושתקים. **כל beat חייב text overlay.** קריאות שתיקה > קריאות עם sound.
+
+#### Tonal benchmark — adjacent wellness brands
+
+**Calm** (verified across 23,974 creatives, GoMarble analysis):
+- *"All parents who want to show up differently for their kids need to hear this."*
+- *"Every parent who wants to respond instead of react should try this."*
+- *"I'm begging you, reset your nervous system for your kids' well-being."*
+- *"Listen to this for 60 seconds before bed. See what happens when you give your nervous system permission to slow down."*
+
+**The Calm move:** second-person, present-tense, parent-as-the-person-who-deserves-help. **ADHD app category does not do this.** Joon ו-Goally מדברים *אל ההורה על הילד*. Calm מדבר *אל ההורה על עצמו*.
+
+**Headspace:** cinematic atmosphere, 3-min meditations, calming VO. Production values higher than ADHD apps.
+
+**BetterHelp:** vulnerability-as-hook (per AdStasher/Performers). Personal questions, answers start simple → become more vulnerable. UGC influencer scale. "Show, don't explain. Emotionally paced editing."
+
+#### BUFF's empty lanes — what we should own
+
+| Lane | Why empty | How BUFF claims it |
+|---|---|---|
+| **Parent-as-protagonist** (Calm-style) | ADHD category talks about the kid, never to the parent | *"You're not failing. The math has been stacked."* |
+| **The 20,000 Dodson stat in paid** | Editorial-only across category | Use it once, big, around 0:05-0:07 of every cold-acquisition spot |
+| **Cinematic dark-canvas + neon green** | Category is bright/cartoon/UGC | BRAND.md §6 visual identity already maps here — leverage it |
+| **Privacy-first as offensive lead** | Defensive only in category (no one leads with it) | ❌-list pattern from David Ohana lesson (§3.8) |
+| **"Built so they outgrow it"** as ad endline | No one wants kids to outgrow — DAU is the metric | *"The ADHD app your kid grows out of."* |
+
+#### What to AVOID (everyone else does this)
+
+- ❌ Opening on app UI or tablet (Goally-trap = product demo, not Reel)
+- ❌ Clinician credentialing in opening beat (Joon-trap = reads "sponsored" instantly)
+- ❌ Generic "ADHD parenting tips" educational voice (Savvy Kid owns it organically — לא תנצחי)
+- ❌ "Are you struggling with your ADHD kid?" interrogation hook — guilt-coded, Values Check rejects, category rejects
+- ❌ Bright primary colors + cartoon (Joon territory — differentiation visual)
+- ❌ Founder-on-camera in **cold-acquisition** ads. UGC parent / no-face outperforms (BetterHelp + Joon clinician-UGC data). Save founder for **retargeting/warm pool**.
+
+#### Format recommendation for BUFF's first paid Reel
+
+| Spec | Choice | Why |
+|---|---|---|
+| **Length** | 22-25s | UGC ad-spy data: 15-25s highest survival; 22+ needed for full Acknowledge→Reframe→Activate arc |
+| **Hook (0-2s)** | On-screen text reframe, no logo, no UI, no question | Category-winning pattern |
+| **Person on camera** | **NOT founder for ad #1.** UGC parent OR no-face/back-of-head | BetterHelp + Joon-clinician data |
+| **Voice + audio** | VO + subtle music; **must read silently** with on-screen text | 50% scrolled muted |
+| **Child** | back-of-head, hands, or BUDDY avatar overlay. **No face.** | Joon/Goally talent-problem solution |
+| **End card CTA** | *"Comment BUDDY for the link"* DM funnel | Goally pattern is category-winner |
+| **Stats on screen** | YES — keep the 20,000. Use once, big, around 0:05-0:07. | Verified empty lane |
+
+#### Methodology caveats
+
+- Meta Ad Library, TikTok Ad Library, Instagram, TikTok all returned **HTTP 403** to automated fetch (May 2026).
+- Findings reconstructed from: WebSearch snippets exposing verbatim copy, review sites, GoMarble ad-intelligence indexer, Calm analyzed creative set.
+- **Before locking BUFF's first paid creative — open Meta Ad Library manually** and confirm Joon / Goally / Savvy Kid are currently running in US active state. Strategic recommendations above are robust to this check.
+
+#### Cross-links
+
+- [BUFF_MESSAGING.md §6](BUFF_MESSAGING.md) — Reels script templates (Format 1-5; first competitively-informed Format 6 will be added when BUFF's first ad ships)
+- [BUFF_MESSAGING.md §7](BUFF_MESSAGING.md) — AI Video Prompts for Sora/Runway/Pika/Veo
+- [BUFF_MESSAGING.md §8.3](BUFF_MESSAGING.md) — IG Reels channel guidelines (updated 2026-05-30 with research specifics)
+- [BUFF_BRAND.md §6-7](BUFF_BRAND.md) — visual identity (dark canvas + neon green) that gives BUFF the unused "cinematic" creative lane
+- [BUFF_VALUES.md](BUFF_VALUES.md) — Values Check (especially Pillar 2: copy must not shame parent any more than it would shame kid)
 
 ---
 
