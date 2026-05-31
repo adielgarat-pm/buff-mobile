@@ -1,10 +1,10 @@
-# Release v1.1.0 (versionCode 22) — Manifest
+# Release v1.1.0 (versionCode 24) — Manifest
 
 **Cut date:** 2026-05-30
 **Anchor:** vc19 (`f10ef98`, last build promoted to internal track 2026-05-29)
 **Interim:** vc21 (`d84ed83`, built today, already consumed on Play — reason for re-cut)
 **Branch:** pkg/release-v22 (off origin/main `74d1403`)
-**versionName:** 1.1.0 (unchanged) · **versionCode:** 22 (EAS remote auto-increment)
+**versionName:** 1.1.0 (unchanged) · **versionCode:** 24 (EAS remote auto-increment; attempts 22 & 23 errored, see Notes)
 **Track:** internal
 
 ## What's in this release (since vc19)
@@ -34,4 +34,5 @@
 
 ## Notes
 - This is a re-cut of essentially vc21's code plus the latest UI fixes (#130–#134). vc21 was never the intended consumed artifact; v22 supersedes it.
-- versionName stays 1.1.0 (app.json already 1.1.0); EAS owns versionCode → 22.
+- versionName stays 1.1.0 (app.json already 1.1.0); EAS owns versionCode → **24**.
+- **Why 24 and not 22:** the first two EAS attempts (versionCode 22 = `9502948`, 23 = `9502948`) errored on a broken `react-test-renderer` dependency. Commit `22d7f24` pinned `react-test-renderer@19.1.0` to unblock the build; the finished AAB (versionCode **24**, commit `2516ed9`, finished 2026-05-31 02:00) carries that fix. Build id `fb1fae19-cb33-4b8a-97c6-d805ed1fd8c3`. The "v22" codename / folder / branch name is unchanged — only the EAS versionCode advanced.
