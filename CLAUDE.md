@@ -252,7 +252,7 @@ The repo maintains a strict **canonical docs** philosophy. See `docs/WORKFLOW.md
 - **Code, comments, commit messages:** English
 - **Documentation:** Mixed Hebrew/English as already established (PRD English, DECISIONS_LOG Hebrew, etc.)
 - **Plans and explanations to Adi (in Claude Code chat):** English (Adi reads English fluently; clipboard issues with Hebrew are why we moved to VS Code)
-- **User-facing app strings:** Hebrew (BUFF is Israel-first MVP)
+- **User-facing app strings:** English-first (BUFF goes to market in English-speaking countries first; Hebrew is a secondary locale). Current code still ships Hebrew strings — the default-language flip to English is a future change.
 
 ---
 
