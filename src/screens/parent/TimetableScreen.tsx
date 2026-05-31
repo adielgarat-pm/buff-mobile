@@ -19,7 +19,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
+// SDK 54: the classic readAsStringAsync API moved to the /legacy subpath.
+// The main entry now exposes the new File/Directory API; importing the old
+// methods from it throws "is deprecated", breaking Excel/CSV + OCR file reads.
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { PARENT_THEME as T } from '../../theme';
 import { supabase } from '../../integrations/supabase/client';
