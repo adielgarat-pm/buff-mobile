@@ -14,6 +14,16 @@
 
 ## Implementation Notes
 
+### IN-2026-05-30-10: EAS build fast-fails on "Install dependencies" — unpinned `react-test-renderer` drifted to a react-incompatible version
+
+- **תאריך:** 2026-05-30
+- **מקור:** CC — V22 release cut (buff-release skill). vc21 built fine at 14:00; vc22 + vc23 errored ~18s into "Install dependencies" with only `UNKNOWN_ERROR`, on **identical repo code**.
+- **תיאור:** `react-test-renderer` was **not pinned** in `package.json` — it's pulled transitively via `@testing-library/react-native@^12.7.2` (`peer react-test-renderer@">=16.8.0"`). Sometime after 14:00 today, `react-test-renderer@19.2.6` was published; a fresh resolve grabs it, and its `peer react@"^19.2.6"` conflicts with the project's pinned `react@19.1.0` → **ERESOLVE**. `npm ci` (local + my pre-build check) **passed** because it installs the committed lock tree (which pinned the good `19.1.0`) without re-resolving peers — so the break was invisible locally. **EAS re-resolves**, hits ERESOLVE, and fast-fails the install phase. This is why a third-party publish broke the build with zero repo changes.
+- **השפעה:** Any production build (and any `npm install`, not `npm ci`) off `main` would fail until pinned. Diagnostic trap: `npm ci` green ≠ build will install; to reproduce an EAS install failure locally, run a fresh `npm install` (which re-resolves), not `npm ci`.
+- **Fix:** pinned `react-test-renderer@19.1.0` (exact, test-only devDep, matches react — no runtime/bundle impact) in `22d7f24`; regenerated lock; vc24 (`fb1fae19`, commit `2516ed9`) built clean.
+- **סטטוס:** `resolved` 2026-05-30 — via `pkg/release-v22`. Watch-item: other RN/react-ecosystem peers are also unpinned and could drift the same way; consider pinning `react-dom`/test deps to exact react version in a future hygiene pass.
+- **קשור ל:** `pkg/release-v22`, buff-release skill Step 5 (build), `package.json` devDependencies, `@testing-library/react-native` peer set.
+
 ### IN-2026-05-29-09: View-as-child greeting reads "היי תצוגה" — Adi wants the child's real name + smaller font
 
 - **תאריך:** 2026-05-29
