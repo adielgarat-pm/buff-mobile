@@ -1,8 +1,9 @@
-# Release v1.1.0 (versionCode 22)
+# Release v1.1.0 (versionCode 24)
 
 ## A. Technical (for STATUS + Play Console internal notes)
 
-- **versionCode** 22 · **versionName** 1.1.0 (unchanged from vc21)
+- **versionCode** 24 · **versionName** 1.1.0 (unchanged from vc21)
+- **EAS build:** `fb1fae19-cb33-4b8a-97c6-d805ed1fd8c3` (finished 2026-05-31 02:00) · commit `2516ed9` · attempts 22 & 23 errored on a broken `react-test-renderer` dep, pinned in `22d7f24`; 24 is the clean post-fix build
 - **Built from:** pkg/release-v22 @ origin/main `74d1403`
 - **Anchor:** vc19 (`f10ef98`, last on internal track) · supersedes interim vc21 (`d84ed83`, consumed)
 - **Gate 1 (static):** tsc ✅ · i18n parity ✅ · jest 271/271 in isolation (2 flaky 5s timeouts under parallel load; files unchanged since vc21) · expo-doctor 18/18 ✅

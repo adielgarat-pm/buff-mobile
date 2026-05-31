@@ -1,12 +1,14 @@
 # V22 — Hat-4 checklist (only Adi can do these)
 
-**Build:** v1.1.0 / versionCode 22 · cut 2026-05-30 · branch pkg/release-v22 @ `74d1403`
+**Build:** v1.1.0 / versionCode **24** · cut 2026-05-30 · branch pkg/release-v22 @ `74d1403`
+**EAS build id:** `fb1fae19-cb33-4b8a-97c6-d805ed1fd8c3` (finished 2026-05-31 02:00, commit `2516ed9`)
+> Note: EAS versionCode landed on **24**, not 22 — attempts 22 & 23 errored on a dep issue (fixed in `22d7f24`). On your phone the build correctly shows **1.1.0 (24)**.
 
 ## 1. Get v22 onto a track + your phone
-- [ ] When the EAS build finishes, download the `.aab` (CC can also pre-download it for you, like it did for vc21)
+- [ ] Download the finished `.aab` ([artifact link](https://expo.dev/artifacts/eas/x1z5cHQS2t5hLWYRw2i1Lk.aab)) — CC can also pre-download it for you, like it did for vc21
 - [ ] Play Console → BUFF → **Test and release → Testing → Internal testing → Create new release**
-- [ ] Upload the v22 `.aab` → Review → **Start rollout to Internal testing**
-- [ ] On your phone: open the [Internal Testing link](https://play.google.com/apps/internaltest/4701243578877467187) → **Update** → confirm **About this app shows 1.1.0 (22)**
+- [ ] Upload the v22 `.aab` (versionCode 24) → Review → **Start rollout to Internal testing**
+- [ ] On your phone: open the [Internal Testing link](https://play.google.com/apps/internaltest/4701243578877467187) → **Update** → confirm **About this app shows 1.1.0 (24)**
 
 ## 2. Functional smoke (Gate 2, on the real device — replaces the emulator run)
 Quick happy-path tap-through; report any ❌ to CC before relying on the build:
@@ -29,5 +31,5 @@ With v22 installed + clean, follow [SHOT_LIST.md](../../marketing-screenshots/v2
 - [ ] F3.H2 — native date picker on real device
 
 ## 5. After v22 is confirmed live on internal
-- [ ] Tell CC **"verified, tag it"** → CC proposes `git tag v1.1.0-22 74d1403` (anchor for the next release's Gate 0)
+- [ ] Tell CC **"verified, tag it"** → CC proposes `git tag v1.1.0-24 2516ed9` (anchor for the next release's Gate 0)
 - [ ] (Later) promote internal → **Open Testing** once the store listing + screenshots are complete
