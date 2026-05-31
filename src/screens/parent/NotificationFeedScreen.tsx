@@ -12,7 +12,7 @@
  * Tap on row → marks read + navigates via shared notificationRouter.
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   SafeAreaView,
   SectionList,
@@ -84,6 +84,15 @@ export default function NotificationFeedScreen() {
   );
 
   const hasUnread = useMemo(() => items.some((n) => !n.is_read), [items]);
+
+  // Opening the feed counts as "seen" — mark everything read once on first load.
+  // Guarded so it fires a single time per screen mount, not on every re-render.
+  const didAutoMark = useRef(false);
+  useEffect(() => {
+    if (loading || didAutoMark.current) return;
+    didAutoMark.current = true;
+    if (hasUnread) markAllRead();
+  }, [loading, hasUnread, markAllRead]);
 
   return (
     <SafeAreaView style={styles.container}>

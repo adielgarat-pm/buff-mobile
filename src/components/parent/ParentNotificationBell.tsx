@@ -85,7 +85,10 @@ const BADGE_BG = PARENT_THEME.accent;
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    right: 16,
+    // Logical edge (not hardcoded `right`) so the bell tracks writing direction:
+    // in Hebrew RTL it sits top-left, away from the right-aligned screen title it
+    // used to overlap; in English LTR it sits top-right.
+    end: 16,
     zIndex: 100,
     // Container sized to its child (bell, 40x40). The bell itself
     // captures presses; the rest of the screen below is unaffected.
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
     top: 2,
-    right: 2,
+    end: 2,
     minWidth: 16,
     height: 16,
     paddingHorizontal: 3,
