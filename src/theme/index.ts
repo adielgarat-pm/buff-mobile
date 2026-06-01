@@ -25,5 +25,18 @@ export const PARENT_THEME = {
 
 export type ParentTheme = typeof PARENT_THEME;
 
+// ─── Brand token system (color-consolidation) ─────────────────────────────────
+// palette.ts = master hex constants (BUFF_BRAND §7.2).
+// modes.ts   = composed per-surface themes (Pastel / Parent / Gamer, §7.4–§7.6).
+export * from './palette';
+export {
+  PASTEL_MODE,
+  PARENT_MODE,
+  GAMER_MODE,
+  MODES,
+  type ModeTheme,
+  type ModeName,
+} from './modes';
+
 // Re-export child theme types so callers can import from one place if needed.
 export type { ChildThemeName, ChildThemeColors, CategoryColors } from '../contexts/ThemeContext';

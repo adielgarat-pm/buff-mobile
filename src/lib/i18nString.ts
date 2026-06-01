@@ -120,3 +120,70 @@ export function pickI18nColumn(row: BilingualColumns, lang: string): string {
 export function bilingualForDb(s: I18nString): { title: string; title_he: string } {
   return { title: s.en, title_he: s.he };
 }
+
+/**
+ * Infer the intended language for a child from the script their display
+ * name was typed in. Used when writing per-child monolingual content (e.g.
+ * onboarding starter task titles, which live in the single `tasks.title`
+ * column) so a Hebrew-named child gets Hebrew tasks and a Latin-named child
+ * gets English ones — independent of the app's global UI locale.
+ *
+ * - Any Hebrew letter present → 'he' (Hebrew wins for mixed-script names,
+ *   matching the Israel-first MVP default).
+ * - Otherwise any Latin letter present → 'en'.
+ * - Neither (empty, digits, emoji only) → 'he' (Israel-first fallback).
+ *
+ * @example
+ *   detectLangFromName('איתי')  // → 'he'
+ *   detectLangFromName('Emi')   // → 'en'
+ *   detectLangFromName('')      // → 'he'
+ */
+export function detectLangFromName(name: string | null | undefined): 'he' | 'en' {
+  if (!name) return 'he';
+  if (/[֐-׿]/.test(name)) return 'he';
+  if (/[A-Za-z]/.test(name)) return 'en';
+  return 'he';
+}
+
+/**
+ * Minimal shape of a child profile this helper reads. Accepts the full
+ * `Profile` (its `pro_settings` is `Record<string, unknown>`) as well as the
+ * lighter rows fetched by EditChild / ModeContext.
+ */
+export type ChildLangSource = {
+  pro_settings?: { language?: unknown } | Record<string, unknown> | null;
+  display_name?: string | null;
+};
+
+/**
+ * Resolve the language a single child should see, in priority order:
+ *
+ *   1. The parent-set per-child language (`pro_settings.language`), when it is
+ *      a valid 'he' | 'en'. This is the source of truth once a parent has
+ *      chosen — it overrides everything else.
+ *   2. The script of the child's display name (`detectLangFromName`) — the
+ *      onboarding default, so a Hebrew-named child gets Hebrew and a
+ *      Latin-named child gets English without the parent touching anything.
+ *   3. `deviceLang` (the app/device language) as the final fallback when there
+ *      is no stored preference AND no name to infer from.
+ *
+ * Note: step 2 (`detectLangFromName`) already defaults undetectable names to
+ * 'he', so `deviceLang` only takes effect when the name is empty/missing.
+ *
+ * @example
+ *   resolveChildLang({ pro_settings: { language: 'en' }, display_name: 'דני' })       // → 'en' (stored wins)
+ *   resolveChildLang({ pro_settings: {}, display_name: 'איתי' })                        // → 'he' (name script)
+ *   resolveChildLang({ pro_settings: null, display_name: '' }, 'en')                     // → 'en' (device fallback)
+ */
+export function resolveChildLang(
+  child: ChildLangSource,
+  deviceLang: 'he' | 'en' = 'he',
+): 'he' | 'en' {
+  const stored = (child.pro_settings as { language?: unknown } | null)?.language;
+  if (stored === 'he' || stored === 'en') return stored;
+
+  const name = child.display_name;
+  if (name && name.trim()) return detectLangFromName(name);
+
+  return deviceLang;
+}

@@ -60,13 +60,17 @@ function getTodayKey() {
 
 function normalizePetState(raw: Record<string, unknown>): PetState {
   const days = (raw.evolution_days_count as number) ?? 0;
+  // Cached 'egg' from pre-retirement builds (e.g. ex-Lovable devices) must not resurface — IN-2026-05-16-01.
+  // 91e3f49 only fixed the default/new-state path; a value already persisted in AsyncStorage survived.
+  const rawStage = raw.evolution_stage as EvolutionStage | undefined;
+  const evolution_stage = (!rawStage || rawStage === 'egg') ? getEvolutionStage(days) : rawStage;
   return {
     level:                     (raw.level as number)               ?? DEFAULT_PET_STATE.level,
     experience:                (raw.experience as number)           ?? DEFAULT_PET_STATE.experience,
     energy_level:              (raw.energy_level as number)         ?? DEFAULT_PET_STATE.energy_level,
     current_skin:              (raw.current_skin as string)         ?? DEFAULT_PET_STATE.current_skin,
     last_interaction:          (raw.last_interaction as string | null) ?? null,
-    evolution_stage:           (raw.evolution_stage as EvolutionStage) ?? getEvolutionStage(days),
+    evolution_stage,
     evolution_days_count:      days,
     daily_streak:              (raw.daily_streak as number)         ?? DEFAULT_PET_STATE.daily_streak,
     rest_cards_balance:        (raw.rest_cards_balance as number)   ?? DEFAULT_PET_STATE.rest_cards_balance,

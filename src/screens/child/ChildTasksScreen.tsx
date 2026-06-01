@@ -22,6 +22,8 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppSettings } from '../../hooks/useAppSettings';
+import { isWeekendToday } from '../../utils/schoolDay';
 import GamerTasksScreen from './GamerTasksScreen';
 
 /** Derive the current phase from the clock + school config. */
@@ -29,12 +31,6 @@ function getCurrentSmartPhase(schoolEndTime: string, isSchoolDay: boolean): Phas
   const now  = new Date();
   const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   return getSmartPhaseForTime(hhmm, schoolEndTime, isSchoolDay);
-}
-
-/** True on Mon–Fri. */
-function isWeekday(): boolean {
-  const day = new Date().getDay();
-  return day >= 1 && day <= 5;
 }
 
 // ─── Top-level router ────────────────────────────────────────────────────────
@@ -65,6 +61,8 @@ function PastelChildTasks() {
     completeTask,
     uncompleteTask,
   } = useChildData(childId);
+  const { settings } = useAppSettings();
+  const fridayEnabled = settings?.friday_enabled ?? false;
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
@@ -81,7 +79,8 @@ function PastelChildTasks() {
   };
 
   const resolvedSchoolEndTime = schoolEndTime ?? '14:00';
-  const isSchoolDay           = schoolQuestEnabled && isWeekday();
+  const isWeekend             = isWeekendToday(fridayEnabled);
+  const isSchoolDay           = schoolQuestEnabled && !isWeekend;
 
   // Read haptics preference persisted by ChildSettingsScreen
   const [hapticsOn, setHapticsOn] = useState(true);
@@ -178,6 +177,7 @@ function PastelChildTasks() {
           tasks={tasks}
           schoolEndTime={resolvedSchoolEndTime}
           isSchoolDay={isSchoolDay}
+          isWeekend={isWeekend}
           onCompleteTask={completeTask}
           onUncompleteTask={uncompleteTask}
           hapticsEnabled={hapticsOn}

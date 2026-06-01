@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-na
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
+import { PASTEL_MODE as T } from '../../theme/modes';
 
 /**
  * Shown after Google OAuth completes.
@@ -87,18 +88,18 @@ export default function AuthCallbackScreen() {
 
   if (!needsRoleSelection) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F1A' }}>
-        <ActivityIndicator size="large" color="#7C3AED" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: T.canvas }}>
+        <ActivityIndicator size="large" color={T.accent} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, backgroundColor: '#0F0F1A' }}>
-      <Text style={{ color: '#A78BFA', fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 }}>
+    <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, backgroundColor: T.canvas }}>
+      <Text style={{ color: T.accent, fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 }}>
         {t('auth.iAm')}
       </Text>
-      <Text style={{ color: '#6B7280', textAlign: 'center', marginBottom: 40 }}>
+      <Text style={{ color: T.textMuted, textAlign: 'center', marginBottom: 40 }}>
         {t('auth.googleRoleSelection')}
       </Text>
 
@@ -106,7 +107,7 @@ export default function AuthCallbackScreen() {
         onPress={() => createProfile('parent')}
         disabled={creating}
         style={{
-          backgroundColor: '#7C3AED',
+          backgroundColor: T.accent,
           borderRadius: 16,
           paddingVertical: 20,
           alignItems: 'center',
@@ -121,19 +122,19 @@ export default function AuthCallbackScreen() {
         onPress={() => createProfile('child')}
         disabled={creating}
         style={{
-          backgroundColor: '#1A1A2E',
+          backgroundColor: T.card,
           borderRadius: 16,
           paddingVertical: 20,
           alignItems: 'center',
           borderWidth: 1,
-          borderColor: '#7C3AED',
+          borderColor: T.accent,
           opacity: creating ? 0.7 : 1,
         }}
       >
-        <Text style={{ color: '#A78BFA', fontSize: 20, fontWeight: '700' }}>{t('auth.teen')}</Text>
+        <Text style={{ color: T.accent, fontSize: 20, fontWeight: '700' }}>{t('auth.teen')}</Text>
       </TouchableOpacity>
 
-      {creating && <ActivityIndicator color="#A78BFA" style={{ marginTop: 24 }} />}
+      {creating && <ActivityIndicator color={T.accent} style={{ marginTop: 24 }} />}
     </View>
   );
 }

@@ -17,6 +17,7 @@ import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguagePicker from '../../components/LanguagePicker';
+import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'Signup'>;
@@ -88,7 +89,7 @@ export default function SignupScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#0F0F1A' }}
+      style={{ flex: 1, backgroundColor: T.canvas }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LanguagePicker />
@@ -121,7 +122,7 @@ export default function SignupScreen() {
         <TextInput
           style={styles.input}
           placeholder={t('auth.displayName')}
-          placeholderTextColor="#6B7280"
+          placeholderTextColor={T.textMuted}
           value={displayName}
           onChangeText={setDisplayName}
         />
@@ -129,7 +130,7 @@ export default function SignupScreen() {
           <TextInput
             style={styles.input}
             placeholder={t('auth.username')}
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={T.textMuted}
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
@@ -139,7 +140,7 @@ export default function SignupScreen() {
           <TextInput
             style={styles.input}
             placeholder={t('auth.email')}
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={T.textMuted}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -150,7 +151,7 @@ export default function SignupScreen() {
         <TextInput
           style={styles.input}
           placeholder={t('auth.password')}
-          placeholderTextColor="#6B7280"
+          placeholderTextColor={T.textMuted}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -163,7 +164,7 @@ export default function SignupScreen() {
             <TextInput
               style={styles.familyCodeInput}
               placeholder={t('auth.familyCodePlaceholder')}
-              placeholderTextColor="#6B7280"
+              placeholderTextColor={T.textMuted}
               value={familyCode}
               onChangeText={(v) => setFamilyCode(v.toUpperCase())}
               autoCapitalize="characters"
@@ -208,7 +209,7 @@ export default function SignupScreen() {
           disabled={googleLoading}
         >
           {googleLoading ? (
-            <ActivityIndicator color="#A78BFA" />
+            <ActivityIndicator color={T.accent} />
           ) : (
             <Text style={styles.googleBtnText}>{t('auth.signupWithGoogle')}</Text>
           )}
@@ -220,7 +221,7 @@ export default function SignupScreen() {
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={{ marginTop: 24 }}>
           <Text style={styles.loginLink}>
             {t('auth.alreadyHaveAccount')}{' '}
-            <Text style={{ color: '#A78BFA' }}>{t('auth.login')}</Text>
+            <Text style={{ color: T.accent, fontWeight: '600' }}>{t('auth.login')}</Text>
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -230,29 +231,29 @@ export default function SignupScreen() {
 
 const styles = StyleSheet.create({
   scroll:            { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 40 },
-  logo:              { color: '#A78BFA', fontSize: 36, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
-  subtitle:          { color: '#6D28D9', fontSize: 14, textAlign: 'center', marginBottom: 28 },
-  label:             { color: '#9CA3AF', fontSize: 13, marginBottom: 8 },
+  logo:              { color: T.accent, fontSize: 36, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 },
+  subtitle:          { color: T.text, fontSize: 14, textAlign: 'center', marginBottom: 28 },
+  label:             { color: T.textMuted, fontSize: 13, marginBottom: 8 },
   roleRow:           { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  roleBtn:           { flex: 1, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#374151', alignItems: 'center' },
-  roleBtnActive:     { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },
-  roleBtnText:       { color: '#6B7280', fontWeight: '600' },
+  roleBtn:           { flex: 1, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: T.cardBorder, alignItems: 'center', backgroundColor: T.card },
+  roleBtnActive:     { backgroundColor: T.accent, borderColor: T.accent },
+  roleBtnText:       { color: T.textMuted, fontWeight: '600' },
   roleBtnTextActive: { color: '#fff' },
-  input:             { backgroundColor: '#1A1A2E', color: '#E5E7EB', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 12, borderWidth: 1, borderColor: '#374151' },
-  hint:              { color: '#6B7280', fontSize: 12, marginBottom: 12 },
-  familyCodeLabel:   { color: '#A78BFA', fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 8, marginBottom: 8 },
-  familyCodeInput:   { backgroundColor: '#1A1A2E', color: '#E5E7EB', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 20, marginBottom: 12, borderWidth: 2, borderColor: '#7C3AED', fontSize: 28, fontWeight: '700', textAlign: 'center', letterSpacing: 6 },
+  input:             { backgroundColor: T.card, color: T.text, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 12, borderWidth: 1, borderColor: T.cardBorder },
+  hint:              { color: T.textMuted, fontSize: 12, marginBottom: 12 },
+  familyCodeLabel:   { color: T.accent, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 8, marginBottom: 8 },
+  familyCodeInput:   { backgroundColor: T.card, color: T.text, borderRadius: 16, paddingHorizontal: 20, paddingVertical: 20, marginBottom: 12, borderWidth: 2, borderColor: T.accent, fontSize: 28, fontWeight: '700', textAlign: 'center', letterSpacing: 6 },
   checkRow:          { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 20, gap: 10 },
-  checkbox:          { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: '#374151', alignItems: 'center', justifyContent: 'center' },
-  checkboxChecked:   { backgroundColor: '#7C3AED', borderColor: '#7C3AED' },
-  checkLabel:        { flex: 1, color: '#9CA3AF', fontSize: 13 },
-  btn:               { backgroundColor: '#7C3AED', borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 16 },
+  checkbox:          { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: T.cardBorder, alignItems: 'center', justifyContent: 'center', backgroundColor: T.card },
+  checkboxChecked:   { backgroundColor: T.accent, borderColor: T.accent },
+  checkLabel:        { flex: 1, color: T.textMuted, fontSize: 13 },
+  btn:               { backgroundColor: T.accent, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 16 },
   btnText:           { color: '#fff', fontSize: 16, fontWeight: '600' },
   divider:           { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  dividerLine:       { flex: 1, height: 1, backgroundColor: '#374151' },
-  dividerText:       { color: '#6B7280', marginHorizontal: 12, fontSize: 13 },
-  googleBtn:         { backgroundColor: '#1A1A2E', borderRadius: 12, paddingVertical: 16, alignItems: 'center', borderWidth: 1, borderColor: '#374151', marginBottom: 8 },
-  googleBtnText:     { color: '#A78BFA', fontSize: 16, fontWeight: '600' },
-  googleNote:        { color: '#6B7280', fontSize: 12, textAlign: 'center' },
-  loginLink:         { color: '#6B7280', textAlign: 'center', fontSize: 14 },
+  dividerLine:       { flex: 1, height: 1, backgroundColor: T.cardBorder },
+  dividerText:       { color: T.textMuted, marginHorizontal: 12, fontSize: 13 },
+  googleBtn:         { backgroundColor: T.card, borderRadius: 12, paddingVertical: 16, alignItems: 'center', borderWidth: 1, borderColor: T.cardBorder, marginBottom: 8 },
+  googleBtnText:     { color: T.accent, fontSize: 16, fontWeight: '600' },
+  googleNote:        { color: T.textMuted, fontSize: 12, textAlign: 'center' },
+  loginLink:         { color: T.textMuted, textAlign: 'center', fontSize: 14 },
 });

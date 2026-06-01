@@ -1,6 +1,7 @@
 // Central param list for the root stack navigator.
 // Every screen in the app is registered here so navigation.navigate() is fully typed.
 
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { AgeGroup, Gender } from '../screens/onboarding/unified/onboardingData';
 
 // ── Shared accumulated onboarding data ───────────────────────────────────────
@@ -45,7 +46,7 @@ export type RootStackParamList = {
   UStep8_Complete:     UWithPhone;       // only updates parent profile + refreshes auth
 
   // ── Main app (nested navigators) ─────────────────────────────────────
-  ParentApp: undefined;
+  ParentApp: NavigatorScreenParams<ParentTabsParamList> | undefined;
   ChildApp:  undefined;
 
   // ── Premium paywall (accessible from both parent and child app) ──────

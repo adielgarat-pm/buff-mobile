@@ -25,6 +25,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { PaywallContent } from '../PaywallScreen';
 import GamerRewardsScreen from './GamerRewardsScreen';
 import { pickI18nColumn } from '../../lib/i18nString';
+import { getCurrencySymbol } from '../../lib/currency';
 
 interface StoreReward {
   id:             string;
@@ -34,6 +35,7 @@ interface StoreReward {
   size:           string;
   credits_needed: number;
   is_redeemed:    boolean;
+  cash_value?:    number | null;
 }
 
 // ─── Top-level router ────────────────────────────────────────────────────────
@@ -85,7 +87,7 @@ function PastelChildRewards() {
     setLoading(true);
     supabase
       .from('store_rewards')
-      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed')
+      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed, cash_value')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
@@ -173,7 +175,9 @@ function PastelChildRewards() {
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: T.foreground }]}>{pickI18nColumn(reward, i18n.language)}</Text>
                   <Text style={[styles.rewardDesc, { color: T.mutedForeground }]}>
-                    {t('childRewards.needed', { count: reward.credits_needed.toLocaleString() })}
+                    {reward.cash_value != null
+                      ? t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })
+                      : t('childRewards.needed', { count: reward.credits_needed.toLocaleString() })}
                   </Text>
                 </View>
                 <TouchableOpacity

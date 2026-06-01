@@ -18,7 +18,7 @@ import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
 import { BuddyNameModal } from '../../components/buddy/BuddyNameModal';
 import LanguagePickerModal from '../../components/LanguagePickerModal';
 import { getBuddyDefaultName } from '../../components/buddy/buddyAssets';
-import { MOCK_MY_CHILD, PET_STAGES } from '../../mock/data';
+import { useChildData } from '../../hooks/useChildProgress';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -49,8 +49,7 @@ export default function ChildSettingsScreen() {
   const { relationship, setBuddyVisible, setBuddyName, refetch: refetchBuddy } = useBuddyRelationship(childId);
   useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
 
-  const child = MOCK_MY_CHILD;
-  const petCfg = PET_STAGES[child.petStage];
+  const { totalBalance } = useChildData(childId);
   const [hapticsOn, setHapticsOn]       = useState(true);
   const [selectedSkin, setSelectedSkin] = useState('🐉');
   const [toggleModalVisible, setToggleModalVisible] = useState(false);
@@ -96,13 +95,10 @@ export default function ChildSettingsScreen() {
         <Text style={styles.profileEmoji}>{selectedSkin}</Text>
         <View>
           <Text style={[styles.profileName,  { color: T.foreground }]}>
-            {profile?.display_name ?? child.name}
-          </Text>
-          <Text style={[styles.profilePet,   { color: T.accent }]}>
-            {child.petName} · {petCfg.label}
+            {profile?.display_name ?? ''}
           </Text>
           <Text style={[styles.profileBuffs, { color: T.buff }]}>
-            {child.buffs.toLocaleString()} {t('childSettings.buffsSuffix')}
+            {totalBalance.toLocaleString()} {t('childSettings.buffsSuffix')}
           </Text>
         </View>
       </View>
@@ -230,18 +226,26 @@ export default function ChildSettingsScreen() {
       </View>
 
       {/* ── General ────────────────────────────────────────────────────────── */}
-      <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.generalSection')}</Text>
-      <TouchableOpacity
-        style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
-        onPress={() => setLangModalOpen(true)}
-        accessibilityRole="button"
-        testID="language-entry"
-      >
-        <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('settings.rowLanguage')}</Text>
-        <Text style={[styles.settingStatus, { color: T.mutedForeground }]}>
-          {language === 'he' ? 'עברית' : 'English'}
-        </Text>
-      </TouchableOpacity>
+      {/* Language is parent-owned (per-child language lives on EditChild). A
+          child cannot change it on their own device, and in View-as-Child the
+          picker would wrongly flip the parent's DEVICE language — so the whole
+          section is hidden for any child viewer (real child or parent preview). */}
+      {!isChildViewer && (
+        <>
+          <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.generalSection')}</Text>
+          <TouchableOpacity
+            style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}
+            onPress={() => setLangModalOpen(true)}
+            accessibilityRole="button"
+            testID="language-entry"
+          >
+            <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('settings.rowLanguage')}</Text>
+            <Text style={[styles.settingStatus, { color: T.mutedForeground }]}>
+              {language === 'he' ? 'עברית' : 'English'}
+            </Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       <BuddyToggleModal
         visible={toggleModalVisible}
@@ -281,7 +285,6 @@ const styles = StyleSheet.create({
   profileCard:         { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 24, borderWidth: 1, gap: 16 },
   profileEmoji:        { fontSize: 50 },
   profileName:         { fontSize: 18, fontWeight: '700', marginBottom: 3 },
-  profilePet:          { fontSize: 14, marginBottom: 3 },
   profileBuffs:        { fontSize: 14, fontWeight: '700' },
 
   sectionTitle:        { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },

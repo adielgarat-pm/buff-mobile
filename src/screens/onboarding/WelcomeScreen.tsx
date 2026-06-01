@@ -21,17 +21,18 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Welcome'>;
 
-// ── Design tokens ──────────────────────────────────────────────────────────────
-const BG          = '#ede8ff';
-const ACCENT      = '#5b21b6';
-const TEXT_DARK   = '#26215C';
-const TEXT_MUTED  = '#5a4e7a';
-const CARD_BG     = '#ffffff';
-const CARD_BORDER = '#c8bef5';
+// ── Design tokens (Pastel — onboarding home base) ────────────────────────────────
+const BG          = PASTEL_MODE.canvas;     // #F4F0FA
+const ACCENT      = PASTEL_MODE.accent;     // #7C3AED
+const TEXT_DARK   = PASTEL_MODE.text;       // #1a1636
+const TEXT_MUTED  = PASTEL_MODE.textMuted;  // #6B5B8A
+const CARD_BG     = PASTEL_MODE.card;       // #FFFFFF
+const CARD_BORDER = PASTEL_MODE.cardBorder; // #E2DAF2
 
 // ── Value card data ────────────────────────────────────────────────────────────
 const CARDS = [
@@ -211,13 +212,13 @@ const styles = StyleSheet.create({
   // ── CTA ───────────────────────────────────────────────────────────────────
   cta: {
     width:           '100%',
-    backgroundColor: '#5b21b6',
+    backgroundColor: ACCENT,
     borderRadius:    16,
     paddingVertical: 18,
     alignItems:      'center',
   },
   ctaText: {
-    color:      '#f5f0ff',
+    color:      '#fff',
     fontSize:   17,
     fontWeight: '900',
   },

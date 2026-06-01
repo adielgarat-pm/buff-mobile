@@ -265,6 +265,7 @@ export function useChildData(childId: string | null) {
         scheduleDays: (Array.isArray(t.schedule_days) && t.schedule_days.length > 0)
                         ? t.schedule_days
                         : [0, 1, 2, 3, 4, 5, 6], // default: every day
+        hideOnWeekend: t.hide_on_weekend ?? false,
       }));
 
       setTasks(mappedTasks);
