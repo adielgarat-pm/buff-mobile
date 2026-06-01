@@ -12,7 +12,7 @@
  * Manual:         inline day-tab editor
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   ActivityIndicator, Alert, StyleSheet, Platform, Modal,
@@ -60,6 +60,21 @@ export default function TimetableScreen() {
 
   // ── View: selected day tab ─────────────────────────────────────────────────
   const [viewDay, setViewDay] = useState<WeekDay>('sunday');
+
+  // Open the view on today's day (or the first day that has periods) instead of
+  // always defaulting to Sunday — a US Mon-Fri kid has an empty Sunday → blank page.
+  // Guarded per-child so a manual tab tap is never overridden by this effect.
+  const autoDayRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (timetableLoading || !resolvedChildId) return;
+    if (autoDayRef.current === resolvedChildId) return;
+    const active = WEEK_DAYS_WITH_FRIDAY.filter(d => (timetable[d] ?? []).length > 0);
+    if (active.length === 0) return;
+    const today  = WEEK_DAYS_WITH_FRIDAY[new Date().getDay()]; // undefined on Saturday
+    const target = today && active.includes(today) ? today : active[0];
+    setViewDay(target);
+    autoDayRef.current = resolvedChildId;
+  }, [timetable, timetableLoading, resolvedChildId]);
 
   // ── Processing ─────────────────────────────────────────────────────────────
   const [processingMsg, setProcessingMsg]     = useState('');
