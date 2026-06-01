@@ -29,6 +29,16 @@ export interface Profile {
   pro_settings: Record<string, unknown>;
 }
 
+// Discriminated result for a profile fetch. Distinguishing "no row exists"
+// (empty) from "the query failed" (error) is critical: a transient network
+// failure during a background TOKEN_REFRESHED must NOT be treated as "this
+// user has no profile" — doing so nulls the profile and ejects a logged-in
+// user back to role-selection / login mid-session.
+type ProfileFetchResult =
+  | { status: 'ok'; profile: Profile }
+  | { status: 'empty' }
+  | { status: 'error' };
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -62,24 +72,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isInitialized = useRef(false);
   const fetchingProfile = useRef(false);
 
-  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+  const fetchProfile = useCallback(
+    async (userId: string, retries = 2): Promise<ProfileFetchResult> => {
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
+          if (error) {
+            console.error('Error fetching profile:', error);
+            // fall through to retry / error result
+          } else {
+            return data
+              ? { status: 'ok', profile: data as Profile }
+              : { status: 'empty' };
+          }
+        } catch (err) {
+          console.error('Network error fetching profile:', err);
+        }
+
+        if (attempt >= retries) {
+          return { status: 'error' };
+        }
+        // Backoff before retrying a failed/errored fetch: 300ms, then 900ms.
+        await new Promise((resolve) => setTimeout(resolve, 300 * Math.pow(3, attempt)));
       }
-      return data as Profile | null;
-    } catch (err) {
-      console.error('Network error fetching profile:', err);
-      return null;
-    }
-  }, []);
+    },
+    []
+  );
 
   const fetchFamilyShortCode = useCallback(async (familyId: string): Promise<string | null> => {
     try {
@@ -113,7 +136,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       fetchingProfile.current = true;
 
       try {
-        const p = await fetchProfile(userId);
+        const result = await fetchProfile(userId);
+
+        if (result.status === 'error') {
+          // Transient failure — keep whatever profile we already have rather
+          // than nulling it and ejecting the user. Callers ignore the return.
+          console.warn('[Auth] refreshProfile fetch failed; keeping existing profile');
+          return null;
+        }
+
+        const p = result.status === 'ok' ? result.profile : null;
         setProfile(p);
 
         if (p?.family_id) {
@@ -190,14 +222,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setSession(existingSession);
           setUser(existingSession.user);
 
-          const p = await fetchProfile(existingSession.user.id);
+          const result = await fetchProfile(existingSession.user.id);
           if (!isMounted) return;
 
-          setProfile(p);
-
-          if (p?.family_id) {
-            const code = await fetchFamilyShortCode(p.family_id);
-            if (isMounted) setFamilyShortCode(code);
+          // On cold start there is no prior profile to preserve. 'error' (after
+          // retries) falls through to AuthCallback, same as before — but the
+          // retry inside fetchProfile absorbs most transient failures first.
+          if (result.status === 'ok') {
+            setProfile(result.profile);
+            if (result.profile.family_id) {
+              const code = await fetchFamilyShortCode(result.profile.family_id);
+              if (isMounted) setFamilyShortCode(code);
+            }
+          } else if (result.status === 'empty') {
+            setProfile(null);
           }
         }
       } catch (err) {
@@ -239,13 +277,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             fetchingProfile.current = true;
 
             try {
-              const p = await fetchProfile(newSession.user.id);
+              const result = await fetchProfile(newSession.user.id);
               if (!isMounted) return;
 
-              setProfile(p);
-              if (p?.family_id) {
-                const code = await fetchFamilyShortCode(p.family_id);
-                if (isMounted) setFamilyShortCode(code);
+              if (result.status === 'ok') {
+                setProfile(result.profile);
+                if (result.profile.family_id) {
+                  const code = await fetchFamilyShortCode(result.profile.family_id);
+                  if (isMounted) setFamilyShortCode(code);
+                }
+              } else if (result.status === 'empty') {
+                setProfile(null);
+                setFamilyShortCode(null);
+              } else {
+                // status === 'error': transient failure on a background refresh
+                // (the symptom Noa hit — token auto-refresh re-fetches the
+                // profile, a blip returns null, and the user is ejected to
+                // role-selection mid-session). Keep the existing profile.
+                console.warn('[Auth] profile refresh failed; keeping existing profile');
               }
             } finally {
               fetchingProfile.current = false;
