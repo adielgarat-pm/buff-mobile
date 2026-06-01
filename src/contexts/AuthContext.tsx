@@ -250,10 +250,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!isMounted) return;
 
+      // Diagnostic: classify ejection cause from Logcat without PII. A real
+      // email/password login screen can ONLY appear via a Supabase-emitted
+      // SIGNED_OUT (nothing in app code calls signOut() automatically), which
+      // points at a token-refresh failure rather than a missing profile.
+      console.log('[Auth] onAuthStateChange:', event, 'hasSession:', !!newSession);
+
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
       if (event === 'SIGNED_OUT') {
+        console.warn('[Auth] SIGNED_OUT — session lost (token-refresh failure or explicit signOut); ejecting to login');
         setProfile(null);
         setFamilyShortCode(null);
         setLoading(false);
