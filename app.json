@@ -20,6 +20,7 @@
     "android": {
       "package": "com.buffapp.mobile",
       "versionCode": 1,
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/BUFF_LOGO.png",
         "backgroundColor": "#1a1636"

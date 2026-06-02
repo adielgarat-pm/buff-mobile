@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "359538003943",
+    "project_id": "buff-mobile-prod",
+    "storage_bucket": "buff-mobile-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:359538003943:android:de4e5de27ad04c0e2c3742",
+        "android_client_info": {
+          "package_name": "com.buffapp.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCd6h_k42MyFsGV-Cs6MezrM7TKdFQiQAk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
