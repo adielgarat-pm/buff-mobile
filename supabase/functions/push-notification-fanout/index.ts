@@ -2,14 +2,14 @@
 //
 // Triggered by Database Webhook on INSERT to public.notifications.
 // Pulls device tokens for the recipient, applies activity-based suppression,
-// formats per-type copy (parent or kid voice), dispatches via FCM HTTP v1.
+// formats per-type copy (parent or kid voice), dispatches via Expo Push API.
 //
-// Secret required (set via Supabase Dashboard → Edge Functions → Secrets):
-//   FCM_SERVICE_ACCOUNT_JSON — full JSON content of the Firebase Admin SDK
-//                              service account
+// Delivery path: the client mints Expo push tokens (getExpoPushTokenAsync);
+// this function forwards them to Expo's push service, which proxies to FCM
+// using the FCM credentials configured on the EAS project. No service-account
+// secret is needed here — Expo holds the FCM credentials.
 //
 // Locked principles applied here:
-//   - IN-2026-05-19-01: FCM HTTP v1 as single cross-platform backend
 //   - IN-2026-05-19-02: generic delivery + activity-based suppression
 //                        (skip push if recipient last_seen_at < 5 min)
 //   - IN-2026-05-17-01: parent copy = declarative + connection-not-rescue
@@ -80,7 +80,7 @@ const SKIP_PUSH_TYPES = new Set([
 
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
 
-const FCM_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
+const EXPO_PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
 
 // ─── Copy library (parent declarative + kid body-doubling) ──────────────
 
@@ -136,138 +136,79 @@ function copyForType(
   }
 }
 
-// ─── FCM OAuth2 (JWT-bearer flow, RS256) ────────────────────────────────
+// ─── Expo Push dispatch ─────────────────────────────────────────────────
 
-function base64UrlEncodeString(str: string): string {
-  return btoa(str).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+/** Expo push tokens look like ExponentPushToken[...] or ExpoPushToken[...]. */
+function isExpoPushToken(token: string): boolean {
+  return token.startsWith('ExponentPushToken[') || token.startsWith('ExpoPushToken[');
 }
 
-function base64UrlEncodeBytes(bytes: Uint8Array): string {
-  let str = '';
-  for (let i = 0; i < bytes.length; i++) str += String.fromCharCode(bytes[i]);
-  return btoa(str).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+interface ExpoTicket {
+  status: 'ok' | 'error';
+  id?: string;
+  message?: string;
+  details?: { error?: string };
 }
 
-async function importPrivateKey(pem: string): Promise<CryptoKey> {
-  const pemBody = pem
-    .replace('-----BEGIN PRIVATE KEY-----', '')
-    .replace('-----END PRIVATE KEY-----', '')
-    .replace(/\s/g, '');
-  const der = Uint8Array.from(atob(pemBody), (c) => c.charCodeAt(0));
-  return await crypto.subtle.importKey(
-    'pkcs8',
-    der,
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
+interface BatchSendResult {
+  successCount: number;
+  /** Tokens Expo reported as DeviceNotRegistered → delete from device_tokens */
+  deadTokens: string[];
 }
 
-interface ServiceAccount {
-  project_id: string;
-  client_email: string;
-  private_key: string;
-  private_key_id: string;
-}
-
-// Simple in-memory access-token cache (function instance lifetime).
-let cachedAccessToken: { token: string; expiresAt: number } | null = null;
-
-async function getAccessToken(sa: ServiceAccount): Promise<string> {
-  const now = Math.floor(Date.now() / 1000);
-  if (cachedAccessToken && cachedAccessToken.expiresAt > now + 60) {
-    return cachedAccessToken.token;
-  }
-
-  const header = { alg: 'RS256', typ: 'JWT', kid: sa.private_key_id };
-  const claims = {
-    iss: sa.client_email,
-    scope: FCM_SCOPE,
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
-  };
-  const signingInput = `${base64UrlEncodeString(JSON.stringify(header))}.${base64UrlEncodeString(JSON.stringify(claims))}`;
-
-  const key = await importPrivateKey(sa.private_key);
-  const sig = await crypto.subtle.sign(
-    'RSASSA-PKCS1-v1_5',
-    key,
-    new TextEncoder().encode(signingInput),
-  );
-  const assertion = `${signingInput}.${base64UrlEncodeBytes(new Uint8Array(sig))}`;
-
-  const resp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
-    }),
-  });
-  if (!resp.ok) {
-    const text = await resp.text();
-    throw new Error(`OAuth2 token fetch failed: ${resp.status} ${text}`);
-  }
-  const data = (await resp.json()) as { access_token: string; expires_in: number };
-  cachedAccessToken = {
-    token: data.access_token,
-    expiresAt: now + data.expires_in,
-  };
-  return data.access_token;
-}
-
-// ─── FCM dispatch ───────────────────────────────────────────────────────
-
-interface SendResult {
-  ok: boolean;
-  status: number;
-  error?: string;
-  /** True if FCM returned UNREGISTERED → token is dead, delete from device_tokens */
-  dead: boolean;
-}
-
-async function sendFcm(
-  projectId: string,
-  accessToken: string,
-  token: string,
+/**
+ * Send a batch of messages to the Expo push service. Expo proxies to FCM/APNs
+ * using the credentials configured on the EAS project. Tickets are returned in
+ * request order, so we map them back to tokens by index.
+ */
+async function sendExpoPush(
+  tokens: string[],
   payload: PushPayload,
   notificationId: string,
-): Promise<SendResult> {
-  const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
-  const body = {
-    message: {
-      token,
-      notification: {
-        title: payload.title,
-        body: payload.body,
-      },
-      data: {
-        ...payload.data,
-        notification_id: notificationId,
-      },
-      android: {
-        notification: {
-          channel_id: 'default',
-        },
-      },
-    },
-  };
-  const resp = await fetch(url, {
+): Promise<BatchSendResult> {
+  const messages = tokens.map((to) => ({
+    to,
+    title: payload.title,
+    body: payload.body,
+    data: { ...payload.data, notification_id: notificationId },
+    channelId: 'default',
+    priority: 'high',
+  }));
+
+  const resp = await fetch(EXPO_PUSH_ENDPOINT, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(messages),
   });
-  if (resp.ok) {
-    return { ok: true, status: resp.status, dead: false };
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    console.error(`Expo push request failed: status=${resp.status} err=${errText}`);
+    return { successCount: 0, deadTokens: [] };
   }
-  const errText = await resp.text();
-  // FCM returns 404 with errorCode UNREGISTERED for dead tokens
-  const dead = resp.status === 404 || errText.includes('UNREGISTERED');
-  return { ok: false, status: resp.status, error: errText, dead };
+
+  const json = (await resp.json()) as { data?: ExpoTicket[] };
+  const tickets = json.data ?? [];
+
+  const deadTokens: string[] = [];
+  let successCount = 0;
+  tickets.forEach((ticket, i) => {
+    if (ticket.status === 'ok') {
+      successCount++;
+    } else {
+      const detail = ticket.details?.error;
+      if (detail === 'DeviceNotRegistered') {
+        deadTokens.push(tokens[i]);
+      } else {
+        console.error(`Expo ticket error: ${detail ?? ''} ${ticket.message ?? ''}`);
+      }
+    }
+  });
+
+  return { successCount, deadTokens };
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────
@@ -422,45 +363,15 @@ Deno.serve(async (req) => {
     family_id: row.family_id,
   };
 
-  // Load FCM service account from env (set via Supabase Dashboard secrets)
-  const saJson = Deno.env.get('FCM_SERVICE_ACCOUNT_JSON');
-  if (!saJson) {
-    console.error('Missing FCM_SERVICE_ACCOUNT_JSON env secret');
-    await recordPush(supabase, row.id, 0, 'no_service_account');
-    return new Response('Service account not configured', { status: 500 });
-  }
-  let serviceAccount: ServiceAccount;
-  try {
-    serviceAccount = JSON.parse(saJson);
-  } catch {
-    console.error('Failed to parse FCM_SERVICE_ACCOUNT_JSON');
-    await recordPush(supabase, row.id, 0, 'bad_service_account');
-    return new Response('Bad service account', { status: 500 });
+  // Keep only valid Expo push tokens; drop any legacy/raw-FCM rows.
+  const expoTokens = tokens.map((t) => t.token).filter(isExpoPushToken);
+  if (expoTokens.length === 0) {
+    await recordPush(supabase, row.id, 0, 'no_expo_tokens');
+    return new Response(JSON.stringify({ skipped: 'no_expo_tokens' }), { status: 200 });
   }
 
-  // Mint access token
-  let accessToken: string;
-  try {
-    accessToken = await getAccessToken(serviceAccount);
-  } catch (err) {
-    console.error('OAuth2 token failed:', err);
-    await recordPush(supabase, row.id, 0, 'oauth2_failed');
-    return new Response('OAuth2 failed', { status: 500 });
-  }
-
-  // Dispatch to each token; collect dead ones for cleanup
-  const deadTokens: string[] = [];
-  let successCount = 0;
-  for (const dt of tokens) {
-    const result = await sendFcm(serviceAccount.project_id, accessToken, dt.token, copy, row.id);
-    if (result.ok) {
-      successCount++;
-    } else if (result.dead) {
-      deadTokens.push(dt.token);
-    } else {
-      console.error(`FCM send failed (non-dead): status=${result.status} err=${result.error}`);
-    }
-  }
+  // Dispatch via Expo push service (batch). Expo proxies to FCM/APNs.
+  const { successCount, deadTokens } = await sendExpoPush(expoTokens, copy, row.id);
 
   // Clean up dead tokens
   if (deadTokens.length > 0) {
@@ -475,7 +386,7 @@ Deno.serve(async (req) => {
       notification_id: row.id,
       type: row.type,
       recipient: profile.role,
-      tokens_attempted: tokens.length,
+      tokens_attempted: expoTokens.length,
       success: successCount,
       dead: deadTokens.length,
     }),
