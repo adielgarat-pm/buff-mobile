@@ -6,6 +6,24 @@
 
 ---
 
+## 2 ביוני 2026 — Play Store branding
+
+### D-2026-06-02-01: שם המפתח (Developer name) ב-Google Play שונה ל-"BUFF ADHD Studio"
+
+**ההחלטה:** שורת ה-Developer name שמופיעה מתחת לכותרת האפליקציה ב-Google Play משתנה מ-`BUFF -By Adi` ל-**`BUFF ADHD Studio`**. (השינוי מתבצע ידנית ע"י Adi ב-Play Console → Settings → Developer account → Account details → Developer name. account-level, משותף לכל האפליקציות.)
+
+**הסיבה:**
+- `BUFF -By Adi` נשמע כפרויקט אישי; `BUFF ADHD Studio` משדר ישות/צוות מאחורי המוצר — מעלה אמון אצל הורים ששוקלים אפליקציה לילד.
+- שילוב המותג (BUFF) + הקטגוריה (ADHD) + תחושת צוות (Studio) בשדה אחד, בלי כפילות של "BUFF" ובלי "By" מיותר (גוגל כבר מציגה את השורה כ"מי המפתח" מעצם המיקום).
+- תואם English-first GTM ונותן לאיתי את ה-"Studio" שהוא הציע (Teen UI co-creator).
+- נדחו: `BUFF -By Adi` (אישי מדי), `BUFF ADHD - By BUFF Studio` (כפילות + "By" מיותר).
+
+**מסמכים מושפעים:**
+- שם האפליקציה (`BUFF: Habit Quest Kids & Teens`) — לא משתנה.
+- אין שינוי קוד. הגדרה account-bound ב-Play Console בלבד.
+
+---
+
 ## 25 במאי 2026 — Sentry monitoring + first production AAB
 
 ### D-2026-05-25-01: Sentry crash monitoring re-adopted + first production AAB v10 shipped
