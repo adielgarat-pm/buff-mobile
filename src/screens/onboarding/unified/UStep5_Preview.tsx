@@ -23,14 +23,12 @@ import { ONBOARDING_CONFIG } from '../../../config/onboardingConfig';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 import {
-  STARTER_TASKS_BY_CHALLENGE,
   REWARD_PICKS,
-  FALLBACK_TASKS,
   FALLBACK_REWARDS,
   calcRewardCreditsDefault,
 } from './onboardingData';
-import type { AgeGroup, TimeOfDay } from './onboardingData';
-import type { TaskCategory } from '../../../types/task';
+import type { AgeGroup } from './onboardingData';
+import { generateStarterTasks } from './starterTasks';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
@@ -40,36 +38,6 @@ const STEP = 4; const TOTAL = 6;
 const TAG  = '[UStep5_Preview]';
 
 const SIZE_LABEL: Record<string, string> = { small: '3d', medium: '7d', large: '14d' };
-
-/** Positional fallback times (only used if a task has no timeOfDay). */
-const TASK_TIMES = ['08:00', '16:00', '20:00'] as const;
-
-/** Times for up to 2 additional-challenge bonus tasks (slot into unused gaps). */
-const ADDITIONAL_TASK_TIMES = ['12:00', '18:00'] as const;
-
-/** Clock time per time-of-day bucket — a task's `timeOfDay` drives its schedule. */
-const TIME_OF_DAY_CLOCK: Record<TimeOfDay, string> = {
-  morning:   '08:00',
-  afternoon: '16:00',
-  evening:   '20:00',
-};
-
-/** Map the onboarding challenge ID to the correct TaskCategory. */
-function getCategoryForChallenge(challenge: string): TaskCategory {
-  const map: Record<string, TaskCategory> = {
-    morning_routine:     'self-care',
-    homework_focus:      'learning',
-    organisation_memory: 'organization',
-    screen_time:         'responsibility',
-    time_management:     'responsibility',
-    confidence:          'self-care',
-    social_friendships:  'responsibility',
-    independence:        'responsibility',
-    focus_planning:      'learning',
-    social_media:        'responsibility',
-  };
-  return map[challenge] ?? 'responsibility';
-}
 
 export default function UStep5_Preview() {
   const navigation = useNavigation<Nav>();
@@ -91,8 +59,17 @@ export default function UStep5_Preview() {
   const [childProfileId, setChildProfileId] = useState<string | null>(null);
   const hasSaved = useRef(false);
 
-  const tasks = (STARTER_TASKS_BY_CHALLENGE[params.mainChallenge] ?? FALLBACK_TASKS)
-    .slice(0, ONBOARDING_CONFIG.DEFAULT_TASKS_COUNT);
+  // Starter-task engine: age + clinical-presentation-aware selection across the
+  // child's main + additional challenges. Replaces the old positional logic
+  // (STARTER_TASKS_BY_CHALLENGE.slice + TASK_TIMES[index]). Each task carries its
+  // own time (from timeOfDay → HH:MM) and category, fixing the bug where list
+  // position decided the clock time. Deterministic — see starterTasks/.
+  const tasks = generateStarterTasks({
+    ageGroup:             params.ageGroup,
+    gender:               params.gender,
+    mainChallenge:        params.mainChallenge,
+    additionalChallenges: params.additionalChallenges,
+  });
 
   // motivators is an array (1 or 2). Pick rewards from each motivator's list,
   // one per motivator, so the selection feels personal.
@@ -199,42 +176,21 @@ export default function UStep5_Preview() {
       // ── 2. INSERT tasks ──────────────────────────────────────────────────
       console.log(`${TAG} [2/3] Inserting ${tasks.length} tasks for childProfileId=${id}...`);
 
-      // Main challenge tasks (up to 3). `tasks` has a single-column `title`, so
-      // we pick the language from the CHILD's name script (childLang) — not the
-      // app locale — so each child gets tasks in their own language. The clock
-      // time comes from each task's `timeOfDay` (positional TASK_TIMES is only a
-      // fallback for any task missing the field).
-      const mainTaskRows = tasks.map((t, index) => ({
+      // The engine already produced the final, capped (≤5) list spanning the
+      // main + additional challenges, each carrying its own clock time (from
+      // timeOfDay) and category. We only translate the title into the CHILD's
+      // language (childLang, from their name script) — not the app locale — so
+      // each child gets tasks in their own language.
+      const taskRows = tasks.map((t) => ({
         family_id:     familyId,
         assigned_to:   id,
         title:         pickLang(t.title, childLang),
-        category:      getCategoryForChallenge(params.mainChallenge),
-        time:          TIME_OF_DAY_CLOCK[t.timeOfDay] ?? TASK_TIMES[index] ?? '08:00',
+        category:      t.category,
+        time:          t.time,
         credits:       t.buff_value,
         icon:          '⭐',
         schedule_days: [0, 1, 2, 3, 4, 5],
       }));
-
-      // Additional-challenge bonus tasks — first task from each, capped at 2
-      const additionalTaskRows = (params.additionalChallenges ?? [])
-        .slice(0, 2)
-        .map((challenge, index) => {
-          const challengeTasks = STARTER_TASKS_BY_CHALLENGE[challenge] ?? FALLBACK_TASKS;
-          const t = challengeTasks[0];
-          return {
-            family_id:     familyId,
-            assigned_to:   id,
-            title:         pickLang(t.title, childLang),
-            category:      getCategoryForChallenge(challenge),
-            time:          TIME_OF_DAY_CLOCK[t.timeOfDay] ?? ADDITIONAL_TASK_TIMES[index] ?? '12:00',
-            credits:       t.buff_value,
-            icon:          '⭐',
-            schedule_days: [0, 1, 2, 3, 4, 5],
-          };
-        });
-
-      // Cap total at 5 tasks
-      const taskRows = [...mainTaskRows, ...additionalTaskRows].slice(0, 5);
       console.log(`${TAG} [2/3] Task rows (${taskRows.length}):`, JSON.stringify(taskRows.map(r => `${r.time} ${r.title}`)));
 
       // Idempotency: skip if the child already has tasks. saveAll re-runs on

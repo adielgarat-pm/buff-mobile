@@ -1,4 +1,59 @@
-# STATUS — pkg/onboarding-starter-tasks
+# STATUS — onboarding-starter-tasks (session)
+
+> Two packages share this session folder. Newest first.
+
+---
+
+## pkg/starter-task-engine — age + clinical-presentation engine
+
+| Field | Value |
+|---|---|
+| State | **code-complete — pending Adi review + Hat-4 emulator verification** |
+| Date | 2026-06-01 |
+| Branch | `pkg/starter-task-engine` (worktree) |
+| Built | Autonomously by CC at Adi's request ("תוציא את הפיתוח כחבילה אחת כולל תכנון הבדיקות שלה וללא פגיעה באונבורדינג") |
+| Tests | typecheck ✅ (0 errors, whole project) · jest ✅ **27/27** (`starterTasks`) |
+| SPEC | `DOMAIN_RESEARCH.md` (Adi-reviewed 2026-06-01) + `TEST_PLAN.md` |
+
+### What changed
+1. **New engine** `src/screens/onboarding/unified/starterTasks/` — 4 layers:
+   - `types.ts` — vocabulary (StarterTaskDef, GeneratorConfig, LearnedScores, GeneratedTask…)
+   - `taskLibrary.ts` — **DATA**: the §1-7 research table as records (all Adi edits baked in)
+   - `generateStarterTasks.ts` — **LOGIC**: deterministic, age + sexLean scoring, dedupe, guarantee, fallback
+   - `generatorConfig.ts` — **POLICY**: §8 decisions as data (caps, bonuses, tune6to8…)
+   - `challengeMap.ts` / `timeOfDay.ts` — challenge→domain, timeOfDay→HH:MM, domain→category
+   - `index.ts` — public API barrel
+   - `__tests__/` — 27 tests
+2. **`UStep5_Preview.tsx`** — replaced positional selection
+   (`STARTER_TASKS_BY_CHALLENGE.slice` + `TASK_TIMES[index]`) with a single
+   `generateStarterTasks({ ageGroup, gender, mainChallenge, additionalChallenges })`
+   call. Dead positional consts + `getCategoryForChallenge` removed. DB insert
+   now maps engine output directly (`t.time`, `t.category`). **Save flow,
+   idempotency guards, rewards, navigation — untouched.**
+3. **`DOMAIN_RESEARCH.md`** — copied into session folder (was untracked in main).
+
+### Key wins
+- **Fixes the positional time bug** — a task's clock time now comes from its
+  *meaning* (`timeOfDay`), not its list index. "Screens off before bed" = 20:00.
+- **Age-aware** — never serves an off-band task.
+- **Clinical-presentation lean** (not stereotype) — biases, never gender-locks;
+  opposite-lean tasks stay eligible (§0.3); 6-8 stays unified (§8.3).
+- **Self-learning ready** — `LearnedScores` plumbed; Phase 3 re-weights via data.
+
+### Values Check — passes
+- **Pillar 1:** real-world routines → motivator rewards; parent-initiated at onboarding (parity). ✅
+- **Pillar 2:** titles plain + inviting, no shame/why; lean is invisible to the child. ✅
+- **Pillar 3:** scaffolds real independence, fades with age; ⚠️ child-voice via `pkg/child-suggest` (parity, flagged).
+
+### Not in scope / deferred
+- Learning aggregation pipeline (Phase 3) · remote-config library (Phase 2) · A/B `variantOf`.
+- Round-3 confirm items: (a) `d1_bag_by_door` morning vs evening-prep literature; (b) homework "go over" vs "write down" wording A/B — see DOMAIN_RESEARCH §11.
+
+### Hat-4 (Adi) — see `TEST_PLAN.md` §2.
+
+---
+
+## pkg/onboarding-starter-tasks
 
 | Field | Value |
 |---|---|
