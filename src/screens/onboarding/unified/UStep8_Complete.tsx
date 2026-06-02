@@ -79,10 +79,28 @@ export default function UStep8_Complete() {
       // Only update parent profile to mark onboarding complete.
       console.log('[UStep8_Complete] Marking parent profile as onboarding_complete...');
 
+      // Read current pro_settings first so the merge below doesn't clobber keys
+      // the parent already has. Matters for the Add-Child flow (ParentSettings →
+      // UStep1 → … → UStep8) where the parent is already onboarded. Read failure
+      // is non-fatal — fall back to {} so onboarding completion stays unblocked.
+      const { data: existing, error: readErr } = await supabase
+        .from('profiles')
+        .select('pro_settings')
+        .eq('user_id', user.id)
+        .single();
+
+      if (readErr) {
+        console.warn('[UStep8_Complete] pre-save pro_settings read error (non-fatal):', readErr.message);
+      }
+
+      const prevSettings =
+        ((existing as { pro_settings: Record<string, unknown> | null } | null)?.pro_settings) ?? {};
+
       const { error: updateErr } = await supabase
         .from('profiles')
         .update({
           pro_settings: {
+            ...prevSettings,
             onboarding_complete:   true,
             onboarding_child_name: params.childName,
             onboarding_child_id:   params.childProfileId,
