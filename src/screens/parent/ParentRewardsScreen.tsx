@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, Alert,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../../theme';
@@ -59,6 +59,9 @@ export default function ParentRewardsScreen() {
   // When approving a child's suggestion, the add-reward modal is reused as the
   // "Yes" editor; this holds the suggestion id so we can mark it approved.
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  // When editing an existing reward, this holds its id so we update instead of
+  // insert. Mutually exclusive with approvingId.
+  const [editingId, setEditingId]     = useState<string | null>(null);
 
   const {
     suggestions,
@@ -100,6 +103,7 @@ export default function ParentRewardsScreen() {
 
   const openModal = () => {
     setApprovingId(null);
+    setEditingId(null);
     setNewTitle('');
     setNewEmoji('🎁');
     setNewSize('small');
@@ -111,6 +115,7 @@ export default function ParentRewardsScreen() {
   // idea. The parent sets size/credits (keeps the economy in the parent's hands).
   const handleApproveSuggestion = (s: ChildSuggestion) => {
     setApprovingId(s.id);
+    setEditingId(null);
     setNewTitle(s.title);
     setNewEmoji(s.emoji?.trim() || '🎁');
     setNewSize('small');
@@ -118,11 +123,55 @@ export default function ParentRewardsScreen() {
     setShowModal(true);
   };
 
+  // Tap an existing reward to edit it in place (covers onboarding-seeded rewards).
+  const handleEditReward = (r: StoreReward) => {
+    setApprovingId(null);
+    setEditingId(r.id);
+    setNewTitle(pickI18nColumn(r, i18n.language));
+    setNewEmoji(r.emoji || '🎁');
+    setNewSize((r.size as RewardSize) ?? 'small');
+    setNewCredits(String(r.credits_needed));
+    setShowModal(true);
+  };
+
   const handleLetsTalk = async (s: ChildSuggestion) => {
     await markDiscussing(s.id);
   };
 
-  const handleAddReward = async () => {
+  const closeRewardModal = () => {
+    setShowModal(false);
+    setApprovingId(null);
+    setEditingId(null);
+  };
+
+  const handleDeleteReward = () => {
+    if (!editingId || !selectedChildId) return;
+    const id = editingId;
+    const childId = selectedChildId;
+    Alert.alert(
+      t('parentRewards.editModal.deleteConfirmTitle'),
+      t('parentRewards.editModal.deleteConfirmMsg'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase.from('store_rewards').delete().eq('id', id);
+            if (error) {
+              console.error('[ParentRewards] delete error:', error.message);
+              Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+              return;
+            }
+            closeRewardModal();
+            fetchRewards(childId);
+          },
+        },
+      ],
+    );
+  };
+
+  const handleSaveReward = async () => {
     if (!familyId || !selectedChildId) return;
     const title = newTitle.trim();
     if (!title) {
@@ -134,13 +183,37 @@ export default function ParentRewardsScreen() {
       Alert.alert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
       return;
     }
+    const emoji = newEmoji.trim() || '🎁';
 
     setSaving(true);
+
+    // Edit mode — update the existing reward. Write both title columns so the
+    // single-field edit stays consistent across locales (see i18nString.ts).
+    if (editingId) {
+      const { error } = await supabase.from('store_rewards').update({
+        title,
+        title_he:       title,
+        emoji,
+        credits_needed: credits,
+        size:           newSize,
+      } as never).eq('id', editingId);
+      setSaving(false);
+      if (error) {
+        console.error('[ParentRewards] update error:', error.message);
+        Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+        return;
+      }
+      closeRewardModal();
+      fetchRewards(selectedChildId);
+      return;
+    }
+
+    // Create / approve mode — insert a new reward.
     const { data, error } = await supabase.from('store_rewards').insert({
       family_id:         familyId,
       child_id:          selectedChildId,
       title,
-      emoji:             newEmoji.trim() || '🎁',
+      emoji,
       credits_needed:    credits,
       size:              newSize,
       is_redeemed:       false,
@@ -159,8 +232,7 @@ export default function ParentRewardsScreen() {
       return;
     }
 
-    setApprovingId(null);
-    setShowModal(false);
+    closeRewardModal();
     fetchRewards(selectedChildId);
   };
 
@@ -246,7 +318,12 @@ export default function ParentRewardsScreen() {
             </View>
           ) : (
             rewards.map((reward) => (
-              <View key={reward.id} style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+              <TouchableOpacity
+                key={reward.id}
+                style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}
+                onPress={() => handleEditReward(reward)}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.rewardIcon}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: T.text }]}>{pickI18nColumn(reward, i18n.language)}</Text>
@@ -259,7 +336,7 @@ export default function ParentRewardsScreen() {
                     {reward.credits_needed.toLocaleString()} B
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
@@ -270,15 +347,17 @@ export default function ParentRewardsScreen() {
         visible={showModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={closeRewardModal}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowModal(false)} />
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeRewardModal} />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
-            <Text style={[styles.sheetTitle, { color: T.text }]}>{t('parentRewards.modal.title')}</Text>
+            <Text style={[styles.sheetTitle, { color: T.text }]}>
+              {editingId ? t('parentRewards.editModal.title') : t('parentRewards.modal.title')}
+            </Text>
             <Text style={[styles.sheetSub, { color: T.textMuted }]}>
               {t('parentRewards.modal.for', { name: selectedChild?.displayName ?? '' })}
             </Text>
@@ -342,14 +421,26 @@ export default function ParentRewardsScreen() {
             {/* Confirm */}
             <TouchableOpacity
               style={[styles.confirmBtn, { backgroundColor: T.accent }, saving && { opacity: 0.6 }]}
-              onPress={handleAddReward}
+              onPress={handleSaveReward}
               disabled={saving || !newTitle.trim()}
             >
               {saving
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.confirmText}>{t('parentRewards.modal.save')}</Text>
+                : <Text style={styles.confirmText}>
+                    {editingId ? t('parentRewards.editModal.confirm') : t('parentRewards.modal.save')}
+                  </Text>
               }
             </TouchableOpacity>
+
+            {editingId && (
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={handleDeleteReward}
+                disabled={saving}
+              >
+                <Text style={styles.deleteText}>{t('parentRewards.editModal.delete')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -396,4 +487,6 @@ const styles = StyleSheet.create({
   sizeBtnHint:   { fontSize: 11, marginTop: 2 },
   confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
+  deleteBtn:     { paddingVertical: 12, alignItems: 'center', marginTop: 8 },
+  deleteText:    { color: '#DC2626', fontSize: 14, fontWeight: '600' },
 });
