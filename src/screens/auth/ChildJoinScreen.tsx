@@ -49,7 +49,17 @@ export default function ChildJoinScreen() {
       return;
     }
 
-    const username     = name.trim().toLowerCase().replace(/\s+/g, '_');
+    // Derive an ASCII-safe, deterministic login username. Names with non-ASCII
+    // characters (e.g. Hebrew "ליה") would otherwise produce an invalid email
+    // local-part and Supabase rejects them ("invalid format"). ASCII-only names
+    // are byte-identical to the legacy derivation, so existing logins are stable;
+    // names that strip to <2 chars fall back to a hex encoding of the raw string,
+    // which stays unique per distinct name so cross-device sign-in still works.
+    const rawUsername  = name.trim().toLowerCase().replace(/\s+/g, '_');
+    const asciiUsername = rawUsername.replace(/[^a-z0-9_]/g, '');
+    const username     = asciiUsername.length >= 2
+      ? asciiUsername
+      : 'c' + Array.from(rawUsername).map(ch => ch.charCodeAt(0).toString(16)).join('');
     const email        = `${username}@buff.app`;
     const code         = familyCode.trim().toUpperCase();
     const autoPassword = `${username}_${code}_buff2026`;
