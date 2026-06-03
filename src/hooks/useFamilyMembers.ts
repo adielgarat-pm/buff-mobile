@@ -9,6 +9,10 @@ export interface FamilyMember {
   role: 'parent' | 'child';
   createdAt: string;
   avatar: string;
+  // DB-backed subscription flags — used by useSubscription so a child can
+  // inherit the family parent's entitlement (BUFF gates on the family plan).
+  isLifetimeAccess: boolean;
+  isLifetimeFounding: boolean;
 }
 
 export function useFamilyMembers() {
@@ -38,12 +42,14 @@ export function useFamilyMembers() {
 
       setMembers(
         (data || []).map(p => ({
-          id:          p.id,
-          userId:      p.user_id,
-          displayName: p.display_name,
-          role:        p.role as 'parent' | 'child',
-          createdAt:   p.created_at,
-          avatar:      p.avatar || '🚀',
+          id:                 p.id,
+          userId:             p.user_id,
+          displayName:        p.display_name,
+          role:               p.role as 'parent' | 'child',
+          createdAt:          p.created_at,
+          avatar:             p.avatar || '🚀',
+          isLifetimeAccess:   p.is_lifetime_access ?? false,
+          isLifetimeFounding: p.is_lifetime_founding ?? false,
         }))
       );
     } catch (err) {
