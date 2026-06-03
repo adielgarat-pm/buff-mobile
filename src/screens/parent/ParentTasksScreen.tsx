@@ -6,7 +6,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
-  Modal, TextInput, Alert, KeyboardAvoidingView, Platform,
+  Modal, TextInput, Alert, KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -47,7 +47,7 @@ export default function ParentTasksScreen() {
     }
   }, [children, selectedChildId]);
 
-  const { tasks, loading: tasksLoading, refetch } = useChildData(selectedChildId);
+  const { tasks, loading: tasksLoading, refetch, updateTask, deleteTask } = useChildData(selectedChildId);
 
   const {
     suggestions,
@@ -56,11 +56,15 @@ export default function ParentTasksScreen() {
     refetch: refetchSuggestions,
   } = usePendingSuggestions(selectedChildId);
 
-  // Approve-task modal state ("Yes, let's do it"). The parent sets time +
-  // Buffs so the economy stays in their hands; category defaults to
-  // 'responsibility' and the task runs every day.
+  // Task modal — serves three modes:
+  //  • approve: opened from a child suggestion (approvingId set)
+  //  • edit:    opened by tapping an existing task row (editingId set)
+  //  • create:  opened from the "+ Add Task" button (both null)
+  // The parent always sets time + Buffs so the economy stays in their hands;
+  // category defaults to 'responsibility' and the task runs every day.
   const [approveOpen, setApproveOpen]       = useState(false);
   const [approvingId, setApprovingId]       = useState<string | null>(null);
+  const [editingId, setEditingId]           = useState<string | null>(null);
   const [approveTitle, setApproveTitle]     = useState('');
   const [approveTime, setApproveTime]       = useState('16:00');
   const [approveCredits, setApproveCredits] = useState('10');
@@ -74,11 +78,31 @@ export default function ParentTasksScreen() {
     }, [selectedChildId, refetch, refetchSuggestions])
   );
 
+  const handleOpenAddTask = () => {
+    if (!selectedChildId) return;
+    setApprovingId(null);
+    setEditingId(null);
+    setApproveTitle('');
+    setApproveTime('16:00');
+    setApproveCredits('10');
+    setApproveOpen(true);
+  };
+
   const handleApproveSuggestion = (s: ChildSuggestion) => {
     setApprovingId(s.id);
+    setEditingId(null);
     setApproveTitle(s.title);
     setApproveTime('16:00');
     setApproveCredits('10');
+    setApproveOpen(true);
+  };
+
+  const handleEditTask = (task: { id: string; title: string; time: string; credits: number }) => {
+    setApprovingId(null);
+    setEditingId(task.id);
+    setApproveTitle(task.title);
+    setApproveTime(task.time);
+    setApproveCredits(String(task.credits));
     setApproveOpen(true);
   };
 
@@ -86,14 +110,51 @@ export default function ParentTasksScreen() {
     await markDiscussing(s.id);
   };
 
-  const handleConfirmApprove = async () => {
-    if (!selectedChildId || !approvingId || approveSaving) return;
+  const closeTaskModal = () => {
+    setApproveOpen(false);
+    setApprovingId(null);
+    setEditingId(null);
+  };
+
+  const handleDeleteTask = () => {
+    if (!editingId) return;
+    const id = editingId;
+    Alert.alert(
+      t('parentTasks.editModal.deleteConfirmTitle'),
+      t('parentTasks.editModal.deleteConfirmMsg'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            await deleteTask(id);
+            await refetch();
+            closeTaskModal();
+          },
+        },
+      ],
+    );
+  };
+
+  const handleConfirmTask = async () => {
+    if (!selectedChildId || !familyId || approveSaving) return;
     const title = approveTitle.trim();
     if (!title) return;
     const credits = parseInt(approveCredits, 10) || 10;
 
-    if (!familyId) return;
     setApproveSaving(true);
+
+    // Edit mode — update the existing task in place.
+    if (editingId) {
+      await updateTask(editingId, { title, time: approveTime, credits });
+      await refetch();
+      setApproveSaving(false);
+      closeTaskModal();
+      return;
+    }
+
+    // Create / approve mode — insert a new task.
     const { data, error } = await supabase.from('tasks').insert({
       family_id:         familyId,
       assigned_to:       selectedChildId,
@@ -102,24 +163,23 @@ export default function ParentTasksScreen() {
       category:          'responsibility',
       credits,
       schedule_days:     [0, 1, 2, 3, 4, 5, 6],
-      proposed_by_child: true,
+      proposed_by_child: !!approvingId,
     } as never).select('id').single();
 
-    if (!error && data) {
+    if (!error && data && approvingId) {
       await markApproved(approvingId, (data as { id: string }).id);
       await refetchSuggestions();
-      await refetch();
     }
+    if (!error) await refetch();
     setApproveSaving(false);
 
     if (error) {
-      console.error('[ParentTasks] approve insert error:', error.message);
+      console.error('[ParentTasks] task insert error:', error.message);
       Alert.alert(t('common.error'), t('common.errorGeneric'));
       return;
     }
 
-    setApprovingId(null);
-    setApproveOpen(false);
+    closeTaskModal();
   };
 
   const selectedChild = children.find((c) => c.childId === selectedChildId);
@@ -164,6 +224,13 @@ export default function ParentTasksScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: T.text }]}>{t('parentTasks.title')}</Text>
+        <TouchableOpacity
+          style={[styles.addBtn, { backgroundColor: T.accent }]}
+          onPress={handleOpenAddTask}
+          disabled={!selectedChildId}
+        >
+          <Text style={styles.addBtnText}>{t('parentTasks.addBtn')}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Child selector */}
@@ -239,9 +306,15 @@ export default function ParentTasksScreen() {
               <View key={stage} style={styles.stageSection}>
                 <Text style={[styles.stageLabel, { color: T.textMuted }]}>{stageLabel}</Text>
                 {stageTasks.map((task) => (
-                  <View key={task.id} style={[styles.taskRow, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-                    {/* Status-only indicator — the parent cannot complete tasks here,
-                        so this must read as status, not a tappable checkbox. */}
+                  <TouchableOpacity
+                    key={task.id}
+                    style={[styles.taskRow, { backgroundColor: T.card, borderColor: T.cardBorder }]}
+                    onPress={() => handleEditTask(task)}
+                    activeOpacity={0.7}
+                  >
+                    {/* Status-only indicator — the row opens the edit sheet; the
+                        parent never completes a task here, so this reads as status,
+                        not a tappable checkbox. */}
                     {task.completed ? (
                       <View style={[styles.statusDone, { backgroundColor: T.success }]}>
                         <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>
@@ -259,7 +332,8 @@ export default function ParentTasksScreen() {
                         {task.time} · {task.credits} Buffs
                       </Text>
                     </View>
-                  </View>
+                    <Text style={[styles.editChevron, { color: T.textMuted }]}>›</Text>
+                  </TouchableOpacity>
                 ))}
               </View>
             );
@@ -272,15 +346,21 @@ export default function ParentTasksScreen() {
         visible={approveOpen}
         transparent
         animationType="slide"
-        onRequestClose={() => setApproveOpen(false)}
+        onRequestClose={closeTaskModal}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior="padding"
         >
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setApproveOpen(false)} />
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeTaskModal} />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
-            <Text style={[styles.sheetTitle, { color: T.text }]}>{t('childSuggest.approve.taskHeading')}</Text>
+            <Text style={[styles.sheetTitle, { color: T.text }]}>
+              {editingId
+                ? t('parentTasks.editModal.title')
+                : approvingId
+                  ? t('childSuggest.approve.taskHeading')
+                  : t('parentTasks.addModal.title')}
+            </Text>
 
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.titleLabel')}</Text>
             <TextInput
@@ -312,13 +392,29 @@ export default function ParentTasksScreen() {
 
             <TouchableOpacity
               style={[styles.confirmBtn, { backgroundColor: T.accent }, (approveSaving || !approveTitle.trim()) && { opacity: 0.6 }]}
-              onPress={handleConfirmApprove}
+              onPress={handleConfirmTask}
               disabled={approveSaving || !approveTitle.trim()}
             >
               {approveSaving
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.confirmText}>{t('childSuggest.approve.confirm')}</Text>}
+                : <Text style={styles.confirmText}>
+                    {editingId
+                      ? t('parentTasks.editModal.confirm')
+                      : approvingId
+                        ? t('childSuggest.approve.confirm')
+                        : t('parentTasks.addModal.confirm')}
+                  </Text>}
             </TouchableOpacity>
+
+            {editingId && (
+              <TouchableOpacity
+                style={styles.deleteBtn}
+                onPress={handleDeleteTask}
+                disabled={approveSaving}
+              >
+                <Text style={styles.deleteText}>{t('parentTasks.editModal.delete')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -330,6 +426,9 @@ const styles = StyleSheet.create({
   container:     { flex: 1 },
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 52, paddingBottom: 12 },
   title:         { fontSize: 24, fontWeight: '700' },
+  addBtn:        { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
+  addBtnText:    { color: '#fff', fontWeight: '600', fontSize: 14 },
+  editChevron:   { fontSize: 22, fontWeight: '400', marginLeft: 4 },
   childSelector: { paddingHorizontal: 16, marginBottom: 8, maxHeight: 60 },
   childTab:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 10, backgroundColor: '#F3F4F6', gap: 6 },
   childTabEmoji: { fontSize: 16 },
@@ -359,4 +458,6 @@ const styles = StyleSheet.create({
   input:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16 },
   confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
+  deleteBtn:     { paddingVertical: 12, alignItems: 'center', marginTop: 8 },
+  deleteText:    { color: '#DC2626', fontSize: 14, fontWeight: '600' },
 });
