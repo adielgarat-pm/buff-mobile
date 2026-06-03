@@ -310,6 +310,20 @@ export function useChildData(childId: string | null) {
   const completeTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
 
+    // Source of truth is the DB row, not the optimistic React state. Crediting
+    // BUFFs must only happen on a real false→true transition — otherwise a task
+    // that renders as incomplete while its daily_progress row is already
+    // completed (e.g. the day-filtering divergence between child screens) lets a
+    // kid re-tap the same task and bank credits on every tap. The upsert itself
+    // is idempotent (unique index, migration 016) but the vault credit was not.
+    const { data: existing } = await supabase
+      .from('daily_progress')
+      .select('completed')
+      .eq('family_id', familyId).eq('child_id', childId)
+      .eq('date', todayKey).eq('task_id', taskId)
+      .maybeSingle();
+    const wasComplete = existing?.completed === true;
+
     const now = new Date();
     // Optimistic UI update
     setTasks(prev => prev.map(t =>
@@ -321,7 +335,7 @@ export function useChildData(childId: string | null) {
       { onConflict: 'family_id,child_id,date,task_id' }
     );
 
-    if (!error) {
+    if (!error && !wasComplete) {
       const task = tasks.find(t => t.id === taskId);
       if (task) {
         await updateTotalBalance(totalBalance + task.credits);
@@ -331,6 +345,17 @@ export function useChildData(childId: string | null) {
 
   const uncompleteTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
+
+    // Symmetric to completeTask: only debit on a real true→false transition, so
+    // repeated taps on an already-incomplete task can never drive the balance
+    // negative or double-debit.
+    const { data: existing } = await supabase
+      .from('daily_progress')
+      .select('completed')
+      .eq('family_id', familyId).eq('child_id', childId)
+      .eq('date', todayKey).eq('task_id', taskId)
+      .maybeSingle();
+    const wasComplete = existing?.completed === true;
 
     // Optimistic UI update
     setTasks(prev => prev.map(t =>
@@ -342,7 +367,7 @@ export function useChildData(childId: string | null) {
       { onConflict: 'family_id,child_id,date,task_id' }
     );
 
-    if (!error) {
+    if (!error && wasComplete) {
       const task = tasks.find(t => t.id === taskId);
       if (task) {
         await updateTotalBalance(Math.max(0, totalBalance - task.credits));
