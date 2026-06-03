@@ -46,5 +46,27 @@
 | 1 | expo-doctor | ✅ 18/18 |
 | 1 | i18n parity | ✅ 0 missing either locale |
 | 1 | Values Check | ✅ #149 pass |
-| 2 | Functional (buff-testing) | ⏳ pending Adi go |
-| 3 | Build (eas production) | ⏳ pending Adi go |
+| 2 | Functional (buff-testing) | ⏸️ DEFERRED to a quiet emulator window (Adi 2026-06-03) |
+| 3 | Build (eas production) | ⏸️ blocked on Gate 2 |
+
+## ⏸️ PAUSED — resume instructions
+
+**State:** Gate 0 + Gate 1 GREEN. Paused before Gate 2 because the single shared
+emulator + Metro (port 8081) are owned by other parallel sessions; running Hat-3
+now would either disrupt another session or test the wrong code. Adi chose to
+wait for a quiet window.
+
+**Cut point:** `pkg/release-v26` @ commit `9ae3944` (versionName 1.2.0, off main `7f8a8d8`).
+
+**To resume (when emulator is free — Metro 8081 not held by another worktree):**
+1. From this worktree, `git fetch origin main`; if main moved, decide re-cut vs ship as-is (V26 pinned at 7f8a8d8).
+2. Run **Gate 2** via buff-testing — scoped list:
+   - Smoke: F1.H1, F3.H1, F4.H1, F5.H1, F8.H1, F10.H1, F13.H1
+   - #147: F8.E3 (no LOCKED ZONE for child) + F19.H3
+   - #148: F19.H2 + F19.H3 + child-of-premium sees Buddy/Skins unlocked
+   - #149: parent sends sticker → child sees IncomingStickerModal
+   - #151: view-as-child from Settings shows child data; credit exploit (toggle done↔undone) no balance inflation
+3. If green → **Gate 3** `eas build --platform android --profile production` (versionCode auto→26).
+4. **Gate 4-5:** release notes + STATUS row + Hat-4 checklist (incl. #146 FCM real-device) + propose tag `v26`.
+
+**#146 FCM is Hat-4 only** regardless — goes on the Hat-4 checklist, not Gate 2.
