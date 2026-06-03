@@ -8,13 +8,13 @@
  * verbatim from the pre-Teen-UI version of this file.
  *
  * Fetches store_rewards for the current child from Supabase.
- * Gated behind BUFF Premium — shows PaywallContent if not subscribed.
+ * Not gated behind subscription: the rewards shop is core to Pillar 1
+ * (Intrinsic Motivation) and is not a paid feature per BUFF_PRD.md §5.1.
  */
 import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
-import { useSubscription } from '../../hooks/useSubscription';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
@@ -22,7 +22,6 @@ import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../integrations/supabase/client';
-import { PaywallContent } from '../PaywallScreen';
 import GamerRewardsScreen from './GamerRewardsScreen';
 import { pickI18nColumn } from '../../lib/i18nString';
 import { getCurrencySymbol } from '../../lib/currency';
@@ -54,9 +53,7 @@ function PastelChildRewards() {
   const { t, i18n } = useTranslation();
   const T = useChildTheme();
   const { profile } = useAuth();
-  const { previewChildId, viewMode } = useMode();
-  const { isSubscribed } = useSubscription();
-  const isChildViewer = viewMode === 'child';
+  const { previewChildId } = useMode();
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { totalBalance } = useChildData(childId);
@@ -96,26 +93,6 @@ function PastelChildRewards() {
         setLoading(false);
       });
   }, [childId]);
-
-  // Gate: non-subscribers see Paywall in place of the shop.
-  // For child viewers (real child or parent-in-preview-as-child), show a
-  // calm "ask your parent" empty state instead of the payment CTA.
-  if (!isSubscribed) {
-    if (isChildViewer) {
-      return (
-        <View style={[styles.lockedShop, { backgroundColor: T.background }]}>
-          <Text style={styles.lockedShopEmoji}>🎁</Text>
-          <Text style={[styles.lockedShopTitle, { color: T.foreground }]}>
-            {t('childLockedState.shopTitle')}
-          </Text>
-          <Text style={[styles.lockedShopSub, { color: T.mutedForeground }]}>
-            {t('childLockedState.shopSub')}
-          </Text>
-        </View>
-      );
-    }
-    return <PaywallContent childName={profile?.display_name ?? ''} />;
-  }
 
   const handleClaim = (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
@@ -259,10 +236,6 @@ const styles = StyleSheet.create({
   safeEmoji:    { fontSize: 24 },
   safeText:     { flex: 1, fontSize: 13, lineHeight: 18 },
 
-  lockedShop:        { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  lockedShopEmoji:   { fontSize: 64, marginBottom: 16 },
-  lockedShopTitle:   { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: 8, lineHeight: 24 },
-  lockedShopSub:     { fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   suggestFooter:     { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 20, borderTopWidth: 1 },
   suggestBtn:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 999, borderWidth: 1, marginTop: 8 },
