@@ -35,6 +35,7 @@ import AnchorRecoveryPromptModal from './AnchorRecoveryPromptModal';
 import { useAnchorRecoveryPrompts } from '../../hooks/useAnchorRecoveryPrompts';
 import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
+import { STICKER_CATALOG } from '../../lib/stickerCatalog';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -265,9 +266,38 @@ export default function ParentDashboardScreen() {
     }
   };
 
-  // ── FIX 4: sticker placeholder ───────────────────────────────────────────
-  const handleSticker = (childName: string) => {
-    setInfoModal({ icon: '🎴', message: t('dashboard.stickerNotReady', { name: childName }) });
+  // ── Sticker modal — parent→child affirmation via `stickers` table ────────
+  const [stickerChildId,  setStickerChildId]  = useState<string | null>(null);
+  const [stickerSelected, setStickerSelected] = useState<string>(STICKER_CATALOG[0].key);
+  const [stickerNote,     setStickerNote]     = useState('');
+  const [stickerSending,  setStickerSending]  = useState(false);
+
+  const openSticker = (childId: string) => {
+    setStickerChildId(childId);
+    setStickerSelected(STICKER_CATALOG[0].key);
+    setStickerNote('');
+  };
+
+  const sendSticker = async () => {
+    if (!stickerChildId || !familyId || !profile?.id) return;
+    setStickerSending(true);
+    try {
+      const { error } = await supabase.from('stickers').insert({
+        family_id:      familyId,
+        from_parent_id: profile.id,
+        to_child_id:    stickerChildId,
+        sticker_type:   stickerSelected,
+        message:        stickerNote.trim() || null,
+      });
+      if (error) throw error;
+      setStickerChildId(null);
+      setInfoModal({ icon: '🎴', message: t('sticker.sent') });
+    } catch (err) {
+      console.error('[Dashboard] sendSticker error:', err);
+      setInfoModal({ icon: '😕', message: t('sticker.sendError') });
+    } finally {
+      setStickerSending(false);
+    }
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -509,7 +539,7 @@ export default function ParentDashboardScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.actionBtn, { borderColor: T.cardBorder }]}
-                  onPress={() => handleSticker(child.displayName)}
+                  onPress={() => openSticker(child.childId)}
                 >
                   <Text style={[styles.actionBtnText, { color: T.accent }]}>🎴 {t('sticker.send')}</Text>
                 </TouchableOpacity>
@@ -718,6 +748,81 @@ export default function ParentDashboardScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* ── Sticker picker modal ──────────────────────────────────────── */}
+      <Modal
+        visible={!!stickerChildId}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setStickerChildId(null)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => setStickerChildId(null)}
+          />
+          <View style={[styles.bonusSheet, { backgroundColor: T.card }]}>
+            <Text style={[styles.bonusTitle, { color: T.text }]}>
+              {t('sticker.send')}
+            </Text>
+            <Text style={[styles.bonusSub, { color: T.textMuted }]}>
+              {t('sticker.modalSub', {
+                name: children.find(c => c.childId === stickerChildId)?.displayName ?? '',
+              })}
+            </Text>
+
+            {/* Sticker grid */}
+            <Text style={[styles.bonusInputLabel, { color: T.textMuted }]}>
+              {t('sticker.pickOne')}
+            </Text>
+            <View style={styles.stickerGrid}>
+              {STICKER_CATALOG.map(s => (
+                <TouchableOpacity
+                  key={s.key}
+                  style={[
+                    styles.stickerOption,
+                    { borderColor: T.cardBorder },
+                    stickerSelected === s.key && { backgroundColor: T.accent, borderColor: T.accent },
+                  ]}
+                  onPress={() => setStickerSelected(s.key)}
+                >
+                  <Text style={styles.stickerOptionEmoji}>{s.emoji}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Optional note */}
+            <Text style={[styles.bonusInputLabel, { color: T.textMuted }]}>
+              {t('dashboard.bonusNote')}
+            </Text>
+            <TextInput
+              style={[styles.bonusInput, styles.bonusNoteInput, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              value={stickerNote}
+              onChangeText={setStickerNote}
+              placeholder={t('dashboard.bonusNotePlaceholder')}
+              placeholderTextColor={T.textMuted}
+              maxLength={120}
+              multiline
+            />
+
+            {/* Confirm */}
+            <TouchableOpacity
+              style={[styles.bonusConfirm, { backgroundColor: T.accent }, stickerSending && { opacity: 0.6 }]}
+              onPress={sendSticker}
+              disabled={stickerSending}
+            >
+              {stickerSending
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.bonusConfirmText}>{t('sticker.send')}</Text>
+              }
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -842,4 +947,7 @@ const styles = StyleSheet.create({
   bonusNoteInput:   { height: 72, textAlignVertical: 'top' },
   bonusConfirm:     { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   bonusConfirmText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  stickerGrid:      { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 },
+  stickerOption:    { width: 56, height: 56, borderWidth: 1.5, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  stickerOptionEmoji: { fontSize: 28 },
 });
