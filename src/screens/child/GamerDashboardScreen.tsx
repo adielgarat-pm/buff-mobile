@@ -41,6 +41,8 @@ import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackMo
 import { BuddyHero } from '../../components/buddy/BuddyHero';
 import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
 import VibeCheckScreen from './VibeCheckScreen';
+import IncomingStickerModal from '../../components/child/IncomingStickerModal';
+import { useIncomingSticker } from '../../hooks/useIncomingSticker';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
@@ -131,6 +133,8 @@ export default function GamerDashboardScreen() {
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, loading: dataLoading } = useChildData(childId);
+  // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
+  const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
@@ -385,6 +389,8 @@ export default function GamerDashboardScreen() {
       <InstantBuffCard palette={GAMER_LP_PALETTES.instantBuff} />
 
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
+
+      <IncomingStickerModal sticker={incomingSticker} onDismiss={() => { void markStickerSeen(); }} />
 
       <BuddyToggleModal
         visible={hideModalVisible}

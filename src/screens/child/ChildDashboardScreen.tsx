@@ -24,6 +24,8 @@ import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import VibeCheckScreen from './VibeCheckScreen';
 import GamerDashboardScreen from './GamerDashboardScreen';
+import IncomingStickerModal from '../../components/child/IncomingStickerModal';
+import { useIncomingSticker } from '../../hooks/useIncomingSticker';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
@@ -65,6 +67,8 @@ function PastelChildDashboard() {
   // auth session for any child in the family.
   const vibe = useDailyVibe(childId);
   const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
+  const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
   const shouldPromptVibe =
     !vibeLoading &&
@@ -122,6 +126,7 @@ function PastelChildDashboard() {
         onSelect={(level, type) => { void recordVibe(level, type); }}
         onDismiss={() => { void markVibeDismissed(); }}
       />
+      <IncomingStickerModal sticker={incomingSticker} onDismiss={() => { void markStickerSeen(); }} />
       <ScrollView style={{ flex: 1, backgroundColor: T.background }}
         contentContainerStyle={styles.content}>
 
