@@ -9,6 +9,7 @@
 import { Modal, Pressable, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PASTEL_MODE as T } from '../theme/modes';
 import { SUPPORTED_LANGUAGES, LANGUAGE_LABELS } from '../i18n';
 
 interface Props {
@@ -61,19 +62,22 @@ export default function LanguagePickerModal({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   backdrop: {
     flex:            1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    // Warm deep-violet scrim (brand) instead of pure-black.
+    backgroundColor: 'rgba(26,22,54,0.45)',
     justifyContent:  'center',
     alignItems:      'center',
   },
   sheet: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: T.card,
     borderRadius:    20,
     padding:         24,
     width:           220,
     gap:             4,
+    borderWidth:     1,
+    borderColor:     T.cardBorder,
   },
   sheetTitle: {
-    color:        '#E5E7EB',
+    color:        T.text,
     fontSize:     15,
     fontWeight:   '700',
     textAlign:    'center',
@@ -87,20 +91,20 @@ const styles = StyleSheet.create({
     borderRadius:      12,
   },
   optionActive: {
-    backgroundColor: 'rgba(167,139,250,0.15)',
+    backgroundColor: 'rgba(124,58,237,0.10)',
   },
   optionLabel: {
     flex:       1,
-    color:      '#E5E7EB',
+    color:      T.text,
     fontSize:   16,
     fontWeight: '500',
   },
   optionLabelActive: {
-    color:      '#A78BFA',
+    color:      T.accent,
     fontWeight: '700',
   },
   check: {
-    color:    '#A78BFA',
+    color:    T.accent,
     fontSize: 16,
   },
 });

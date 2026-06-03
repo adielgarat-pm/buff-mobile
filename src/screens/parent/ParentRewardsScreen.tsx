@@ -16,9 +16,16 @@ import PhilosophyTip from '../../components/PhilosophyTip';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
-import { pickI18nColumn } from '../../lib/i18nString';
+import { pickI18nColumn, bilingualForDb } from '../../lib/i18nString';
 import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
+import {
+  MONEY_CONVERSION_REWARD,
+  MONEY_MOTIVATOR_ID,
+  calcMoneyRewardCredits,
+} from '../onboarding/unified/onboardingData';
+import { ONBOARDING_CONFIG } from '../../config/onboardingConfig';
+import { getCurrencySymbol } from '../../lib/currency';
 
 interface StoreReward {
   id:             string;
@@ -27,7 +34,12 @@ interface StoreReward {
   emoji:          string;
   size:           string;
   credits_needed: number;
+  cash_value?:    number | null;
 }
+
+/** Daily-BUFFs fallback when a child has no tasks yet (matches onboarding preview). */
+const DEFAULT_DAILY_BUFFS =
+  ONBOARDING_CONFIG.DEFAULT_TASKS_COUNT * ONBOARDING_CONFIG.DEFAULT_BUFF_VALUE;
 
 type RewardSize = 'small' | 'medium' | 'large';
 
@@ -62,6 +74,17 @@ export default function ParentRewardsScreen() {
   // When editing an existing reward, this holds its id so we update instead of
   // insert. Mutually exclusive with approvingId.
   const [editingId, setEditingId]     = useState<string | null>(null);
+  // Cash-conversion mode: the modal becomes the "Convert BUFFs to cash" editor.
+  const [cashMode, setCashMode]       = useState(false);
+  const [newCash, setNewCash]         = useState('');
+
+  // Money-motivation gate + the child's daily-BUFFs earning potential (drives the
+  // deliberately-high cash cost). Fetched per selected child.
+  const [isMoneyMotivated, setIsMoneyMotivated] = useState(false);
+  const [childDailyBuffs, setChildDailyBuffs]   = useState(DEFAULT_DAILY_BUFFS);
+
+  const currencySymbol = getCurrencySymbol();
+  const suggestedCashCredits = calcMoneyRewardCredits(childDailyBuffs);
 
   const {
     suggestions,
@@ -82,7 +105,7 @@ export default function ParentRewardsScreen() {
     setRewardsLoading(true);
     const { data, error } = await supabase
       .from('store_rewards')
-      .select('id, title, title_he, emoji, size, credits_needed')
+      .select('id, title, title_he, emoji, size, credits_needed, cash_value')
       .eq('child_id', childId)
       .eq('is_redeemed', false);
     if (error) console.error('[ParentRewards] fetch error:', error.message);
@@ -90,10 +113,36 @@ export default function ParentRewardsScreen() {
     setRewardsLoading(false);
   }, []);
 
+  // Whether the child is money-motivated (gates the cash suggestion) + their daily
+  // BUFFs earning potential (sum of active task credits → the cash cost anchor).
+  const fetchChildMeta = useCallback(async (childId: string) => {
+    const [{ data: profile }, { data: tasks }] = await Promise.all([
+      supabase.from('profiles').select('pro_settings').eq('id', childId).maybeSingle(),
+      supabase.from('tasks').select('credits').eq('assigned_to', childId),
+    ]);
+
+    const motivators =
+      (profile as { pro_settings?: { onboarding_data?: { motivators?: string[] } } } | null)
+        ?.pro_settings?.onboarding_data?.motivators ?? [];
+    setIsMoneyMotivated(motivators.includes(MONEY_MOTIVATOR_ID));
+
+    const dailyBuffs = (tasks ?? []).reduce(
+      (sum, row) => sum + ((row as { credits?: number }).credits ?? 0),
+      0,
+    );
+    setChildDailyBuffs(dailyBuffs > 0 ? dailyBuffs : DEFAULT_DAILY_BUFFS);
+  }, []);
+
   useEffect(() => {
-    if (!selectedChildId) { setRewards([]); return; }
+    if (!selectedChildId) {
+      setRewards([]);
+      setIsMoneyMotivated(false);
+      setChildDailyBuffs(DEFAULT_DAILY_BUFFS);
+      return;
+    }
     fetchRewards(selectedChildId);
-  }, [selectedChildId, fetchRewards]);
+    fetchChildMeta(selectedChildId);
+  }, [selectedChildId, fetchRewards, fetchChildMeta]);
 
   // Update credits default when size changes
   const handleSizeSelect = (size: RewardSize) => {
@@ -104,10 +153,28 @@ export default function ParentRewardsScreen() {
   const openModal = () => {
     setApprovingId(null);
     setEditingId(null);
+    setCashMode(false);
+    setNewCash('');
     setNewTitle('');
     setNewEmoji('🎁');
     setNewSize('small');
     setNewCredits(String(DEFAULT_CREDITS.small));
+    setShowModal(true);
+  };
+
+  // Cash-conversion suggestion → opens the modal in cash mode. The BUFF cost is
+  // pre-set to the deliberately-high 5-day anchor; the parent sets the cash amount.
+  const openCashModal = () => {
+    setApprovingId(null);
+    setCashMode(true);
+    setNewCash('');
+    setNewTitle(pickI18nColumn(
+      { title: MONEY_CONVERSION_REWARD.title.en, title_he: MONEY_CONVERSION_REWARD.title.he },
+      i18n.language,
+    ));
+    setNewEmoji(MONEY_CONVERSION_REWARD.emoji);
+    setNewSize(MONEY_CONVERSION_REWARD.size);
+    setNewCredits(String(suggestedCashCredits));
     setShowModal(true);
   };
 
@@ -116,6 +183,8 @@ export default function ParentRewardsScreen() {
   const handleApproveSuggestion = (s: ChildSuggestion) => {
     setApprovingId(s.id);
     setEditingId(null);
+    setCashMode(false);
+    setNewCash('');
     setNewTitle(s.title);
     setNewEmoji(s.emoji?.trim() || '🎁');
     setNewSize('small');
@@ -127,6 +196,8 @@ export default function ParentRewardsScreen() {
   const handleEditReward = (r: StoreReward) => {
     setApprovingId(null);
     setEditingId(r.id);
+    setCashMode(false);
+    setNewCash('');
     setNewTitle(pickI18nColumn(r, i18n.language));
     setNewEmoji(r.emoji || '🎁');
     setNewSize((r.size as RewardSize) ?? 'small');
@@ -142,6 +213,8 @@ export default function ParentRewardsScreen() {
     setShowModal(false);
     setApprovingId(null);
     setEditingId(null);
+    setCashMode(false);
+    setNewCash('');
   };
 
   const handleDeleteReward = () => {
@@ -185,6 +258,16 @@ export default function ParentRewardsScreen() {
     }
     const emoji = newEmoji.trim() || '🎁';
 
+    let cashValue: number | null = null;
+    if (cashMode) {
+      const cash = parseFloat(newCash);
+      if (isNaN(cash) || cash <= 0) {
+        Alert.alert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
+        return;
+      }
+      cashValue = cash;
+    }
+
     setSaving(true);
 
     // Edit mode — update the existing reward. Write both title columns so the
@@ -212,12 +295,17 @@ export default function ParentRewardsScreen() {
     const { data, error } = await supabase.from('store_rewards').insert({
       family_id:         familyId,
       child_id:          selectedChildId,
-      title,
+      // Cash reward is a fixed product concept → store bilingually so the child
+      // sees it in their own language. Custom rewards keep the single-column title.
+      ...(cashMode
+        ? bilingualForDb(MONEY_CONVERSION_REWARD.title)
+        : { title }),
       emoji,
       credits_needed:    credits,
       size:              newSize,
       is_redeemed:       false,
       proposed_by_child: !!approvingId,
+      cash_value:        cashValue,
     } as never).select('id').single();
 
     if (!error && approvingId && data) {
@@ -307,6 +395,25 @@ export default function ParentRewardsScreen() {
             onLetsTalk={handleLetsTalk}
           />
 
+          {/* Cash-conversion suggestion — money-motivated child, none set up yet */}
+          {isMoneyMotivated && !rewards.some(r => r.cash_value != null) && (
+            <TouchableOpacity
+              style={[styles.cashSuggestCard, { borderColor: T.accent }]}
+              onPress={openCashModal}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.cashSuggestTitle, { color: T.text }]}>
+                {t('parentRewards.cashSuggest.title')}
+              </Text>
+              <Text style={[styles.cashSuggestBody, { color: T.textMuted }]}>
+                {t('parentRewards.cashSuggest.body', { name: selectedChild?.displayName ?? '' })}
+              </Text>
+              <View style={[styles.cashSuggestCta, { backgroundColor: T.accent }]}>
+                <Text style={styles.cashSuggestCtaText}>{t('parentRewards.cashSuggest.cta')}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
           {/* Rewards list */}
           <Text style={[styles.sectionLabel, { color: T.textMuted }]}>{t('parentRewards.catalog')}</Text>
 
@@ -328,7 +435,9 @@ export default function ParentRewardsScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: T.text }]}>{pickI18nColumn(reward, i18n.language)}</Text>
                   <Text style={[styles.rewardDesc, { color: T.textMuted }]}>
-                    {t('parentRewards.rewardGoal', { size: t(`parentRewards.size.${reward.size as RewardSize}`) })}
+                    {reward.cash_value != null
+                      ? t('parentRewards.cashBadge', { symbol: currencySymbol, amount: reward.cash_value })
+                      : t('parentRewards.rewardGoal', { size: t(`parentRewards.size.${reward.size as RewardSize}`) })}
                   </Text>
                 </View>
                 <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
@@ -356,7 +465,11 @@ export default function ParentRewardsScreen() {
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeRewardModal} />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
             <Text style={[styles.sheetTitle, { color: T.text }]}>
-              {editingId ? t('parentRewards.editModal.title') : t('parentRewards.modal.title')}
+              {editingId
+                ? t('parentRewards.editModal.title')
+                : cashMode
+                  ? t('parentRewards.cashSuggest.title')
+                  : t('parentRewards.modal.title')}
             </Text>
             <Text style={[styles.sheetSub, { color: T.textMuted }]}>
               {t('parentRewards.modal.for', { name: selectedChild?.displayName ?? '' })}
@@ -373,39 +486,67 @@ export default function ParentRewardsScreen() {
               placeholderTextColor={T.textMuted}
             />
 
-            {/* Title */}
+            {/* Title — fixed concept in cash mode (read-only) */}
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.titleLabel')}</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+              style={[
+                styles.input,
+                { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder },
+                cashMode && { opacity: 0.6 },
+              ]}
               value={newTitle}
               onChangeText={setNewTitle}
+              editable={!cashMode}
               placeholder={t('parentRewards.modal.titlePlaceholder')}
               placeholderTextColor={T.textMuted}
               maxLength={60}
             />
 
-            {/* Size */}
-            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.sizeLabel')}</Text>
-            <View style={styles.sizeRow}>
-              {SIZE_OPTIONS.map(opt => (
-                <TouchableOpacity
-                  key={opt.value}
-                  style={[
-                    styles.sizeBtn,
-                    { borderColor: T.cardBorder },
-                    newSize === opt.value && { backgroundColor: T.accent, borderColor: T.accent },
-                  ]}
-                  onPress={() => handleSizeSelect(opt.value)}
-                >
-                  <Text style={[styles.sizeBtnLabel, newSize === opt.value && { color: '#fff' }]}>
-                    {t(opt.labelKey)}
-                  </Text>
-                  <Text style={[styles.sizeBtnHint, { color: newSize === opt.value ? 'rgba(255,255,255,0.7)' : T.textMuted }]}>
-                    {t(opt.hintKey)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            {/* Size — hidden in cash mode (cost is anchored, not size-driven) */}
+            {!cashMode && (
+              <>
+                <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.sizeLabel')}</Text>
+                <View style={styles.sizeRow}>
+                  {SIZE_OPTIONS.map(opt => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[
+                        styles.sizeBtn,
+                        { borderColor: T.cardBorder },
+                        newSize === opt.value && { backgroundColor: T.accent, borderColor: T.accent },
+                      ]}
+                      onPress={() => handleSizeSelect(opt.value)}
+                    >
+                      <Text style={[styles.sizeBtnLabel, newSize === opt.value && { color: '#fff' }]}>
+                        {t(opt.labelKey)}
+                      </Text>
+                      <Text style={[styles.sizeBtnHint, { color: newSize === opt.value ? 'rgba(255,255,255,0.7)' : T.textMuted }]}>
+                        {t(opt.hintKey)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
+            {/* Cash amount — cash mode only */}
+            {cashMode && (
+              <>
+                <Text style={[styles.inputLabel, { color: T.textMuted }]}>
+                  {t('parentRewards.modal.cashLabel', { symbol: currencySymbol })}
+                </Text>
+                <TextInput
+                  style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
+                  value={newCash}
+                  onChangeText={v => setNewCash(v.replace(/[^0-9.]/g, ''))}
+                  keyboardType="decimal-pad"
+                  maxLength={7}
+                  placeholder="50"
+                  placeholderTextColor={T.textMuted}
+                  selectTextOnFocus
+                />
+              </>
+            )}
 
             {/* Credits */}
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentRewards.modal.buffsNeeded')}</Text>
@@ -418,11 +559,22 @@ export default function ParentRewardsScreen() {
               selectTextOnFocus
             />
 
+            {/* Live deal preview in cash mode */}
+            {cashMode && newCash.trim() !== '' && (
+              <Text style={[styles.cashHint, { color: T.accent }]}>
+                {t('parentRewards.modal.cashHint', {
+                  credits: (parseInt(newCredits, 10) || 0).toLocaleString(),
+                  symbol: currencySymbol,
+                  amount: newCash,
+                })}
+              </Text>
+            )}
+
             {/* Confirm */}
             <TouchableOpacity
               style={[styles.confirmBtn, { backgroundColor: T.accent }, saving && { opacity: 0.6 }]}
               onPress={handleSaveReward}
-              disabled={saving || !newTitle.trim()}
+              disabled={saving || !newTitle.trim() || (cashMode && newCash.trim() === '')}
             >
               {saving
                 ? <ActivityIndicator color="#fff" />
@@ -465,6 +617,12 @@ const styles = StyleSheet.create({
   balanceName:   { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 2 },
   balanceAmount: { color: '#fff', fontSize: 20, fontWeight: '800' },
   sectionLabel:  { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
+  cashSuggestCard:    { borderRadius: 16, borderWidth: 1.5, borderStyle: 'dashed', padding: 16, marginBottom: 20 },
+  cashSuggestTitle:   { fontSize: 15, fontWeight: '800', marginBottom: 6 },
+  cashSuggestBody:    { fontSize: 13, lineHeight: 19, marginBottom: 12 },
+  cashSuggestCta:     { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  cashSuggestCtaText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  cashHint:           { fontSize: 13, fontWeight: '700', marginTop: -6, marginBottom: 12 },
   emptyCard:     { borderRadius: 14, padding: 20, borderWidth: 1, alignItems: 'center' },
   emptyText:     { fontSize: 14, textAlign: 'center' },
   rewardCard:    { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, gap: 12 },

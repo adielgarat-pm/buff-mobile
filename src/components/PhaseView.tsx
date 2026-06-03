@@ -13,6 +13,8 @@ interface Props {
   schoolEndTime?: string | null;
   /** False on weekends or when school quest is disabled. */
   isSchoolDay?:   boolean;
+  /** True on weekend days (Sat always; Fri unless friday_enabled). Hides hideOnWeekend tasks. */
+  isWeekend?:     boolean;
   onCompleteTask:   (id: string) => void;
   onUncompleteTask: (id: string) => void;
   /** Passed through to PhaseTaskCard — disables haptics when false. */
@@ -24,6 +26,7 @@ export function PhaseView({
   tasks,
   schoolEndTime   = null,
   isSchoolDay     = true,
+  isWeekend       = false,
   onCompleteTask,
   onUncompleteTask,
   hapticsEnabled  = true,
@@ -38,9 +41,10 @@ export function PhaseView({
     return tasks.filter(task => {
       const scheduleDays = task.scheduleDays ?? [0, 1, 2, 3, 4, 5];
       if (!scheduleDays.includes(today)) return false;
+      if (isWeekend && task.hideOnWeekend) return false;
       return getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay) === phase;
     });
-  }, [tasks, phase, schoolEndTime, isSchoolDay]);
+  }, [tasks, phase, schoolEndTime, isSchoolDay, isWeekend]);
 
   const completedTasks  = phaseTasks.filter(t => t.completed);
   const earnedCredits   = completedTasks.reduce((sum, t) => sum + t.credits, 0);

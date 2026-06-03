@@ -5,9 +5,9 @@
  *
  * Real data from Supabase via useChildData.
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
@@ -56,9 +56,14 @@ function PastelChildDashboard() {
   const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, dailyGoal, loading } = useChildData(childId);
+  const { tasks, totalBalance, dailyGoal, loading, refetch } = useChildData(childId);
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
+
+  // Refetch on focus — completing a task on the Tasks tab writes to a separate
+  // useChildData instance, so the dashboard's stat tiles are stale until we
+  // re-pull when the child navigates back here.
+  useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
 
   // Daily Vibe Check — once per day, gated by Pause (Pause wins per SPEC
   // Scenario C). View-as-child IS the kid's actual interface on shared

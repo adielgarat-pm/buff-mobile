@@ -3,8 +3,8 @@
 > ספריית הקופי המעשי: pitches, hooks, forum replies, Play Store copy, Reels scripts, AI video prompts.
 > כל יוצר נכס שיווקי (אנושי או AI) שואב מפה.
 
-**עודכן:** 11 במאי 2026
-**מקור:** BUFF_BRAND.md (זהות + טאגליינים), BUFF_PERSONAS.md (קהל), BUFF_COMPETITORS.md (positioning), BUFF_VALUES.md (Values Check)
+**עודכן:** 2026-05-30
+**מקור:** BUFF_BRAND.md (זהות + טאגליינים), BUFF_PERSONAS.md (קהל), BUFF_COMPETITORS.md (positioning + creative execution research §3.9 — added 2026-05-30), BUFF_VALUES.md (Values Check)
 **שפה:** קופי באנגלית ראשונה (US/UK/AU priority). עברית כתרגום שני. הסברים בעברית.
 
 ---
@@ -266,6 +266,8 @@ Until they don't need us.
 
 חמש תבניות שעובדות מוכחות לאפליקציות התנהגותיות. כל תבנית כוללת: hook (3 sec), setup (10 sec), payoff (5 sec), CTA (2 sec) = ~20 sec total.
 
+> **קרא לפני שכותבים Reel חדש:** [BUFF_COMPETITORS.md §3.9](BUFF_COMPETITORS.md) — Category Creative Execution Patterns (live 2026-05-30 research). מסכם דפוסים רוויים מול ריקים, UGC formula, tonal benchmark מ-Calm/Headspace/BetterHelp, ו-format recs ספציפיים (length, hook style, person-on-camera, CTA pattern).
+
 ### Format 1: "POV: Morning Chaos → BUFF Reveal"
 
 **Persona:** P1 Exhausted Morning
@@ -410,8 +412,18 @@ NEVER include in BUFF visuals:
 
 **Tone:** Visual, emotional, short.
 **Format:** Reels (Format 1, 4) outperform static posts.
-**Founder voice:** Adi-as-founder shorts work well. Itay-as-co-designer would work *spectacularly* if he's willing.
+**Founder voice:** Adi-as-founder shorts work well **for warm/retargeted audiences**. **For cold acquisition — use UGC parent voice or no-face/back-of-head** (BetterHelp + Joon-clinician data via [COMPETITORS §3.9](BUFF_COMPETITORS.md) research). Itay-as-co-designer would work *spectacularly* if he's willing.
 **Frequency:** 3-4 Reels/week to build feed signal.
+
+**Tactical specs (from 2026-05-30 competitive research — see [COMPETITORS §3.9](BUFF_COMPETITORS.md)):**
+- **Paid Reel length:** 22-25s (UGC ad-spy data: 15-25s is highest-survival window; need 22+ for Acknowledge→Reframe→Activate arc).
+- **Organic Reel length:** 30-60s OK (room for reframe arc).
+- **Hook (0-2s):** on-screen text reframe, **no logo, no UI, no question to viewer**. Statement. Examples from category: *"Homework can look like defiance from the outside"* (Savvy Kid). For BUFF: *"Your ADHD kid isn't the problem."*
+- **Child on screen:** **never face**. Back-of-head, hands, or BUDDY avatar overlay.
+- **CTA:** *"Comment BUDDY for the link"* (DM funnel, beats link-in-bio per Goally pattern).
+- **Must read muted:** 50% of Reels scrolled muted — every beat needs on-screen text.
+- **Visual differentiation:** BUFF's dark canvas + neon green = open lane vs. Joon's primary-color cartoon and Goally's tablet-hardware shots.
+- **Stat to own:** Dr. William Dodson's *"20,000 corrections by age 10, 15:1 negative-to-positive ratio"* — verified empty lane in paid creative.
 
 ### 8.4 TikTok (post-MVP launch)
 

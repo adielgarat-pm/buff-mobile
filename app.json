@@ -3,7 +3,7 @@
     "name": "BUFF",
     "slug": "buff-mobile",
     "scheme": "buff",
-    "version": "1.0.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/BUFF_LOGO.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
       "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/BUFF_LOGO.png",
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
         "backgroundColor": "#1a1636"
       },
       "edgeToEdgeEnabled": true,

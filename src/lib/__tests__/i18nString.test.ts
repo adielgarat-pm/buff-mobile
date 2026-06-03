@@ -5,7 +5,7 @@
  * of `src/<area>/__tests__/<file>.test.ts`. The source for these helpers
  * lives in `src/lib/i18nString.ts`.
  */
-import { pickLang, pickI18nColumn, bilingualForDb } from '../i18nString';
+import { pickLang, pickI18nColumn, bilingualForDb, detectLangFromName, resolveChildLang } from '../i18nString';
 
 describe('pickLang', () => {
   const literal = { en: 'Brush teeth', he: 'לצחצח שיניים' };
@@ -94,5 +94,65 @@ describe('bilingualForDb', () => {
     // Empty he is unusual but we don't fabricate a value — the row will
     // just have an empty title_he and the read-side fallback handles it.
     expect(bilingualForDb({ en: 'a', he: '' })).toEqual({ title: 'a', title_he: '' });
+  });
+});
+
+describe('detectLangFromName', () => {
+  it('returns "he" for a Hebrew name', () => {
+    expect(detectLangFromName('איתי')).toBe('he');
+  });
+
+  it('returns "en" for a Latin name', () => {
+    expect(detectLangFromName('Emi')).toBe('en');
+  });
+
+  it('Hebrew wins for a mixed-script name (Israel-first)', () => {
+    expect(detectLangFromName('Dani דני')).toBe('he');
+  });
+
+  it('defaults to "he" for an empty string', () => {
+    expect(detectLangFromName('')).toBe('he');
+  });
+
+  it('defaults to "he" for null / undefined', () => {
+    expect(detectLangFromName(null)).toBe('he');
+    expect(detectLangFromName(undefined)).toBe('he');
+  });
+
+  it('defaults to "he" for a name with no letters (digits / emoji only)', () => {
+    expect(detectLangFromName('123')).toBe('he');
+    expect(detectLangFromName('🙂')).toBe('he');
+  });
+
+  it('handles a Latin name with surrounding whitespace', () => {
+    expect(detectLangFromName('  Noa  ')).toBe('en');
+  });
+});
+
+describe('resolveChildLang', () => {
+  it('prefers a stored pro_settings.language over name script', () => {
+    // Hebrew name but parent explicitly set English → English wins.
+    expect(resolveChildLang({ pro_settings: { language: 'en' }, display_name: 'דני' })).toBe('en');
+    expect(resolveChildLang({ pro_settings: { language: 'he' }, display_name: 'Dani' })).toBe('he');
+  });
+
+  it('falls back to name script when no stored language', () => {
+    expect(resolveChildLang({ pro_settings: {}, display_name: 'איתי' })).toBe('he');
+    expect(resolveChildLang({ pro_settings: null, display_name: 'Emi' })).toBe('en');
+    expect(resolveChildLang({ display_name: 'Leia' })).toBe('en');
+  });
+
+  it('ignores an invalid stored language value and uses name script', () => {
+    expect(resolveChildLang({ pro_settings: { language: 'fr' }, display_name: 'Emi' })).toBe('en');
+    expect(resolveChildLang({ pro_settings: { language: '' }, display_name: 'איתי' })).toBe('he');
+  });
+
+  it('falls back to deviceLang only when there is no stored language and no name', () => {
+    expect(resolveChildLang({ pro_settings: {}, display_name: '' }, 'en')).toBe('en');
+    expect(resolveChildLang({ pro_settings: null, display_name: null }, 'he')).toBe('he');
+  });
+
+  it('defaults the deviceLang fallback to "he" (Israel-first) when omitted', () => {
+    expect(resolveChildLang({ display_name: '' })).toBe('he');
   });
 });

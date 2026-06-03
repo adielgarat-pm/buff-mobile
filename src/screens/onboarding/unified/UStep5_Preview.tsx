@@ -23,15 +23,13 @@ import { ONBOARDING_CONFIG } from '../../../config/onboardingConfig';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 import {
-  STARTER_TASKS_BY_CHALLENGE,
   REWARD_PICKS,
-  FALLBACK_TASKS,
   FALLBACK_REWARDS,
   calcRewardCreditsDefault,
 } from './onboardingData';
 import type { AgeGroup } from './onboardingData';
-import type { TaskCategory } from '../../../types/task';
-import { pickLang, bilingualForDb } from '../../../lib/i18nString';
+import { generateStarterTasks } from './starterTasks';
+import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
 type Route = RouteProp<RootStackParamList, 'UStep5_Preview'>;
@@ -41,29 +39,6 @@ const TAG  = '[UStep5_Preview]';
 
 const SIZE_LABEL: Record<string, string> = { small: '3d', medium: '7d', large: '14d' };
 
-/** Times spread across Morning / Afternoon / Evening phases for the 3 main tasks. */
-const TASK_TIMES = ['08:00', '16:00', '20:00'] as const;
-
-/** Times for up to 2 additional-challenge bonus tasks (slot into unused gaps). */
-const ADDITIONAL_TASK_TIMES = ['12:00', '18:00'] as const;
-
-/** Map the onboarding challenge ID to the correct TaskCategory. */
-function getCategoryForChallenge(challenge: string): TaskCategory {
-  const map: Record<string, TaskCategory> = {
-    morning_routine:     'self-care',
-    homework_focus:      'learning',
-    organisation_memory: 'organization',
-    screen_time:         'responsibility',
-    time_management:     'responsibility',
-    confidence:          'self-care',
-    social_friendships:  'responsibility',
-    independence:        'responsibility',
-    focus_planning:      'learning',
-    social_media:        'responsibility',
-  };
-  return map[challenge] ?? 'responsibility';
-}
-
 export default function UStep5_Preview() {
   const navigation = useNavigation<Nav>();
   const { params }  = useRoute<Route>();
@@ -71,14 +46,30 @@ export default function UStep5_Preview() {
   const { familyId, user } = useAuth();
 
   const lang  = i18n.language.startsWith('he') ? 'he' : 'en';
+  // Per-child language. At onboarding the profile doesn't exist yet, so this
+  // is the name-script default (Hebrew name → Hebrew, Latin → English, falling
+  // back to the device language for a nameless child). It is BOTH persisted to
+  // pro_settings.language below AND used to bake the task titles, so the stored
+  // field is the single source of truth that EditChild and the child's own
+  // device later read back via resolveChildLang.
+  const childLang = resolveChildLang({ display_name: params.childName }, lang);
   const isRTL = I18nManager.isRTL;
 
   const [saveErr,        setSaveErr]        = useState<string | null>(null);
   const [childProfileId, setChildProfileId] = useState<string | null>(null);
   const hasSaved = useRef(false);
 
-  const tasks = (STARTER_TASKS_BY_CHALLENGE[params.mainChallenge] ?? FALLBACK_TASKS)
-    .slice(0, ONBOARDING_CONFIG.DEFAULT_TASKS_COUNT);
+  // Starter-task engine: age + clinical-presentation-aware selection across the
+  // child's main + additional challenges. Replaces the old positional logic
+  // (STARTER_TASKS_BY_CHALLENGE.slice + TASK_TIMES[index]). Each task carries its
+  // own time (from timeOfDay → HH:MM) and category, fixing the bug where list
+  // position decided the clock time. Deterministic — see starterTasks/.
+  const tasks = generateStarterTasks({
+    ageGroup:             params.ageGroup,
+    gender:               params.gender,
+    mainChallenge:        params.mainChallenge,
+    additionalChallenges: params.additionalChallenges,
+  });
 
   // motivators is an array (1 or 2). Pick rewards from each motivator's list,
   // one per motivator, so the selection feels personal.
@@ -156,6 +147,7 @@ export default function UStep5_Preview() {
             age_group:  params.ageGroup,
             gender:     params.gender    ?? null,
             birth_date: params.birthDate ?? null,
+            language:   childLang,        // per-child language (parent-editable later)
             onboarding_data: {
               mainChallenge:        params.mainChallenge,
               additionalChallenges: params.additionalChallenges,
@@ -184,52 +176,45 @@ export default function UStep5_Preview() {
       // ── 2. INSERT tasks ──────────────────────────────────────────────────
       console.log(`${TAG} [2/3] Inserting ${tasks.length} tasks for childProfileId=${id}...`);
 
-      // Main challenge tasks (up to 3, spread across Morning / Afternoon / Evening).
-      // `tasks` table has a single-column `title` — we pick locale-appropriate
-      // text via `pickLang`. Hebrew interface → Hebrew titles in DB. The active
-      // locale is read fresh from i18n so a late language switch is respected.
-      const activeLang = i18n.language;
-      const mainTaskRows = tasks.map((t, index) => ({
+      // The engine already produced the final, capped (≤5) list spanning the
+      // main + additional challenges, each carrying its own clock time (from
+      // timeOfDay) and category. We only translate the title into the CHILD's
+      // language (childLang, from their name script) — not the app locale — so
+      // each child gets tasks in their own language.
+      const taskRows = tasks.map((t) => ({
         family_id:     familyId,
         assigned_to:   id,
-        title:         pickLang(t.title, activeLang),
-        category:      getCategoryForChallenge(params.mainChallenge),
-        time:          TASK_TIMES[index] ?? '08:00',
+        title:         pickLang(t.title, childLang),
+        category:      t.category,
+        time:          t.time,
         credits:       t.buff_value,
         icon:          '⭐',
         schedule_days: [0, 1, 2, 3, 4, 5],
       }));
-
-      // Additional-challenge bonus tasks — first task from each, capped at 2
-      const additionalTaskRows = (params.additionalChallenges ?? [])
-        .slice(0, 2)
-        .map((challenge, index) => {
-          const challengeTasks = STARTER_TASKS_BY_CHALLENGE[challenge] ?? FALLBACK_TASKS;
-          const t = challengeTasks[0];
-          return {
-            family_id:     familyId,
-            assigned_to:   id,
-            title:         pickLang(t.title, activeLang),
-            category:      getCategoryForChallenge(challenge),
-            time:          ADDITIONAL_TASK_TIMES[index] ?? '12:00',
-            credits:       t.buff_value,
-            icon:          '⭐',
-            schedule_days: [0, 1, 2, 3, 4, 5],
-          };
-        });
-
-      // Cap total at 5 tasks
-      const taskRows = [...mainTaskRows, ...additionalTaskRows].slice(0, 5);
       console.log(`${TAG} [2/3] Task rows (${taskRows.length}):`, JSON.stringify(taskRows.map(r => `${r.time} ${r.title}`)));
 
-      const { error: tasksErr } = await supabase
+      // Idempotency: skip if the child already has tasks. saveAll re-runs on
+      // remount / error-retry / null-childProfileId goNext, and the empty-state
+      // CTA attaches to an existing child — without this a second run duplicated
+      // the whole task set (IN-2026-05-29-08). Gated per-table so a partial prior
+      // failure still backfills the missing side.
+      const { count: existingTaskCount } = await supabase
         .from('tasks')
-        .insert(taskRows as never);
+        .select('*', { count: 'exact', head: true })
+        .eq('assigned_to', id);
 
-      if (tasksErr) {
-        console.warn(`${TAG} [2/3] Tasks insert error (non-fatal):`, tasksErr.message);
+      if (existingTaskCount && existingTaskCount > 0) {
+        console.log(`${TAG} [2/3] Child already has ${existingTaskCount} task(s) — skipping insert (idempotent)`);
       } else {
-        console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+        const { error: tasksErr } = await supabase
+          .from('tasks')
+          .insert(taskRows as never);
+
+        if (tasksErr) {
+          console.warn(`${TAG} [2/3] Tasks insert error (non-fatal):`, tasksErr.message);
+        } else {
+          console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+        }
       }
 
       // ── 3. INSERT store_rewards ──────────────────────────────────────────
@@ -249,14 +234,25 @@ export default function UStep5_Preview() {
       }));
       console.log(`${TAG} [3/3] Reward rows:`, JSON.stringify(rewardRows.map(r => r.title)));
 
-      const { error: rewardsErr } = await supabase
+      // Idempotency (mirror of the task guard above): skip if the child already
+      // has rewards. See IN-2026-05-29-08.
+      const { count: existingRewardCount } = await supabase
         .from('store_rewards')
-        .insert(rewardRows as never);
+        .select('*', { count: 'exact', head: true })
+        .eq('child_id', id);
 
-      if (rewardsErr) {
-        console.warn(`${TAG} [3/3] store_rewards insert error (non-fatal — table may not exist yet):`, rewardsErr.message);
+      if (existingRewardCount && existingRewardCount > 0) {
+        console.log(`${TAG} [3/3] Child already has ${existingRewardCount} reward(s) — skipping insert (idempotent)`);
       } else {
-        console.log(`${TAG} [3/3] Rewards insert SUCCESS`);
+        const { error: rewardsErr } = await supabase
+          .from('store_rewards')
+          .insert(rewardRows as never);
+
+        if (rewardsErr) {
+          console.warn(`${TAG} [3/3] store_rewards insert error (non-fatal — table may not exist yet):`, rewardsErr.message);
+        } else {
+          console.log(`${TAG} [3/3] Rewards insert SUCCESS`);
+        }
       }
 
       console.log(`${TAG} saveAll complete ✓`);
@@ -282,8 +278,8 @@ export default function UStep5_Preview() {
     // child already exists) and UStep8_Complete (which would overwrite the
     // already-onboarded parent's pro_settings).
     if (params.existingChildId) {
-      console.log(`${TAG} Existing child — returning to ParentApp`);
-      navigation.navigate('ParentApp');
+      console.log(`${TAG} Existing child — returning to Parent Tasks tab`);
+      navigation.navigate('ParentApp', { screen: 'ParentTasks' });
       return;
     }
     console.log(`${TAG} Navigating to UStep7_Phone with childProfileId=${childProfileId}`);
@@ -351,7 +347,7 @@ export default function UStep5_Preview() {
             <View style={[styles.cardRow, isRTL && styles.rowReverse]}>
               <Text style={styles.buffIcon}>⚡</Text>
               <Text style={[styles.cardTitle, isRTL && styles.textRight]}>
-                {task.title[lang]}
+                {pickLang(task.title, childLang)}
               </Text>
               <Text style={styles.buffBadge}>
                 {t('onboarding.step5.buffs', { count: task.buff_value })}
@@ -382,7 +378,7 @@ export default function UStep5_Preview() {
                 <Text style={styles.rewardEmoji}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.cardTitle, isRTL && styles.textRight]}>
-                    {reward.title[lang]}
+                    {pickLang(reward.title, lang)}
                   </Text>
                   <View style={[styles.rewardMeta, isRTL && styles.rowReverse]}>
                     <View style={styles.sizeBadge}>

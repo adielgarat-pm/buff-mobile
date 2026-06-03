@@ -17,8 +17,9 @@
  *     to "Your Boosters" (per design notes / D-2026-05-02-13 revised)
  *   - "Suggest a reward to your parent" CTA at bottom (visual stub for now)
  *
- * Subscription gating: identical to PastelChildRewards — non-subscribers
- * see PaywallContent. Keeps revenue funnel consistent across themes.
+ * Not gated behind subscription: the rewards shop is core to Pillar 1
+ * (Intrinsic Motivation) and is not a paid feature per BUFF_PRD.md §5.1.
+ * Every child sees and redeems parent-set rewards, subscriber or not.
  *
  * Data:
  *   - Rewards: store_rewards table, filtered by child_id + is_redeemed = false
@@ -37,13 +38,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
-import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { supabase } from '../../integrations/supabase/client';
-import { PaywallContent } from '../PaywallScreen';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { pickI18nColumn } from '../../lib/i18nString';
+import { getCurrencySymbol } from '../../lib/currency';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 
@@ -84,15 +84,14 @@ interface StoreReward {
   size:           string | null;
   credits_needed: number;
   is_redeemed:    boolean;
+  cash_value?:    number | null;
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 export default function GamerRewardsScreen() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, viewMode } = useMode();
-  const { isSubscribed } = useSubscription();
-  const isChildViewer = viewMode === 'child';
+  const { previewChildId } = useMode();
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { totalBalance } = useChildData(childId);
@@ -117,7 +116,7 @@ export default function GamerRewardsScreen() {
     setLoading(true);
     supabase
       .from('store_rewards')
-      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed')
+      .select('id, title, title_he, emoji, size, credits_needed, is_redeemed, cash_value')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
@@ -156,26 +155,6 @@ export default function GamerRewardsScreen() {
       );
     }
   };
-
-  // ── Subscription gate ────────────────────────────────────────────────────
-  // Child viewers (real child or parent-in-preview-as-child) see a calm
-  // gamer-styled "ask your parent" empty state instead of the payment CTA.
-  if (!isSubscribed) {
-    if (isChildViewer) {
-      return (
-        <View style={[styles.canvas, styles.lockedShop]}>
-          <Text style={styles.lockedShopEmoji}>🎁</Text>
-          <Text style={styles.lockedShopTitle}>
-            {t('childLockedState.shopTitleGamer')}
-          </Text>
-          <Text style={styles.lockedShopSub}>
-            {t('childLockedState.shopSubGamer')}
-          </Text>
-        </View>
-      );
-    }
-    return <PaywallContent childName={profile?.display_name ?? ''} />;
-  }
 
   // ── Pause active: short-circuit ──────────────────────────────────────────
   if (isPauseActive) {
@@ -278,6 +257,11 @@ export default function GamerRewardsScreen() {
                         ]}>
                           💎 {reward.credits_needed}
                         </Text>
+                        {reward.cash_value != null && (
+                          <Text style={[styles.cardCost, { color: COLORS.textMuted }]}>
+                            {t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })}
+                          </Text>
+                        )}
 
                         {isUnlocked ? (
                           <TouchableOpacity
@@ -546,29 +530,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
 
-  lockedShop: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 32,
-  },
-  lockedShopEmoji: {
-    fontSize: 64,
-    marginBottom: 20,
-  },
-  lockedShopTitle: {
-    color: COLORS.lime,
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  lockedShopSub: {
-    color: COLORS.textMuted,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
 });

@@ -35,13 +35,15 @@ jest.mock('../../../contexts/AuthContext', () => ({
   useAuth: () => ({ profile: { id: 'child-1', display_name: 'TestKid' } }),
 }));
 
+// Mutable so a test can flip viewMode without re-mocking the module.
+const mockMode = {
+  isChildPreview: false,
+  exitChildPreview: jest.fn(),
+  viewMode: 'child' as 'child' | 'parent',
+  previewChildId: null as string | null,
+};
 jest.mock('../../../contexts/ModeContext', () => ({
-  useMode: () => ({
-    isChildPreview: false,
-    exitChildPreview: jest.fn(),
-    viewMode: 'child',
-    previewChildId: null,
-  }),
+  useMode: () => mockMode,
 }));
 
 jest.mock('../../../contexts/ThemeContext', () => ({
@@ -77,9 +79,8 @@ jest.mock('../../../hooks/useBuddyRelationship', () => ({
   useBuddyRelationship: jest.fn(),
 }));
 
-jest.mock('../../../mock/data', () => ({
-  MOCK_MY_CHILD: { name: 'TestKid', petName: 'STORMY', petStage: 'hatchling', buffs: 100 },
-  PET_STAGES: { hatchling: { label: 'Hatchling' } },
+jest.mock('../../../hooks/useChildProgress', () => ({
+  useChildData: () => ({ totalBalance: 4242 }),
 }));
 
 import { useBuddyRelationship } from '../../../hooks/useBuddyRelationship';
@@ -121,7 +122,10 @@ function mockBuddyHook(overrides: Partial<BuddyRelationship> | null = {}) {
 
 // ── Tests ──────────────────────────────────────────────────────────────────
 describe('ChildSettingsScreen — Buddy section', () => {
-  beforeEach(() => mockedUseBuddy.mockReset());
+  beforeEach(() => {
+    mockedUseBuddy.mockReset();
+    mockMode.viewMode = 'child';
+  });
 
   // Guards against regression: if someone removes useFocusEffect from the
   // screen, this test fails. The screen is one of 4 instances of
@@ -202,5 +206,28 @@ describe('ChildSettingsScreen — Buddy section', () => {
     fireEvent.press(getByTestId('rename-buddy-entry'));
 
     expect(getByText('buddy.nameModal.title')).toBeTruthy();
+  });
+
+  // Regression guard for BUG-2026-05-20-02: the profile card must show the
+  // child's real balance (useChildData.totalBalance), not the old MOCK_MY_CHILD
+  // hardcoded 1,240 Buffs.
+  test('profile card shows real balance from useChildData, not mock 1,240', () => {
+    mockBuddyHook({});
+
+    const { getByText, queryByText } = render(<ChildSettingsScreen />);
+
+    expect(getByText(/4,242/)).toBeTruthy();
+    expect(queryByText(/1,240/)).toBeNull();
+  });
+
+  // OQ-2(a): language is parent-owned. The picker must not appear to a child
+  // viewer (real child or a parent in View-as-Child), so the parent stays in
+  // control and a preview can't flip the device language.
+  test('hides the language row for a child viewer (viewMode=child)', () => {
+    mockBuddyHook({});
+    mockMode.viewMode = 'child';
+
+    const { queryByTestId } = render(<ChildSettingsScreen />);
+    expect(queryByTestId('language-entry')).toBeNull();
   });
 });

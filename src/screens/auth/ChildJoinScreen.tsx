@@ -9,17 +9,20 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'ChildJoin'>;
 type Route = RouteProp<RootStackParamList, 'ChildJoin'>;
 
-const BG         = '#0f0d1a';
-const CARD_BG    = '#1a1728';
-const BORDER     = '#2e2a45';
-const ACCENT     = '#6c5ce7';
-const TEXT_LIGHT = '#f0eaff';
-const TEXT_MUTED = '#8b82a7';
+// Locked decision (color-consolidation): ChildJoin goes LIGHT for everyone — at
+// join time the kid's age is unknown, so we default to the Pastel home base.
+const BG         = PASTEL_MODE.canvas;     // #F4F0FA
+const CARD_BG    = PASTEL_MODE.card;       // #FFFFFF
+const BORDER     = PASTEL_MODE.cardBorder; // #E2DAF2
+const ACCENT     = PASTEL_MODE.accent;     // #7C3AED
+const TEXT_LIGHT = PASTEL_MODE.text;       // #1a1636 (body text on light)
+const TEXT_MUTED = PASTEL_MODE.textMuted;  // #6B5B8A
 
 export default function ChildJoinScreen() {
   const { t }              = useTranslation();
@@ -46,7 +49,17 @@ export default function ChildJoinScreen() {
       return;
     }
 
-    const username     = name.trim().toLowerCase().replace(/\s+/g, '_');
+    // Derive an ASCII-safe, deterministic login username. Names with non-ASCII
+    // characters (e.g. Hebrew "ליה") would otherwise produce an invalid email
+    // local-part and Supabase rejects them ("invalid format"). ASCII-only names
+    // are byte-identical to the legacy derivation, so existing logins are stable;
+    // names that strip to <2 chars fall back to a hex encoding of the raw string,
+    // which stays unique per distinct name so cross-device sign-in still works.
+    const rawUsername  = name.trim().toLowerCase().replace(/\s+/g, '_');
+    const asciiUsername = rawUsername.replace(/[^a-z0-9_]/g, '');
+    const username     = asciiUsername.length >= 2
+      ? asciiUsername
+      : 'c' + Array.from(rawUsername).map(ch => ch.charCodeAt(0).toString(16)).join('');
     const email        = `${username}@buff.app`;
     const code         = familyCode.trim().toUpperCase();
     const autoPassword = `${username}_${code}_buff2026`;
@@ -110,7 +123,7 @@ export default function ChildJoinScreen() {
           {/* Logo */}
           <View style={styles.logoWrap as object}>
             <Image
-              source={require('../../../assets/BUFF_LOGO.png')}
+              source={require('../../../assets/BUFF_LOGO_LAVENDER.png')}
               style={styles.logoImage}
               resizeMode="contain"
             />
@@ -149,7 +162,7 @@ export default function ChildJoinScreen() {
             disabled={loading}
           >
             {loading
-              ? <ActivityIndicator color="#f5f0ff" />
+              ? <ActivityIndicator color="#fff" />
               : <Text style={styles.btnText}>{t('auth.joinFamily')}</Text>
             }
           </TouchableOpacity>
@@ -183,7 +196,7 @@ const styles = StyleSheet.create({
     direction:    'ltr',
   },
   logoImage:    { width: 64, height: 64 },
-  logoWordmark: { color: '#a78bfa', fontSize: 22, fontWeight: '900', letterSpacing: 7, marginTop: 8 },
+  logoWordmark: { color: ACCENT, fontSize: 22, fontWeight: '900', letterSpacing: 7, marginTop: 8 },
 
   helpText: {
     color:        TEXT_MUTED,
@@ -206,7 +219,7 @@ const styles = StyleSheet.create({
   },
 
   familyCodeLabel: {
-    color:        '#a78bfa',
+    color:        ACCENT,
     fontSize:     14,
     fontWeight:   '700',
     textAlign:    'center',
@@ -228,7 +241,7 @@ const styles = StyleSheet.create({
     letterSpacing:     6,
   },
 
-  btn:         { backgroundColor: '#5b21b6', borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
+  btn:         { backgroundColor: ACCENT, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
   btnDisabled: { opacity: 0.6 },
-  btnText:     { color: '#f5f0ff', fontSize: 17, fontWeight: '800' },
+  btnText:     { color: '#fff', fontSize: 17, fontWeight: '800' },
 });

@@ -128,17 +128,23 @@ function timeBucket(time: string | undefined): TimeFilter {
 export default function GamerDashboardScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, isChildPreview } = useMode();
+  const { previewChildId, previewChildName, isChildPreview } = useMode();
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, loading: dataLoading } = useChildData(childId);
+  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData } = useChildData(childId);
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
-  useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
+  // Refetch tasks/balance AND the buddy on focus — completing a task on the
+  // Quests tab writes to a separate useChildData instance, so the dashboard's
+  // copy is stale until we re-pull on return.
+  useFocusEffect(useCallback(() => {
+    refetchBuddy();
+    refetchChildData();
+  }, [refetchBuddy, refetchChildData]));
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
@@ -170,6 +176,14 @@ export default function GamerDashboardScreen() {
   // today (no code path writes to current_skin_id yet). Keeps the Gamer hero
   // in sync with what the child picked instead of forcing a wolf silhouette.
   const buddySkinId = relationship?.current_skin_id ?? petState.current_skin;
+
+  // Tap a task anywhere it appears (HQ list) to toggle completion — same
+  // contract as the Quests tab (GamerTasksScreen). Writes under previewChildId
+  // in view-as-child; RLS allows the family member to write daily_progress.
+  const onTaskTap = (taskId: string, completed: boolean) => {
+    if (completed) uncompleteTask(taskId);
+    else           completeTask(taskId);
+  };
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
   const filteredTasks = useMemo(() => {
@@ -234,7 +248,9 @@ export default function GamerDashboardScreen() {
             {t('gamerDashboard.greetingPrefix')}
           </Text>
           <Text style={styles.greetingName}>
-            {isChildPreview ? t('gamerDashboard.previewName') : (profile?.display_name ?? t('gamerDashboard.fallbackName'))}
+            {isChildPreview
+              ? (previewChildName ?? profile?.display_name ?? t('gamerDashboard.fallbackName'))
+              : (profile?.display_name ?? t('gamerDashboard.fallbackName'))}
           </Text>
         </View>
         <View style={styles.iconRow}>
@@ -353,12 +369,18 @@ export default function GamerDashboardScreen() {
         </View>
       ) : (
         displayedTasks.map(task => (
-          <View
+          <TouchableOpacity
             key={task.id}
             style={[
               styles.taskCard,
               task.completed && styles.taskCardDone,
             ]}
+            onPress={() => onTaskTap(task.id, task.completed)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={task.completed
+              ? t('gamerTasks.markIncomplete')
+              : t('gamerTasks.markComplete')}
           >
             <View style={[
               styles.checkCircle,
@@ -380,7 +402,7 @@ export default function GamerDashboardScreen() {
             <Text style={styles.taskCredits}>
               +{task.credits} BUFFs
             </Text>
-          </View>
+          </TouchableOpacity>
         ))
       )}
 
@@ -428,7 +450,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   greetingLabel: { color: COLORS.textMuted, fontSize: 13, marginBottom: 2 },
-  greetingName:  { color: COLORS.text, fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+  greetingName:  { color: COLORS.text, fontSize: 22, fontWeight: '900', letterSpacing: -0.5 },
   iconRow:       { flexDirection: 'row', gap: 8 },
   iconBtn: {
     width: 36,

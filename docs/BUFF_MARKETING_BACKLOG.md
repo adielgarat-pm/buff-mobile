@@ -3,8 +3,8 @@
 > Top-level inventory of free / bootstrap-friendly marketing work.
 > Sister to [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) — GTM is the *strategy*, this is the *backlog* of specific tracks under it.
 
-**עודכן:** 2026-05-13
-**מקור:** marketing strategy session 2026-05-13 + scan of brand family (BRAND, PERSONAS, MESSAGING, COMPETITORS, FAQ, FOUNDER_STORY, TESTIMONIALS) + GO_TO_MARKET phase plan
+**עודכן:** 2026-05-23
+**מקור:** marketing strategy session 2026-05-13 + scan of brand family (BRAND, PERSONAS, MESSAGING, COMPETITORS, FAQ, FOUNDER_STORY, TESTIMONIALS) + GO_TO_MARKET phase plan. תוספת 2026-05-23: Track G (founder-voice HE FB posts) נוסף לאחר צפייה ב-indirect challenger בעברית (ראי [COMPETITORS §3.8](BUFF_COMPETITORS.md)).
 **שפה:** הסברים בעברית, action items באנגלית.
 
 ---
@@ -31,8 +31,11 @@
 | **D** | Meta data + technical SEO for buffadhd.com (T6 title, D6 description, Schema.org JSON-LD, canonical fix) | 2 | בקצרה ב-§5 פה. אין deep doc. | ✅ **Wave 1 PR opened 2026-05-14** — same PR as Track E (`pkg/philosophy-pillars-and-meta-fixes`). Awaits merge + deploy. |
 | **E** | `/philosophy` page on buffadhd.com — 3-Principles hero (WHY/WHAT framing) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | ✅ **Wave 1 PR opened 2026-05-14** — `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`. Awaits merge + deploy. |
 | **F** | Clinician / coach / podcast advisor outreach | 2 | [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) | 10-name target list + 3 personalized pitches drafted |
+| **G** | Founder-voice HE FB posts (privacy-first lead hook) | 1 | §6.5 below + [COMPETITORS §3.8](BUFF_COMPETITORS.md) + [FOUNDING_100_KIT](BUFF_FOUNDING_100_KIT.md) | Observation captured 2026-05-23. Kit not started — Adi deferring copy-writing to a dedicated session. |
 
 **Track F (advisor outreach) was previously mapped only as bullet items in [GO_TO_MARKET §2.4–2.5](BUFF_GO_TO_MARKET.md). The kit doc operationalizes it — same pattern as FOUNDING_100_KIT operationalizes Phase 1.**
+
+**Track G (founder-voice HE FB posts) was added 2026-05-23 after Adi observed an indirect competitor (Hebrew chore-tracker, organic FB post, privacy-first lead hook) succeed with a positioning move BUFF holds only defensively. See [§6.5](#65-track-g--founder-voice-he-fb-posts-brief) and [COMPETITORS §3.8](BUFF_COMPETITORS.md).**
 
 ---
 
@@ -118,6 +121,59 @@ Three candidates, **not built**. Requires its own session SPEC with Values Check
 - Google permits 1 review ask per year per user — burning it on day 2 = no review ever
 - Per [BUFF_VALUES.md Pillar 2](BUFF_VALUES.md), no "missed", "failed", or pressure framing
 - Per CLAUDE.md, AHA event detection isn't built yet (4 engineering tickets per [BRAND §4.5](BUFF_BRAND.md)) — interim trigger needed
+
+---
+
+## 6.5 Track G — Founder-Voice HE FB Posts (brief)
+
+**Source observation (2026-05-23):** פוסט פייסבוק עברי אורגני מאת "David Ohana" בקבוצה ישראלית, מפרסם chore-tracker גנרי לילדים. הצליח לתפוס positioning של *"privacy-first / no ads / no analytics / no strangers"* כ-**lead hook** — דפוס ש-BUFF מחזיקה defensive בלבד ([FAQ §E](BUFF_FAQ.md), [BRAND §6](BUFF_BRAND.md), Forum Reply T5). **ניתוח מלא:** [COMPETITORS §3.8](BUFF_COMPETITORS.md).
+
+**Goal of this track:** לתרגם את הדפוסים ש-Ohana הוכיח לסדרת פוסטים בעברית בקול-מייסדת של Adi, ספציפיים ל-ADHD — *מבלי* להעתיק את ה-framing שלו ומבלי לאבד את ה-ADHD wedge.
+
+### Patterns to ADOPT
+
+1. **Personal mom-to-mom voice** — לא promoter. כלל הטון של [MESSAGING §8.1](BUFF_MESSAGING.md) ("if copy reads like an ad — blocks the action").
+2. **Pain hook first** — בוקר, צחצוח שיניים, "תתלבש כבר" — לפני שמזכירים את המוצר.
+3. **❌ list before ✅ list as lead** — מעבר ה-positioning הזה מ-defensive (FAQ) ל-offensive (פוסט פתיחה). זה מהלך **חדש** ל-BUFF — לא תיעדנו אותו כ-rhetorical device.
+4. **Social proof via founder's own kids** — Itay (15, co-designer): OK by name per [FOUNDER_STORY §3.2](BUFF_FOUNDER_STORY.md). **אמי (9): privacy-gated** — לא להעמיד בפוסט פומבי.
+5. **DM-for-invite mechanic** — peer-viral. דגם הפצה לא מתועד ב-[FOUNDING_100_KIT](BUFF_FOUNDING_100_KIT.md) שהוא email→landing. צריך החלטה האם זה משלים או מחליף.
+
+### Patterns to AVOID copying
+
+- ❌ Generic *"chore tracker for all kids"* framing. **BUFF wedge = ADHD-specific executive function scaffolding.** חידוד, לא הרחבה. (Anchored in [COMPETITORS §2](BUFF_COMPETITORS.md) — Territory We Own.)
+- ❌ Friend leaderboard / "Hall of Legends" — social pressure שיכולה להחריף אצל ADHD kids. Anti-Pillar-2.
+- ❌ *"Free for everyone forever"* — לא תואם את ה-Founding 100 + paid model של [GO_TO_MARKET](BUFF_GO_TO_MARKET.md) Phase 1.
+
+### Personas to target
+
+- ✅ **P5 (Coach-Curious)** — כבר בעולם הזה. privacy-first hook resonates.
+- ✅ **P2 (Post-Diagnosis, cautious)** — פוחדת מעוד screen-time tool. פרטיות = ביטחון כניסה.
+- ❌ **לא P1 (Exhausted Morning)** — כאב שונה (operational chaos, לא safety anxiety). פוסט נפרד.
+
+### Channels (when activated)
+
+- **Israeli FB parenting groups (Hebrew)** — primary. דורש target list (Open Decision #4 ב-§7 - הרחבה ל-HE).
+- **WhatsApp parent groups (Hebrew)** — secondary, peer-forwarding model.
+- **Not** English-speaking groups עבור פוסט בפורמט הזה — קהל לא תואם.
+
+### Status / why deferred
+
+- **Observation captured:** 2026-05-23 (this entry).
+- **Kit drafted:** ⏸ **Deferred.** Adi explicitly chose 2026-05-23 לא לטייט copy עכשיו — רוצה את ה-input מוכן לכשתפתח session כתיבה אישית.
+- **Next checkpoint:** כש-Adi פותחת session "founder post drafting" — Track G עובר ל-active. עד אז: cold input מתועד.
+
+### Why founder writes, not Claude
+
+Founder voice הוא ייחודי ל-Adi. Brand family מספיק לי כדי לנסח פוסט "תקני" — אבל ה-**authenticity moat** שאיפשר ל-Ohana להתפשט (mom-to-mom בקול אמיתי) דורש את Adi עצמה. Pre-drafting מסכן את האותנטיות.
+
+### Cross-links
+
+- [BUFF_COMPETITORS.md §3.8](BUFF_COMPETITORS.md) — ה-observation המקורי וניתוחו המלא.
+- [BUFF_FOUNDER_STORY.md §3.2](BUFF_FOUNDER_STORY.md) — מדיניות הזכרה-בשם של ילדי Adi.
+- [BUFF_MESSAGING.md §8.1](BUFF_MESSAGING.md) — channel guidelines קיימים ל-FB ADHD groups.
+- [BUFF_FAQ.md §E](BUFF_FAQ.md) — תשובות פרטיות ready-to-quote.
+- [BUFF_FOUNDING_100_KIT.md](BUFF_FOUNDING_100_KIT.md) — email-led model להשלמה / השוואה עם DM-led.
+- [BUFF_PERSONAS.md](BUFF_PERSONAS.md) P5, P2.
 
 ---
 

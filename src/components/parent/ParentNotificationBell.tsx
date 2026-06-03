@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNotificationsFeed } from '../../hooks/useNotificationsFeed';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { PARENT_THEME } from '../../theme';
 
 interface NavigationLike {
@@ -33,6 +34,7 @@ interface NavigationLike {
 export const ParentNotificationBell: React.FC = () => {
   const { unreadCount } = useNotificationsFeed();
   const { children } = useChildrenDashboard();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationLike>();
@@ -57,7 +59,11 @@ export const ParentNotificationBell: React.FC = () => {
 
   return (
     <View
-      style={[styles.container, { top: insets.top + 8 }]}
+      style={[
+        styles.container,
+        isRTL ? { left: 16 } : { right: 16 },
+        { top: insets.top + 8 },
+      ]}
     >
       <Pressable
         onPress={handlePress}
@@ -85,10 +91,6 @@ const BADGE_BG = PARENT_THEME.accent;
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    // Logical edge (not hardcoded `right`) so the bell tracks writing direction:
-    // in Hebrew RTL it sits top-left, away from the right-aligned screen title it
-    // used to overlap; in English LTR it sits top-right.
-    end: 16,
     zIndex: 100,
     // Container sized to its child (bell, 40x40). The bell itself
     // captures presses; the rest of the screen below is unaffected.
@@ -115,7 +117,7 @@ const styles = StyleSheet.create({
   badge: {
     position: 'absolute',
     top: 2,
-    end: 2,
+    right: 2,
     minWidth: 16,
     height: 16,
     paddingHorizontal: 3,
