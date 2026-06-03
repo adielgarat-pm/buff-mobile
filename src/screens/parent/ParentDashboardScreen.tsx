@@ -770,7 +770,7 @@ export default function ParentDashboardScreen() {
               {t('sticker.send')}
             </Text>
             <Text style={[styles.bonusSub, { color: T.textMuted }]}>
-              {t('dashboard.bonusModalSub', {
+              {t('sticker.modalSub', {
                 name: children.find(c => c.childId === stickerChildId)?.displayName ?? '',
               })}
             </Text>
