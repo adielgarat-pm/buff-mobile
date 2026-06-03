@@ -35,7 +35,7 @@ const SIMULATE_SUBSCRIBED_KEY = 'buff_simulate_subscribed';
 
 export function useSubscription() {
   const { profile, user, refreshProfile } = useAuth();
-  const { children } = useFamilyMembers();
+  const { children, parents } = useFamilyMembers();
 
   const [simulateSubscribed, setSimulateSubscribedState] = useState(false);
   const [rcSubscribed,    setRcSubscribed]    = useState(false);
@@ -95,8 +95,21 @@ export function useSubscription() {
   // the user a Founding Member.
   const isFoundingMember     = isLifetimeFounding || rcFounding;
 
+  // ── Family-scoped entitlement ──────────────────────────────────────────────
+  // BUFF gates on the FAMILY (the parent's plan), not per-profile. When a child
+  // is logged in on their own device (ChildJoin session), the logged-in profile
+  // is the child's — whose own DB flags are false — so without this the child
+  // would be locked out of premium features the family already paid for
+  // (e.g. Buddy & Skins). Inherit the parent's DB-backed entitlement. RC
+  // entitlements are device-local and not inheritable; the DB flags are the
+  // shared family signal.
+  const isChild              = profile?.role === 'child';
+  const parentHasEntitlement = parents.some(p => p.isLifetimeAccess || p.isLifetimeFounding);
+  const childInheritedAccess = isChild && parentHasEntitlement;
+
   const isSubscribed =
     isLifetimeAccess ||
+    childInheritedAccess ||
     isGracePeriod    ||
     simulateSubscribed ||
     rcSubscribed     ||
