@@ -10,6 +10,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
+import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { PARENT_THEME as T } from '../../theme';
@@ -33,11 +34,25 @@ export default function ParentSettingsScreen() {
   const navigation   = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { profile, familyShortCode, signOut } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
+  const { children } = useChildrenDashboard();
   const { isSubscribed, isLifetimeAccess, isGracePeriod, simulateSubscribed, setSimulateSubscribed } = useSubscription();
   const [codeCopied, setCodeCopied] = useState(false);
   const { language } = useLanguage();
   const [langModalOpen, setLangModalOpen] = useState(false);
   const { fridayEnabled, setFridayEnabled } = useAppSettings();
+
+  // "View as Child" must preview a REAL child profile — passing the parent's own
+  // id used to set previewChildId to the parent, so every child screen queried
+  // the parent's (empty) data and showed nothing. With one child we preview it
+  // directly; with several we send the parent to the dashboard, which has a
+  // working per-child preview button (avoids guessing which child).
+  const handleViewAsChild = () => {
+    if (children.length === 1) {
+      enterChildPreview(children[0].childId);
+    } else if (children.length > 1) {
+      navigation.navigate('ParentDashboard' as never);
+    }
+  };
 
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {
@@ -66,12 +81,14 @@ export default function ParentSettingsScreen() {
         { label: t('settings.rowManageChildren'), onPress: () => navigation.navigate('ManageChildren') },
       ],
     },
-    {
-      title: t('settings.sectionPreview'),
-      rows: [
-        { label: t('settings.rowViewAsChild'), onPress: () => enterChildPreview(profile?.id ?? '') },
-      ],
-    },
+    ...(children.length > 0
+      ? [{
+          title: t('settings.sectionPreview'),
+          rows: [
+            { label: t('settings.rowViewAsChild'), onPress: handleViewAsChild },
+          ],
+        }]
+      : []),
     {
       title: t('settings.sectionSubscription'),
       rows: [
