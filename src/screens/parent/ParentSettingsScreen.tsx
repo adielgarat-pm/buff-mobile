@@ -43,6 +43,14 @@ export default function ParentSettingsScreen() {
   const [langModalOpen, setLangModalOpen] = useState(false);
   const { fridayEnabled, setFridayEnabled } = useAppSettings();
 
+  // Real version of the *installed build*, not app.json — so a tester always
+  // knows exactly which build they're on (native APIs are null on web/dev,
+  // where we fall back to the manifest values). versionCode is the precise
+  // build id (V24, V25, …) that tells you whether a given feature is present.
+  const versionName = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '—';
+  const buildCode   = Application.nativeBuildVersion ?? String(Constants.expoConfig?.android?.versionCode ?? '');
+  const versionLabel = buildCode ? `${versionName} (${buildCode})` : versionName;
+
   // "View as Child" must preview a REAL child profile — passing the parent's own
   // id used to set previewChildId to the parent, so every child screen queried
   // the parent's (empty) data and showed nothing. With one child we preview it
@@ -55,14 +63,6 @@ export default function ParentSettingsScreen() {
       navigation.navigate('ParentDashboard' as never);
     }
   };
-
-  // Real version of the *installed build*, not app.json — so a tester always
-  // knows exactly which build they're on (native APIs are null on web/dev,
-  // where we fall back to the manifest values). versionCode is the precise
-  // build id (V24, V25, …) that tells you whether a given feature is present.
-  const versionName = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '—';
-  const buildCode   = Application.nativeBuildVersion ?? String(Constants.expoConfig?.android?.versionCode ?? '');
-  const versionLabel = buildCode ? `${versionName} (${buildCode})` : versionName;
 
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {

@@ -312,9 +312,9 @@ export default function ParentTasksScreen() {
                     onPress={() => handleEditTask(task)}
                     activeOpacity={0.7}
                   >
-                    {/* Status-only indicator — tapping the row opens the editor, but the
-                        parent cannot complete tasks here, so this reads as status, not a
-                        tappable checkbox. */}
+                    {/* Status-only indicator — the row opens the edit sheet; the
+                        parent never completes a task here, so this reads as status,
+                        not a tappable checkbox. */}
                     {task.completed ? (
                       <View style={[styles.statusDone, { backgroundColor: T.success }]}>
                         <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>
