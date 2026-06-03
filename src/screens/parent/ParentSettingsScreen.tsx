@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import * as Application from 'expo-application';
+import Constants from 'expo-constants';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
@@ -40,6 +42,14 @@ export default function ParentSettingsScreen() {
   const { language } = useLanguage();
   const [langModalOpen, setLangModalOpen] = useState(false);
   const { fridayEnabled, setFridayEnabled } = useAppSettings();
+
+  // Real version of the *installed build*, not app.json — so a tester always
+  // knows exactly which build they're on (native APIs are null on web/dev,
+  // where we fall back to the manifest values). versionCode is the precise
+  // build id (V24, V25, …) that tells you whether a given feature is present.
+  const versionName = Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '—';
+  const buildCode   = Application.nativeBuildVersion ?? String(Constants.expoConfig?.android?.versionCode ?? '');
+  const versionLabel = buildCode ? `${versionName} (${buildCode})` : versionName;
 
   // "View as Child" must preview a REAL child profile — passing the parent's own
   // id used to set previewChildId to the parent, so every child screen queried
@@ -122,6 +132,11 @@ export default function ParentSettingsScreen() {
           label:   t('settings.rowPhilosophy'),
           icon:    'information-circle-outline' as const,
           onPress: () => navigation.navigate('Philosophy'),
+        },
+        {
+          label: t('settings.rowVersion'),
+          value: versionLabel,
+          icon:  'phone-portrait-outline' as const,
         },
       ],
     },
