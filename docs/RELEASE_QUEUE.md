@@ -17,13 +17,11 @@
 
 ## 🚉 Queued — riding the next train
 
-_Last released: **V25 (versionName 1.1.1)**, internal track. Next train: **V26**._
+_Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Next train: **next versionCode (TBD)**._
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
-| _example — delete when first real row lands_ | #NNN / `sha` | fix | what it fixes, plainly | Train | yes/no | F7.H2 |
-
-> _No real fixes queued yet. As packages merge to `main`, CC adds rows here at merge time._
+| 2026-06-04 | #157 / `62e31bd` | fix | Parent notification bell now sits clear of the screen title in Hebrew (RTL position) | Train | yes | F18 (i18n + Hebrew RTL) |
 
 ### Departure check (update when proposing a cut)
 - Days since last release: _N_  (trigger: ~14)
