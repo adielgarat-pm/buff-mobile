@@ -14,7 +14,10 @@
   - #148 — child inherits parent's premium entitlement (family-scoped subscription)
   - #149 — parent→child affirmation stickers (feat)
   - #151 — view-as-child-from-Settings empty screens + infinite BUFF task-credit exploit guard
-- Gates: Gate 0 ✅ · Gate 1 ✅ (tsc / jest 300/300 / expo-doctor 18/18 / i18n / Values) · Gate 2 ⚠️ not completed on emulator (19-session contention — Metro timeouts + state races); V26 code confirmed to boot+render; functional verification deferred to Hat-4 on the real AAB · Gate 3 build: <fill EAS build URL + confirmed versionCode>
+- Gates: Gate 0 ✅ · Gate 1 ✅ (tsc / jest 300/300 / expo-doctor 18/18 / i18n / Values) · Gate 2 ⚠️ not completed on emulator (19-session contention — Metro timeouts + state races); V26 code confirmed to boot+render; functional verification deferred to Hat-4 on the real AAB · Gate 3 ✅ **build finished**
+- **AAB artifact:** https://expo.dev/artifacts/eas/b9LPSvHK2LtZGtHtUdyV5f.aab
+- Build page: https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/5234f61c-5427-4fe0-9118-aace4dbdbdea
+- Confirmed: versionCode **27** (EAS incremented 26→27), Sentry env wired (SENTRY_ORG/PROJECT/DSN) → source maps uploaded.
 - Schema: none new in this release.
 
 ## B. User-facing (Hebrew, for the future in-app "What's New") — DRAFT, needs Adi approval

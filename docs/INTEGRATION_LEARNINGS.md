@@ -14,6 +14,27 @@
 
 ## Implementation Notes
 
+### IN-2026-06-03-02: Hat-3 emulator testing is unreliable under many parallel CC sessions + Git-Bash `/sdcard` path mangling
+
+- **תאריך:** 2026-06-03
+- **מקור:** CC — V26 Gate 2 (buff-testing) during the rewards-shop/family-scoping session, with ~19 parallel CC sessions running.
+- **תיאור:** Two distinct traps when driving the shared Android emulator via adb from Git-Bash:
+  1. **Git-Bash path mangling:** `adb shell uiautomator dump /sdcard/x.xml` — MSYS rewrites the leading `/sdcard/...` to a Windows-ish path (`/Files/Git/sdcard/...`), so the dump is written to the wrong on-device path and every later `cat /sdcard/x.xml` returns empty. Looks exactly like "uiautomator failing / emulator contended" but it's a shell bug. **Fix:** `export MSYS_NO_PATHCONV=1; export MSYS2_ARG_CONV_EXCL="*"` before any adb command passing a device-absolute path. (`exec-out screencap -p > local.png` is unaffected.)
+  2. **Shared-emulator contention:** one emulator + ~19 sessions = (a) another session's Metro owns 8081 and serves the wrong worktree's JS; (b) Metro socket-timeouts under load → dev-client error overlay; (c) taps land on stale/changed screens (state races). Verdicts produced this way are untrustworthy.
+- **השפעה:** A trustworthy Hat-3 Gate 2 is not achievable while the machine is saturated. Decision: confirm the build boots+renders, carry functional verification to **Hat-4 on the real AAB**.
+- **סטטוס:** `open` (process learning) — run Hat-3 in a genuinely quiet window or a dedicated emulator; always `export MSYS_NO_PATHCONV=1`.
+- **קשור ל:** buff-testing skill, `project_parallel_cc_pattern`, V26, `docs/sessions/rewards-shop-and-family-scoping/SESSION_LOG.md`.
+
+### IN-2026-06-03-01: Rewards shop was wrongly gated; subscription was per-profile not per-family
+
+- **תאריך:** 2026-06-03
+- **מקור:** CC — Adi's screenshot of Itay seeing "LOCKED ZONE" on the Shop tab instead of his rewards.
+- **תיאור:** Two bugs from one symptom. (1) The rewards shop rendered a locked state when `!isSubscribed`, but per `BUFF_PRD.md §5.1` the shop is NOT a gated feature — never a documented decision (pre-existed; `pkg/hide-paywall-from-child` only softened the CTA). (2) `useSubscription` derived `isSubscribed` from the *logged-in* profile's own `is_lifetime_access`; a child on their own ChildJoin device checked the child's profile, not the family parent's — so children of premium parents were also locked out of legitimately-gated features (Buddy/Skins).
+- **השפעה:** Every child on their own device in a premium family; the shop affected all post-grace-period children.
+- **Fix:** (a) one-time data grant of `is_lifetime_access=true` to children of premium parents (11 kids / 7 families, mobile DB) for immediate unblock; (b) **PR #147** removed the shop gate; (c) **PR #148** made `useSubscription` inherit the parent's lifetime/founding when the logged-in profile is a child. Shipped in **V26 (versionCode 27)**.
+- **סטטוס:** `resolved` (code) — **open follow-up:** RC monthly/yearly subs have no DB flag, so a child can't inherit a parent's *recurring* (non-lifetime) subscription; needs a DB-backed active-sub signal.
+- **קשור ל:** `project_subscription_family_scoping_gap`, PR #147/#148, `feedback_kids_never_login`, `useSubscription.ts`, `useFamilyMembers.ts`, `BUFF_PRD.md §5.1`.
+
 ### IN-2026-06-01-01: Transient profile re-fetch failure ejects a logged-in user mid-session ("shows my data then throws me to login")
 
 - **תאריך:** 2026-06-01

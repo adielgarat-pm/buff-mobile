@@ -46,8 +46,8 @@
 | 1 | expo-doctor | ✅ 18/18 |
 | 1 | i18n parity | ✅ 0 missing either locale |
 | 1 | Values Check | ✅ #149 pass |
-| 2 | Functional (buff-testing) | ⏸️ DEFERRED to a quiet emulator window (Adi 2026-06-03) |
-| 3 | Build (eas production) | ⏸️ blocked on Gate 2 |
+| 2 | Functional (buff-testing) | ⚠️ NOT completed — 19-session emulator contention; deferred to Hat-4 on real AAB |
+| 3 | Build (eas production) | ✅ finished — versionCode **27**, AAB `b9LPSvHK2LtZGtHtUdyV5f.aab` |
 
 ## ⏸️ PAUSED — resume instructions
 
