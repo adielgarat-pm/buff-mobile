@@ -24,7 +24,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNotificationsFeed } from '../../hooks/useNotificationsFeed';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { PARENT_THEME } from '../../theme';
 
 interface NavigationLike {
@@ -34,7 +33,6 @@ interface NavigationLike {
 export const ParentNotificationBell: React.FC = () => {
   const { unreadCount } = useNotificationsFeed();
   const { children } = useChildrenDashboard();
-  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationLike>();
@@ -59,11 +57,7 @@ export const ParentNotificationBell: React.FC = () => {
 
   return (
     <View
-      style={[
-        styles.container,
-        isRTL ? { left: 16 } : { right: 16 },
-        { top: insets.top + 8 },
-      ]}
+      style={[styles.container, { top: insets.top + 8 }]}
     >
       <Pressable
         onPress={handlePress}
@@ -91,6 +85,12 @@ const BADGE_BG = PARENT_THEME.accent;
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
+    // Plain `right` (not logical `end`) so React Native's default
+    // swapLeftAndRightInRTL flips it for us: physical right in LTR (English),
+    // physical left in RTL (Hebrew) — opposite the flex-start title/greeting,
+    // so it never overlaps. The logical `end` did NOT flip reliably in this
+    // build, which is why the bell used to sit on the title in Hebrew.
+    right: 16,
     zIndex: 100,
     // Container sized to its child (bell, 40x40). The bell itself
     // captures presses; the rest of the screen below is unaffected.
