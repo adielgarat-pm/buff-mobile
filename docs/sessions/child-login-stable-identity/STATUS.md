@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | 0 — Investigation (credential retrieval) | ✅ | 2026-06-04 | 8912796 | finding written (root cause = name-keyed creds, NOT random) | see notes 2026-06-04 |
 | 1 — Idempotent resolve + integrity | 🟦 code-complete, pending Hat-4 | 2026-06-04 | b24f154 | RPC live-tested; tsc clean; creds logic 7/7 incl. real-data match | see notes 2026-06-04 |
-| 2 — Observability + backstop | ⬜ | | | | |
+| 2 — Observability + backstop | 🟦 code-complete, pending Hat-4 | 2026-06-04 | 9f8f2a2 | [ChildEntry] logs at each branch; tsc clean | see notes 2026-06-04 |
 
 ## Notes
 - 2026-06-04: Package drafted (v2 after architect/PM review).
