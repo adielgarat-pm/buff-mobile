@@ -82,7 +82,8 @@ BEGIN
              jsonb_build_object(
                'id',           c.id,
                'display_name', c.display_name,
-               'avatar',       c.avatar
+               'avatar',       c.avatar,
+               'linked',       (c.user_id IS NOT NULL)
              )
              ORDER BY c.display_name
            ),
