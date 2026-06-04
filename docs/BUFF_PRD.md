@@ -328,6 +328,16 @@ D-2026-05-14: Long-term goal is **single codebase across mobile and web** to avo
 
 **Sources:** Expo for Web (docs.expo.dev/workflow/web), React Strict DOM (facebook.github.io/react-strict-dom), Coinbase React Native transition (coinbase.com/blog), PkgPulse RN/Expo/Capacitor 2026 comparison.
 
+### 9.5 Child Identity & Login Model
+
+D-2026-06-04 (`pkg/child-login-stable-identity`): children use an **own-auth** model — each child has their own `auth.users` row that login signs into, and `profiles.user_id` is the canonical child↔auth link (RLS resolves `user_id = auth.uid()` → profile → family). Children never see an email/password screen: a kid either shares the parent's device (View-as-Child) or enters once via the family-code flow, which then persists the session.
+
+**Entry-as-child resolves by stable identity, not by typed name.** The kid enters the **family code**, then **picks their own card** from the family's child list (`list_family_children` RPC). Auth credentials are derived from the child's **immutable `profiles.id`** (`src/utils/childAuth.ts`), never from the typed display name. This closes the duplicate-account bug where re-typing a name slightly differently (e.g. Hebrew "ליה" vs Latin "Liah") minted a fresh `<name>@buff.app` email → a brand-new auth user + orphan profile instead of signing into the existing one.
+
+- **Idempotency:** keying the credential on the profile id makes the email itself idempotent (one auth user per profile); re-entry on any device is a no-op on row counts. Orphan profiles (`user_id IS NULL`) are linked exactly once via `link_child_profile` (race-guarded on `user_id IS NULL`); the flow never inserts a new profile.
+- **Back-compat:** already-linked children created under the old scheme are signed into their existing account via credentials reconstructed from the DB-stored display name + code — no re-keying, no data loss (all data hangs off `profiles.id`, not the auth uid).
+- **Known limitation (MVP):** because the credential is deterministically derivable from the profile id, anyone holding the family code can enter as any child in that family — same posture as the prior scheme. The hardened fix (a service-role edge function that mints the session without a client-derivable password) is a deferred follow-up. RLS hardening of wide-open policies (`profiles`/`families`/`buddy_relationships`) is a separate proposed `rls-tighten` package.
+
 ## 10. Success Metrics
 
 
