@@ -4,8 +4,8 @@
 
 | Phase | State | Date | Commit | Tests | Learnings |
 |---|---|---|---|---|---|
-| 0 — Investigation (credential retrieval) | ⬜ | | | | |
-| 1 — Idempotent resolve + integrity | ⬜ | | | | |
+| 0 — Investigation (credential retrieval) | ✅ | 2026-06-04 | 8912796 | finding written (root cause = name-keyed creds, NOT random) | see notes 2026-06-04 |
+| 1 — Idempotent resolve + integrity | 🟦 code-complete, pending Hat-4 | 2026-06-04 | b24f154 | RPC live-tested; tsc clean; creds logic 7/7 incl. real-data match | see notes 2026-06-04 |
 | 2 — Observability + backstop | ⬜ | | | | |
 
 ## Notes
@@ -17,3 +17,10 @@
 - 2026-06-04: Noa's re-login test PASSED (no new account) but ran on a device holding the session. Remaining bug = new-device/credential-retrieval; that is the decisive repro for Phase 0.
 - 2026-06-04: RLS investigated (read-only) — see RLS_FINDINGS.md. Liah relink VERIFIED healthy (resolves to her family + profile, 1:1 uid, no leak). profiles.user_id already unique-enforced. Orphan/login split: 35 child profiles with login, 60 without.
 - 2026-06-04: SEPARATE security finding surfaced (out of scope): wide-open policies on profiles/families/buddy_relationships. Recommend an `rls-tighten` package. Awaiting Adi triage.
+- 2026-06-04: **Phase 0 finding (code-confirmed):** child creds are DETERMINISTIC, not random — `email=<ascii(typedName)>@buff.app`, `password=<name>_<CODE>_buff2026` (ChildJoinScreen.tsx:58-65). signUp runs FIRST; only falls back to signIn on "already registered". So any typed-name variance (Hebrew↔Latin/spelling) or the 2nd formula in SignupScreen.tsx:66 mints a NEW email → new auth user + orphan profile. SPEC's "random/non-retrievable" framing corrected. Prod confirms: c5dc5d95d4@buff.app→ליה, itay@buff.app→Itay, etc.
+- 2026-06-04: **Phase 1 built (Adi-approved: pick-from-list + deterministic-from-profile-id + back-compat Option A).**
+  - Migration 018 (live): `list_family_children(code)` anon RPC (id/display_name/avatar/linked, is_deleted excluded) + `link_child_profile(profile_id, code)` authed, race-guarded on user_id IS NULL. Smoke-tested: CWYNQB → Liah's profile 74638016.
+  - Client: ChildJoinScreen reworked to 2-step (code → pick card); creds derived from profile id via `src/utils/childAuth.ts`. Per pick: stable signIn → (orphan) signUp+link → (legacy) signIn via creds reconstructed from DB display_name+code. New i18n keys (en+he): continue/childPickHelp/childJoinNoChildren/childEntryFailed.
+  - Verified by CC: tsc --noEmit clean; locale JSON valid; cred logic 7/7 — incl. legacyChildCreds('ליה','CWYNQB')===c5dc5d95d4@buff.app = Liah's REAL prod auth email (proves legacy fallback signs the 35 linked kids in).
+  - **Pending Hat-4 (Adi, emulator):** the auth round-trip (signUp/link/signIn) can't run on Expo web — Supabase blocks signUp to @buff.app emails on web. Stop conditions (no new rows on re-entry; lands on same data; new device → same profile) are emulator checks.
+- 2026-06-04: Phase 2 (observability) NOT yet built — next chunk after Adi reviews 1a/1b.
