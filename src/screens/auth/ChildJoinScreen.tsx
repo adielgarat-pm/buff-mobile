@@ -89,7 +89,12 @@ export default function ChildJoinScreen() {
 
     // 1. Returning child already on the stable scheme — works on any device.
     const { error: stableErr } = await signIn(stable.email, stable.password);
-    if (!stableErr) { setLoading(false); return; } // RootNavigator routes to ChildApp
+    if (!stableErr) {
+      // Observability (Phase 2): no rows created on this path.
+      console.log('[ChildEntry] resolved via stable sign-in (no new rows)', { profileId: child.id });
+      setLoading(false);
+      return; // RootNavigator routes to ChildApp
+    }
 
     // 2. Orphan / never-linked: create the single stable auth user and link the
     //    picked profile to it. Idempotent on every later entry.
@@ -105,6 +110,10 @@ export default function ChildJoinScreen() {
           p_family_code: code,
         });
         if ((linkData as { linked?: boolean } | null)?.linked) {
+          // Observability (Phase 2): this is the ONLY path that creates an
+          // auth.users row, and it LINKS the picked profile — it never inserts
+          // a new profile. Warned so recurrence is visible in Logcat / Sentry.
+          console.warn('[ChildEntry] created stable auth user + linked orphan profile', { profileId: child.id });
           await refreshProfile(signUpData.user.id);
           setLoading(false);
           return;
@@ -112,6 +121,7 @@ export default function ChildJoinScreen() {
       }
 
       // Unexpected — don't leave a profile-less session behind.
+      console.error('[ChildEntry] orphan link failed; rolling back session', { profileId: child.id });
       await supabase.auth.signOut();
       setLoading(false);
       Alert.alert(t('auth.childEntryFailed'));
@@ -123,8 +133,12 @@ export default function ChildJoinScreen() {
     const legacy = legacyChildCreds(child.display_name, code);
     const { error: legacyErr } = await signIn(legacy.email, legacy.password);
     setLoading(false);
-    if (!legacyErr) return;
+    if (!legacyErr) {
+      console.log('[ChildEntry] resolved via legacy fallback (no new rows)', { profileId: child.id });
+      return;
+    }
 
+    console.error('[ChildEntry] could not resolve linked child (legacy sign-in failed)', { profileId: child.id });
     Alert.alert(t('auth.childEntryFailed'));
   };
 
