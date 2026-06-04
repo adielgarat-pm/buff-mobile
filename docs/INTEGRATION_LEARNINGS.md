@@ -14,6 +14,21 @@
 
 ## Implementation Notes
 
+### IN-2026-06-04-01: RTL position bug — `left`/`right` are auto-swapped by RN, but the logical `end` did NOT flip reliably; plus a parallel-session stash incident
+
+- **תאריך:** 2026-06-04
+- **מקור:** CC — Adi reported the parent notification bell "still doesn't look good in Hebrew" (overlapping the right-aligned "משימות" title). Earlier fix (`fix(bell-rtl-overlap)`, commit `b257574`) hadn't actually resolved it.
+- **תיאור (gotcha 1 — the real fix):** [`ParentNotificationBell`](../src/components/parent/ParentNotificationBell.tsx) floats over the header. Two failed approaches before the right one:
+  1. Original used the **logical `end: 16`** — should track writing direction, but in this build it did **not** flip with native RTL (behaved like `right`), so the bell stayed on the title side in Hebrew → the overlap.
+  2. First "fix" used `isRTL ? {left:16} : {right:16}` driven by `LanguageContext.isRTL`. **This made it worse:** React Native's default `I18nManager.swapLeftAndRightInRTL` auto-swaps explicit `left`/`right` under native RTL, so `left:16` in Hebrew became **physical right** — back on the title.
+  3. **Correct fix:** plain **`right: 16`**, no conditional. Let RN's auto-swap do the work → physical right in LTR, physical left in RTL, always opposite the flex-start title. Verified on emulator via UI-hierarchy dump: bell bounds `[42,147]` (physical left) in Hebrew on dashboard + Tasks.
+  - **Lesson:** for absolute-positioned overlays in this app, use plain `left`/`right` and rely on `swapLeftAndRightInRTL` — do NOT gate on `isRTL` (double-flips) and do NOT trust logical `start`/`end` (didn't flip here). Also: native RTL only takes effect after an app restart (`forceRTL` + reload), so verifying RTL on the emulator requires a cold relaunch, not just a language toggle.
+- **תיאור (gotcha 2 — process):** Metro served a **stale transform cache** on Windows after the edit (Fast Refresh + warm reload both kept showing the old bundle); only `expo start -c` (clear cache) + cold relaunch loaded the new code. Burned ~real time chasing a "fix didn't work" that was actually a cache miss.
+- **תיאור (gotcha 3 — parallel sessions):** mid-task, a **parallel CC session switched the shared working dir** (`C:\Users\adiel\buff-mobile`) from `pkg/parent-stickers` → `main` → `release/v26-aab`, committed CC's *intermediate* (buggy `isRTL`) bell version as `b257574` into `main` + `release/v26-aab`, and **stashed** CC's correct final edit into `stash@{0}`. The verified fix was recovered from that stash and landed cleanly on `main` via a dedicated worktree (`fix/bell-rtl-swap`, PR #157). Reinforces the existing rule (parallel sessions = separate worktrees; check `Get-Process claude` before branch ops) and the 2026-05-24 lesson.
+- **השפעה:** the buggy `isRTL` bell is on `main` and `release/v26-aab` (V26). PR #157 corrects `main`; V26 ships fixed only if built from `main` (per "build from main, merge first") or cherry-picked.
+- **סטטוס:** `resolved` (code) — PR #157 → `main`. Pending: merge + build from main.
+- **קשור ל:** `ParentNotificationBell.tsx`, commit `b257574`, PR #157, Lesson 2026-05-24 (parallel-session stomp), "build from main, merge first".
+
 ### IN-2026-06-01-01: Transient profile re-fetch failure ejects a logged-in user mid-session ("shows my data then throws me to login")
 
 - **תאריך:** 2026-06-01
