@@ -5,8 +5,8 @@
 | Phase | State | Date | Commit | Tests | Learnings |
 |---|---|---|---|---|---|
 | 0 — Investigation (credential retrieval) | ✅ | 2026-06-04 | 8912796 | finding written (root cause = name-keyed creds, NOT random) | see notes 2026-06-04 |
-| 1 — Idempotent resolve + integrity | 🟦 code-complete, pending Hat-4 | 2026-06-04 | b24f154 | RPC live-tested; tsc clean; creds logic 7/7 incl. real-data match | see notes 2026-06-04 |
-| 2 — Observability + backstop | 🟦 code-complete, pending Hat-4 | 2026-06-04 | 9f8f2a2 | [ChildEntry] logs at each branch; tsc clean | see notes 2026-06-04 |
+| 1 — Idempotent resolve + integrity | ✅ Hat-3 verified live | 2026-06-05 | b24f154 | live E2E on emulator: orphan pick → +1 auth user, 0 dup profiles, correct stable email | see notes 2026-06-05 |
+| 2 — Observability + backstop | ✅ Hat-3 verified live | 2026-06-05 | 9f8f2a2 | [ChildEntry] logs fired live on pick | see notes 2026-06-05 |
 
 ## Notes
 - 2026-06-04: Package drafted (v2 after architect/PM review).
@@ -24,4 +24,7 @@
   - Verified by CC: tsc --noEmit clean; locale JSON valid; cred logic 7/7 — incl. legacyChildCreds('ליה','CWYNQB')===c5dc5d95d4@buff.app = Liah's REAL prod auth email (proves legacy fallback signs the 35 linked kids in).
   - **Pending Hat-4 (Adi, emulator):** the auth round-trip (signUp/link/signIn) can't run on Expo web — Supabase blocks signUp to @buff.app emails on web. Stop conditions (no new rows on re-entry; lands on same data; new device → same profile) are emulator checks.
 - 2026-06-04: Phase 2 (observability) NOT yet built — next chunk after Adi reviews 1a/1b.
-- 2026-06-04: **Test run (buff-testing skill).** Hat-1 ✅ — `tsc --noEmit` clean; jest 134 existing + **7 new** `src/utils/__tests__/childAuth.test.ts` (commit `cb95d30`), incl. `legacyChildCreds('ליה','CWYNQB')===c5dc5d95d4@buff.app` (Liah's real prod auth email). DB read-path ✅ — `list_family_children('CWYNQB')` → Liah's profile. **Hat-3 E2E ⏭️ DEFERRED** — emulator-5554 was occupied by a parallel CC session (foreign Metro :8083 + an active parent session for family QDXCTW/Ben; 15 claude/36 node procs). Per Adi (2026-06-04) we did NOT take over the shared emulator. The auth round-trip + row-count stop conditions still need a Hat-4 run on a free emulator. PR #159 open (do not merge until then).
+- 2026-06-04: **Test run (buff-testing skill).** Hat-1 ✅ — `tsc --noEmit` clean; jest 134 existing + **7 new** `src/utils/__tests__/childAuth.test.ts` (commit `cb95d30`), incl. `legacyChildCreds('ליה','CWYNQB')===c5dc5d95d4@buff.app` (Liah's real prod auth email). DB read-path ✅ — `list_family_children('CWYNQB')` → Liah's profile. **Hat-3 E2E** initially deferred (shared emulator) — then ✅ **VERIFIED LIVE 2026-06-05** (Adi authorized takeover).
+- 2026-06-05: **Hat-3 E2E ✅ on emulator-5554.** Drove RoleSelection → "אני ילד/ה" → new 2-step ChildJoin (code → "מי את/ה?" card pick). Picked **Ben** (QDXCTW, orphan): Metro logged `[ChildEntry] created stable auth user + linked orphan profile`; auth.users 19→20 (+1), `@buff.app` 7→8 (+1), **profiles 2→2 (no dup)**, Ben.user_id NULL→`80d5d06c`, email `child_b5dd6c38…@buff.app`; Ben landed in his ChildApp. Resume idempotent (counts unchanged). Stop #3 + resume PASS; #1 by construction (signIn-first; child UI has no logout by design).
+- 2026-06-05: **Test data reverted** — Ben set back to orphan (`user_id=NULL`), test auth user `80d5d06c` deleted; QDXCTW restored to 19/7/2.
+- 2026-06-05: **PR #159 merged to main** (`878ea96`, through commit `7474ef6`). RELEASE_QUEUE row added for #159 (docs/queue-child-login-row). NOTE: the merge predated this Hat-3-verified STATUS note; this note synced to main via the queue-row docs PR.
