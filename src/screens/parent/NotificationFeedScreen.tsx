@@ -12,7 +12,7 @@
  * Tap on row → marks read + navigates via shared notificationRouter.
  */
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   SafeAreaView,
   SectionList,
@@ -29,6 +29,7 @@ import { NotificationRow } from '../../components/parent/NotificationRow';
 import { NotificationEmptyState } from '../../components/parent/NotificationEmptyState';
 import { bucketize, type TimeBucket } from '../../lib/notificationTimeBuckets';
 import { resolveRouteAction } from '../../lib/notificationRouter';
+import { isVisibleInFeed } from '../../lib/notificationClass';
 import { PARENT_THEME } from '../../theme';
 
 interface NavigationLike {
@@ -48,13 +49,18 @@ export default function NotificationFeedScreen() {
   const navigation = useNavigation<NavigationLike>();
   const { items, loading, markRead, markAllRead } = useNotificationsFeed();
 
+  // The bell is a "what's new" queue, not an archive: show only items that
+  // are still unread AND still relevant (ACTION persists; INFO ages out).
+  // Single shared predicate with the badge — see lib/notificationClass.
+  const visibleItems = useMemo(() => items.filter((n) => isVisibleInFeed(n)), [items]);
+
   const sections = useMemo(() => {
-    const buckets = bucketize(items);
+    const buckets = bucketize(visibleItems);
     return buckets.map((b) => ({
       title: t(BUCKET_LABEL_KEY[b.bucket]),
       data: b.items,
     }));
-  }, [items, t]);
+  }, [visibleItems, t]);
 
   const onRowPress = useCallback(
     (notification: FeedNotification) => {
@@ -83,16 +89,14 @@ export default function NotificationFeedScreen() {
     [markRead, navigation],
   );
 
-  const hasUnread = useMemo(() => items.some((n) => !n.is_read), [items]);
+  // Anything visible is by definition unread, so "is there something to
+  // clear?" == "are there visible rows?". Drives the "Clear all" affordance.
+  const hasUnread = visibleItems.length > 0;
 
-  // Opening the feed counts as "seen" — mark everything read once on first load.
-  // Guarded so it fires a single time per screen mount, not on every re-render.
-  const didAutoMark = useRef(false);
-  useEffect(() => {
-    if (loading || didAutoMark.current) return;
-    didAutoMark.current = true;
-    if (hasUnread) markAllRead();
-  }, [loading, hasUnread, markAllRead]);
+  // NOTE: opening the feed deliberately does NOT mark anything read. The bell
+  // is a queue you clear by acting (tapping a row, or "Clear all") — a glance
+  // must not empty it. (Removed the old auto-mark-on-open effect — it fought
+  // the unread-only model: it would empty the feed the instant it opened.)
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,7 +125,7 @@ export default function NotificationFeedScreen() {
       </View>
 
       {/* List */}
-      {loading ? null : items.length === 0 ? (
+      {loading ? null : visibleItems.length === 0 ? (
         <NotificationEmptyState />
       ) : (
         <SectionList
