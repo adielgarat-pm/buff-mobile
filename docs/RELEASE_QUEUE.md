@@ -22,6 +22,7 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Nex
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
 | 2026-06-04 | #157 / `62e31bd` | fix | Parent notification bell now sits clear of the screen title in Hebrew (RTL position) | Train | yes | F18 (i18n + Hebrew RTL) |
+| 2026-06-05 | #159 / `878ea96` | feat | Child login resolves by pick-from-list keyed on the immutable profile id — no more duplicate accounts / lost progress on a new device (migration 018: list_family_children + link_child_profile) | Train | yes | F1 (child entry) — Hat-3 verified live 2026-06-05: orphan pick → +1 auth user, 0 dup profiles |
 
 ### Departure check (update when proposing a cut)
 - Days since last release: _N_  (trigger: ~14)
