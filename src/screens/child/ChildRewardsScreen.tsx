@@ -19,6 +19,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
+import { useRewardRedemptions } from '../../hooks/useRewardRedemptions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../integrations/supabase/client';
@@ -59,6 +60,8 @@ function PastelChildRewards() {
   const { totalBalance } = useChildData(childId);
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
+  const { openForReward, request: requestRedemption, withdraw: withdrawRedemption } =
+    useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
   const suggestPalette: SuggestPalette = {
@@ -94,16 +97,35 @@ function PastelChildRewards() {
       });
   }, [childId]);
 
-  const handleClaim = (reward: StoreReward) => {
+  // Redeem = open a redemption REQUEST for parent approval (points are deducted
+  // later, by the parent, on approval). Only opens if the child can afford it.
+  const handleClaim = async (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
       Alert.alert(
         t('childRewards.notEnoughTitle'),
         t('childRewards.notEnoughMsg', { count: reward.credits_needed - totalBalance, title: displayTitle })
       );
-    } else {
-      Alert.alert(t('childRewards.claimTitle'), t('childRewards.claimMsg', { title: displayTitle }));
+      return;
     }
+    const { error } = await requestRedemption({
+      id:             reward.id,
+      title:          displayTitle,
+      credits_needed: reward.credits_needed,
+    });
+    if (error) {
+      Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+      return;
+    }
+    Alert.alert(
+      t('childRewards.requestSentTitle'),
+      t('childRewards.requestSentMsg', { title: displayTitle }),
+    );
+  };
+
+  const handleWithdraw = (reward: StoreReward) => {
+    const open = openForReward(reward.id);
+    if (open) withdrawRedemption(open.id);
   };
 
   return (
@@ -136,6 +158,7 @@ function PastelChildRewards() {
 
           {rewards.map((reward) => {
             const canAfford = totalBalance >= reward.credits_needed;
+            const pending = openForReward(reward.id);
             return (
               <View
                 key={reward.id}
@@ -157,20 +180,35 @@ function PastelChildRewards() {
                       : t('childRewards.needed', { count: reward.credits_needed.toLocaleString() })}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={[
-                    styles.claimBtn,
-                    {
-                      backgroundColor: canAfford ? T.primary : T.muted,
-                      borderColor:     canAfford ? T.primary : T.border,
-                    },
-                  ]}
-                  onPress={() => handleClaim(reward)}
-                >
-                  <Text style={[styles.claimPts, { color: canAfford ? T.primaryForeground : T.mutedForeground }]}>
-                    {reward.credits_needed}⚡
-                  </Text>
-                </TouchableOpacity>
+                {pending ? (
+                  <View style={styles.pendingCol}>
+                    <Text style={[styles.pendingLabel, { color: T.primary }]} numberOfLines={2}>
+                      {pending.status === 'discussing'
+                        ? t('childRewards.discussingLabel')
+                        : t('childRewards.pendingLabel')}
+                    </Text>
+                    <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                      <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
+                        {t('childRewards.cancelRequest')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.claimBtn,
+                      {
+                        backgroundColor: canAfford ? T.primary : T.muted,
+                        borderColor:     canAfford ? T.primary : T.border,
+                      },
+                    ]}
+                    onPress={() => handleClaim(reward)}
+                  >
+                    <Text style={[styles.claimPts, { color: canAfford ? T.primaryForeground : T.mutedForeground }]}>
+                      {reward.credits_needed}⚡
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })}
@@ -232,6 +270,9 @@ const styles = StyleSheet.create({
   rewardDesc:   { fontSize: 13 },
   claimBtn:     { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1 },
   claimPts:     { fontWeight: '700', fontSize: 13 },
+  pendingCol:   { alignItems: 'flex-end', gap: 3, maxWidth: 120 },
+  pendingLabel: { fontSize: 12, fontWeight: '700', textAlign: 'right' },
+  pendingCancel:{ fontSize: 11, fontWeight: '600' },
   safeCard:     { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, borderWidth: 1, gap: 12, marginTop: 8 },
   safeEmoji:    { fontSize: 24 },
   safeText:     { flex: 1, fontSize: 13, lineHeight: 18 },
