@@ -66,6 +66,7 @@ interface PushPayload {
 const PARENT_RECIPIENT_TYPES = new Set([
   'parent_sos',
   'reward_redeemed',
+  'reward_redemption_requested',
   'parent_engagement',
   'family_joined',
   'anchor_recovery',
@@ -101,6 +102,8 @@ function copyForType(
         return { title: `${name} רצה/רצתה לשתף`, body: 'יום של אנרגיה נמוכה', data: {} };
       case 'reward_redeemed':
         return { title: `${name} בחר/ה פרס`, body: reward, data: {} };
+      case 'reward_redemption_requested':
+        return { title: `${name} רוצה לממש פרס`, body: reward, data: {} };
       case 'parent_engagement':
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
@@ -121,6 +124,8 @@ function copyForType(
       return { title: `${name} wanted to share`, body: 'low energy today', data: {} };
     case 'reward_redeemed':
       return { title: `${name} chose a reward`, body: reward, data: {} };
+    case 'reward_redemption_requested':
+      return { title: `${name} wants to redeem a reward`, body: reward, data: {} };
     case 'parent_engagement':
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':

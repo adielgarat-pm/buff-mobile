@@ -31,8 +31,9 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
 /** Type → icon (all same neutral color; no per-type color emphasis). */
 function iconForType(type: string): IconName {
   switch (type) {
-    case 'parent_sos':         return 'chatbubble-ellipses-outline';
-    case 'reward_redeemed':    return 'gift-outline';
+    case 'parent_sos':                  return 'chatbubble-ellipses-outline';
+    case 'reward_redeemed':             return 'gift-outline';
+    case 'reward_redemption_requested': return 'gift-outline';
     case 'task_completed':     return 'flag-outline';
     case 'child_suggestion':   return 'bulb-outline';
     case 'quest_milestone':    return 'trophy-outline';
@@ -52,6 +53,8 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
       return t('notificationFeed.row.parent_sos', { name });
     case 'reward_redeemed':
       return t('notificationFeed.row.reward_redeemed', { name, reward });
+    case 'reward_redemption_requested':
+      return t('notificationFeed.row.reward_redemption_requested', { name, reward });
     case 'task_completed':
       return t('notificationFeed.row.task_completed', { name });
     case 'child_suggestion':
