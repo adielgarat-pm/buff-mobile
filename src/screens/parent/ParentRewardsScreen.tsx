@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
 import { pickI18nColumn, bilingualForDb } from '../../lib/i18nString';
 import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
+import { usePendingRedemptions, type RewardRedemption } from '../../hooks/useRewardRedemptions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 import {
   MONEY_CONVERSION_REWARD,
@@ -56,7 +57,7 @@ const DEFAULT_CREDITS: Record<RewardSize, number> = {
 export default function ParentRewardsScreen() {
   const { t, i18n } = useTranslation();
   const { familyId } = useAuth();
-  const { children, loading: childrenLoading } = useChildrenDashboard();
+  const { children, loading: childrenLoading, refetch: refetchChildren } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [rewards, setRewards] = useState<StoreReward[]>([]);
   const [rewardsLoading, setRewardsLoading] = useState(false);
@@ -89,6 +90,13 @@ export default function ParentRewardsScreen() {
     markDiscussing,
     refetch: refetchSuggestions,
   } = usePendingSuggestions(selectedChildId);
+
+  // Redemption requests (child asked to redeem a reward → parent approves/discusses)
+  const {
+    pending: redemptions,
+    approve: approveRedemption,
+    markDiscussing: markRedemptionDiscussing,
+  } = usePendingRedemptions(selectedChildId);
 
   // Auto-select first child once list loads
   useEffect(() => {
@@ -189,6 +197,30 @@ export default function ParentRewardsScreen() {
 
   const handleLetsTalk = async (s: ChildSuggestion) => {
     await markDiscussing(s.id);
+  };
+
+  // ── Redemption request handlers ──────────────────────────────────────────
+  // "Yes, let's do it" → atomic deduct via RPC. "Let's talk" → keep it open
+  // (no decline, no deduction), mirroring the suggestion deal-making moves.
+  const handleApproveRedemption = async (r: RewardRedemption) => {
+    const result = await approveRedemption(r.id);
+    if (!result.ok) {
+      if (result.error === 'insufficient_funds') {
+        Alert.alert(
+          t('parentRewards.redemption.insufficientTitle'),
+          t('parentRewards.redemption.insufficientMsg', { name: selectedChild?.displayName ?? '' }),
+        );
+      } else {
+        Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+      }
+      return;
+    }
+    // Balance changed — refresh the balance card.
+    refetchChildren();
+  };
+
+  const handleRedemptionLetsTalk = async (r: RewardRedemption) => {
+    await markRedemptionDiscussing(r.id);
   };
 
   const handleAddReward = async () => {
@@ -308,6 +340,60 @@ export default function ParentRewardsScreen() {
                   {' Buffs ⚡'}
                 </Text>
               </View>
+            </View>
+          )}
+
+          {/* Redemption requests — child asked to redeem; parent approves or talks */}
+          {redemptions.length > 0 && (
+            <View style={styles.redemptionWrap}>
+              <Text style={[styles.sectionLabel, { color: T.textMuted }]}>
+                {t('parentRewards.redemption.sectionTitle')}
+              </Text>
+              {redemptions.map((r) => {
+                const discussing = r.status === 'discussing';
+                return (
+                  <View
+                    key={r.id}
+                    style={[styles.redemptionCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}
+                  >
+                    <View style={styles.redemptionTop}>
+                      <Text style={[styles.redemptionTitle, { color: T.text }]} numberOfLines={2}>
+                        {r.reward_title}
+                      </Text>
+                      <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
+                        <Text style={[styles.costText, { color: T.accent }]}>
+                          {r.credits_spent.toLocaleString()} B
+                        </Text>
+                      </View>
+                    </View>
+                    {discussing && (
+                      <Text style={[styles.redemptionTag, { color: T.textMuted }]}>
+                        {t('parentRewards.redemption.discussingTag')}
+                      </Text>
+                    )}
+                    <View style={styles.redemptionActions}>
+                      <TouchableOpacity
+                        style={[styles.approveBtn, { backgroundColor: T.accent }]}
+                        onPress={() => handleApproveRedemption(r)}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.approveText}>{t('parentRewards.redemption.approve')}</Text>
+                      </TouchableOpacity>
+                      {!discussing && (
+                        <TouchableOpacity
+                          style={[styles.talkBtn, { borderColor: T.cardBorder }]}
+                          onPress={() => handleRedemptionLetsTalk(r)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.talkText, { color: T.text }]}>
+                            {t('parentRewards.redemption.letsTalk')}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           )}
 
@@ -527,6 +613,17 @@ const styles = StyleSheet.create({
   cashSuggestCta:     { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   cashSuggestCtaText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   cashHint:           { fontSize: 13, fontWeight: '700', marginTop: -6, marginBottom: 12 },
+  redemptionWrap:    { marginBottom: 20 },
+  redemptionCard:    { borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1 },
+  redemptionTop:     { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 10 },
+  redemptionTitle:   { flex: 1, fontSize: 15, fontWeight: '600' },
+  redemptionTag:     { fontSize: 12, fontWeight: '600', marginBottom: 10, marginTop: -4 },
+  redemptionActions: { flexDirection: 'row', gap: 8 },
+  approveBtn:        { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
+  approveText:       { color: '#fff', fontSize: 13, fontWeight: '700' },
+  talkBtn:           { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center', borderWidth: 1 },
+  talkText:          { fontSize: 13, fontWeight: '600' },
+
   emptyCard:     { borderRadius: 14, padding: 20, borderWidth: 1, alignItems: 'center' },
   emptyText:     { fontSize: 14, textAlign: 'center' },
   rewardCard:    { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, gap: 12 },

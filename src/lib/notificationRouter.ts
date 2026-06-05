@@ -44,6 +44,8 @@ export function resolveRouteAction(data: PushNotificationData): RouteAction {
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'reward_redeemed':
       return { kind: 'parent_rewards', entityId: data.entity_id };
+    case 'reward_redemption_requested':
+      return { kind: 'parent_rewards', entityId: data.entity_id };
     case 'task_completed':
       return { kind: 'parent_tasks', childId: data.child_id };
     case 'child_suggestion':

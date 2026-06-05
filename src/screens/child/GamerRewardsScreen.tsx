@@ -45,6 +45,7 @@ import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackMo
 import { pickI18nColumn } from '../../lib/i18nString';
 import { getCurrencySymbol } from '../../lib/currency';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
+import { useRewardRedemptions } from '../../hooks/useRewardRedemptions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
@@ -100,6 +101,8 @@ export default function GamerRewardsScreen() {
   const welcomeBack       = useWelcomeBack();
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
+  const { openForReward, request: requestRedemption, withdraw: withdrawRedemption } =
+    useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
   const [tab, setTab]         = useState<TabKey>('parent');
@@ -134,11 +137,13 @@ export default function GamerRewardsScreen() {
     };
   }, [rewards, totalBalance]);
 
-  // ── Claim handler (same UX as pastel version — Alert for now) ───────────
+  // ── Redeem handler — opens a redemption REQUEST for parent approval ──────
   // No view-as-child gate: on shared devices the parent hands the phone
   // to the kid, who taps redeem themselves. The action is attributed
-  // to the previewed child via `childId` derivation above.
-  const handleClaim = (reward: StoreReward) => {
+  // to the previewed child via `childId` derivation above. The request only
+  // opens if the child can afford it; the points are deducted later, by the
+  // parent, on approval (useRewardRedemptions → approve_reward_redemption RPC).
+  const handleClaim = async (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
       Alert.alert(
@@ -148,12 +153,26 @@ export default function GamerRewardsScreen() {
           title: displayTitle,
         }),
       );
-    } else {
-      Alert.alert(
-        t('childRewards.claimTitle'),
-        t('childRewards.claimMsg', { title: displayTitle }),
-      );
+      return;
     }
+    const { error } = await requestRedemption({
+      id:             reward.id,
+      title:          displayTitle,
+      credits_needed: reward.credits_needed,
+    });
+    if (error) {
+      Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+      return;
+    }
+    Alert.alert(
+      t('childRewards.requestSentTitle'),
+      t('childRewards.requestSentMsg', { title: displayTitle }),
+    );
+  };
+
+  const handleWithdraw = (reward: StoreReward) => {
+    const open = openForReward(reward.id);
+    if (open) withdrawRedemption(open.id);
   };
 
   // ── Pause active: short-circuit ──────────────────────────────────────────
@@ -235,6 +254,7 @@ export default function GamerRewardsScreen() {
                       ? 100
                       : Math.min(100, Math.round((totalBalance / reward.credits_needed) * 100));
                     const toGo = isUnlocked ? 0 : reward.credits_needed - totalBalance;
+                    const pending = openForReward(reward.id);
 
                     return (
                       <View
@@ -263,7 +283,18 @@ export default function GamerRewardsScreen() {
                           </Text>
                         )}
 
-                        {isUnlocked ? (
+                        {pending ? (
+                          <View style={styles.pendingWrap}>
+                            <Text style={styles.pendingText}>
+                              {pending.status === 'discussing'
+                                ? t('childRewards.discussingLabel')
+                                : t('childRewards.pendingLabel')}
+                            </Text>
+                            <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                              <Text style={styles.pendingWithdraw}>{t('childRewards.cancelRequest')}</Text>
+                            </TouchableOpacity>
+                          </View>
+                        ) : isUnlocked ? (
                           <TouchableOpacity
                             style={styles.redeemBtn}
                             onPress={() => handleClaim(reward)}
@@ -444,6 +475,24 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
+  },
+
+  pendingWrap: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pendingText: {
+    color: COLORS.lime,
+    fontSize: 11,
+    fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  pendingWithdraw: {
+    color: COLORS.textFaint,
+    fontSize: 10,
+    fontWeight: '600',
   },
 
   progressTrack: {
