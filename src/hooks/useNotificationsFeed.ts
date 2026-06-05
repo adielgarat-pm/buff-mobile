@@ -24,6 +24,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
+import { isVisibleInFeed } from '../lib/notificationClass';
 
 export interface FeedNotification {
   id:           string;
@@ -180,8 +181,11 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
     }
   }, [familyId, items]);
 
+  // Badge counts only what the feed actually shows: unread ACTION items +
+  // unread INFO items within the recency window. Same predicate as the feed
+  // screen, so the badge number always equals the visible row count (OQ-N6).
   const unreadCount = useMemo(
-    () => items.filter((n) => !n.is_read).length,
+    () => items.filter((n) => isVisibleInFeed(n)).length,
     [items],
   );
 
