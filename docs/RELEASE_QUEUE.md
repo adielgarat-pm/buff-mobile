@@ -23,11 +23,12 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Nex
 |---|---|---|---|---|---|---|
 | 2026-06-04 | #157 / `62e31bd` | fix | Parent notification bell now sits clear of the screen title in Hebrew (RTL position) | Train | yes | F18 (i18n + Hebrew RTL) |
 | 2026-06-05 | #159 / `878ea96` | feat | Child login resolves by pick-from-list keyed on the immutable profile id — no more duplicate accounts / lost progress on a new device (migration 018: list_family_children + link_child_profile) | Train | yes | F1 (child entry) — Hat-3 verified live 2026-06-05: orphan pick → +1 auth user, 0 dup profiles |
+| 2026-06-05 | #161 / `df0719b` | feat | Parent notification bell shows an unread-only "show-new" feed with INFO-recency ordering; no auto-mark-read on open | Train | yes | F8 (parent notification feed) — not yet smoke-tested in a build |
 
-### Departure check (update when proposing a cut)
-- Days since last release: _N_  (trigger: ~14)
-- User-facing fixes queued: _N_  (trigger: ~5, or ≥1 notable feature)
-- **Recommendation:** _hold / cut V26_ — _reason_
+### Departure check (proposed cut — 2026-06-05)
+- Days since last release: **2** (1.2.0(28) cut 2026-06-03) — below the ~14d trigger
+- User-facing items queued: **3** — 1 fix (#157) + 2 features (#159 child-login, #161 notif feed)
+- **Recommendation:** _content-ready (≥1 notable feature trigger met, ×2), verification-gated._ Cut the next versionCode once Gate-2 functional smoke is green on #157/#159/#161; #159 Hat-4 (real device) remains the only open device check.
 
 ---
 
