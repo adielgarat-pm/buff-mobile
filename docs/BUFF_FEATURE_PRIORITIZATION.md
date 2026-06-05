@@ -87,6 +87,7 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | F-073 | Web build via Expo Web + PWA install | System | Should Have | L | Phase 2 | D-2026-05-14: single codebase across mobile + web (per BUFF_PRD §9.4 Web Strategy). Temporary iOS replacement until iOS native ships. Expo Web = React Native Web — production-grade at X/Twitter, Coinbase, Discord per Expo official docs (2026). |
 | F-074 | Static marketing landing (buffadhd.com revamp) | System | Should Have | M | Phase 2 | D-2026-05-14: source = Lovable Landing.tsx; separate codebase from app (no logic-sharing needed for a static marketing site). Use translated Lovable reviews as social proof — see F-071 rationale + INTEGRATION_LEARNINGS F-2026-05-14-02. |
 | F-075 | Sunset Lovable + white-glove migration of 2 active users | System | Should Have | M | Phase 2 | D-2026-05-14: 49 Lovable sign-ups, only 2 active per admin (verified 2026-05-14). **White-glove approach (Adi choice 2026-05-14):** (1) Adi/CC manually create accounts in mobile Supabase using the 2 users' emails; (2) set `is_lifetime_access=true`; (3) send personal email "your BUFF account is ready, set your password here"; (4) NO automated data migration — they re-onboard fresh kids/family in the mobile app; (5) decommission Lovable infra after both users confirm switchover. Trigger: after MVP stable in production + 30-day observation. Effort S→M to cover white-glove ops + email drafting. |
+| F-076 | Parent Capture — share message/email/photo → AI structured tasks/events → transfer to child (the "parent half" of BUFF / mental-load layer) | Parent | Out | XL | Phase 2 — exploring | D-2026-06-05 (PM brainstorm with Adi): drafted, **NOT approved**. Feasibility proven on Gemini Flash (Hebrew text + WhatsApp photo + roster auto-assign). Market scan: combination is **white space** (kid-EF apps don't capture; parent-capture apps don't have a kid engine / transfer); Milo died Jan 2026 → position as the *transfer/family pipeline*, not "AI capture" (commodity). Superset of F-025 (schedule parsing) + F-024 (daily summary). Full strategy + detailed spec: `docs/sessions/parent-capture/DECISION.md` + `SPEC.md`. **Two hard gates before build (Adi's call): (1) now-vs-V-next focus; (2) Gemini dependency + children's-app privacy approval.** |
 
 
 ## Summary Counts
@@ -97,6 +98,6 @@ Effort scale: S = 1-2 days, M = 3-5 days, L = 1-2 weeks, XL = 2+ weeks
 | Must Have | 36 | Yes — all |
 | Should Have | 12 | Yes — include |
 | Nice to Have | 1 | If time allows |
-| Out / Phase 2 | 11 | No — Phase 2 |
+| Out / Phase 2 | 12 | No — Phase 2 |
 
 BUFF Feature Prioritization v1.0 — Confidential
