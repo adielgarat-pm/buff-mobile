@@ -43,6 +43,10 @@ create unique index if not exists uq_reward_redemptions_open_per_reward
 -- ─── 2. RLS (mirrors child_suggestions) ─────────────────────────────────────
 alter table public.reward_redemptions enable row level security;
 
+-- Base table privileges for the client roles. RLS filters ROWS, but the GRANT
+-- is still required or the client gets permission-denied (mirrors child_suggestions).
+grant select, insert, update, delete on public.reward_redemptions to authenticated, anon;
+
 create policy "Family members can create redemption requests"
   on public.reward_redemptions for insert
   with check (family_id = get_my_family_id());
