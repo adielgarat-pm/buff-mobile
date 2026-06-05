@@ -22,6 +22,7 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Nex
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
 | 2026-06-04 | #157 / `62e31bd` | fix | Parent notification bell now sits clear of the screen title in Hebrew (RTL position) | Train | yes | F18 (i18n + Hebrew RTL) |
+| 2026-06-05 | #161 | feat | Notification bell shows only new/unread items; read items and stale INFO age out (no old-read clutter); explicit clear, no auto-mark-on-open | Train | yes | F8/F11 (parent notif feed) — ⚠️ show-new behavior has no dedicated scenario yet (coverage gap) |
 
 ### Departure check (update when proposing a cut)
 - Days since last release: _N_  (trigger: ~14)
