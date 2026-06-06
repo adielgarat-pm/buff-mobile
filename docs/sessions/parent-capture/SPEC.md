@@ -299,10 +299,17 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS grade_level text NULL;
 
 ## Risks
 
+> Risk ratings refined 2026-06-05 after an architect-hat review with Adi (the teen/Itai deepening). See §"v2 — Teen / operator-based capture" for the design resolutions.
+
 - **Dependency approval gate** — no Gemini, no product. Adi sign-off on vendor + privacy is a hard precondition (not CC's call).
+- **🟠 Identity gravity (resolved-by-design, hold the line)** — capture is *logistics* value, which is stickier than BUFF's *development* value and can pull the product toward Camp B (the Milo graveyard). **Resolution:** the parent surface is an **offer-help / awareness feed, NOT a task list**, and capture is always **subordinate to transfer**. The moment it becomes "stay on top of logistics forever," the identity is lost. This is a standing design constraint, not a one-time check.
+- **🟡 Third-party PII (bounded by evidence)** — Adi reviewed a year of her teacher/activity group messages (2026-06-05): broadcast text is general, **no child names**. Residual vectors are narrow: **photos** containing class rosters / sign-up lists / invitations, and **forwarded other-parent messages**. Mitigation: redaction on images + a legal sanity-check of Gemini terms. Downgraded from model-killer to manageable.
+- **🟠 Scaffold-vs-replace (the teen knife-edge)** — the capture *is* the executive-function exercise (reviewing N groups, dropping nothing, structuring). If the AI does the whole cognitive job and the teen just taps Confirm, the EF rep is *removed* → dependency, and the teen never outgrows it (re-opens the "never fades" risk). **The tool must reduce overwhelm while keeping the teen doing the review — body-double, not butler.** THE design decision for the teen flow.
 - **Privacy posture** — children's app + LLM ingestion. Mishandled disclosure could damage the trust that is BUFF's *advantage*. Treat §Privacy as load-bearing, not boilerplate.
 - **Confirmation fatigue** — if too much needs manual confirmation, load shifts rather than reduces (OQ-C14). The roster auto-assign + confidence are the mitigations; measure.
-- **Pillar-3 ambers** — Q1.3 (transfer can feel imposed) and Q3.2 (kid voice) must be resolved in copy + by pairing with `child-suggest`. Don't ship a silent pass.
+- **Pillar-3 ambers — RESOLVED in design** — Q3.2 (kid voice) is resolved by the teen operating capture himself (child→parent flow); Q1.3 (transfer can feel imposed) by the offer-help framing + kid-voice copy. Re-verify against built behavior at exit.
+- **Two-masters governance** — a parent-utility surface gives every future scope-creep a "but it helps the parent" escape hatch, eroding the Values Check as a forcing function. Guardrail: parent features still must pass "does this ultimately serve the child's independence?"
+- **AI-error blast radius** — a wrong parse in a *trust* product ("BUFF told my kid the wrong test date") is costlier than in a standalone calendar. The confirm-gate is existential, not cosmetic; never auto-act on AI output; AI-only items never drive reward/penalty without human confirmation.
 - **Focus / scope creep** — the moment v1 reaches for inbox monitoring, it becomes a quarter-eating bet (DECISION §7). The cut *is* the discipline.
 - **Existing-schema unknowns** — child task insert path + day-filtering (`project_task_day_filtering`) may complicate transfer. Phase 0 de-risks.
 - **Android share intent in managed Expo** — may need a config plugin; verify Phase 0 before promising.
@@ -354,10 +361,45 @@ Branch off main as pkg/parent-capture. No code until Adi approves Phase 0.
 
 ---
 
+## v2 — Teen / operator-based capture (design refinements 2026-06-05)
+
+> The same engine, routed by **who operates it**. v1 builds parent-capture only; this section locks the architecture so v1's data model anticipates it (cheap now, expensive to retrofit). **Build = v2, after v1 parent-flow is proven.**
+
+**One engine, family graph routes by (operator × owner × needs-help):**
+
+| Operator | Item kind | Routes to |
+|---|---|---|
+| Parent | parent's / child's | parent "This Week" / transfer to child |
+| **Child (teen)** | **own task** | proposal → **existing parent-approval flow** (F-015/F-036) |
+| **Child (teen)** | **needs parent help** | parent's offer-help surface: "I need you for this" |
+
+**Operator detection** is already known from session identity (ChildJoin = child; parent session = parent). Residual edge case: **View-as-Child** (parent in the child shell) — OQ for v2.
+
+**The real-world shape (Itai, 15 — grounding):**
+- **Webtop = outcomes** (grades, behavior, school→parent messages). Parents already have sanctioned access. **BUFF does NOT touch this** — it is *not* a grade-surveillance channel.
+- **Per-subject WhatsApp teacher groups = obligations** (homework, test material, deadlines). This info lives **only with the teen**; at 15, the parent can't ask for the phone. **This is the gap BUFF fills.**
+- The "review my groups and extract the tasks" job is one Adi *already* assigns Itai manually (broken into per-subject because it's hard for him). The tool scaffolds exactly that.
+
+**Why this resolves surveillance:** the capture is the teen's **own rewarded task** (he earns BUFFs for doing the EF review); parent visibility is the **normal task-visibility that already exists for every BUFF task**, not a new monitoring feed. "If I see a task he's not meeting, like any other task, I come to him." Capture **obligations, not outcomes**; the teen sees what the parent sees (no secret feed).
+
+**The knife-edge (see Risks → Scaffold-vs-replace):** the tool must reduce the *overwhelm* of facing N noisy groups while keeping the teen doing the cognitive review. Body-double, not butler. If the AI does it all, the EF rep is removed and dependency is created.
+
+**Interaction shape differs from the parent flow:** parent = ad-hoc single share. Teen = **periodic sweep of N noisy subject groups** (heavier; more friction — forward each group? screenshot each?). So the teen flow is **not** "just a new input to the existing approve-flow" — it is a larger build. Reinforces teen = v2.
+
+**Future structured source (note, not scope):** Webtop is structured and parent-accessible — a far cleaner ingestion target than noisy WhatsApp — but it carries outcomes; revisit deliberately.
+
+---
+
+## Implementation plan, estimates & timing
+
+See **`IMPLEMENTATION_PLAN.md`** (same folder) — phase-by-phase effort + token estimates, the de-risked-vs-gated split (what can be built **without** the Gemini/privacy decision), the 14-day tester-window analysis, and the timing recommendation.
+
+---
+
 ## The open gate (restated)
 
 This package is **drafted, not greenlit.** Two doors must open first, both Adi's:
-1. **Now or V-next?** (focus call — DECISION §7).
+1. **Now or V-next?** (focus call — DECISION §7; see IMPLEMENTATION_PLAN § Timing).
 2. **Gemini dependency + privacy posture** approval.
 
 Until both, this stays a Plan-Mode artifact.
