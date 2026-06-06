@@ -4,8 +4,8 @@
 
 | Phase | State | Date | Commit | Tests | Learnings |
 |---|---|---|---|---|---|
-| SPEC (Lovable-mirrored) | drafted, awaiting approval | 2026-06-06 | 468a3e2→(revised) | — | — |
-| 1 — RPC + premium | not started | — | — | — | — |
+| SPEC | drafted + approved | 2026-06-06 | d3d34bf | — | — |
+| 1 — RPC + premium | ✅ complete | 2026-06-06 | (this commit) | tsc clean · Jest 334/334 · RPC live | IN-2026-06-06-01 |
 | 2 — Join UI + i18n | not started | — | — | — | — |
 
 **Decisions locked (Adi, 2026-06-06):** reuse existing family code · equal co-parent · family-wide premium — all satisfied by porting Lovable's `switch_user_family` model.
