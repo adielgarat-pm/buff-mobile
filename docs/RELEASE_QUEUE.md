@@ -26,6 +26,7 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Nex
 | 2026-06-05 | #161 / `df0719b` | feat | Parent notification bell shows an unread-only "show-new" feed with INFO-recency ordering; no auto-mark-read on open | Train | yes | F8 (parent notification feed) — not yet smoke-tested in a build |
 | 2026-06-05 | #165 / `ab6f3f2` | feat | Kids redeem rewards with parent approval; BUFFs deducted atomically on approval (previously a no-op — redemption never deducted) | Train | yes | Rewards/Redemption — Hat-3 verified ⚠️ no F-suite yet |
 | 2026-06-06 | PR #170 / `bcdb8cb` | fix | Cash-reward currency symbol now follows app language: Hebrew → ₪ always (was showing £ in Hebrew UI on phones whose device language is English-UK; reported by Tamar) | Train | yes | Rewards / cash-conversion modal |
+| 2026-06-06 | `pkg/child-vault-write-rls` (PR TBD) | fix | Own-device kids' BUFFs now persist: surface (not swallow) credit_vault write errors. **Server-side fix already live** (RLS policy `Children can manage own vault` + Alon backfill) — no build needed for users to recover; this row is the code-side regression guard only. Reported by Tamar (Alon showed 0 BUFFs) | Train | no (guard) | Rewards / BUFFs balance — Hat-3 own-device child completion → reload persists |
 
 ### Departure check (proposed cut — 2026-06-05)
 - Days since last release: **2** (1.2.0(28) cut 2026-06-03) — below the ~14d trigger
