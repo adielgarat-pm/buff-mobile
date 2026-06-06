@@ -1,12 +1,15 @@
 /**
- * ParentNotificationBell — floating bell button rendered above all parent tabs.
+ * ParentNotificationBell — inline bell button for parent screen headers.
  *
  * Source SPEC: docs/sessions/parent-notification-feed/SPEC.md § Phase 2.
  *
  * Design decisions (locked):
- *   - Positioned absolutely top-right (OQ-B1: visible on all 5 tabs)
- *     Adapted from "headerRight" pattern since ParentTabs has headerShown=false
- *     and existing screens have their own content padding-top.
+ *   - Inline header element (OQ-B1: visible on all 5 tabs). It lives inside each
+ *     screen's header row — usually inside <HeaderActions> next to the screen's
+ *     primary "+" action — so layout (flex) keeps it in its own slot and it can
+ *     never overlap another control. RTL is handled by the header's flex row,
+ *     not by absolute `left`/`right` (see IN-2026-06-04-01 for why the old
+ *     floating overlay collided with corner action buttons in both directions).
  *   - Numeric unread badge, max "99+" (OQ-B10)
  *   - Theme-accent color (NOT red — Pillar-2 risk per OQ-B10)
  *   - Hidden when count = 0 (OQ-B10) and when parent has 0 children (OQ-B15)
@@ -20,7 +23,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useNotificationsFeed } from '../../hooks/useNotificationsFeed';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
@@ -33,7 +35,6 @@ interface NavigationLike {
 export const ParentNotificationBell: React.FC = () => {
   const { unreadCount } = useNotificationsFeed();
   const { children } = useChildrenDashboard();
-  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const navigation = useNavigation<NavigationLike>();
 
@@ -56,46 +57,29 @@ export const ParentNotificationBell: React.FC = () => {
   };
 
   return (
-    <View
-      style={[styles.container, { top: insets.top + 8 }]}
+    <Pressable
+      onPress={handlePress}
+      accessibilityRole="button"
+      accessibilityLabel={a11yLabel}
+      style={({ pressed }) => [
+        styles.bell,
+        pressed && styles.bellPressed,
+      ]}
+      hitSlop={12}
     >
-      <Pressable
-        onPress={handlePress}
-        accessibilityRole="button"
-        accessibilityLabel={a11yLabel}
-        style={({ pressed }) => [
-          styles.bell,
-          pressed && styles.bellPressed,
-        ]}
-        hitSlop={12}
-      >
-        <Ionicons name={iconName} size={22} color={PARENT_THEME.text} />
-        {unreadCount > 0 && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{badgeLabel}</Text>
-          </View>
-        )}
-      </Pressable>
-    </View>
+      <Ionicons name={iconName} size={22} color={PARENT_THEME.text} />
+      {unreadCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{badgeLabel}</Text>
+        </View>
+      )}
+    </Pressable>
   );
 };
 
 const BADGE_BG = PARENT_THEME.accent;
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    // Plain `right` (not logical `end`) so React Native's default
-    // swapLeftAndRightInRTL flips it for us: physical right in LTR (English),
-    // physical left in RTL (Hebrew) — opposite the flex-start title/greeting,
-    // so it never overlaps. The logical `end` did NOT flip reliably in this
-    // build, which is why the bell used to sit on the title in Hebrew.
-    right: 16,
-    zIndex: 100,
-    // Container sized to its child (bell, 40x40). The bell itself
-    // captures presses; the rest of the screen below is unaffected.
-    pointerEvents: 'box-none',
-  },
   bell: {
     width: 40,
     height: 40,

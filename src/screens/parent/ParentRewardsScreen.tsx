@@ -20,6 +20,7 @@ import { pickI18nColumn, bilingualForDb } from '../../lib/i18nString';
 import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
 import { usePendingRedemptions, type RewardRedemption } from '../../hooks/useRewardRedemptions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
+import { HeaderActions } from '../../components/parent/HeaderActions';
 import {
   MONEY_CONVERSION_REWARD,
   MONEY_MOTIVATOR_ID,
@@ -287,13 +288,11 @@ export default function ParentRewardsScreen() {
     <View style={[styles.container, { backgroundColor: T.bg }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: T.text }]}>{t('parentRewards.title')}</Text>
-        <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: T.accent }]}
-          onPress={openModal}
-          disabled={!selectedChildId}
-        >
-          <Text style={styles.addBtnText}>{t('parentRewards.addBtn')}</Text>
-        </TouchableOpacity>
+        <HeaderActions
+          onAction={openModal}
+          actionDisabled={!selectedChildId}
+          actionA11yLabel={t('parentRewards.addBtn')}
+        />
       </View>
 
       {/* Child selector */}
@@ -594,8 +593,6 @@ const styles = StyleSheet.create({
   container:     { flex: 1 },
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 52, paddingBottom: 12 },
   title:         { fontSize: 24, fontWeight: '700' },
-  addBtn:        { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
-  addBtnText:    { color: '#fff', fontWeight: '600', fontSize: 14 },
   childSelector: { paddingHorizontal: 16, marginBottom: 12, maxHeight: 60 },
   childTab:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 10, backgroundColor: '#F3F4F6', gap: 6 },
   childTabEmoji: { fontSize: 16 },

@@ -19,6 +19,7 @@ import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 import PauseModeCard from '../../components/PauseModeCard';
 import LanguagePickerModal from '../../components/LanguagePickerModal';
+import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 interface SettingsRow {
@@ -150,7 +151,10 @@ export default function ParentSettingsScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: T.bg }]} contentContainerStyle={styles.content}>
-      <Text style={[styles.pageTitle, { color: T.text }]}>{t('settings.pageTitle')}</Text>
+      <View style={styles.headerRow}>
+        <Text style={[styles.pageTitle, { color: T.text }]}>{t('settings.pageTitle')}</Text>
+        <ParentNotificationBell />
+      </View>
 
       {/* Avatar */}
       <View style={[styles.profileCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
@@ -252,7 +256,8 @@ export default function ParentSettingsScreen() {
 const styles = StyleSheet.create({
   container:    { flex: 1 },
   content:      { padding: 20, paddingTop: 52, paddingBottom: 40 },
-  pageTitle:    { fontSize: 28, fontWeight: '700', marginBottom: 20 },
+  headerRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  pageTitle:    { fontSize: 28, fontWeight: '700' },
   profileCard:  { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1, gap: 14 },
   avatar:       { width: 52, height: 52, borderRadius: 26, justifyContent: 'center', alignItems: 'center' },
   avatarText:   { color: '#fff', fontSize: 22, fontWeight: '700' },
