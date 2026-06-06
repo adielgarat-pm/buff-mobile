@@ -26,6 +26,10 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Nex
 | 2026-06-05 | #161 / `df0719b` | feat | Parent notification bell shows an unread-only "show-new" feed with INFO-recency ordering; no auto-mark-read on open | Train | yes | F8 (parent notification feed) — not yet smoke-tested in a build |
 | 2026-06-05 | #165 / `ab6f3f2` | feat | Kids redeem rewards with parent approval; BUFFs deducted atomically on approval (previously a no-op — redemption never deducted) | Train | yes | Rewards/Redemption — Hat-3 verified ⚠️ no F-suite yet |
 | 2026-06-06 | PR #170 / `bcdb8cb` | fix | Cash-reward currency symbol now follows app language: Hebrew → ₪ always (was showing £ in Hebrew UI on phones whose device language is English-UK; reported by Tamar) | Train | yes | Rewards / cash-conversion modal |
+| _pending merge_ | PR #179 | feat | Second parent (partner) joins an existing family via the family code in Settings — full equal co-parent; premium becomes family-wide (migration 020 `switch_user_family`); requested by Tamar | Train | yes | Auth + Settings "Join Family" — Hat-4: real 2nd Google account, two devices |
+
+### 📣 Post-ship notifications — tell the user when it lands
+- **Tamar** — co-parent join (PR #179): she asked whether her partner can join with his own Google + the family code. **When the build carrying #179 ships to Play, message her** that it's live + the how (partner signs in with Google → Settings → "Join Family" → enter family code). Draft ready (2026-06-06). Until then she can't do it on her installed mobile build.
 
 ### Departure check (proposed cut — 2026-06-05)
 - Days since last release: **2** (1.2.0(28) cut 2026-06-03) — below the ~14d trigger
