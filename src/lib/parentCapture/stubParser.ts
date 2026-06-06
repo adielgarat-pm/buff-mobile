@@ -137,9 +137,10 @@ export async function stubParse(
     },
   ];
 
-  // For an image input, return just the homework item (mirrors the verified
-  // single-item extraction from a WhatsApp photo, 2026-06-05).
-  if (input.kind === 'image') return [items[2]];
+  // For a file input (PDF / Word / Excel / image), return just the homework
+  // item (mirrors the verified single-item extraction from a WhatsApp photo,
+  // 2026-06-05). The real parser will branch on mimeType.
+  if (input.kind === 'file') return [items[2]];
 
   return items;
 }

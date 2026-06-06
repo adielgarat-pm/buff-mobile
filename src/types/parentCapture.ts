@@ -74,12 +74,15 @@ export interface ParentItem {
   createdAt: string; // ISO
 }
 
-export type CaptureInputKind = 'text' | 'image';
+export type CaptureInputKind = 'text' | 'file';
 
 export interface CaptureInput {
   kind: CaptureInputKind;
   text?: string;
-  imageUri?: string;
+  /** Any file: PDF, Word, Excel, image, etc. */
+  fileUri?: string;
+  fileName?: string;
+  mimeType?: string;
   /** Best-effort timestamp the source message was sent (anchors relative dates). */
   messageSentAt?: string;
 }

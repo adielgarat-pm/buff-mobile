@@ -22,7 +22,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
-import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { PARENT_THEME as T } from '../../theme';
@@ -44,26 +44,33 @@ export default function CaptureScreen() {
 
   const [step, setStep] = useState<'input' | 'review'>('input');
   const [text, setText] = useState('');
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [file, setFile] = useState<{ uri: string; name: string; mimeType: string | null } | null>(
+    null,
+  );
   const [parsing, setParsing] = useState(false);
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [saving, setSaving] = useState(false);
 
-  const canRead = text.trim().length > 0 || !!imageUri;
+  const canRead = text.trim().length > 0 || !!file;
 
-  async function pickImage() {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return;
-    const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.7 });
-    if (!res.canceled && res.assets[0]) setImageUri(res.assets[0].uri);
+  async function pickFile() {
+    // Any file: PDF, Word, Excel, image, etc.
+    const res = await DocumentPicker.getDocumentAsync({
+      type: '*/*',
+      copyToCacheDirectory: true,
+    });
+    if (!res.canceled && res.assets?.[0]) {
+      const a = res.assets[0];
+      setFile({ uri: a.uri, name: a.name, mimeType: a.mimeType ?? null });
+    }
   }
 
   async function onRead() {
     if (!canRead) return;
     setParsing(true);
     try {
-      const input: CaptureInput = imageUri
-        ? { kind: 'image', imageUri }
+      const input: CaptureInput = file
+        ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
         : { kind: 'text', text };
       const parsed = await stubParse(input);
       const next: ReviewEntry[] = parsed.map((p) => {
@@ -152,13 +159,14 @@ export default function CaptureScreen() {
           <View style={styles.actionsRow}>
             <TouchableOpacity
               style={[styles.secondaryBtn, { borderColor: T.cardBorder }]}
-              onPress={pickImage}
+              onPress={pickFile}
             >
-              <Text style={[styles.secondaryText, { color: T.accent }]}>
-                {imageUri ? t('capture.imageChosen') : t('capture.pickImage')}
+              <Text style={[styles.secondaryText, { color: T.accent }]} numberOfLines={1}>
+                {file ? t('capture.fileChosen', { name: file.name }) : t('capture.pickFile')}
               </Text>
             </TouchableOpacity>
           </View>
+          <Text style={[styles.fileHint, { color: T.textMuted }]}>{t('capture.fileHint')}</Text>
 
           <TouchableOpacity
             style={[styles.primaryBtn, { backgroundColor: canRead ? T.accent : T.cardBorder }]}
@@ -251,6 +259,7 @@ const styles = StyleSheet.create({
   actionsRow: { flexDirection: 'row', marginTop: 12 },
   secondaryBtn: { borderWidth: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16 },
   secondaryText: { fontSize: 14, fontWeight: '600' },
+  fileHint: { fontSize: 12, marginTop: 8 },
   primaryBtn: {
     borderRadius: 12,
     paddingVertical: 14,

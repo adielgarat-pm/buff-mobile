@@ -30,7 +30,7 @@ The product's defensible core is the **transfer** (capture-in-order-to-graduate-
 
 | In v1 | Explicitly deferred |
 |---|---|
-| **Share-to-parse**: one manual share (text or image) from Android share sheet → BUFF | Always-on inbox / WhatsApp / email **monitoring** (this is what killed Milo + is the commodity) |
+| **Share-to-parse**: one manual share (text or any file — PDF/Word/Excel/image) from Android share sheet → BUFF | Always-on inbox / WhatsApp / email **monitoring** (this is what killed Milo + is the commodity) |
 | In-app **paste/upload** capture entry | Auto channel→child mapping ("this WhatsApp group = Emi's class") |
 | Server-side **Gemini parse** with family-roster context | Collective / network ("all class parents get it") |
 | **Confirm card** (review/edit/discard, owner toggle) | A full **calendar grid** view |
@@ -48,7 +48,7 @@ The product's defensible core is the **transfer** (capture-in-order-to-graduate-
 | `public.notifications` + parent navigator header | ✅ if `pkg/parent-notification-feed` shipped | The "This Week" surface reuses the parent header/bell pattern and parent-only RLS conventions. Phase 0 checks whether the feed package has merged. |
 | `tasks` / child task loop | ✅ exists (schema unverified here) | Transferred child items become normal child tasks/events. **Phase 0 must read the real schema** — column names, owner/assignee model, day-filtering (see `project_task_day_filtering`). |
 | Family roster (children: name, age, grade) | 🟡 partially exists | Profiles have children; **grade/שכבה may not be a stored field today.** Phase 0 verifies; if absent, §Schema adds `profiles.grade_level` (additive). The roster is what powers auto-assign — without it the value drops (DECISION §4). |
-| Android share intent registration | ❌ new | Expo config plugin / `intentFilters` in `app.json` for `text/plain` + `image/*`. Verify managed-workflow support in Phase 0. |
+| Android share intent registration | ❌ new | Expo config plugin / `intentFilters` in `app.json` for `text/plain` + files (`*/*`: PDF/Word/Excel/image). Verify managed-workflow support in Phase 0. |
 | Gemini API key secret | ❌ new | EAS secret + Supabase Edge Function env. Never in client bundle. |
 
 ---
@@ -89,7 +89,7 @@ A parent, mid-stream in WhatsApp/email/photos, can:
 
 **Scenario A — Share from another app (Android)**
 1. Parent long-presses a WhatsApp message / photo → Share → **BUFF**.
-2. BUFF opens to a Capture screen with the shared payload (text or image) pre-loaded.
+2. BUFF opens to a Capture screen with the shared payload (text or any file) pre-loaded.
 3. Parent taps "Read it" → request goes to the `parse-capture` Edge Function (text or base64 image + roster + today's date + best-effort message-sent-date).
 4. Confirm card renders the extracted items (Scenario C).
 
@@ -222,8 +222,8 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS grade_level text NULL;
 
 ## Entry points
 
-1. **Android share target** — `app.json` `intentFilters` for `text/plain` and `image/*` → deep link into Capture screen. Phase 0 verifies Expo managed-workflow feasibility; if it needs a config plugin, that's in-scope (no new npm runtime dep, just build config) — but flag to Adi.
-2. **In-app capture** — a "+ Capture" affordance in the parent nav (location = OQ-C2): paste text / pick image.
+1. **Android share target** — `app.json` `intentFilters` for `text/plain` and files (`*/*`) → deep link into Capture screen. Phase 0 verifies Expo managed-workflow feasibility; if it needs a config plugin, that's in-scope (no new npm runtime dep, just build config) — but flag to Adi.
+2. **In-app capture** — a "+ Capture" affordance in the parent nav (location = OQ-C2): paste text / **pick any file** (PDF/Word/Excel/image) via `expo-document-picker` (already installed — zero new dep).
 
 ---
 
@@ -250,7 +250,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS grade_level text NULL;
 | OQ-C8 | Stale/past items | **Auto-archive past-dated; never in "This Week"** | HIGH — recency was a real failure mode in testing. |
 | OQ-C9 | Parent visibility of a transferred item's status | **Muted "handed to {child}" state; NO seen/done receipt from the kid** | MED-HIGH — Pillar 3; mirrors `parent-notification-feed` OQ-B8 (no surveillance). |
 | OQ-C10 | Cost guardrail | **Per-family daily capture cap (e.g. 30/day) + Flash model** | MED — prevents runaway spend / abuse; tune after real usage. |
-| OQ-C11 | Image handling | **Send to multimodal Flash server-side; downscale before upload** | MED — bandwidth + cost; Phase test on messy/handwritten. |
+| OQ-C11 | File handling | **Any file (PDF/Word/Excel/image) via `expo-document-picker`; send to multimodal Flash server-side, branch on mimeType; downscale images before upload** | MED — bandwidth + cost; Phase test on messy/handwritten + multi-page docs. |
 | OQ-C12 | Child-item insert path | **Reuse existing child task/event creation path, not a parallel one** | HIGH — avoid a second source of truth; respects existing day-filter logic. |
 | OQ-C13 | `grade_level` source | **Ask once at child setup / infer from age; store on profile** | MED — roster auto-assign needs it; additive column. |
 | OQ-C14 | Confirm-card friction | **Show all items; one bulk Confirm; low-confidence flagged but not blocking** | HIGH — avoid moving "remember" load into "review a queue" fatigue (DECISION risk). |
