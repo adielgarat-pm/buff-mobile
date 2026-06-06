@@ -142,6 +142,35 @@ Strength rating: 5/5 — long-form, validates 2 pillars by name, from canonical 
 
 ---
 
+## 2B. Inbound from parents (T005+)
+
+עדויות שהגיעו ספונטנית מהורים (וואטסאפ / הודעה ישירה). הצילומים הגולמיים נשמרים ב-[`proof-of-value/`](proof-of-value/README.md). **consent לפרסום דורש אימות נפרד מול השולח — הסכמה בעל-פה ≠ אישור פרסום ממומן.**
+
+### T005 — Tamar (about her son Alon)
+
+```
+ID: T005
+Quote (HE, original): "חייבת לשתף אותך. הצגתי היום לאלון את האפליקציה והוא ממש התלהב מאוד הלהיב אותו שזה buffs. הוא עכשיו כיבה את המסך ב-18, כפי שסיכמנו, וסימן הצלחה וישר שיתף בהתלהבות חבר שאצלו 😍 החבר התלהב ושאל איך קוראים לאפליקציה"
+Quote (EN, translated): "I have to share this with you. I showed Alon the app today and he was really excited — what got him excited was the buffs. He just turned off the screen at 18:00, exactly as we agreed, and marked it a success, and immediately shared it enthusiastically with a friend of his 😍 The friend got excited and asked what the app is called."
+Speaker:
+  - First name: Tamar (parent)
+  - Child: Alon
+  - Geo: IL
+Date collected: 2026-06-06 (via WhatsApp to Adi)
+Consent status:
+  - ✅ FULL CONSENT (Tamar, 2026-06-06): first name "Tamar" OK, child name "Alon" OK, ALL channels incl. paid ads + Play Store. Internal caveat still holds: never pair a child's name with a child's photo (N/A here — text quote only). Screenshot verified PII-clean.
+Persona tag: P1 (Exhausted Morning Parent) — but the proof is child-side engagement
+Pillar tag: ALL THREE — Intrinsic Motivation (he was excited, not pushed) + Independence-Building (he turned off the screen himself at the agreed time, marked his own success) + Positive Coaching (no screen-time fight)
+Pain it speaks to: "Screen-time battles" + "Will my kid actually want to use it?" (BUFF_MESSAGING §4)
+Where it's used:
+  - Currently: unused (raw proof in proof-of-value/PV-001)
+  - Recommended: Reels (kid-engagement angle), Independence-pillar ad copy, forum reply to "does it actually work?"
+Strength rating: 5/5 — hits all 3 pillars + documents an organic word-of-mouth loop (friend asked the app's name)
+Raw proof: proof-of-value/screenshots/PV-001_tamar_alon.png (PV-001)
+```
+
+---
+
 ## 3. Slots to Fill — חיפוש פעיל לעדויות חסרות
 
 המסמך מקיף **9 פרסונות** ו-**3 פילרים**, אבל יש לנו עדות אחת. הטבלה למטה היא רשימת ה-gaps. כל gap הוא קמפיין שיווקי חסר נשק.
