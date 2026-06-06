@@ -14,6 +14,18 @@
 
 ## Implementation Notes
 
+### IN-2026-06-06-01: The notification bell's "always opposite the title" fix was incomplete — a floating overlay can't share a corner with a screen action; made it an inline header element
+
+- **תאריך:** 2026-06-06
+- **מקור:** CC — Adi reported the bell overlapping the **"+ Add Task"** button on the parent Tasks tab (screenshot), and asked to "solve it once and for all" for English + Hebrew.
+- **תיאור (why the prior fix was incomplete):** [IN-2026-06-04-01](#in-2026-06-04-01-rtl-position-bug--leftright-are-auto-swapped-by-rn-but-the-logical-end-did-not-flip-reliably-plus-a-parallel-session-stash-incident) landed `right: 16` on the **floating** bell with the reasoning "always physical-opposite the flex-start title." That only holds on screens whose trailing corner is empty. **Tasks / Rewards / Timetable** put their primary action (`+ Add Task`, `+ Add Reward`, `Update`) in that same trailing corner, so the bell floated on top of it. It collides in **both** directions: native RTL swaps the overlay (`right`→physical-left) **and** flips the header row, so the bell and the action land on the same physical side again. A floating overlay is fundamentally blind to per-screen layout — no `left`/`right` value can fix a shared corner.
+- **תיאור (fix):** stop floating. `ParentNotificationBell` is now a plain inline element (no `position:absolute`/`zIndex`/insets). It lives in each screen header's trailing **action cluster**, so flex layout gives it its own slot and direction is handled by the row (no absolute hacks). New [`HeaderActions`](../src/components/parent/HeaderActions.tsx) renders the screen's primary action as a compact circular `+` button next to the bell (Tasks/Rewards). Dashboard/Settings render the bell inline; Timetable view-mode only (sub-flows bell-free). Global floating bell removed from `ParentTabs`.
+- **תיאור (gotcha):** on Dashboard/Settings the header is inside a `ScrollView`, so the inline bell now scrolls with the page instead of staying pinned (standard top-bar behavior, accepted). Tasks/Rewards/Timetable headers are fixed.
+- **השפעה:** replaces the floating-overlay pattern for the bell. Future headers should add the bell via `HeaderActions` (or inline), never as an absolute overlay.
+- **Verified by CC (code layer):** `tsc --noEmit` clean. **Pending Adi Hat-4** (auth-gated parent screens): EN + Hebrew, RTL via cold relaunch (`forceRTL`), not just a language toggle.
+- **סטטוס:** `code-complete-pending-Hat-4` — `pkg/bell-header-cluster` (commit `f5da272`), [PR #173](https://github.com/adielgarat-pm/buff-mobile/pull/173).
+- **קשור ל:** `ParentNotificationBell.tsx`, `HeaderActions.tsx`, `ParentTabs.tsx`, the 5 parent tab screens; supersedes the floating-overlay approach in IN-2026-06-04-01.
+
 ### IN-2026-06-04-02: Child-login duplicate accounts — root cause was name-keyed credentials (NOT "random"), fixed via pick-from-list keyed on profiles.id
 
 - **תאריך:** 2026-06-04
