@@ -11,6 +11,7 @@ import {
   Modal, View, Text, TouchableOpacity,
   ActivityIndicator, StyleSheet,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../theme';
 import type { UnlinkedChild, LinkableProfile } from '../hooks/useUnlinkedChildren';
 
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export default function LinkChildModal({ unlinkedChild, linkable, onLink, onDismiss }: Props) {
+  const { t } = useTranslation();
   const [linking, setLinking] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
 
@@ -46,11 +48,11 @@ export default function LinkChildModal({ unlinkedChild, linkable, onLink, onDism
         <View style={[styles.sheet, { backgroundColor: T.card }]}>
 
           <Text style={[styles.title, { color: T.text }]}>
-            ילד חדש הצטרף! 🎉
+            {t('linkChild.title')}
           </Text>
           <Text style={[styles.sub, { color: T.textMuted }]}>
             <Text style={{ fontWeight: '700', color: T.text }}>{unlinkedChild.displayName}</Text>
-            {' '}הצטרף עם קוד המשפחה.{'\n'}מי זה?
+            {' '}{t('linkChild.subSuffix')}
           </Text>
 
           {linkable.length > 0 ? (
@@ -63,7 +65,7 @@ export default function LinkChildModal({ unlinkedChild, linkable, onLink, onDism
                   disabled={linking}
                 >
                   <Text style={[styles.optionText, { color: T.accent }]}>
-                    זה {profile.displayName}
+                    {t('linkChild.thisIs', { name: profile.displayName })}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -74,20 +76,20 @@ export default function LinkChildModal({ unlinkedChild, linkable, onLink, onDism
                 disabled={linking}
               >
                 <Text style={[styles.optionText, { color: T.textMuted }]}>
-                  ילד חדש — אגדיר אותו בנפרד
+                  {t('linkChild.newChildSeparate')}
                 </Text>
               </TouchableOpacity>
             </>
           ) : (
             <>
               <Text style={[styles.hint, { color: T.textMuted }]}>
-                עדיין לא הגדרת ילדים. לחץ "הוסף ילד" בדשבורד כדי להגדיר.
+                {t('linkChild.noChildrenHint')}
               </Text>
               <TouchableOpacity
                 style={[styles.option, { borderColor: T.cardBorder }]}
                 onPress={onDismiss}
               >
-                <Text style={[styles.optionText, { color: T.textMuted }]}>סגור</Text>
+                <Text style={[styles.optionText, { color: T.textMuted }]}>{t('common.close')}</Text>
               </TouchableOpacity>
             </>
           )}
