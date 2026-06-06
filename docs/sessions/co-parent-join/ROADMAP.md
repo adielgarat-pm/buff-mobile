@@ -1,45 +1,35 @@
 # co-parent-join — ROADMAP
 
-> רצף פאזות עם תנאי עצירה. CC עובד chunk-by-chunk, diff אחרי כל chunk, אישור Adi לפני הבא.
+> Mirrors Lovable. CC works chunk-by-chunk, diff after each, Adi approves before the next.
 
 ## Phase 1 — Backend RPC + family-wide premium
 
 **Scope:**
-- Add `join_family_as_parent(p_family_code text) → jsonb` via `apply_migration` (SECURITY DEFINER, `search_path=public`), including the orphaning guard (per Open Questions default).
-- Edit `useSubscription.ts`: replace `childInheritedAccess` with a family-wide `familyHasEntitlement` check so parents inherit too.
+- Port `switch_user_family(p_new_family_code text) → jsonb` from Lovable (`20260127160241_*.sql`) via `apply_migration`. Return machine error codes (not Hebrew literals). Confirm orphan-cleanup vs FK cascade for mobile tables.
+- `useSubscription.ts`: replace child-only `childInheritedAccess` with a family-wide `familyHasEntitlement` so parents inherit too.
 
 **Stop condition:**
-- RPC returns `found:true` + correct `family_id` for a valid code; `code_not_found` for a bad code; guard rejects an already-parent-with-children caller.
-- `useSubscription` regression: existing child-inherits-parent path still passes; a non-purchasing second parent in a premium family now reads `isSubscribed = true`.
+- RPC: valid code → `{success:true,new_family_id}`; bad code → `code_not_found`; same family → `already_member`; no auth → `not_authenticated`. Profile's `family_id` updated, **role unchanged**. Old empty family + its family-scoped rows removed; non-empty old family left intact.
+- `useSubscription`: existing child-inherits path still green; a non-purchasing second parent in a premium family reads `isSubscribed = true`.
 - typecheck + Jest green.
 
-## Phase 2 — Join-as-parent UI
+## Phase 2 — Join UI in settings + i18n
 
 **Scope:**
-- `AuthCallbackScreen`: Parent tap → {Create new family / Join existing family}. "Join" reveals 6-char code entry (reuse `ChildJoinScreen` visual pattern). On submit → call RPC → `refreshProfile`.
-- Error states: invalid code, code-not-found, guard-rejected — all i18n, all friendly.
-- New i18n strings (en + he).
+- Port `JoinFamilySection` → RN `JoinFamilyCard`, render in `ParentSettingsScreen` (near Family section / above Danger Zone).
+- Port `joinFamily.*` strings (en + he) from Lovable.
+- Family-code hint copy that it invites a partner.
 
 **Stop condition:**
-- On Expo web / emulator: a no-profile user can pick Parent → Join existing → enter a valid seeded family code → lands in the parent app scoped to that family, seeing its existing children.
-- "Create a new family" path unchanged (regression).
+- On Expo web / emulator: a logged-in parent enters a seeded family's code → joins it → sees that family's children; their old empty family is gone.
+- Invalid / not-found / already-member → friendly i18n errors, no crash.
+- Strings present in en + he; no RTL break (cf. bell-rtl learnings).
 - typecheck + Jest green; Values Check re-confirmed against implemented behavior.
 
-## Phase 3 — First-parent invite copy
+## Exit (after Phase 2)
 
-**Scope:**
-- Update the dashboard/settings invite card copy so the family code is understood to invite a **partner** as well as children. No new code generation, no new screen.
-- i18n (en + he).
-
-**Stop condition:**
-- Copy renders correctly in both languages; no layout/RTL break (watch Hebrew RTL per bell-rtl learnings).
-- Values Check final pass.
-
-## Exit (after Phase 3)
-
-- `STATUS.md` rows complete for all phases.
-- Canonical docs updated per `SPEC_SYNC.md`.
-- `INTEGRATION_LEARNINGS.md` entry (multi-parent now supported; security watch-item; empty-family-orphan note).
-- Add row to `docs/RELEASE_QUEUE.md` (Queued) per release-tracking-in-files.
+- `STATUS.md` complete; canonical docs per `SPEC_SYNC.md`.
+- `INTEGRATION_LEARNINGS.md`: multi-parent ported from Lovable; RLS was already family-scoped; switch-model preserves role (no escalation); orphan-cleanup approach chosen.
+- `docs/RELEASE_QUEUE.md` Queued row (release-tracking-in-files).
 - PR opened; Hat-4 (real second Google account) handed to Adi.
-- **Lovable reminder:** N/A unless buffadhd.com copy is touched (it is not in this package).
+- **Lovable Publish reminder:** N/A — this package changes the **mobile** repo only, not buffadhd.com. (The feature already lives in Lovable.)
