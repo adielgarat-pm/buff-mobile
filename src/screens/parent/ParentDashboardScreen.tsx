@@ -16,6 +16,8 @@ import {
 import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
+import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
+import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -319,8 +321,11 @@ export default function ParentDashboardScreen() {
           {/* FIX 2B */}
           <Text style={[styles.name, { color: T.text }]}>{firstName} 👋</Text>
         </View>
-        <View style={styles.previewBtn} />
+        <ParentNotificationBell />
       </View>
+
+      {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
+      <ParentCaptureEntry />
 
       {/* ── Insight card ───────────────────────────────────────────────── */}
       {insightsLoading ? (
@@ -835,8 +840,6 @@ const styles = StyleSheet.create({
   header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   greeting:     { fontSize: 14 },
   name:         { fontSize: 22, fontWeight: '700' },
-  previewBtn:   { backgroundColor: '#F3E8FF', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  previewBtnText: { color: '#6D28D9', fontSize: 13, fontWeight: '600' },
 
   // Insight card
   insightCard:       { borderRadius: 16, padding: 18, marginBottom: 24, minHeight: 80 },

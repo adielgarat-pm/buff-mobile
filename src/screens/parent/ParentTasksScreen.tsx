@@ -17,6 +17,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
+import { HeaderActions } from '../../components/parent/HeaderActions';
 import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
 import { supabase } from '../../integrations/supabase/client';
@@ -224,13 +225,11 @@ export default function ParentTasksScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.title, { color: T.text }]}>{t('parentTasks.title')}</Text>
-        <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: T.accent }]}
-          onPress={handleOpenAddTask}
-          disabled={!selectedChildId}
-        >
-          <Text style={styles.addBtnText}>{t('parentTasks.addBtn')}</Text>
-        </TouchableOpacity>
+        <HeaderActions
+          onAction={handleOpenAddTask}
+          actionDisabled={!selectedChildId}
+          actionA11yLabel={t('parentTasks.addBtn')}
+        />
       </View>
 
       {/* Child selector */}
@@ -426,8 +425,6 @@ const styles = StyleSheet.create({
   container:     { flex: 1 },
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 52, paddingBottom: 12 },
   title:         { fontSize: 24, fontWeight: '700' },
-  addBtn:        { borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7 },
-  addBtnText:    { color: '#fff', fontWeight: '600', fontSize: 14 },
   editChevron:   { fontSize: 22, fontWeight: '400', marginLeft: 4 },
   childSelector: { paddingHorizontal: 16, marginBottom: 8, maxHeight: 60 },
   childTab:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 10, backgroundColor: '#F3F4F6', gap: 6 },

@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
 
 import { PARENT_THEME as T } from '../../theme';
+import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { supabase } from '../../integrations/supabase/client';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useTimetable } from '../../hooks/useTimetable';
@@ -423,15 +424,18 @@ export default function TimetableScreen() {
       <View style={[styles.container, { backgroundColor: T.bg }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: T.text }]}>{t('timetable.title')}</Text>
-          {hasTimetable && (
-            <TouchableOpacity
-              onPress={() => setMode('choose')}
-              style={[styles.headerBtn, { backgroundColor: T.accent }]}
-            >
-              <Ionicons name="cloud-upload-outline" size={16} color="#fff" />
-              <Text style={styles.headerBtnText}>{t('timetable.updateBtn')}</Text>
-            </TouchableOpacity>
-          )}
+          <View style={styles.headerRight}>
+            {hasTimetable && (
+              <TouchableOpacity
+                onPress={() => setMode('choose')}
+                style={[styles.headerBtn, { backgroundColor: T.accent }]}
+              >
+                <Ionicons name="cloud-upload-outline" size={16} color="#fff" />
+                <Text style={styles.headerBtnText}>{t('timetable.updateBtn')}</Text>
+              </TouchableOpacity>
+            )}
+            <ParentNotificationBell />
+          </View>
         </View>
 
         {childrenLoading ? (
@@ -969,6 +973,7 @@ const styles = StyleSheet.create({
   headerBtn:     { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12,
                    paddingVertical: 6, borderRadius: 20 },
   headerBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
 
   childBar:      { paddingHorizontal: 12, paddingBottom: 8, flexGrow: 0 },
   childChip:     { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14,
