@@ -11,7 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, KeyboardAvoidingView,
-  Platform, Share,
+  Share,
 } from 'react-native';
 import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
@@ -666,7 +666,7 @@ export default function ParentDashboardScreen() {
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
           <TouchableOpacity
             style={{ flex: 1 }}
@@ -758,7 +758,7 @@ export default function ParentDashboardScreen() {
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
           <TouchableOpacity
             style={{ flex: 1 }}
