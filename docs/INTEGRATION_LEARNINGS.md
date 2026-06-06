@@ -14,7 +14,7 @@
 
 ## Implementation Notes
 
-### IN-2026-06-06-01: Co-parent (second parent) join — the data model already supported it; one RPC + family-wide premium were all that was missing
+### IN-2026-06-06-03: Co-parent (second parent) join — the data model already supported it; one RPC + family-wide premium were all that was missing
 
 - **תאריך:** 2026-06-06
 - **מקור:** CC — session `co-parent-join`. Triggered by Tamar (user) asking whether her partner can join as a second parent with his own Google account + the family code. Adi prioritized; chose to mirror the behavior the web version already shipped.
@@ -24,9 +24,38 @@
 - **תיאור (security — why this is safe):** the join is a **switch that preserves role** and the entry UI lives only in parent-only Settings, so there is **no privilege-escalation path** (unlike an earlier discarded draft that branched at signup and let a code-holder pick "parent"). 
 - **תיאור (open edge):** a parent who still owns children switching away leaves the old family with ≥1 member (the kids) → cleanup does NOT fire and the kids are left parent-less. The web version does not guard this; matched that behavior intentionally (BUFF's real case = partner has no kids of their own). Flag if it ever bites.
 - **השפעה:** removes a single-parent bottleneck — both parents can now run the scaffold on their own devices/accounts (realtime via `useFamilyMembers`). Premium correctly extends to the co-parent.
-- **Verified by CC (code/DB layer):** migration applied (`switch_user_family('ZZZZZZ')` → `not_authenticated` from a session-less context, confirming callable + auth branch); `tsc --noEmit` clean; Jest 334/334 (4 initial timeout-flakes under parallel load all pass in `--runInBand`). Phase 2 (settings UI + i18n) + Hat-4 (real second Google account, two devices) pending.
-- **סטטוס:** `phase-1-complete` on `pkg/co-parent-join`. Phase 2 UI next.
-- **קשור ל:** `pkg/co-parent-join` (SPEC/ROADMAP/TESTS under `docs/sessions/co-parent-join/`), migration `020_switch_user_family.sql`, `useSubscription.ts`. Behavior mirrors the prior web implementation (`switch_user_family` + a settings "Join Family" section).
+- **Verified by CC (code/DB layer):** migration applied (`switch_user_family('ZZZZZZ')` → `not_authenticated` from a session-less context, confirming callable + auth branch); `tsc --noEmit` clean (both phases); Jest 334/334 (4 initial timeout-flakes under parallel load all pass in `--runInBand`); i18n+settings 38/38 (Phase 2). Hat-4 (real second Google account, two devices; visual check of the settings "Join Family" card) pending.
+- **סטטוס:** `code-complete-pending-Hat-4` — Phases 1+2 on `pkg/co-parent-join`, [PR #179](https://github.com/adielgarat-pm/buff-mobile/pull/179).
+- **קשור ל:** `pkg/co-parent-join` (SPEC/ROADMAP/TESTS under `docs/sessions/co-parent-join/`), migration `020_switch_user_family.sql`, `useSubscription.ts`, `JoinFamilyCard.tsx`, `ParentSettingsScreen.tsx`. Behavior matches the prior web implementation (`switch_user_family` + a settings "Join Family" section), implemented natively.
+
+### IN-2026-06-06-02: Own-device kids' BUFFs never persisted — `credit_vault` write RLS was parent-only; masked for weeks because every prior credit fix was verified in view-as-child (parent session)
+
+- **תאריך:** 2026-06-06
+- **מקור:** CC — Tamar reported Alon's dashboard showing **0 BUFFs** (one screenshot 20:37 showed 20, the next 20:39 showed 0), while "דלק מיקוד 4/8" was identical in both.
+- **תיאור (root cause, DB-confirmed):** `credit_vault` had exactly one **write** policy — `Parents can manage family vaults` (`role = 'parent'`). Children had **SELECT-only** (`Children can view own vault`). A child on their **own device** (own-auth `ChildJoin` session, `role=child`) therefore:
+  - `daily_progress` upsert → ✅ succeeds (`Users can manage their progress` is family-scoped, not role-gated) → the focus/fuel bar fills.
+  - `credit_vault` insert/update via [`useChildProgress.updateTotalBalance`](../src/hooks/useChildProgress.ts) **and** [`useDailyVibe.awardInstantBuff`](../src/hooks/useDailyVibe.ts) → ❌ silently blocked by RLS. Balance updated optimistically in React state (the "20"), then reverted to the DB value (0) on every reload/focus.
+  - Alon (`418ec500`, Tamar Belek family, own auth `4f131ee2`) had **4 completed tasks today × 20 = 80 BUFFs** but **no `credit_vault` row at all**.
+- **תיאור (why it recurred / "weren't we here already"):** PR #151 (`fix(child-credit)` only-credit-on-real-transition), #118 (childsettings real balance), #132 (dashboard refetch) all touched this area but were verified in **view-as-child** mode, where the active session is the **parent** → vault writes are allowed → the bug is invisible. The `child-login-stable-identity` RLS audit (`RLS_FINDINGS.md`) caught read holes but not this **write** gap.
+- **תיאור (fix):**
+  1. **RLS (live):** new policy `Children can manage own vault` (`FOR ALL`, child-owns-row: `family_id = get_my_family_id() AND child_id = (SELECT id FROM profiles WHERE user_id = auth.uid())`), mirroring the established `child_vibes` / `reward_redemptions` / `buddy_relationships` pattern. Migration `child_can_write_own_credit_vault`.
+  2. **Data (live):** backfilled Alon's vault row → 80 (earned 80, spent 0). Audited all 37 own-device kids: only Alon had earned-but-unpersisted BUFFs; the rest legitimately 0.
+  3. **Code guard:** `updateTotalBalance` now checks & logs the vault read/write errors instead of swallowing them — the silent failure is what hid this. (`useDailyVibe.awardInstantBuff` already surfaced errors.)
+- **השפעה:** **server-side fix needs no app build** — the installed app already attempts the writes; they now persist. Affects only own-device (separate-device) kids, not shared-device / view-as-child families (which write under the parent session). Coverage map: `credit_vault` was the **only** child-write table lacking a child policy (daily_progress, child_vibes, buddy_relationships, reward_redemptions, child_suggestions, stickers-mark-seen, profiles-self all already allow it).
+- **Verified by CC (DB layer):** policy live (`policy_exists=1`); Alon's auth uid resolves to his child profile id (policy predicate matches his row); 0 duplicate vault rows table-wide (uniqueness already enforced by expr index `credit_vault_family_child_unique` on `(family_id, COALESCE(child_id,…))`); `tsc --noEmit` clean; 52/52 child/vault tests pass. Hat-3 (own-device child completes task → reload → balance persists) + Hat-4 (Tamar/Alon confirm on real device) pending.
+- **סטטוס:** `resolved-server-side; code-guard pending PR + Hat-3/4` — RLS + backfill live on mobile project `gfrongfnyigxsexuofrg`. Code guard on `pkg/child-vault-write-rls`.
+- **קשור ל:** PR #151 / #118 / #132 (prior credit fixes verified in view-as-child — the masking), `child-login-stable-identity` `RLS_FINDINGS.md` (read-side audit that missed the write gap), [project_buff_credit_fragility] (no ledger — arbitrary-balance write is still possible at the API level; the proper long-term fix is a `SECURITY DEFINER` atomic-increment RPC, logged there). **If Lovable web kids also use own-device login, the separate Lovable Supabase project needs the same policy (out of MCP reach — flag for Adi).**
+### IN-2026-06-06-01: The notification bell's "always opposite the title" fix was incomplete — a floating overlay can't share a corner with a screen action; made it an inline header element
+
+- **תאריך:** 2026-06-06
+- **מקור:** CC — Adi reported the bell overlapping the **"+ Add Task"** button on the parent Tasks tab (screenshot), and asked to "solve it once and for all" for English + Hebrew.
+- **תיאור (why the prior fix was incomplete):** [IN-2026-06-04-01](#in-2026-06-04-01-rtl-position-bug--leftright-are-auto-swapped-by-rn-but-the-logical-end-did-not-flip-reliably-plus-a-parallel-session-stash-incident) landed `right: 16` on the **floating** bell with the reasoning "always physical-opposite the flex-start title." That only holds on screens whose trailing corner is empty. **Tasks / Rewards / Timetable** put their primary action (`+ Add Task`, `+ Add Reward`, `Update`) in that same trailing corner, so the bell floated on top of it. It collides in **both** directions: native RTL swaps the overlay (`right`→physical-left) **and** flips the header row, so the bell and the action land on the same physical side again. A floating overlay is fundamentally blind to per-screen layout — no `left`/`right` value can fix a shared corner.
+- **תיאור (fix):** stop floating. `ParentNotificationBell` is now a plain inline element (no `position:absolute`/`zIndex`/insets). It lives in each screen header's trailing **action cluster**, so flex layout gives it its own slot and direction is handled by the row (no absolute hacks). New [`HeaderActions`](../src/components/parent/HeaderActions.tsx) renders the screen's primary action as a compact circular `+` button next to the bell (Tasks/Rewards). Dashboard/Settings render the bell inline; Timetable view-mode only (sub-flows bell-free). Global floating bell removed from `ParentTabs`.
+- **תיאור (gotcha):** on Dashboard/Settings the header is inside a `ScrollView`, so the inline bell now scrolls with the page instead of staying pinned (standard top-bar behavior, accepted). Tasks/Rewards/Timetable headers are fixed.
+- **השפעה:** replaces the floating-overlay pattern for the bell. Future headers should add the bell via `HeaderActions` (or inline), never as an absolute overlay.
+- **Verified by CC (code layer):** `tsc --noEmit` clean. **Pending Adi Hat-4** (auth-gated parent screens): EN + Hebrew, RTL via cold relaunch (`forceRTL`), not just a language toggle.
+- **סטטוס:** `code-complete-pending-Hat-4` — `pkg/bell-header-cluster` (commit `f5da272`), [PR #173](https://github.com/adielgarat-pm/buff-mobile/pull/173).
+- **קשור ל:** `ParentNotificationBell.tsx`, `HeaderActions.tsx`, `ParentTabs.tsx`, the 5 parent tab screens; supersedes the floating-overlay approach in IN-2026-06-04-01.
 
 ### IN-2026-06-04-02: Child-login duplicate accounts — root cause was name-keyed credentials (NOT "random"), fixed via pick-from-list keyed on profiles.id
 

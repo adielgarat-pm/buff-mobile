@@ -12,6 +12,7 @@ import { User, Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
+import i18n from '../i18n';
 
 // Required for expo-web-browser OAuth completion
 WebBrowser.maybeCompleteAuthSession();
@@ -405,13 +406,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         preflightReason = (preflight as { reason?: string } | null)?.reason ?? null;
 
         if (preflightReason === 'family_not_found') {
-          return { error: new Error('קוד משפחה לא נמצא') };
+          return { error: new Error(i18n.t('auth.codeNotFound')) };
         }
         if (
           preflightReason === 'ambiguous_match' ||
           preflightReason === 'cross_script_candidate_exists'
         ) {
-          return { error: new Error('auth.orphanAmbiguous: blocked ambiguous or cross-script orphan match') };
+          return { error: new Error(i18n.t('auth.orphanAmbiguous')) };
         }
         // match_found or no_orphan_match → proceed to auth.signUp
       }
@@ -442,11 +443,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log('[signUp] family lookup result:', JSON.stringify({ family, lookupError }));
 
         if (lookupError || !family) {
-          return { error: new Error('קוד משפחה לא נמצא') };
+          return { error: new Error(i18n.t('auth.codeNotFound')) };
         }
         familyId = family.id;
       } else {
-        return { error: new Error('קוד משפחה חייב להכיל 6 תווים') };
+        return { error: new Error(i18n.t('auth.invalidCode')) };
       }
     }
 
