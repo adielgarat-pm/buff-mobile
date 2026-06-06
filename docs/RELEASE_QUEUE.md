@@ -26,6 +26,7 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Nex
 | 2026-06-05 | #161 / `df0719b` | feat | Parent notification bell shows an unread-only "show-new" feed with INFO-recency ordering; no auto-mark-read on open | Train | yes | F8 (parent notification feed) — not yet smoke-tested in a build |
 | 2026-06-05 | #165 / `ab6f3f2` | feat | Kids redeem rewards with parent approval; BUFFs deducted atomically on approval (previously a no-op — redemption never deducted) | Train | yes | Rewards/Redemption — Hat-3 verified ⚠️ no F-suite yet |
 | 2026-06-06 | PR #170 / `bcdb8cb` | fix | Cash-reward currency symbol now follows app language: Hebrew → ₪ always (was showing £ in Hebrew UI on phones whose device language is English-UK; reported by Tamar) | Train | yes | Rewards / cash-conversion modal |
+| 2026-06-06 | PR #173 / `4a1f99e` | fix | Notification bell is now an inline header element with a compact circular "+" action beside it — no longer floats over the Add/Update button on Tasks/Rewards/Timetable; works in EN + Hebrew RTL (Hat-4 pending) | Train | yes | F18 (i18n + Hebrew RTL) + parent Tasks/Rewards/Timetable headers |
 
 ### Departure check (proposed cut — 2026-06-05)
 - Days since last release: **2** (1.2.0(28) cut 2026-06-03) — below the ~14d trigger
@@ -55,4 +56,4 @@ Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
 ---
 
 **Maintained by:** CC (rows at merge time) · Adi (cut approval).
-**Last updated:** 2026-06-03
+**Last updated:** 2026-06-06
