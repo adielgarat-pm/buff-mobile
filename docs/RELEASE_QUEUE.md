@@ -17,18 +17,18 @@
 
 ## 🚉 Queued — riding the next train
 
-_Last released: **V25 (versionName 1.1.1)**, internal track. Next train: **V26**._
+_Last released: **1.2.0 (28)**, internal track. Next train: next versionCode (EAS auto-increments)._
+
+> **Naming convention (D-2026-06-04):** identify releases by the Google Play numbers — `versionName (versionCode)`, e.g. `1.2.0 (28)`. No separate "V<N>" team codename. See `.claude/skills/buff-release/SKILL.md` § "Versioning & naming convention".
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
-| _example — delete when first real row lands_ | #NNN / `sha` | fix | what it fixes, plainly | Train | yes/no | F7.H2 |
-
-> _No real fixes queued yet. As packages merge to `main`, CC adds rows here at merge time._
+| 2026-06-06 | `9eff36a` (PR pending) | fix | Cash-reward currency symbol now follows app language: Hebrew → ₪ always (was showing £ in Hebrew UI on phones whose device language is English-UK; reported by Tamar) | Train | yes | Rewards / cash-conversion modal |
 
 ### Departure check (update when proposing a cut)
 - Days since last release: _N_  (trigger: ~14)
 - User-facing fixes queued: _N_  (trigger: ~5, or ≥1 notable feature)
-- **Recommendation:** _hold / cut V26_ — _reason_
+- **Recommendation:** _hold / cut next versionCode_ — _reason_
 
 ---
 
@@ -36,15 +36,15 @@ _Last released: **V25 (versionName 1.1.1)**, internal track. Next train: **V26**
 
 Newest first. Each block = one release the queue fed.
 
-### V25 — versionName 1.1.1 (internal, ~2026-05-31)
+### 1.1.1 (25) — internal, ~2026-05-31
 _Pre-protocol baseline. Future releases list their drained queue rows here._
 - (historical — see `STATUS` / `docs/releases/` once per-release folders exist)
 
 <!--
 Template for a new shipped block:
 
-### V<N> — versionName <x.y.z> (<track>, <date>)
-Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
+### <versionName> (<versionCode>) — <track>, <date>
+Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/<versionCode>/MANIFEST.md
 | PR/Commit | Type | Change | User-facing? | Gate2 verdict |
 |---|---|---|---|---|
 | #NNN | fix | ... | yes | ✅ F7.H2 |
@@ -53,4 +53,4 @@ Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
 ---
 
 **Maintained by:** CC (rows at merge time) · Adi (cut approval).
-**Last updated:** 2026-06-03
+**Last updated:** 2026-06-04
