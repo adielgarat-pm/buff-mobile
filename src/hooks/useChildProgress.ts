@@ -292,17 +292,29 @@ export function useChildData(childId: string | null) {
 
     setTotalBalance(balance);
 
-    const { data: existing } = await supabase
+    const { data: existing, error: selectErr } = await supabase
       .from('credit_vault')
       .select('id')
       .eq('family_id', familyId)
       .eq('child_id', childId)
       .maybeSingle();
 
-    if (existing) {
-      await supabase.from('credit_vault').update({ total_balance: balance }).eq('id', existing.id);
-    } else {
-      await supabase.from('credit_vault').insert({ family_id: familyId, child_id: childId, total_balance: balance });
+    if (selectErr) {
+      console.error('[useChildData] vault read failed (balance not persisted):', selectErr);
+      return;
+    }
+
+    // Never swallow the write error. An own-device child whose RLS blocks the
+    // credit_vault write would otherwise see the optimistic balance update and
+    // then watch it revert to 0 on the next reload, with no signal anywhere.
+    // (This silent failure hid the parent-only-vault-RLS bug for weeks — see
+    // INTEGRATION_LEARNINGS IN-2026-06-06-01.)
+    const { error: writeErr } = existing
+      ? await supabase.from('credit_vault').update({ total_balance: balance }).eq('id', existing.id)
+      : await supabase.from('credit_vault').insert({ family_id: familyId, child_id: childId, total_balance: balance });
+
+    if (writeErr) {
+      console.error('[useChildData] vault write failed (balance not persisted):', writeErr);
     }
   }, [familyId, childId]);
 
