@@ -1,11 +1,12 @@
-# Release v1.3.0 (versionCode TBD) — Manifest
+# Release v1.3.0 (versionCode 29) — Manifest
 
 **Cut date:** 2026-06-05
 **Anchor:** 1.2.0 (28), internal track, cut 2026-06-03 (untagged; baseline ≈ #156 `c7a138f` versionName bump)
 **Branch:** release/train-2026-06-05 (off `main` @ `23103c5`)
 **Track:** internal
-**Proposed versionName:** `1.3.0` (minor — 2 new features; **needs Adi's confirm before `app.json` edit**)
-**versionCode:** remote/auto (EAS; prev = 28 → expect 29)
+**versionName:** `1.3.0` (minor — 2 new features) · set in app.json @ `8309250`
+**versionCode:** **29** (EAS auto-incremented 28→29 at build time)
+**EAS build:** https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/4630e765-4849-4ba8-b786-f83fc1e590b4 (queued 2026-06-05)
 
 > Source of truth: `docs/RELEASE_QUEUE.md` Queued rows (drained into this manifest at cut).
 
