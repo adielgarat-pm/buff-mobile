@@ -67,6 +67,10 @@ export type RootStackParamList = {
   // ── Family / child management (parent-only, pushed above ParentApp) ──
   ManageChildren: undefined;
   EditChild:      { childId: string };
+
+  // ── Parent capture (gated by FEATURE_PARENT_CAPTURE; modals above ParentApp) ──
+  ParentCapture:  undefined;
+  ParentThisWeek: undefined;
 };
 
 export type ParentTabsParamList = {

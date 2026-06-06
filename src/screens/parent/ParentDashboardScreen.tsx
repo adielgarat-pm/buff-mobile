@@ -16,6 +16,7 @@ import {
 import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
+import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -321,6 +322,9 @@ export default function ParentDashboardScreen() {
         </View>
         <View style={styles.previewBtn} />
       </View>
+
+      {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
+      <ParentCaptureEntry />
 
       {/* ── Insight card ───────────────────────────────────────────────── */}
       {insightsLoading ? (

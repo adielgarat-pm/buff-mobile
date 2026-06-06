@@ -6,15 +6,29 @@
 | Phase | State | Date | Notes |
 |---|---|---|---|
 | 0 — Foundation & verification | ✅ done (read-only) | 2026-06-05 | See `PHASE0_FINDINGS.md`. No code, no schema changes. |
-| 1 — `parse-capture` Edge Fn | ⛔ blocked | — | 🔒 Gemini paid-key approval |
-| 2 — Schema + RLS | ⛔ awaiting approval | — | Additive: `parent_items`, `capture_runs`, optional `grade_level` |
-| 3 — CaptureScreen + in-app entry | 🟢 buildable now (no new dep, behind stub) | — | uses existing expo-clipboard / image-picker |
-| 4 — ConfirmCard | 🟢 buildable now (stub) | — | incl. `category` enum mapping |
-| 5 — Transfer-to-child | 🟡 buildable (touches prod `tasks`) | — | path verified; build last, behind flag |
-| 6 — "This Week" surface | 🟢 buildable now (stub) | — | calm pull + recency |
-| 7 — Android share target | 🔒 new-dep gate | — | needs `expo-share-intent` + rebuild + Adi approval |
-| 8 — Privacy/consent + i18n | ⛔ blocked | — | 🔒 privacy posture (paid-tier path identified) |
-| 9 — Spec sync + tests + PR | — | — | |
+| 1 — `parse-capture` Edge Fn | 🧪 **stub built** (real one blocked) | 2026-06-05 | `src/lib/parentCapture/stubParser.ts` stands in for Gemini. 🔒 real fn = Gemini paid-key approval |
+| 2 — Schema + RLS | 📄 **migration file ready, NOT applied** | 2026-06-05 | `migrations/019_parent_capture.sql` (additive). Local AsyncStorage store used until applied. |
+| 3 — CaptureScreen + in-app entry | ✅ **built** (stub, flag-off) | 2026-06-05 | `CaptureScreen.tsx`; paste + image (existing deps, zero new dep) |
+| 4 — ConfirmCard | ✅ **built** (stub, flag-off) | 2026-06-05 | `CapturedItemRow.tsx`; owner toggle, confidence, no_match collapse, `category` map in config |
+| 5 — Transfer-to-child | ⏳ deferred (touches prod `tasks`) | — | path verified (Phase 0); build behind flag when greenlit |
+| 6 — "This Week" surface | ✅ **built** (stub, flag-off) | 2026-06-05 | `ThisWeekScreen.tsx`; calm pull, time buckets, recency archive, opt-in reminder |
+| 7 — Android share target | 🔒 new-dep gate | — | needs `expo-share-intent` + rebuild + Adi approval (in-app capture works without it) |
+| 8 — Privacy/consent + i18n | 🟡 i18n done (draft); consent pending | 2026-06-05 | HE+EN keys added (parity ✅, draft→Adi). 🔒 consent copy = privacy posture |
+| 9 — Spec sync + tests + PR | 🟡 tests ✅; sync/PR pending | 2026-06-05 | 20 unit tests pass; typecheck 0 errors |
+
+## Built in this session (autonomous, on `pkg/parent-capture`)
+- **Feature flag** `FEATURE_PARENT_CAPTURE = false` (`src/config/parentCaptureConfig.ts`) — gates the single dashboard entry; **off in production**.
+- **Logic** (pure, tested): `types/parentCapture.ts`, `lib/parentCapture/captureMapping.ts` (dates/buckets/recency/category map), `lib/parentCapture/stubParser.ts` (Gemini stand-in).
+- **Store**: `hooks/useParentCapture.ts` — AsyncStorage (swap to Supabase `parent_items` when applied) + `useFamilyChildren` (read-only).
+- **UI**: `CaptureScreen` (input→confirm), `CapturedItemRow`, `ThisWeekScreen`, `ParentCaptureEntry` (gated).
+- **Nav**: `ParentCapture` + `ParentThisWeek` registered (modal); gated entry on `ParentDashboardScreen`.
+- **i18n**: `capture.*` + `thisWeek.*` keys (HE+EN, draft).
+- **Migration**: `019_parent_capture.sql` (additive, **not applied**).
+- **Tests**: `lib/parentCapture/__tests__/` — 20 pass.
+- **Verification**: `npm run typecheck` → 0 errors · `npx jest parentCapture` → 20/20 · `npm run i18n:check` → parity ✅.
+
+## How to try it (on this branch only)
+Flip `FEATURE_PARENT_CAPTURE` to `true` in `src/config/parentCaptureConfig.ts`, run the app, open the parent dashboard → "This week" card → Capture. Paste any text or pick a photo → the stub returns a representative item set → confirm → items land in "This Week". **Do not merge with the flag on.**
 
 ## Open gates (both Adi's)
 1. **Now or V-next?** (focus call — DECISION §7; tester-retention signal informs it)
