@@ -18,6 +18,7 @@ import { useAppSettings } from '../../hooks/useAppSettings';
 import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 import PauseModeCard from '../../components/PauseModeCard';
+import JoinFamilyCard from '../../components/JoinFamilyCard';
 import LanguagePickerModal from '../../components/LanguagePickerModal';
 import { useLanguage } from '../../contexts/LanguageContext';
 
@@ -193,6 +194,9 @@ export default function ParentSettingsScreen() {
           thumbColor="#fff"
         />
       </View>
+
+      {/* Join an existing family — second parent / partner (co-parent-join) */}
+      <JoinFamilyCard />
 
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>

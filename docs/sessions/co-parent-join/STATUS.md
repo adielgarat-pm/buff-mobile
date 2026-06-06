@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | SPEC | drafted + approved | 2026-06-06 | d3d34bf | — | — |
 | 1 — RPC + premium | ✅ complete | 2026-06-06 | (this commit) | tsc clean · Jest 334/334 · RPC live | IN-2026-06-06-01 |
-| 2 — Join UI + i18n | not started | — | — | — | — |
+| 2 — Join UI + i18n | ✅ code-complete (Hat-4 visual pending) | 2026-06-06 | (this commit) | tsc clean · i18n+settings 38/38 · JSON valid | — |
 
 **Decisions locked (Adi, 2026-06-06):** reuse existing family code · equal co-parent · family-wide premium — all satisfied by porting Lovable's `switch_user_family` model.
 
