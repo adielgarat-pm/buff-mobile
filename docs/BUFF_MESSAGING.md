@@ -319,6 +319,23 @@ Until they don't need us.
 **Payoff (00:13-00:18):** Both screens at 7:25am. LEFT: chaos. RIGHT: in the car, calm.
 **CTA (00:18-00:20):** *"Same family. Different morning. BUFF — free to start."*
 
+### Format 6: "Stat-Led Reframe / Parent-as-Protagonist" — added 2026-05-30
+
+> **Built on:** [BUFF_COMPETITORS.md §3.9](BUFF_COMPETITORS.md) — claims the parent-as-protagonist (Calm-style) + Dodson 20,000-stat-in-paid + cinematic-dark-canvas empty lanes simultaneously.
+> **Production-ready instance:** [docs/ad-creative/AD-01-flipping-the-math.md](ad-creative/AD-01-flipping-the-math.md).
+
+**Persona:** P1 + P2 + P5 broad cold acquisition (not P3/P4 — separate ads)
+**Length:** 22-25s vertical 9:16
+**Lane:** parent-as-protagonist + Dodson stat as offensive lead + cinematic dark-canvas
+**Hook (00:00-00:03):** Warm OOF domestic shot. White text reframe — a statement the parent has thought but never seen written down. *No logo, no UI, no question.* Example: *"Your ADHD kid isn't the problem."*
+**Stat beat (00:03-00:11):** Cut to pure black. Large number types in neon green. Source citation tiny bottom-corner. Stat is **used as hope (reframe of the math), not as shock**. Format-defining example: *"20,000 / corrective messages by age 10 / For every 1 positive, 15 negative."*
+**Reframe (00:11-00:16):** Cut to warm domestic. Back-of-head kid + hands holding phone. Real BUFF dashboard screen recording inside phone. Neon green checkmark animates. Lower-third text: *"BUFF flips the math."*
+**Trust beat (00:16-00:20):** Cut to pure black. ❌-list, four items sequenced (~1s each). The pattern adapted from David Ohana lesson (offensive privacy positioning, not defensive). Example: *❌ No ads / ❌ No tracking / ❌ No comparison to other kids / ❌ No outside content*. VO: *"A coaching tool. Not a surveillance tool."*
+**CTA (00:20-00:24):** End card on black. Logo. Tagline: *"The ADHD app your kid grows out of."* (Pillar 3 explicit). DM funnel: *"Comment BUDDY for the link."* (Goally-pattern category-winner). Footnote: *"Free. Ages 6-18."*
+
+**When to use Format 6:** cold acquisition only. For warm/retargeted pools, prefer Format 3 (kid testimonial) or Format 4 (parent confession).
+**When NOT to use:** if you can't get the BUFF UI screen recording rendered cleanly. The whole format depends on a *real* dashboard reveal at 00:11 — AI-generated UI breaks trust.
+
 ---
 
 ## 7. AI Video Prompts — for Sora / Runway / Pika / Veo
@@ -373,7 +390,58 @@ A premium minimal advertisement for an ADHD coaching app for families. Pure blac
 No illustrations. No people. No icons except a single small neon green arrow (→) to the right of the tagline. 1:1 square format. The aesthetic is fintech-minimal meets gaming-tactical. Premium, not childish. Aspirational without being cheerful.
 ```
 
-### 7.4 Negative prompt (for all AI tools)
+### 7.4 Format 6 prompt (Stat-Led Reframe / BUFF Ad #1 — Veo 3, shot-by-shot)
+
+> Production-ready Veo 3 prompts for ad-creative/AD-01-flipping-the-math.md. Each shot is a separate generation request — assemble in CapCut Pro.
+
+**Shot 1 (0:00-0:03) — Hook scene:**
+```
+A 3-second cinematic shot, vertical 9:16, of an empty warm living room
+in late afternoon light. Soft golden sun through partly-closed curtains.
+Slightly out-of-focus throughout. No people. No movement except dust
+motes in light. Warm domestic realism, low-saturation palette. Subtle
+ambient hum. Wide enough for clean text overlay placement
+top-third-centered.
+```
+
+**Shot 2 (0:03-0:07) — Stat reveal:**
+> *Better produced in CapCut/After Effects than Veo 3* — pure typography animation on black background, AI tools can't match motion-graphics precision. Brief: large neon green "20,000" types in over 1.5s with subtle scale-up, then white sub-text "corrective messages by age 10." fades below. Tiny "Source: Dr. William Dodson" bottom-right corner. Background pure #0A0A0A.
+
+**Shot 3 (0:07-0:11) — Countdown:**
+> *Also CapCut/After Effects.* Number animates: 20,000 → 15,000 → 10,000 → 5,000 → 0 over ~3s, decelerating curve. Below: white text *"For every 1 positive, they hear 15 negative."* fades in around 0:09.
+
+**Shot 4a (0:11-0:14) — Domestic warmth + back-of-head kid:**
+```
+A 3-second vertical 9:16 shot of a soft warm kitchen in late afternoon
+light. We see a child from behind — back of head with messy hair, no
+face visible. The child sits at a wooden kitchen table holding a
+smartphone in both hands. Hands are illuminated by the phone's glow.
+Background slightly out of focus — a kettle, a fruit bowl, soft pastels.
+The mood is calm and focused, not chaotic. Cinematic warm tones, no
+people other than the back-of-head child. Camera completely still.
+```
+
+**Shot 4b (0:14-0:16) — BUFF UI close-up:**
+> *Screen recording of real BUFF app* — NOT AI. Record the dashboard with a single task completing: tap → neon green (#39FF14) checkmark animates into a circle on the black (#0A0A0A) canvas. ~2 seconds. Insert this recording into the phone screen of Shot 4a using CapCut chroma-key or screen-track effect.
+
+**Shot 5 (0:16-0:20) — Trust beat ❌-list:**
+> *CapCut/After Effects typography.* Pure black background. Four lines fade in sequentially, each holds ~1s:
+> - 0:16: ❌ No ads.
+> - 0:17: ❌ No tracking.
+> - 0:18: ❌ No comparison to other kids.
+> - 0:19: ❌ No outside content.
+> White text, sans-serif (Space Grotesk or similar), generous line-spacing.
+
+**Shot 6 (0:20-0:24) — End card:**
+> *Figma → static export → CapCut.* BUFF logo (neon green) centered. Below in white: *"The ADHD app your kid grows out of."* Below in neon green: *"Comment BUDDY for the link."* Tiny at bottom: *"Free. Ages 6-18."* Hold for full 4 seconds.
+
+**Negative prompt (apply to all Veo 3 generations):** see §7.5.
+
+**Assembly:** import all shots to CapCut Pro vertical 9:16 timeline. Add VO track (Adi/ElevenLabs). Add soft pad music (Epidemic Sound — low-mix, no melody). Color-grade Shot 1 and Shot 4a to match warmth. Export H.264 1080×1920 60fps for Instagram Reels.
+
+---
+
+### 7.5 Negative prompt (for all AI tools)
 
 ```
 NEVER include in BUFF visuals:

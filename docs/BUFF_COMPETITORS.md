@@ -452,9 +452,10 @@
 
 #### Cross-links
 
-- [BUFF_MESSAGING.md §6](BUFF_MESSAGING.md) — Reels script templates (Format 1-5; first competitively-informed Format 6 will be added when BUFF's first ad ships)
-- [BUFF_MESSAGING.md §7](BUFF_MESSAGING.md) — AI Video Prompts for Sora/Runway/Pika/Veo
+- [BUFF_MESSAGING.md §6](BUFF_MESSAGING.md) — Reels script templates (Format 1-5; **Format 6 added 2026-05-30** based on this research — Stat-Led Reframe / Parent-as-Protagonist)
+- [BUFF_MESSAGING.md §7.4](BUFF_MESSAGING.md) — Veo 3 prompts for Format 6 (shot-by-shot)
 - [BUFF_MESSAGING.md §8.3](BUFF_MESSAGING.md) — IG Reels channel guidelines (updated 2026-05-30 with research specifics)
+- [docs/ad-creative/AD-01-flipping-the-math.md](ad-creative/AD-01-flipping-the-math.md) — **first production-ready ad built on this research** (storyboard, captions, AI stack, Values Check, HE adaptation, test matrix)
 - [BUFF_BRAND.md §6-7](BUFF_BRAND.md) — visual identity (dark canvas + neon green) that gives BUFF the unused "cinematic" creative lane
 - [BUFF_VALUES.md](BUFF_VALUES.md) — Values Check (especially Pillar 2: copy must not shame parent any more than it would shame kid)
 
