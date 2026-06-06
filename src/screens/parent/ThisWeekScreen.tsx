@@ -43,12 +43,21 @@ export default function ThisWeekScreen() {
     >
       <View style={styles.headerRow}>
         <Text style={[styles.h1, { color: T.text }]}>{t('thisWeek.title')}</Text>
-        <TouchableOpacity
-          style={[styles.captureBtn, { backgroundColor: T.accent }]}
-          onPress={() => navigation.navigate('ParentCapture')}
-        >
-          <Text style={styles.captureBtnText}>{t('thisWeek.capture')}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.captureBtn, { backgroundColor: T.accent }]}
+            onPress={() => navigation.navigate('ParentCapture')}
+          >
+            <Text style={styles.captureBtnText}>{t('thisWeek.capture')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.closeBtn, { backgroundColor: '#F1F1F4' }]}
+            accessibilityLabel={t('capture.close')}
+          >
+            <Text style={[styles.closeX, { color: T.textMuted }]}>✕</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {isEmpty ? (
@@ -158,6 +167,9 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingTop: 52, paddingBottom: 40 },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  closeX: { fontSize: 15, fontWeight: '700' },
   h1: { fontSize: 22, fontWeight: '800' },
   captureBtn: { borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 },
   captureBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },

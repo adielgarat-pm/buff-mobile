@@ -112,13 +112,31 @@ export default function CaptureScreen() {
   const filtered = entries.map((e, i) => ({ e, i })).filter(({ e }) => e.discarded);
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: T.bg }]}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={[styles.h1, { color: T.text }]}>{t('capture.title')}</Text>
-      <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.subtitle')}</Text>
+    <View style={[styles.root, { backgroundColor: T.bg }]}>
+      <View style={styles.modalHeader}>
+        <Text style={[styles.modalTitle, { color: T.text }]}>
+          {step === 'input' ? t('capture.title') : t('capture.confirmTitle')}
+        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={[styles.closeBtn, { backgroundColor: '#F1F1F4' }]}
+          accessibilityLabel={t('capture.close')}
+        >
+          <Text style={[styles.closeX, { color: T.textMuted }]}>✕</Text>
+        </TouchableOpacity>
+      </View>
+      <ScrollView
+        style={[styles.container, { backgroundColor: T.bg }]}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        {step === 'input' ? (
+          <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.subtitle')}</Text>
+        ) : (
+          <Text style={[styles.sub, { color: T.textMuted }]}>
+            {t('capture.found', { count: entries.filter((e) => !e.discarded).length })}
+          </Text>
+        )}
 
       {step === 'input' ? (
         <>
@@ -200,13 +218,26 @@ export default function CaptureScreen() {
           </TouchableOpacity>
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 44,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800' },
+  closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  closeX: { fontSize: 15, fontWeight: '700' },
   container: { flex: 1 },
-  content: { padding: 20, paddingTop: 52, paddingBottom: 40 },
+  content: { padding: 20, paddingTop: 8, paddingBottom: 40 },
   h1: { fontSize: 22, fontWeight: '800', marginBottom: 4 },
   sub: { fontSize: 14, marginBottom: 18 },
   input: {

@@ -54,7 +54,13 @@ export const CapturedItemRow: React.FC<Props> = ({ entry, children, onChange }) 
   }
 
   return (
-    <View style={[styles.row, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+    <View
+      style={[
+        styles.row,
+        { backgroundColor: T.card, borderColor: T.cardBorder },
+        parsed.missing ? { borderStartWidth: 3, borderStartColor: T.gold } : null,
+      ]}
+    >
       <View style={styles.headerLine}>
         <View style={[styles.dot, { backgroundColor: CONFIDENCE_COLOR[parsed.confidence] }]} />
         <Text style={[styles.title, { color: T.text }]}>{parsed.title}</Text>

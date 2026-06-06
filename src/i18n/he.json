@@ -1,5 +1,8 @@
 {
   "capture.title": "לכידה",
+  "capture.confirmTitle": "אישור",
+  "capture.found": "מצאתי {{count}} — בחרי למי כל אחד שייך.",
+  "capture.close": "סגירה",
   "capture.subtitle": "הדביקי הודעה או הוסיפי תמונה — אהפוך את זה למה שהמשפחה צריכה לדעת.",
   "capture.placeholder": "הדביקי הודעה מקבוצת כיתה או חוג…",
   "capture.pickImage": "הוספת תמונה",

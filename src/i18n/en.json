@@ -1,5 +1,8 @@
 {
   "capture.title": "Capture",
+  "capture.confirmTitle": "Confirm",
+  "capture.found": "Found {{count}} — choose who each belongs to.",
+  "capture.close": "Close",
   "capture.subtitle": "Paste a message or add a photo — I'll turn it into what your family needs to know.",
   "capture.placeholder": "Paste a message from a class or activity group…",
   "capture.pickImage": "Add a photo",
