@@ -2,7 +2,7 @@
 
 | State | Date | Commit | Tests | Learnings |
 |---|---|---|---|---|
-| code-complete (pending Hat-3/4) | 2026-06-07 | _pending push_ | tsc ✓ · jest 333/334 (1 pre-existing `stubParser` fail on origin/main, unrelated) · i18n ✓ · DB end-to-end ✓ (simulated parent, rolled back) | INTEGRATION_LEARNINGS.md → IN-2026-06-07-01 |
+| Hat-3 verified (Hat-4 optional) | 2026-06-07 | `25890aa` | tsc ✓ · jest 333/334 (1 pre-existing `stubParser` fail, unrelated) · i18n ✓ · DB end-to-end ✓ · **Hat-3 emulator ✓ (dialog live, force, delete, guard-no-insert)** | INTEGRATION_LEARNINGS.md → IN-2026-06-07-01 |
 
 ## Scope delivered
 - **Migration 021** (`create_child_profile` atomic guard + `delete_child_profile` fix) — **applied live**.
@@ -20,13 +20,14 @@ Atomic RPC guard + friendly confirm dialog. **No hard unique constraint.**
 ## Test results
 - **Hat-1:** `tsc` ✓ · `jest` 333/334 (1 pre-existing `stubParser` fail on origin/main) · `i18n:check` ✓.
 - **DB end-to-end (strongest evidence):** under a simulated real-parent JWT in a rolled-back txn — create→`created`, repeat→`duplicate` (returns existing id/name), force→`created` (count=2), `buddy_relationships` seeded=2; dup-detection returns the correct active twin; delete columns all resolve. 0 rows persisted.
-- **Hat-3 smoke:** ✅ booted the worktree JS on emulator-5554 via Metro (port 8083) on a debug dev-client (no native changes in this package). App bundles + renders with no crash from the changed modules (UStep5, ManageChildren, 4 hooks, i18n).
-- **Hat-3 dialog UI:** ⚠️ **BLOCKED on emulator.** The duplicate dialog only fires for an already-authenticated parent via "Add another child"; the only UI auth path is Google OAuth (no email-login affordance in the welcome flow), which is the skill's documented Hat-4 boundary. First-run onboarding can't trigger it (no `user` at UStep5 yet).
+- **Hat-3 dialog UI: ✅ VERIFIED LIVE** on emulator-5554 (worktree JS via Metro 8083, authenticated parent `ParentTest520` with existing child "Itay"; test account granted temp premium to pass the >1-child paywall, reverted after). Add child → "Itay" → at the plan-ready step the dialog **"Itay is already here / You already have a child named Itay in your family. Want to open Itay, or add another child with the same name?"** appeared with **OPEN ITAY / ADD ANOTHER / CANCEL** (EN, name interpolated). DB checked while dialog open: still 1 active Itay → guard returns `duplicate` **without inserting**.
+  - **ADD ANOTHER** → 2nd "Itay" created live (buddy/tasks/rewards seeded by triggers). ✅
+  - **CANCEL** → originally `goBack()` **stranded the parent on the transient "Building plan" loading screen** (BUG found in Hat-3) → **fixed** to exit to ParentApp/Tasks (commit `25890aa`). No profile created on cancel (count stayed 1).
+  - **`delete_child_profile`** exercised live on the forced 2nd Itay → `{success:true}`, fully removed incl. cascaded buddy rows (would have thrown on the old `assigned_to` bug). ✅
+  - Cleanup: 2nd Itay deleted, premium flags reverted, family restored to original single Itay, 0 orphan rows.
 
 ## Open — Hat-4 (real device, Adi)
-On a real device signed in as a parent who already has a child named e.g. "Dana":
-1. Settings → Manage Children → "+ Add another child" → enter "Dana" → reach the plan-ready step → **expect the dialog** "Dana is already here" with Open / Add another / Cancel.
-2. "Add another" → a 2nd Dana is created; "Open Dana" → returns to Tasks with no new profile; "Cancel" → backs out.
-3. Manage Children → tap a child → Delete → **expect it actually deletes** (the `delete_child_profile` fix).
+Optional real-device confirmation (everything above verified on emulator):
+- On your own device/family, add a child whose name already exists → confirm the dialog feels right and the 3 buttons behave (Open / Add another / Cancel).
 - **FLAG (out of scope):** `create_default_tasks_for_child` trigger front-runs the `generateStarterTasks` engine → personalized starter tasks never land (owned by `pkg/starter-task-engine`).
 - **FLAG (out of scope):** `stubParser.test.ts` has 1 pre-existing failing test on `origin/main`.
