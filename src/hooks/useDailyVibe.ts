@@ -195,10 +195,9 @@ export function useDailyVibe(childId: string | null) {
   }, [familyId, childId, todayKey, todayVibe, refetch]);
 
   /**
-   * Add INSTANT_BUFF_AMOUNT BUFFs to the child's credit_vault.
-   * Mirrors the upsert pattern from useChildProgress.updateTotalBalance.
-   *
-   * Returns the new balance on success.
+   * Add INSTANT_BUFF_AMOUNT BUFFs to the child's credit_vault, atomically.
+   * Uses the adjust_credit_vault RPC (migration 021) so a concurrent task
+   * completion can't clobber the award. Returns the new balance on success.
    */
   const awardInstantBuff = useCallback(async (): Promise<{
     error:      Error | null;
@@ -208,47 +207,23 @@ export function useDailyVibe(childId: string | null) {
       return { error: new Error('No familyId/childId available'), newBalance: null };
     }
 
-    const { data: existing, error: selectError } = await supabase
-      .from('credit_vault')
-      .select('id, total_balance')
-      .eq('family_id', familyId)
-      .eq('child_id', childId)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('adjust_credit_vault', {
+      p_child_id: childId,
+      p_delta:    INSTANT_BUFF_AMOUNT,
+      p_reason:   'instant_buff',
+    });
 
-    if (selectError) {
-      console.error('[useDailyVibe] awardInstantBuff select failed:', selectError);
-      return { error: selectError as unknown as Error, newBalance: null };
+    if (error) {
+      console.error('[useDailyVibe] awardInstantBuff RPC failed:', error);
+      return { error: error as unknown as Error, newBalance: null };
+    }
+    const res = data as { ok: boolean; new_balance?: number; error?: string } | null;
+    if (!res?.ok) {
+      console.error('[useDailyVibe] awardInstantBuff rejected:', res?.error);
+      return { error: new Error(res?.error ?? 'adjust_failed'), newBalance: null };
     }
 
-    const currentBalance = existing?.total_balance ?? 0;
-    const newBalance     = currentBalance + INSTANT_BUFF_AMOUNT;
-
-    if (existing) {
-      const { error: updateError } = await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance } as never)
-        .eq('id', existing.id);
-
-      if (updateError) {
-        console.error('[useDailyVibe] awardInstantBuff update failed:', updateError);
-        return { error: updateError as unknown as Error, newBalance: null };
-      }
-    } else {
-      const { error: insertError } = await supabase
-        .from('credit_vault')
-        .insert({
-          family_id:     familyId,
-          child_id:      childId,
-          total_balance: newBalance,
-        } as never);
-
-      if (insertError) {
-        console.error('[useDailyVibe] awardInstantBuff insert failed:', insertError);
-        return { error: insertError as unknown as Error, newBalance: null };
-      }
-    }
-
-    return { error: null, newBalance };
+    return { error: null, newBalance: res.new_balance ?? null };
   }, [familyId, childId]);
 
   return {

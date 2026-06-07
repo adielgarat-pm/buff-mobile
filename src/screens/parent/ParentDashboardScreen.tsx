@@ -220,27 +220,18 @@ export default function ParentDashboardScreen() {
 
     setBonusSending(true);
     try {
-      const child = children.find(c => c.childId === bonusChildId);
-      const currentBalance = child?.totalBalance ?? 0;
-      const newBalance = currentBalance + amount;
-
-      // 1. Update credit_vault (upsert pattern)
-      const { data: existing } = await supabase
-        .from('credit_vault')
-        .select('id')
-        .eq('family_id', familyId)
-        .eq('child_id', bonusChildId)
-        .maybeSingle();
-
-      if (existing) {
-        await supabase
-          .from('credit_vault')
-          .update({ total_balance: newBalance })
-          .eq('id', existing.id);
-      } else {
-        await supabase
-          .from('credit_vault')
-          .insert({ family_id: familyId, child_id: bonusChildId, total_balance: newBalance });
+      // 1. Credit the vault atomically (migration 021) — a concurrent child
+      //    task completion can't clobber the bonus.
+      const { data: adjustData, error: adjustError } = await supabase.rpc('adjust_credit_vault', {
+        p_child_id: bonusChildId,
+        p_delta:    amount,
+        p_reason:   'parent_bonus',
+      });
+      const adjustRes = adjustData as { ok: boolean; error?: string } | null;
+      if (adjustError || !adjustRes?.ok) {
+        console.error('[Dashboard] sendBonus adjust failed:', adjustError ?? adjustRes?.error);
+        setInfoModal({ icon: '⚠️', message: t('bonus.error') });
+        return;
       }
 
       // 2. Try bonus_log (non-fatal — table may not exist yet)
