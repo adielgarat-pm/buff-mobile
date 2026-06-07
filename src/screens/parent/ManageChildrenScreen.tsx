@@ -65,6 +65,7 @@ export default function ManageChildrenScreen() {
       .select('id, display_name, avatar, birth_date, pro_settings, created_at')
       .eq('family_id', familyId)
       .eq('role', 'child')
+      .eq('is_deleted', false)
       .order('created_at', { ascending: true });
 
     if (error) {

@@ -45,7 +45,8 @@ export function useChildProgress() {
         .from('profiles')
         .select('*')
         .eq('family_id', familyId)
-        .eq('role', 'child');
+        .eq('role', 'child')
+        .eq('is_deleted', false);
 
       if (childrenErr) {
         console.error('Error fetching children profiles:', childrenErr.message);
