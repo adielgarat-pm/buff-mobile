@@ -53,12 +53,16 @@ If any check fails, **don't proceed silently**. Report what's missing.
 
 ## Step 2 — Boot the app + connect to Metro
 
-```bash
-# Start Metro from this worktree (background it)
-npx expo start --port 8083 --android &
-# Wait ~12s for bundle + auto-deep-link to emulator
+Connection goes through the **buff-emulator skill** (the one front door to the shared emulator).
+It reuses a healthy Metro for this worktree, or starts one — and **refuses with `⛔ EMULATOR BUSY`
+if another session holds the lease** (then `metro_wait` or coordinate; don't stomp on it).
 
-# If Metro can't auto-deep-link (e.g. you're not in the right cwd), use:
+```bash
+source .claude/skills/buff-testing/helpers.sh && metro_acquire
+# If it prints ⛔ EMULATOR BUSY → another session has the emulator. Tell the user; offer metro_wait.
+
+# Deep-link the dev client to Metro (METRO_URL derives from the canonical port):
+buff_launch   # calls metro_acquire internally (respects the lock); or, raw:
 "$ADB" shell am start \
   -a android.intent.action.VIEW \
   -d "exp+buff-mobile://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8083" \

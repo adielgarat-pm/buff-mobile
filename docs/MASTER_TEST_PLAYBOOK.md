@@ -45,7 +45,7 @@
 ### Prerequisites
 
 1. **Emulator** running. Verify: `adb devices` shows `emulator-XXXX device`
-2. **Metro** running from this worktree on port 8083: `npx expo start --port 8083 --android`
+2. **Metro** on canonical port 8083 — `source .claude/skills/buff-testing/helpers.sh && metro_acquire` (reuses a healthy Metro for this worktree, else starts one detached + waits healthy). See `docs/DEV_SERVER_LIFECYCLE.md`.
 3. **BUFF dev-client** installed (`com.buffapp.mobile`)
 4. **Supabase MCP** available (for DB-side assertions). If down — mark DB-dependent assertions as 🤔.
 
