@@ -239,7 +239,7 @@ export default function UStep5_Preview() {
         time:          t.time,
         credits:       t.buff_value,
         icon:          '⭐',
-        schedule_days: [0, 1, 2, 3, 4, 5],
+        schedule_days: [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Sat); parent can narrow per task
       }));
       console.log(`${TAG} [2/3] Task rows (${taskRows.length}):`, JSON.stringify(taskRows.map(r => `${r.time} ${r.title}`)));
 
