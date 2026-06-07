@@ -151,7 +151,7 @@ export function TesterBoardView({
   onReload?: () => void
   onSelectFamily?: (f: TesterFamily) => void
 }) {
-  const [excludeTest, setExcludeTest] = useState(false)
+  const [excludeTest, setExcludeTest] = useState(true) // default: hide test/dev accounts
   const [selected, setSelected] = useState<TesterFamily | null>(null)
   const [stageFilter, setStageFilter] = useState<Stage | null>(null)
   const [flagFilter, setFlagFilter] = useState<Flag | null>(null)
