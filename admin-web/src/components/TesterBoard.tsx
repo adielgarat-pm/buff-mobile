@@ -151,16 +151,17 @@ export function TesterBoardView({
   onReload?: () => void
   onSelectFamily?: (f: TesterFamily) => void
 }) {
-  const [excludeTest, setExcludeTest] = useState(false)
+  const [excludeTest, setExcludeTest] = useState(true) // default: hide test/dev accounts
   const [selected, setSelected] = useState<TesterFamily | null>(null)
   const [stageFilter, setStageFilter] = useState<Stage | null>(null)
   const [flagFilter, setFlagFilter] = useState<Flag | null>(null)
 
-  // excludeTest applies first so funnel/flag counts reflect the visible set.
-  const base = useMemo(
-    () => (excludeTest ? allFamilies.filter((f) => !isTestFamily(f)) : allFamilies),
-    [allFamilies, excludeTest],
-  )
+  // Funnel + flag counts ALWAYS exclude test/dev accounts — they're the real
+  // KPIs and test noise would distort them, even when the table shows tests.
+  const real = useMemo(() => allFamilies.filter((f) => !isTestFamily(f)), [allFamilies])
+
+  // The table respects the toggle (so tests can still be inspected on demand).
+  const base = excludeTest ? real : allFamilies
 
   const families = useMemo(
     () =>
@@ -187,7 +188,7 @@ export function TesterBoardView({
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <FunnelBar
-          families={base}
+          families={real}
           stageFilter={stageFilter}
           onPick={(s) => setStageFilter((cur) => (cur === s ? null : s))}
         />
@@ -213,7 +214,7 @@ export function TesterBoardView({
 
       <div className="flex flex-wrap items-center gap-3">
         <FlagChips
-          families={base}
+          families={real}
           flagFilter={flagFilter}
           onPick={(f) => setFlagFilter((cur) => (cur === f ? null : f))}
         />

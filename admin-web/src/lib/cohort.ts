@@ -5,8 +5,21 @@ import type { Flag, Stage, TesterChild, TesterFamily } from './types'
 
 const DAY = 24 * 60 * 60 * 1000
 
-/** Patterns that mark an internal/test account (shown with a "test" tag). */
-const TEST_PATTERNS = [/test/i, /buffapp/i, /demo/i, /adi\.elgarat/i, /אקדא4/]
+/** Patterns that mark an internal/test/dev account (shown with a "test" tag):
+ *  the word "test", dev sandboxes (@example.com), and internal BUFF accounts
+ *  (buffapp, demo, @buff.app, @buffadhd.com, buff.parenting, Adi's aliases). */
+const TEST_PATTERNS = [
+  /test/i,
+  /buffapp/i,
+  /demo/i,
+  /adi\.elgarat/i,
+  /אקדא4/,
+  /@example\.com/i,
+  /@buff\.app/i,
+  /@buffadhd\.com/i,
+  /buff\.parenting/i,
+  /leia@/i,
+]
 
 export function isTestFamily(f: TesterFamily): boolean {
   const haystack = `${f.name} ${f.parent_name ?? ''} ${f.parent_email ?? ''} ${f.children
