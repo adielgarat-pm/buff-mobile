@@ -134,7 +134,11 @@ export default function UStep5_Preview() {
         {
           text: t('onboarding.step5.duplicateCancel'),
           style: 'cancel',
-          onPress: () => navigation.goBack(),
+          // Return to the parent app, NOT navigation.goBack(): the previous
+          // screen in the add-child stack is the transient "Building plan"
+          // loading screen, which doesn't re-advance and would strand the
+          // parent. Exit cleanly to the parent Tasks tab instead.
+          onPress: () => navigation.navigate('ParentApp', { screen: 'ParentTasks' }),
         },
       ],
       { cancelable: true },
