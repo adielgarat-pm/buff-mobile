@@ -4,7 +4,7 @@
  * No I/O, no React — easy to unit-test. Used by the store hook and the screens.
  */
 
-import { EVENT_TYPE_TO_CATEGORY } from '../../config/parentCaptureConfig';
+import { EVENT_TYPE_TO_CATEGORY, PARENT_CAPTURE_CONFIG } from '../../config/parentCaptureConfig';
 import type {
   CaptureEventType,
   FamilyChild,
@@ -135,5 +135,68 @@ export function parsedToParentItem(
     reminderOptIn: false, // calm-pull: notifications are opt-in per item
     confidence: p.confidence,
     createdAt: nowISO,
+  };
+}
+
+// ── Transfer-to-child mapping ──
+
+const HE_DAYS: ReadonlyArray<[string, number]> = [
+  ['ראשון', 0], ['שני', 1], ['שלישי', 2], ['רביעי', 3], ['חמישי', 4], ['שישי', 5], ['שבת', 6],
+];
+const EN_DAYS: ReadonlyArray<[string, number]> = [
+  ['sunday', 0], ['monday', 1], ['tuesday', 2], ['wednesday', 3],
+  ['thursday', 4], ['friday', 5], ['saturday', 6],
+];
+
+/**
+ * Parse a free-text recurrence ("every Sunday and Thursday" / "כל ראשון וחמישי")
+ * to sorted weekday indices, or null if no day name is found.
+ */
+export function recurrenceToScheduleDays(recurrence: string | null): number[] | null {
+  if (!recurrence) return null;
+  const lower = recurrence.toLowerCase();
+  const days = new Set<number>();
+  for (const [he, idx] of HE_DAYS) if (recurrence.includes(he)) days.add(idx);
+  for (const [en, idx] of EN_DAYS) if (lower.includes(en)) days.add(idx);
+  return days.size > 0 ? [...days].sort((a, b) => a - b) : null;
+}
+
+export interface ChildTaskFields {
+  title: string;
+  time: string;
+  category: TaskCategory;
+  credits: number;
+  scheduleDays: number[];
+  dueDate: string | null;
+}
+
+/**
+ * Build child-task fields from a captured item.
+ * - recurrence present → recurring (scheduleDays from recurrence; dueDate null)
+ * - else dueDate present → ONE-TIME (scheduleDays = [] so it's inert on every
+ *   recurring surface incl. the BUDDY EOD cron; dueDate drives visibility)
+ * - else → recurring every day
+ */
+export function childTaskFieldsFromParsed(p: ParsedItem): ChildTaskFields {
+  const recDays = recurrenceToScheduleDays(p.recurrence);
+  let scheduleDays: number[];
+  let dueDate: string | null;
+  if (recDays) {
+    scheduleDays = recDays;
+    dueDate = null;
+  } else if (p.dueDate) {
+    scheduleDays = []; // one-time guard — matches no weekday
+    dueDate = p.dueDate;
+  } else {
+    scheduleDays = [0, 1, 2, 3, 4, 5, 6];
+    dueDate = null;
+  }
+  return {
+    title: p.title,
+    time: p.dueTime ?? '14:00',
+    category: EVENT_TYPE_TO_CATEGORY[p.eventType],
+    credits: PARENT_CAPTURE_CONFIG.DEFAULT_TASK_CREDITS,
+    scheduleDays,
+    dueDate,
   };
 }

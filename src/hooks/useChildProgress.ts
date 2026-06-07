@@ -289,6 +289,7 @@ export function useChildData(childId: string | null) {
                         : [0, 1, 2, 3, 4, 5, 6],
         hideOnWeekend: t.hide_on_weekend ?? false,
         isOffRoutine:  t.is_off_routine ?? false,
+        dueDate:      t.due_date ?? undefined,
       }));
 
       // Off-routine partition (single source of truth for all child screens):
@@ -446,6 +447,8 @@ export function useChildData(childId: string | null) {
         icon:          task.icon,
         strategy_id:   task.strategyId || null,
         schedule_days: task.scheduleDays || [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Fri+Sat)
+        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+        due_date:      task.dueDate ?? null,
       })
       .select()
       .single();
@@ -462,6 +465,8 @@ export function useChildData(childId: string | null) {
         assignedTo:   data.assigned_to || undefined,
         strategyId:   data.strategy_id || undefined,
         scheduleDays: Array.isArray(data.schedule_days) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
+        scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
+        dueDate:      data.due_date ?? undefined,
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId, childId]);
@@ -478,6 +483,7 @@ export function useChildData(childId: string | null) {
     if (updates.credits      !== undefined) dbUpdates.credits       = updates.credits;
     if (updates.description  !== undefined) dbUpdates.description   = updates.description;
     if (updates.scheduleDays !== undefined) dbUpdates.schedule_days = updates.scheduleDays;
+    if (updates.dueDate      !== undefined) dbUpdates.due_date      = updates.dueDate;
 
     await supabase.from('tasks').update(dbUpdates).eq('id', taskId);
   }, [familyId]);

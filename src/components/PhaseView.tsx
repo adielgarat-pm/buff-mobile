@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { Phase, PhaseConfig, getPhaseConfig, getSmartPhaseForTime } from '../types/phase';
 import { Task } from '../types/task';
+import { isTaskVisibleOn, toDateKey } from '../lib/taskScheduling';
 import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
 import { useChildTheme } from '../contexts/ThemeContext';
@@ -38,10 +39,11 @@ export function PhaseView({
   // Day-visibility (schedule day + weekend hide) via the shared rule, then
   // bucket into this phase using the same getSmartPhaseForTime logic as the web app.
   const phaseTasks = useMemo(() => {
-    return tasks.filter(task =>
-      isTaskVisibleToday(task, !!isWeekend) &&
-      getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay) === phase,
-    );
+    const todayKey = toDateKey();
+    return tasks.filter(task => {
+      if (!isTaskVisibleOn(task, todayKey, { isWeekend })) return false;
+      return getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay) === phase;
+    });
   }, [tasks, phase, schoolEndTime, isSchoolDay, isWeekend]);
 
   const completedTasks  = phaseTasks.filter(t => t.completed);

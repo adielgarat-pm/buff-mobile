@@ -44,7 +44,7 @@ import {
   Phase, PHASES, getSmartPhaseForTime, getCurrentPhase,
 } from '../../types/phase';
 import { isWeekendToday } from '../../utils/schoolDay';
-import { isTaskVisibleToday } from '../../utils/taskSchedule';
+import { isTaskVisibleOn, toDateKey } from '../../lib/taskScheduling';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
@@ -203,10 +203,10 @@ export default function GamerTasksScreen() {
   // Mirrors PhaseView + Lovable: a task only appears on its scheduled weekdays,
   // and school-day-only tasks (hideOnWeekend) drop out on weekends. Previously
   // this screen grouped ALL of the child's tasks regardless of day.
-  const visibleTasks = useMemo(
-    () => tasks.filter(task => isTaskVisibleToday(task, isWeekend)),
-    [tasks, isWeekend],
-  );
+  const visibleTasks = useMemo(() => {
+    const todayKey = toDateKey();
+    return tasks.filter(task => isTaskVisibleOn(task, todayKey, { isWeekend }));
+  }, [tasks, isWeekend]);
 
   // ── Group tasks by phase ─────────────────────────────────────────────────
   const tasksByPhase = useMemo(() => {

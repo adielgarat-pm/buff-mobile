@@ -16,11 +16,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { PARENT_CAPTURE_CONFIG } from '../config/parentCaptureConfig';
 import {
+  childTaskFieldsFromParsed,
   groupByBucket,
   recencyPartition,
   todayISO,
 } from '../lib/parentCapture/captureMapping';
-import type { FamilyChild, ParentItem } from '../types/parentCapture';
+import type { FamilyChild, ParentItem, ParsedItem } from '../types/parentCapture';
 
 const keyFor = (familyId: string) =>
   `${PARENT_CAPTURE_CONFIG.STORE_KEY_PREFIX}${familyId}`;
@@ -97,6 +98,39 @@ export function useParentCapture() {
     [allItems, updateItem],
   );
 
+  /**
+   * Transfer a captured item into a child's existing task loop. Inserts a row
+   * into `tasks` (recurring or one-time per the item). Returns the new task id,
+   * or null on failure. Reuses the established tasks-insert path.
+   */
+  const transferToChild = useCallback(
+    async (parsed: ParsedItem, childId: string): Promise<string | null> => {
+      if (!familyId) return null;
+      const f = childTaskFieldsFromParsed(parsed);
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          family_id: familyId,
+          assigned_to: childId,
+          title: f.title,
+          time: f.time,
+          category: f.category,
+          credits: f.credits,
+          schedule_days: f.scheduleDays,
+          due_date: f.dueDate,
+          proposed_by_child: false,
+        } as never)
+        .select('id')
+        .single();
+      if (error) {
+        console.error('[useParentCapture] transfer error:', error.message);
+        return null;
+      }
+      return (data as { id: string } | null)?.id ?? null;
+    },
+    [familyId],
+  );
+
   const today = todayISO();
   const { active, archived } = useMemo(
     () => recencyPartition(allItems.filter((i) => i.status !== 'done'), today),
@@ -115,6 +149,7 @@ export function useParentCapture() {
     archiveItem,
     markDone,
     toggleReminder,
+    transferToChild,
     refetch,
   };
 }

@@ -27,7 +27,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useAuth } from '../../contexts/AuthContext';
 import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
-import type { CaptureInput, FamilyChild } from '../../types/parentCapture';
+import type { CaptureInput, FamilyChild, ParentItem } from '../../types/parentCapture';
 import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCapture';
 import { stubParse } from '../../lib/parentCapture/stubParser';
 import { parsedToParentItem } from '../../lib/parentCapture/captureMapping';
@@ -40,7 +40,7 @@ export default function CaptureScreen() {
   const { t } = useTranslation();
   const { familyId } = useAuth();
   const { children } = useFamilyChildren();
-  const { addItems } = useParentCapture();
+  const { addItems, transferToChild } = useParentCapture();
 
   const [step, setStep] = useState<'input' | 'review'>('input');
   const [text, setText] = useState('');
@@ -103,11 +103,22 @@ export default function CaptureScreen() {
     setSaving(true);
     try {
       const kept = entries.filter((e) => !e.discarded);
-      const items = kept.map((e) => {
+      const items: ParentItem[] = [];
+      for (const e of kept) {
         const child: FamilyChild | null =
           e.owner === 'child' ? children.find((c) => c.id === e.childId) ?? null : null;
-        return parsedToParentItem(e.parsed, familyId, e.owner, child);
-      });
+        const item = parsedToParentItem(e.parsed, familyId, e.owner, child);
+        // Transfer child-owned actionable items into the child's task loop.
+        const transferable = e.parsed.type === 'task' || e.parsed.type === 'event';
+        if (e.owner === 'child' && child && transferable) {
+          const taskId = await transferToChild(e.parsed, child.id);
+          if (taskId) {
+            item.status = 'transferred';
+            item.childTaskId = taskId;
+          }
+        }
+        items.push(item);
+      }
       await addItems(items);
       navigation.navigate('ParentThisWeek');
     } finally {

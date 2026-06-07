@@ -10,7 +10,7 @@
 | 2 — Schema + RLS | 📄 **migration file ready, NOT applied** | 2026-06-05 | `migrations/019_parent_capture.sql` (additive). Local AsyncStorage store used until applied. |
 | 3 — CaptureScreen + in-app entry | ✅ **built** (stub, flag-off) | 2026-06-05 | `CaptureScreen.tsx`; paste + image (existing deps, zero new dep) |
 | 4 — ConfirmCard | ✅ **built** (stub, flag-off) | 2026-06-05 | `CapturedItemRow.tsx`; owner toggle, confidence, no_match collapse, `category` map in config |
-| 5 — Transfer-to-child | ⏳ deferred (touches prod `tasks`) | — | path verified (Phase 0); build behind flag when greenlit |
+| 5 — Transfer-to-child | ✅ **built** (2026-06-07) | 2026-06-07 | child task/event items → existing `tasks` loop. One-time `due_date` model added (migration 020 **applied**, additive). `isTaskVisibleOn` helper; Values Check PASS. |
 | 6 — "This Week" surface | ✅ **built** (stub, flag-off) | 2026-06-05 | `ThisWeekScreen.tsx`; calm pull, time buckets, recency archive, opt-in reminder |
 | 7 — Android share target | 🔒 new-dep gate | — | needs `expo-share-intent` + rebuild + Adi approval (in-app capture works without it) |
 | 8 — Privacy/consent + i18n | 🟡 i18n done (draft); consent pending | 2026-06-05 | HE+EN keys added (parity ✅, draft→Adi). 🔒 consent copy = privacy posture |
