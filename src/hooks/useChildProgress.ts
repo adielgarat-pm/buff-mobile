@@ -405,7 +405,7 @@ export function useChildData(childId: string | null) {
         description:   task.description,
         icon:          task.icon,
         strategy_id:   task.strategyId || null,
-        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Fri+Sat)
       })
       .select()
       .single();

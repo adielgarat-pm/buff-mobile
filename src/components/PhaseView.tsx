@@ -5,6 +5,7 @@ import { Task } from '../types/task';
 import { PhaseProgressCircle } from './PhaseProgressCircle';
 import { PhaseTaskCard } from './PhaseTaskCard';
 import { useChildTheme } from '../contexts/ThemeContext';
+import { isTaskVisibleToday } from '../utils/taskSchedule';
 
 interface Props {
   phase:          Phase;
@@ -34,16 +35,13 @@ export function PhaseView({
   const T           = useChildTheme();
   const phaseConfig = getPhaseConfig(phase);
 
-  // Filter by phase using the same getSmartPhaseForTime logic as the web app,
-  // then also filter by the current day of the week.
+  // Day-visibility (schedule day + weekend hide) via the shared rule, then
+  // bucket into this phase using the same getSmartPhaseForTime logic as the web app.
   const phaseTasks = useMemo(() => {
-    const today = new Date().getDay(); // 0 = Sunday … 6 = Saturday
-    return tasks.filter(task => {
-      const scheduleDays = task.scheduleDays ?? [0, 1, 2, 3, 4, 5];
-      if (!scheduleDays.includes(today)) return false;
-      if (isWeekend && task.hideOnWeekend) return false;
-      return getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay) === phase;
-    });
+    return tasks.filter(task =>
+      isTaskVisibleToday(task, !!isWeekend) &&
+      getSmartPhaseForTime(task.time, schoolEndTime, isSchoolDay) === phase,
+    );
   }, [tasks, phase, schoolEndTime, isSchoolDay, isWeekend]);
 
   const completedTasks  = phaseTasks.filter(t => t.completed);
