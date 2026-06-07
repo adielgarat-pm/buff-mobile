@@ -46,6 +46,7 @@ export function useUnlinkedChildren() {
         .select('id, user_id, display_name')
         .eq('family_id', familyId)
         .eq('role', 'child')
+        .eq('is_deleted', false)
         .filter('pro_settings->>source', 'eq', 'child_signup')
         .not('user_id', 'is', null),
 
@@ -55,6 +56,7 @@ export function useUnlinkedChildren() {
         .select('id, display_name')
         .eq('family_id', familyId)
         .eq('role', 'child')
+        .eq('is_deleted', false)
         .is('user_id', null),
     ]);
 

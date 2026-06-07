@@ -1432,6 +1432,11 @@
   "onboarding.step5.ctaExistingChild": "{{arrow}} המשימות של {{name}}",
   "onboarding.step5.skip":     "לא עכשיו",
   "onboarding.step5.buffs":    "{{count}} BUFFs",
+  "onboarding.step5.duplicateTitle":      "{{name}} כבר אצלך",
+  "onboarding.step5.duplicateBody":       "כבר יש במשפחה שלך ילד/ה בשם {{name}}. לפתוח את {{name}}, או להוסיף ילד/ה נוסף/ת עם אותו שם?",
+  "onboarding.step5.duplicateOpen":       "פתח/י את {{name}}",
+  "onboarding.step5.duplicateAddAnyway":  "הוסף/י ילד/ה נוסף/ת",
+  "onboarding.step5.duplicateCancel":     "ביטול",
 
   "onboarding.step6.title": "מה הפרס של {{name}}?",
   "onboarding.step6.sub": "הגדר/י פרס על השלמת 10 ימים מוצלחים. קטן, ברי השגה ומרגש — זה הגשר לדופמין.",

@@ -79,7 +79,8 @@ export function useYesterdayRecap(): UseYesterdayRecapResult {
           .from('profiles')
           .select('id, created_at')
           .eq('family_id', familyId)
-          .eq('role', 'child'),
+          .eq('role', 'child')
+          .eq('is_deleted', false),
         supabase
           .from('tasks')
           .select('id, family_id, assigned_to, title, time, category, icon, schedule_days, created_at')
