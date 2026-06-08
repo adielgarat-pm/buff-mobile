@@ -259,6 +259,15 @@ export function TesterBoardView({
                       {f.parent_name ?? '—'}
                       {test && <TestTag />}
                     </div>
+                    {f.parent_email && (
+                      <a
+                        href={`mailto:${f.parent_email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        {f.parent_email}
+                      </a>
+                    )}
                     {childCount(f) === 0 ? (
                       <div className="text-xs font-medium text-amber-600">⚠️ No child yet</div>
                     ) : (

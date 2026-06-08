@@ -173,7 +173,14 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
           <div>
             <h2 className="text-lg font-bold">{family.parent_name ?? family.name}</h2>
             <div className="text-sm text-muted-foreground">
-              {family.parent_email && <span>{family.parent_email} · </span>}
+              {family.parent_email && (
+                <span>
+                  <a href={`mailto:${family.parent_email}`} className="text-blue-600 hover:underline">
+                    {family.parent_email}
+                  </a>{' '}
+                  ·{' '}
+                </span>
+              )}
               {family.children.length} {family.children.length === 1 ? 'child' : 'children'} · joined{' '}
               {relativeTime(family.created_at)}
               {family.short_code && <span> · code {family.short_code}</span>}
