@@ -62,17 +62,21 @@ function installSupabaseMock(opts: {
   loadRow:           Record<string, unknown> | null;
   loadError?:        { message: string } | null;
   prevProSettings?:  Record<string, unknown> | null;
-  updateResult?:     { error: unknown };
+  updateResult?:     { data?: unknown; error: unknown };
 }) {
   const {
     loadRow,
     loadError       = null,
     prevProSettings = null,
-    updateResult    = { error: null },
+    // UPDATE…eq…select() resolves to the rows actually written. Default to a
+    // single returned row so the screen's 0-row guard treats the save as ok.
+    updateResult    = { data: [{ id: 'child-1' }], error: null },
   } = opts;
 
   const updateSpy = jest.fn(() => ({
-    eq: jest.fn().mockResolvedValue(updateResult),
+    eq: jest.fn(() => ({
+      select: jest.fn().mockResolvedValue(updateResult),
+    })),
   }));
 
   // Single shared mock used for any number of from('profiles') calls. The
@@ -218,6 +222,25 @@ describe('EditChildScreen', () => {
     await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
     const payload = updateSpy.mock.calls[0][0] as { pro_settings: Record<string, unknown> };
     expect(payload.pro_settings.language).toBe('he');
+  });
+
+  test('surfaces an error and stays put when the update affects 0 rows (RLS blocked)', async () => {
+    // An RLS-blocked UPDATE returns no error but an empty row set. The screen
+    // must NOT navigate back as if the save succeeded (own-device child bug).
+    const updateSpy = installSupabaseMock({
+      loadRow:         baseChild,
+      prevProSettings: { age_group: '9-11', gender: 'girl' },
+      updateResult:    { data: [], error: null },
+    });
+
+    const { getByTestId, getByText } = render(<EditChildScreen />);
+    await waitFor(() => expect(getByTestId('edit-child-save')).toBeTruthy());
+
+    fireEvent.press(getByTestId('edit-child-save'));
+
+    await waitFor(() => expect(getByText('editChild.saveError')).toBeTruthy());
+    expect(updateSpy).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   test('cancel navigates back without writing', async () => {

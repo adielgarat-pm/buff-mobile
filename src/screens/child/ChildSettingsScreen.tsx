@@ -19,11 +19,11 @@ import { BuddyNameModal } from '../../components/buddy/BuddyNameModal';
 import LanguagePickerModal from '../../components/LanguagePickerModal';
 import { getBuddyDefaultName } from '../../components/buddy/buddyAssets';
 import { useChildData } from '../../hooks/useChildProgress';
+import { usePetState } from '../../hooks/usePetState';
+import { PET_SKINS, getSkinsForTheme, getDefaultSkin } from '../../types/pet';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
-
-const PET_SKINS = ['🐶', '🐱', '🐰', '🐼', '🐉', '🦄', '🐯', '🦊', '🦈', '🦁', '🦫'];
 
 // Theme options — label/desc resolved via t() inside the component so they
 // stay reactive to language switches. labelKey/descKey are stable i18n
@@ -50,8 +50,15 @@ export default function ChildSettingsScreen() {
   useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
 
   const { totalBalance } = useChildData(childId);
+
+  // Pet skin comes from the real pet state (device-local AsyncStorage, shared
+  // with the dashboard), not a hardcoded value — so the menu shows the buddy
+  // the child actually has, and tapping a skin persists the change.
+  const { petState, changeSkin } = usePetState(getDefaultSkin(themeName));
+  const selectedSkin = petState.current_skin;
+  const themeSkins   = getSkinsForTheme(themeName);
+
   const [hapticsOn, setHapticsOn]       = useState(true);
-  const [selectedSkin, setSelectedSkin] = useState('🐉');
   const [toggleModalVisible, setToggleModalVisible] = useState(false);
   const [nameModalVisible,   setNameModalVisible]   = useState(false);
   const [langModalOpen,      setLangModalOpen]      = useState(false);
@@ -92,7 +99,7 @@ export default function ChildSettingsScreen() {
 
       {/* Profile card */}
       <View style={[styles.profileCard, { backgroundColor: T.card, borderColor: T.border }]}>
-        <Text style={styles.profileEmoji}>{selectedSkin}</Text>
+        <Text style={styles.profileEmoji}>{PET_SKINS[selectedSkin]?.emoji ?? '🐶'}</Text>
         <View>
           <Text style={[styles.profileName,  { color: T.foreground }]}>
             {profile?.display_name ?? ''}
@@ -155,33 +162,36 @@ export default function ChildSettingsScreen() {
         )}
       </View>
       <View style={[styles.skinGrid, { backgroundColor: T.card, borderColor: T.border }]}>
-        {PET_SKINS.map((skin) => (
-          <TouchableOpacity
-            key={skin}
-            style={[
-              styles.skinBtn,
-              {
-                borderColor: selectedSkin === skin ? T.primary : 'transparent',
-                backgroundColor: selectedSkin === skin ? T.muted : 'transparent',
-              },
-            ]}
-            onPress={() => {
-              if (!isSubscribed) {
-                // Child viewer: tap is inert. They see what's locked but
-                // we don't nudge them toward a payment they can't action.
-                if (isChildViewer) return;
-                navigation.navigate('Paywall', {
-                  childName: profile?.display_name ?? undefined,
-                });
-                return;
-              }
-              setSelectedSkin(skin);
-            }}
-          >
-            <Text style={[styles.skinEmoji, !isSubscribed && styles.skinLocked]}>{skin}</Text>
-            {!isSubscribed && <Text style={styles.lockOverlay}>🔒</Text>}
-          </TouchableOpacity>
-        ))}
+        {themeSkins.map((skin) => {
+          const isSelected = selectedSkin === skin.id;
+          return (
+            <TouchableOpacity
+              key={skin.id}
+              style={[
+                styles.skinBtn,
+                {
+                  borderColor: isSelected ? T.primary : 'transparent',
+                  backgroundColor: isSelected ? T.muted : 'transparent',
+                },
+              ]}
+              onPress={() => {
+                if (!isSubscribed) {
+                  // Child viewer: tap is inert. They see what's locked but
+                  // we don't nudge them toward a payment they can't action.
+                  if (isChildViewer) return;
+                  navigation.navigate('Paywall', {
+                    childName: profile?.display_name ?? undefined,
+                  });
+                  return;
+                }
+                changeSkin(skin.id);
+              }}
+            >
+              <Text style={[styles.skinEmoji, !isSubscribed && styles.skinLocked]}>{skin.emoji}</Text>
+              {!isSubscribed && <Text style={styles.lockOverlay}>🔒</Text>}
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* ── Buddy section ──────────────────────────────────────────────────── */}
