@@ -19,6 +19,8 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
+import { isWeekendToday } from '../../utils/schoolDay';
+import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import { PetDisplay } from '../../components/PetDisplay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
@@ -57,7 +59,8 @@ function PastelChildDashboard() {
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, dailyGoal, loading, refetch } = useChildData(childId);
-  const { isPauseActive } = useAppSettings();
+  const { settings, isPauseActive } = useAppSettings();
+  const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const welcomeBack = useWelcomeBack();
 
   // Refetch on focus — completing a task on the Tasks tab writes to a separate
@@ -106,8 +109,11 @@ function PastelChildDashboard() {
 
   const [justCompletedTask, setJustCompletedTask] = useState(false);
 
-  const doneTasks  = tasks.filter(t => t.completed).length;
-  const totalTasks = tasks.length;
+  // Only today's tasks count toward Focus Fuel — keeps HQ in sync with the
+  // Quests tab (shared day-visibility rule).
+  const todayTasks = tasks.filter(t => isTaskVisibleToday(t, isWeekend));
+  const doneTasks  = todayTasks.filter(t => t.completed).length;
+  const totalTasks = todayTasks.length;
   const fuelPct    = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const atGoal     = fuelPct >= 70;
 

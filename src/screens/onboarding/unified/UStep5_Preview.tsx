@@ -12,7 +12,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, ScrollView, SafeAreaView,
-  Animated, I18nManager, ActivityIndicator, StyleSheet,
+  Animated, I18nManager, ActivityIndicator, StyleSheet, Alert,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -112,8 +112,41 @@ export default function UStep5_Preview() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const saveAll = async () => {
-    console.log(`${TAG} saveAll started`);
+  // Friendly duplicate-name confirmation. Fires when create_child_profile
+  // reports an existing ACTIVE same-name child in this family. Positive-coaching
+  // tone: the parent likely thinks the first add failed (empty dashboard / weak
+  // feedback) — we reassure that the child already exists and offer to open
+  // them, rather than silently creating a second profile (which also breaks the
+  // child's family-code login by making two same-name profiles pickable).
+  const promptDuplicate = (existingName: string) => {
+    Alert.alert(
+      t('onboarding.step5.duplicateTitle', { name: existingName }),
+      t('onboarding.step5.duplicateBody', { name: existingName }),
+      [
+        {
+          text: t('onboarding.step5.duplicateOpen', { name: existingName }),
+          onPress: () => navigation.navigate('ParentApp', { screen: 'ParentTasks' }),
+        },
+        {
+          text: t('onboarding.step5.duplicateAddAnyway'),
+          onPress: () => { hasSaved.current = true; saveAll(true); },
+        },
+        {
+          text: t('onboarding.step5.duplicateCancel'),
+          style: 'cancel',
+          // Return to the parent app, NOT navigation.goBack(): the previous
+          // screen in the add-child stack is the transient "Building plan"
+          // loading screen, which doesn't re-advance and would strand the
+          // parent. Exit cleanly to the parent Tasks tab instead.
+          onPress: () => navigation.navigate('ParentApp', { screen: 'ParentTasks' }),
+        },
+      ],
+      { cancelable: true },
+    );
+  };
+
+  const saveAll = async (force = false) => {
+    console.log(`${TAG} saveAll started (force=${force})`);
     console.log(`${TAG} familyId=${familyId ?? 'null'}, user=${user?.id ?? 'null'}`);
 
     if (!familyId || !user) {
@@ -134,42 +167,59 @@ export default function UStep5_Preview() {
         console.log(`${TAG} [1/3] Reusing existing child profile — childProfileId: ${id} (skipping insert)`);
         setChildProfileId(id);
       } else {
-        console.log(`${TAG} [1/3] Inserting child profile for "${params.childName}"...`);
-        console.log('[DEBUG] familyId at insert time:', familyId);
+        console.log(`${TAG} [1/3] Creating child profile for "${params.childName}" (force=${force})...`);
 
-        const profilePayload = {
-          user_id:           null,              // null until child signs up with family code
-          family_id:         familyId,
-          display_name:      params.childName,
-          role:              'child' as const,
-          marketing_consent: false,
-          pro_settings: {
-            age_group:  params.ageGroup,
-            gender:     params.gender    ?? null,
-            birth_date: params.birthDate ?? null,
-            language:   childLang,        // per-child language (parent-editable later)
-            onboarding_data: {
-              mainChallenge:        params.mainChallenge,
-              additionalChallenges: params.additionalChallenges,
-              motivators:           params.motivators,
-            },
+        // pro_settings mirrors the previous direct-insert payload. The profile
+        // insert now happens INSIDE the create_child_profile RPC, so the
+        // same-name duplicate check and the insert are one atomic transaction
+        // (no client-side check-then-insert race). The RPC derives family_id +
+        // parent authorization server-side, and the existing AFTER INSERT
+        // triggers still seed buddy_relationships + default tasks/rewards +
+        // credit_vault within the same statement.
+        const proSettings = {
+          age_group:  params.ageGroup,
+          gender:     params.gender    ?? null,
+          birth_date: params.birthDate ?? null,
+          language:   childLang,        // per-child language (parent-editable later)
+          onboarding_data: {
+            mainChallenge:        params.mainChallenge,
+            additionalChallenges: params.additionalChallenges,
+            motivators:           params.motivators,
           },
         };
-        console.log('[DEBUG] profile insert payload:', JSON.stringify(profilePayload));
 
-        const { data: profileData, error: profileErr } = await supabase
-          .from('profiles')
-          .insert(profilePayload as never)
-          .select('id')
-          .single();
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('create_child_profile', {
+          p_display_name: params.childName,
+          p_pro_settings: proSettings as never,
+          p_force:        force,
+        });
 
-        if (profileErr || !profileData) {
-          console.error(`${TAG} [1/3] Profile insert FAILED:`, profileErr?.message);
-          throw new Error(profileErr?.message ?? 'Profile creation failed');
+        if (rpcErr) {
+          console.error(`${TAG} [1/3] create_child_profile FAILED:`, rpcErr.message);
+          throw new Error(rpcErr.message);
         }
 
-        id = (profileData as { id: string }).id;
-        console.log(`${TAG} [1/3] Profile insert SUCCESS — childProfileId: ${id}`);
+        const res = rpcData as {
+          status: 'created' | 'duplicate' | 'error';
+          child_id?: string;
+          existing_child_id?: string;
+          existing_child_name?: string;
+          reason?: string;
+        };
+
+        if (res?.status === 'duplicate') {
+          console.log(`${TAG} [1/3] Duplicate active child "${res.existing_child_name}" — prompting parent`);
+          promptDuplicate(res.existing_child_name ?? params.childName);
+          return; // parent decides via dialog: open existing / add anyway / cancel
+        }
+
+        if (res?.status !== 'created' || !res.child_id) {
+          console.error(`${TAG} [1/3] create_child_profile rejected:`, res?.reason);
+          throw new Error(res?.reason ?? 'Profile creation failed');
+        }
+
+        id = res.child_id;
+        console.log(`${TAG} [1/3] Profile create SUCCESS — childProfileId: ${id}`);
         setChildProfileId(id);
       }
 
@@ -189,7 +239,7 @@ export default function UStep5_Preview() {
         time:          t.time,
         credits:       t.buff_value,
         icon:          '⭐',
-        schedule_days: [0, 1, 2, 3, 4, 5],
+        schedule_days: [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Sat); parent can narrow per task
       }));
       console.log(`${TAG} [2/3] Task rows (${taskRows.length}):`, JSON.stringify(taskRows.map(r => `${r.time} ${r.title}`)));
 
@@ -322,7 +372,7 @@ export default function UStep5_Preview() {
         </Text>
 
         {saveErr && (
-          <TouchableOpacity style={styles.errorCard} onPress={saveAll}>
+          <TouchableOpacity style={styles.errorCard} onPress={() => saveAll()}>
             <Text style={styles.errorText}>{saveErr}</Text>
             <Text style={styles.retryText}>Tap to retry</Text>
           </TouchableOpacity>

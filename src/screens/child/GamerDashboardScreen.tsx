@@ -36,6 +36,8 @@ import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { trimTasksForLowPower } from '../../utils/vibeUtils';
+import { isWeekendToday } from '../../utils/schoolDay';
+import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { BuddyHero } from '../../components/buddy/BuddyHero';
@@ -136,7 +138,8 @@ export default function GamerDashboardScreen() {
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
-  const { isPauseActive } = useAppSettings();
+  const { settings, isPauseActive } = useAppSettings();
+  const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
   // Refetch tasks/balance AND the buddy on focus — completing a task on the
   // Quests tab writes to a separate useChildData instance, so the dashboard's
@@ -186,10 +189,16 @@ export default function GamerDashboardScreen() {
   };
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
+  // Day-visibility first (shared rule — keeps HQ in sync with the Quests tab),
+  // then the time-of-day chip on top.
+  const todayTasks = useMemo(
+    () => tasks.filter(t => isTaskVisibleToday(t, isWeekend)),
+    [tasks, isWeekend],
+  );
   const filteredTasks = useMemo(() => {
-    if (timeFilter === 'all') return tasks;
-    return tasks.filter(t => timeBucket(t.time) === timeFilter);
-  }, [tasks, timeFilter]);
+    if (timeFilter === 'all') return todayTasks;
+    return todayTasks.filter(t => timeBucket(t.time) === timeFilter);
+  }, [todayTasks, timeFilter]);
 
   // Low Power Mode trims the task list to the most important + first
   // self-care (max 2). See trimTasksForLowPower for the rule. Stat

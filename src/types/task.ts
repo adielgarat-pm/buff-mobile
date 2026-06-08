@@ -33,7 +33,7 @@ export interface Task {
   completedAt?: Date | string;
   description?: string;
   icon?: string;
-  /** Days of week (0 = Sunday … 6 = Saturday). Defaults to [0,1,2,3,4,5] (Sun–Fri). */
+  /** Days of week (0 = Sunday … 6 = Saturday). null/empty → every day (see isTaskVisibleToday). */
   scheduleDays?: number[];
   /**
    * School-day-only task: hidden on weekend days. Weekend = Sat always,

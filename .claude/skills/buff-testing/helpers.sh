@@ -9,7 +9,10 @@
 
 export ADB="/c/Users/adiel/AppData/Local/Android/Sdk/platform-tools/adb.exe"
 export PKG="com.buffapp.mobile"
-export METRO_URL="http://10.0.2.2:8083"
+# Emulator/Metro lock + lifecycle (one shared emulator, canonical port, lease lock).
+# Engine lives in the buff-emulator skill. See docs/DEV_SERVER_LIFECYCLE.md.
+source "$(dirname "${BASH_SOURCE[0]}")/../buff-emulator/metro.sh"
+export METRO_URL="${METRO_HOST_URL}"   # derived from canonical port — replaces hardcoded :8083
 export TMP_DIR="C:/Users/adiel/buff-mobile/.claude/tmp"
 mkdir -p "$TMP_DIR"
 
@@ -27,6 +30,7 @@ buff_stop() {
 
 # Launch via dev-client deep link (connects to Metro)
 buff_launch() {
+  metro_acquire || { echo "buff_launch: Metro not healthy, aborting"; return 1; }
   local encoded_url
   encoded_url=$(printf '%s' "$METRO_URL" | sed 's/:/%3A/g; s|/|%2F|g')
   "$ADB" shell am start \

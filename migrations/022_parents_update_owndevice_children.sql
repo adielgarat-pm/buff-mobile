@@ -1,4 +1,4 @@
--- 021: Allow parents to update their family's child profiles even when the
+-- 022: Allow parents to update their family's child profiles even when the
 -- child owns a device (user_id IS NOT NULL).
 --
 -- The prior policy "Parents can update child profiles in their family" required

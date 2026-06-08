@@ -66,11 +66,16 @@ const mockedFrom = supabase.from as jest.MockedFunction<typeof supabase.from>;
  * than queueing a finite number of `mockReturnValueOnce` responses.
  */
 function mockChildrenSelect(rows: unknown[] | null, error: { message: string } | null = null) {
+  // Chain mirrors the screen query: select → eq(family_id) → eq(role)
+  // → eq(is_deleted) → order. The is_deleted=false filter hides soft-deleted
+  // children (e.g. a duplicate twin removed via soft-delete) from the list.
   mockedFrom.mockImplementation(() => ({
     select: jest.fn(() => ({
       eq: jest.fn(() => ({
         eq: jest.fn(() => ({
-          order: jest.fn().mockResolvedValue({ data: rows, error }),
+          eq: jest.fn(() => ({
+            order: jest.fn().mockResolvedValue({ data: rows, error }),
+          })),
         })),
       })),
     })),
