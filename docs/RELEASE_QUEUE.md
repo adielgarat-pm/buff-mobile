@@ -17,7 +17,9 @@
 
 ## 🚉 Queued — riding the next train
 
-_Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03). Next train: **next versionCode (TBD)**._
+_Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03)._
+
+> 🚧 **CUT IN PROGRESS — v1.3.1 (versionCode 33):** all 13 rows below are drained into `docs/releases/33/MANIFEST.md`. EAS build `3db38189` building 2026-06-08 (Gate 1 ✅ · Gate 2 ✅). They move to **Shipped** once Adi promotes 33 to the internal track. (EAS landed on 33, not the requested 32 — 32 was already consumed remotely.)
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
