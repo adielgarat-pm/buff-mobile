@@ -7,7 +7,7 @@ import {
   useCallback,
   useRef,
 } from 'react';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { User, Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
@@ -455,7 +455,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const familyName = `${displayName}'s Family`;
       const { data: newFamily, error: familyError } = await supabase
         .from('families')
-        .insert({ name: familyName, preferred_language: 'en' } as never)
+        .insert({ name: familyName, preferred_language: 'en', platform: Platform.OS } as never)
         .select()
         .single();
 
