@@ -12,6 +12,7 @@
  *   4. RevenueCat "BUFF Premium" entitlement → real subscription
  */
 import { useState, useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { type CustomerInfo } from 'react-native-purchases';
 import { useAuth } from '../contexts/AuthContext';
@@ -104,13 +105,20 @@ export function useSubscription() {
   // the DB flags are the shared family signal.
   const familyHasEntitlement = parents.some(p => p.isLifetimeAccess || p.isLifetimeFounding);
 
+  // iOS TestFlight phase (Phase 1): payments/IAP are not yet wired on iOS, so every
+  // iOS tester is treated as entitled — this hides all paywall CTAs and unlocks the
+  // premium features for the free beta. REMOVE this branch in Phase 2 when Apple IAP
+  // lands (see pkg/ios-testflight plan + purchaseService.initRevenueCat iOS guard).
+  const iosPaywallHidden = Platform.OS === 'ios';
+
   const isSubscribed =
     isLifetimeAccess ||
     familyHasEntitlement ||
     isGracePeriod    ||
     simulateSubscribed ||
     rcSubscribed     ||
-    rcFounding;
+    rcFounding       ||
+    iosPaywallHidden;
 
   const childCount   = children.length;
   const needsUpgrade = !isSubscribed && childCount >= FREE_CHILD_LIMIT;
