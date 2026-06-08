@@ -1,11 +1,12 @@
-# Release v1.4.1 (versionCode 35) — Manifest
+# Release v1.4.1 (versionCode 38) — Manifest
 
 **Cut date:** 2026-06-08
 **Anchor:** last *promoted* build `1.4.0 (versionCode 34)` — Alpha closed-testing, 2026-06-08 (cut from `main @ 4139d2e`). No `v34` git tag; change set sourced from `git log 4139d2e..main`.
 **Branch:** release/2026-06-08-v35 (cut from `main @ 6468037` — build-from-main policy)
 **Track:** internal → Alpha (Hat-4 promotes)
 **versionName:** 1.4.1 — patch+ (one new feature: Off-Routine Day; rest are fixes). Avoids a Play collision with the already-uploaded 1.4.0.
-**versionCode:** **35** (EAS remote auto-increment — do NOT set by hand).
+**versionCode:** **38** (EAS remote auto-increment — do NOT set by hand. Planned as 35, but the EAS remote counter was already at 37 — codes 35/36/37 were consumed by other/parallel builds since 34 — so this build landed on 38).
+**EAS build (38):** https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/a1798c89-6f8a-481a-a2b9-93d5ca614ae6
 
 ## What's in this release (main since the vc34 cut point `4139d2e`)
 
@@ -27,5 +28,5 @@
 
 ## Notable risk / watch-items
 - **Pause + Off-Routine interaction** — verify Pause supersedes Off-Routine on the same child (separate columns; expected no conflict, confirm in Gate 2).
-- **versionName collision guard** — 1.4.0 already uploaded to Play; 1.4.1 avoids it. versionCode 35 is unique regardless.
+- **versionName collision guard** — 1.4.0 already uploaded to Play; 1.4.1 avoids it. versionCode 38 is unique regardless.
 - **Hat-4 device check** on the real AAB (Pause + Off-Routine are time/date-sensitive — worth a real-device pass) is deferred to Adi.
