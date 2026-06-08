@@ -63,12 +63,15 @@ interface PushPayload {
 
 // ─── Constants (matches Event × Channel Matrix) ─────────────────────────
 
+// pkg/notifications-hardening L6: "push = action-required". Parent-recipient
+// types here all PUSH. INFO-level parent events live in the bell only (see
+// SKIP_PUSH_TYPES below). child_suggestion (L7) needs the parent's approval, so
+// it pushes; recipient = parent_id.
 const PARENT_RECIPIENT_TYPES = new Set([
   'parent_sos',
   'reward_redeemed',
   'reward_redemption_requested',
-  'parent_engagement',
-  'family_joined',
+  'child_suggestion', // L7 — was unmatched → suppressed as unknown_type
   'anchor_recovery',
 ]);
 
@@ -77,6 +80,9 @@ const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
 const SKIP_PUSH_TYPES = new Set([
   'task_completed', // E3 locked off
   'quest_milestone', // E4 stale
+  // pkg/notifications-hardening L6 — INFO-level: bell-only, no push.
+  'parent_engagement', // "kid active this week" — informational, not actionable
+  'family_joined', // "X joined the family" — informational
 ]);
 
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
@@ -104,6 +110,8 @@ function copyForType(
         return { title: `${name} בחר/ה פרס`, body: reward, data: {} };
       case 'reward_redemption_requested':
         return { title: `${name} רוצה לממש פרס`, body: reward, data: {} };
+      case 'child_suggestion':
+        return { title: `${name} רוצה להציע משהו 💡`, body: reward, data: {} };
       case 'parent_engagement':
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
@@ -126,6 +134,8 @@ function copyForType(
       return { title: `${name} chose a reward`, body: reward, data: {} };
     case 'reward_redemption_requested':
       return { title: `${name} wants to redeem a reward`, body: reward, data: {} };
+    case 'child_suggestion':
+      return { title: `${name} has a suggestion 💡`, body: reward, data: {} };
     case 'parent_engagement':
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':
