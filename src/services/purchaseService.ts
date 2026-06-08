@@ -4,6 +4,7 @@
  * Thin wrapper around react-native-purchases so the rest of the app
  * never imports the SDK directly (easier to mock in tests).
  */
+import { Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 
 const RC_API_KEY     = 'goog_JXENrpCCcYObBesSjSeFGoKvuaA';
@@ -24,6 +25,14 @@ export type FoundingTier = 99 | 149;
  * survive reinstalls and are consistent across platforms.
  */
 export async function initRevenueCat(userId: string): Promise<void> {
+  // iOS TestFlight phase (Phase 1): no iOS RevenueCat API key / IAP products yet.
+  // Configuring the SDK with the Android key (`goog_…`) on iOS would error, so we
+  // skip init entirely. Paired with the iOS branch in useSubscription (paywall hidden,
+  // premium unlocked). REMOVE when Apple IAP lands in Phase 2 and an iOS key exists.
+  if (Platform.OS === 'ios') {
+    console.log('[RevenueCat] skipped on iOS (Phase 1 — no IAP yet)');
+    return;
+  }
   Purchases.setLogLevel(LOG_LEVEL.DEBUG);
   await Purchases.configure({ apiKey: RC_API_KEY, appUserID: userId });
   console.log('[RevenueCat] configured for user:', userId);
