@@ -239,9 +239,17 @@ export function useChildData(childId: string | null) {
 
       const { data: childProfile } = await supabase
         .from('profiles')
-        .select('daily_goal, school_quest_enabled, school_end_time, off_routine_until')
+        .select('daily_goal, school_quest_enabled, school_end_time')
         .eq('id', childId)
         .single();
+
+      // Off-routine flag in its OWN query — decoupled from the combined select
+      // above so it stays correct even if that select fails on an optional column.
+      const { data: offRow } = await supabase
+        .from('profiles')
+        .select('off_routine_until')
+        .eq('id', childId)
+        .maybeSingle();
 
       const completedTaskIds = new Set(
         progressData?.filter(p => p.completed).map(p => p.task_id) || []
@@ -277,7 +285,7 @@ export function useChildData(childId: string | null) {
       // otherwise show ONLY routine tasks. The per-screen scheduleDays/hideOnWeekend
       // filters then run unchanged on the already-partitioned set. Pause supersedes
       // at the screen level (screens short-circuit to PauseEmptyState before the list).
-      const offActive = isOffRoutineActive(childProfile?.off_routine_until);
+      const offActive = isOffRoutineActive((offRow as { off_routine_until?: string | null } | null)?.off_routine_until);
       setOffRoutineActive(offActive);
       setTasks(mappedTasks.filter(t => (t.isOffRoutine ?? false) === offActive));
       setTotalBalance(vaultData?.total_balance || 0);
