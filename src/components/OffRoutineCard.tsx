@@ -71,7 +71,11 @@ export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) 
         if (mode === 'today') {
           const d = new Date(); d.setHours(23, 59, 59, 999); nextUntil = d.toISOString();
         } else {
-          nextUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+          // "3 days" = 3 full calendar days (today + 2), ending at local end-of-day —
+          // consistent with the "today" branch above and the Pause calendar-day fix.
+          // Was a rolling now()+72h, which ended mid-day 3 days out.
+          const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(23, 59, 59, 999);
+          nextUntil = d.toISOString();
         }
       }
       const { error } = await supabase
