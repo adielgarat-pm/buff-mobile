@@ -17,27 +17,11 @@
 
 ## 🚉 Queued — riding the next train
 
-_Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03)._
+_Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-testing** track 2026-06-08. Drained into `docs/releases/34/MANIFEST.md`. Prior internal release: **1.3.1 (versionCode 31)**, 2026-06-06 (`docs/releases/31/`)._
 
-> 🚧 **CUT IN PROGRESS — v1.3.1 (versionCode 33):** all 13 rows below are drained into `docs/releases/33/MANIFEST.md`. EAS build `3db38189` building 2026-06-08 (Gate 1 ✅ · Gate 2 ✅). They move to **Shipped** once Adi promotes 33 to the internal track. (EAS landed on 33, not the requested 32 — 32 was already consumed remotely.)
+> ✅ **Cut closed — 1.4.0 (versionCode 34), promoted to Alpha 2026-06-08.** The rows that were riding the train shipped (the fixes via 1.3.1(31); the features stacked on top via 1.4.0(34)) and have moved to **Shipped** below. versionCode **32 and 33 were burned** during the 2026-06-08 cut — 32 consumed remotely, 33 a parallel/superseded build that was never promoted; **34 is the successful, promoted build**. **Next train starts clean: the next production build will be versionCode 35** (EAS `appVersionSource: remote` + `autoIncrement: true` tracks the last code server-side); bump `versionName` at cut time (e.g. 1.4.1 / 1.5.0) to avoid a Play collision with the already-uploaded 1.4.0.
 
-| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
-|---|---|---|---|---|---|---|
-| 2026-06-04 | #157 / `62e31bd` | fix | Parent notification bell now sits clear of the screen title in Hebrew (RTL position) | Train | yes | F18 (i18n + Hebrew RTL) |
-| 2026-06-05 | #159 / `878ea96` | feat | Child login resolves by pick-from-list keyed on the immutable profile id — no more duplicate accounts / lost progress on a new device (migration 018: list_family_children + link_child_profile) | Train | yes | F1 (child entry) — Hat-3 verified live 2026-06-05: orphan pick → +1 auth user, 0 dup profiles |
-| 2026-06-05 | #161 / `df0719b` | feat | Parent notification bell shows an unread-only "show-new" feed with INFO-recency ordering; no auto-mark-read on open | Train | yes | F8 (parent notification feed) — not yet smoke-tested in a build |
-| 2026-06-05 | #165 / `ab6f3f2` | feat | Kids redeem rewards with parent approval; BUFFs deducted atomically on approval (previously a no-op — redemption never deducted) | Train | yes | Rewards/Redemption — Hat-3 verified ⚠️ no F-suite yet |
-| 2026-06-06 | PR #170 / `bcdb8cb` | fix | Cash-reward currency symbol now follows app language: Hebrew → ₪ always (was showing £ in Hebrew UI on phones whose device language is English-UK; reported by Tamar) | Train | yes | Rewards / cash-conversion modal |
-| 2026-06-06 | PR #173 / `4a1f99e` | fix | Notification bell is now an inline header element with a compact circular "+" action beside it — no longer floats over the Add/Update button on Tasks/Rewards/Timetable; works in EN + Hebrew RTL (Hat-4 pending) | Train | yes | F18 (i18n + Hebrew RTL) + parent Tasks/Rewards/Timetable headers |
-| 2026-06-06 | #174 / `5c7ce63` | fix | English parent claiming a child via family code now sees the link-child sheet in English (6 strings were hardcoded Hebrew); AuthContext signup errors routed through i18n. Found during first-English-user regression | Train | yes | F18 (i18n + locale) |
-| 2026-06-06 | PR #177 / `pkg/child-vault-write-rls` | fix | Own-device kids' BUFFs now persist: surface (not swallow) credit_vault write errors. **Server-side fix already live** (RLS policy `Children can manage own vault` + Alon backfill) — no build needed for users to recover; this row is the code-side regression guard only. Reported by Tamar (Alon showed 0 BUFFs) | Train | no (guard) | Rewards / BUFFs balance — Hat-3 own-device child completion → reload persists |
-| 2026-06-06 | PR #178 / `c662836` | fix | Parent Send-Sticker / Send-Bonus bottom sheet no longer scatters (confirm button flew to top of screen) when the optional note field is focused — `KeyboardAvoidingView behavior` "height"→"padding" so the whole sheet lifts cleanly above the keyboard. Reported by Shani during V26 sticker testing | Train | yes | Parent dashboard sticker/bonus modals — Hat-3 verified on emulator-5554; Hat-4 device check open (bug is device-dependent on `adjustResize`) |
-| _pending merge_ | PR #179 | feat | Second parent (partner) joins an existing family via the family code in Settings — full equal co-parent; premium becomes family-wide (migration 020 `switch_user_family`); requested by Tamar | Train | yes | Auth + Settings "Join Family" — Hat-4: real 2nd Google account, two devices |
-| _pending merge_ | `fix/duplicate-child-guard` | fix | Adding a child with a name that already exists in the family now shows a friendly "Open [name] / Add another / Cancel" dialog instead of silently creating a duplicate (atomic `create_child_profile` RPC, migration 021). Duplicates also broke child login (pick-from-list by name → empty twin → 0 BUFFs). Also fixes the broken `delete_child_profile` RPC and hides soft-deleted kids from parent lists. Migration 021 + the live "פלד" data fix already applied — client ships with build | Train | yes | F1 (child entry) + ManageChildren / Add-child — Hat-3: add same child twice → dialog; delete child works |
-| 2026-06-08 | PR #189 / `pkg/fix-owndevice-child-edit` | fix | Parents can now edit own-device kids (name/avatar/birthday/age/language) — the `profiles` UPDATE RLS required `user_id IS NULL`, so a child who owns a device silently saved nothing (migration 022 drops that condition). EditChild now errors on a 0-row save instead of faking success. Child menu shows the real buddy from `pet_state` instead of a hardcoded 🐉 (skin grid is now theme-filtered). **RLS + per-child-language data fix already live** — no build needed for language to stick; buddy/menu fix ships with the build. Found on Adi's daughter's device | Train | yes | F1 / EditChild + child menu (Settings) — Hat-3 own-device child edit persists; Hat-4 Adi relaunch → English sticks + real buddy shows |
-| 2026-06-08 | PR #191 / `fix/preview-name-mint-dashboard` | fix | View-as-Child on the **mint** dashboard showed the literal "Preview"/"תצוגה" instead of the child's name. The Gamer dashboard already used the real `previewChildName`; mint hardcoded `t('previewName')`. Now mirrors Gamer (name plumbed through to the pet card too). Found on Adi's daughter's device | Train | yes | P-08 View-as-Child — mint dashboard header + pet card show the child's name |
-| 2026-06-08 | PR #198 / `fix/pause-calendar-day` | fix | Pause Mode ends at **local midnight (calendar day)** instead of a rolling N×24h from tap time: "Just today" → end of today, "3 days"/"1 week" → N full calendar days. Was: pausing at 10:49 set resume to tomorrow 10:49. Surfaced live during the 2026-06-08 escalation — first real tester (רחל) + Adi both hit the +24h behavior; their 2 live rows were corrected at the DB level same day. Code-only merge (`ba5ca8a`) | Train | yes | Parent Settings → Pause; child empty-state "back on <date>" reads as a clean date |
-| 2026-06-08 | `fix/off-routine-3day-calendar` | fix | Off-Routine Day "3 days" now ends at local end-of-day (3 full calendar days: today+2) instead of a rolling now()+72h that ended mid-day. Makes it consistent with the same card's "Today" option and with the Pause calendar-day fix (#198). Follow-up to the #199 Off-Routine feature | Train | yes | EditChild → Off-Routine card "3 days"; child sees off-routine bank through end of the 3rd day |
+_No rows currently riding the next train. Each new merge to `main` adds a row here._
 
 ### 📣 Post-ship notifications — tell the user when it lands
 - **Tamar** — co-parent join (PR #179): she asked whether her partner can join with his own Google + the family code. **When the build carrying #179 ships to Play, message her** that it's live + the how (partner signs in with Google → Settings → "Join Family" → enter family code). Draft ready (2026-06-06). Until then she can't do it on her installed mobile build.
@@ -52,6 +36,36 @@ _Last released: **1.2.0 (versionCode 28)**, internal track (cut 2026-06-03)._
 ## ✅ Shipped — drained into past releases
 
 Newest first. Each block = one release the queue fed.
+
+### 1.4.0 (versionCode 34) — Alpha closed-testing, promoted 2026-06-08
+Lane mix: all Train · Manifests: `docs/releases/34/MANIFEST.md` (features cut from `main`) + `docs/releases/31/MANIFEST.md` (the 1.3.1 fixes train, released internal 2026-06-06).
+Build: EAS `a266ea2f` (1.4.0, versionCode 34). versionCode 32 + 33 burned/superseded en route. The 11 PRs in the 34 manifest stacked on the 1.3.1(31) content; the fix rows below shipped first via 31, the rest landed in 34.
+
+| PR / Commit | Type | Change | User-facing? |
+|---|---|---|---|
+| #157 / `62e31bd` | fix | Parent notification bell clears the screen title in Hebrew RTL | yes |
+| #159 / `878ea96` | feat | Child login by pick-from-list keyed on immutable profile id (no dup accounts) | yes |
+| #161 / `df0719b` | feat | Parent notification bell unread-only "show-new" feed | yes |
+| #165 / `ab6f3f2` | feat | Kids redeem rewards with parent approval; atomic BUFF deduct | yes |
+| #170 / `bcdb8cb` | fix | Cash-reward currency symbol follows app language (Hebrew → ₪) | yes |
+| #173 / `4a1f99e` | fix | Notification bell inline header element + compact "+" action | yes |
+| #174 / `5c7ce63` | fix | English parent link-child sheet in English (6 hardcoded HE strings) | yes |
+| #177 / `pkg/child-vault-write-rls` | fix | Own-device kids' BUFFs persist (surface credit_vault write errors) | no (guard) |
+| #178 / `c662836` | fix | Sticker/Bonus bottom sheet lifts cleanly above keyboard | yes |
+| #179 | feat | Second parent joins existing family via family code; family-wide premium | yes |
+| `fix/duplicate-child-guard` | fix | Atomic create_child_profile + friendly duplicate dialog; delete RPC fix | yes |
+| #189 / `530bc39` | fix | Parents can edit own-device kids (migration 022); real buddy in menu | yes |
+| #191 / `e2e8590` | fix | Show child's real name (not "Preview") in View-as-Child on mint dashboard | yes |
+| #198 / `ba5ca8a` | fix | Pause Mode ends at local midnight (calendar day) not rolling +N×24h | yes |
+| `fix/off-routine-3day-calendar` | fix | Off-Routine "3 days" ends at local end-of-day (today+2) | yes |
+| #192 / `85f6ca6` | feat | Capture `families.platform` at signup (funnel segmentation) | no (instrumentation) |
+| #190 / `6163e6b` | feat | iOS Phase-1: hide paywall + skip RevenueCat init; enable iOS EAS builds | yes (iOS) |
+| #186/#184 / `e6bb935` | feat | Admin Tester Board (internal tool) | no (admin) |
+| #188 / `f991c11` | feat | Admin: parent email as mailto link | no (admin) |
+| #185 / `356791a` | fix | credit-vault atomic balance adjustment (kill read-modify-write race) | yes |
+| #182 / `a311b72` | fix | Child HQ screens day-filter like the Quests tab | yes |
+| #187 / `864f771` | fix | Admin funnel per-stage label "at this stage" | no (admin) |
+| #183 / `46938db` | chore | buff-emulator skill — shared emulator/Metro lease lock (devex) | no |
 
 ### V25 — versionName 1.1.1 (internal, ~2026-05-31)
 _Pre-protocol baseline. Future releases list their drained queue rows here._
@@ -70,4 +84,4 @@ Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
 ---
 
 **Maintained by:** CC (rows at merge time) · Adi (cut approval).
-**Last updated:** 2026-06-06
+**Last updated:** 2026-06-08
