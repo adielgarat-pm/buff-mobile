@@ -14,6 +14,20 @@
 
 ## Implementation Notes
 
+### IN-2026-06-08-01: Parent edits to own-device kids silently vanished — same RLS-0-rows class as the credit_vault bug, but on `profiles` UPDATE
+
+- **תאריך:** 2026-06-08
+- **מקור:** CC — Adi found, on her daughter's device, that the app stayed Hebrew after she set English in Edit Child ("saved every time, keeps resetting"), and the menu showed a 🐉 dragon instead of the real buddy.
+- **תיאור (root cause, DB-confirmed):** the `profiles` UPDATE policy `Parents can update child profiles in their family` required **`user_id IS NULL`**. The active profile (`Emmy`, `388d34df…`, own-device ChildJoin session) has `user_id` set, so the parent's UPDATE matched **0 rows with NO error** — EditChild navigated back as if it saved. Every parent edit (name/avatar/birthday/age_group/**language**) was silently dropped. The language code itself was correct: per-child language = `pro_settings.language` via `ChildLanguageBinder`/`resolveChildLang`; `pro_settings` was empty so the Hebrew display_name forced `'he'`.
+- **תיאור (second bug, same screenshot):** [`ChildSettingsScreen`](../src/screens/child/ChildSettingsScreen.tsx) initialised `selectedSkin` to a hardcoded `'🐉'` and never read `pet_state`, so the menu's profile card + skin grid ignored the child's actual buddy and could never persist a change.
+- **תיאור (fix):** (1) RLS — relaxed the UPDATE policy to drop `user_id IS NULL`, keeping `role='child'` + parent-in-same-family in USING and WITH CHECK (migration `022_parents_update_owndevice_children.sql`, applied live). The child still self-updates via `Users can update their own profile`. (2) Code guard — EditChild now `.select()`s the updated rows and errors on a 0-row result, so a silently-blocked write can never masquerade as success again. (3) Buddy — ChildSettingsScreen now drives the skin from `usePetState` + `getSkinsForTheme(themeName)` (theme-correct set, persists via `changeSkin`). **Note:** the skin grid is now theme-filtered (mint = 6 sweet skins, gamer = 4 heroic) instead of a flat 11-emoji list — a deliberate visible change that aligns the menu with `PetSkinPicker`.
+- **תיאור (data fix, live):** set `pro_settings.language='en'` + `preferred_language='en'` on `Emmy` (388d34df…) via service-role SQL. (Briefly edited the wrong profile first — a stale seed/demo row named "אמי" `33e7adc7…` in another family, matched by an over-broad `ilike '%emi%'`; reverted it. The active device profile is "Emmy", confirmed by `last_seen` = screenshot time.)
+- **השפעה:** server-side RLS + data fixes need no app build (the installed app already attempts the writes). The code/buddy fixes ship in the next build. Same masking lesson as IN-2026-06-06-02: own-device child writes must be tested in a real child session, not view-as-child.
+- **תיאור (deeper gap, deferred — NOT fixed):** `usePetState` is device-local AsyncStorage only — it never reads/writes `profiles.pet_state`, so a child's chosen skin doesn't follow them across devices/reinstalls (Lovable→mobile). Proposed as a separate package.
+- **Verified by CC:** policy live (`user_id IS NULL` gone from `pg_policies`); `tsc --noEmit` clean; Jest 18/18 (ChildSettings + EditChild, incl. a new 0-row-update guard test). Hat-3 (own-device child, real device) + Hat-4 (Adi confirms English sticks + real buddy shows after relaunch) pending.
+- **סטטוס:** `code-complete-pending-Hat-3/4` — `pkg/fix-owndevice-child-edit`.
+- **קשור ל:** IN-2026-06-06-02 (credit_vault, same RLS-0-rows class + view-as-child masking), `child-login-stable-identity` RLS audit (read-side; missed this write gap). **If Lovable web kids use own-device login, the separate Lovable Supabase project needs the same `profiles` UPDATE policy relaxation (out of MCP reach — flag for Adi).**
+
 ### IN-2026-06-07-01: Duplicate-child guard — atomic RPC + friendly dialog (no hard constraint); the duplicate also silently broke child login
 
 - **תאריך:** 2026-06-07

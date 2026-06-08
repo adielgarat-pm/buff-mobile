@@ -137,7 +137,12 @@ export default function EditChildScreen() {
 
     const nextSettings = { ...prevSettings, age_group: ageGroup ?? null, language };
 
-    const { error: updateErr } = await supabase
+    // `.select()` returns the rows actually updated. An RLS-blocked UPDATE
+    // returns NO error but ZERO rows — so a silent 0-row result means the save
+    // didn't persist (e.g. a child who owns a device, where the parent-update
+    // policy used to require user_id IS NULL). Treat that as an error instead
+    // of navigating back as if it succeeded.
+    const { data: updated, error: updateErr } = await supabase
       .from('profiles')
       .update({
         display_name: trimmed,
@@ -145,10 +150,18 @@ export default function EditChildScreen() {
         birth_date:   birth ? toISODate(birth) : null,
         pro_settings: nextSettings,
       } as never)
-      .eq('id', params.childId);
+      .eq('id', params.childId)
+      .select('id');
 
     if (updateErr) {
       console.warn('[EditChild] save error:', updateErr.message);
+      setSaveErr(t('editChild.saveError'));
+      setSaving(false);
+      return;
+    }
+
+    if (!updated || updated.length === 0) {
+      console.warn('[EditChild] save affected 0 rows (RLS blocked or row missing)');
       setSaveErr(t('editChild.saveError'));
       setSaving(false);
       return;

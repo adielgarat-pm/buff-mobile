@@ -102,11 +102,14 @@ export function getDefaultSkin(theme: ChildThemeName): string {
   return theme === 'gamer' ? 'wolf' : 'puppy';
 }
 
+/** A skin definition paired with its registry id. */
+export type PetSkinWithId = PetSkinDef & { id: string };
+
 /** Returns all skins for a given theme path, in unlock order. */
-export function getSkinsForTheme(theme: ChildThemeName): PetSkinDef[] {
+export function getSkinsForTheme(theme: ChildThemeName): PetSkinWithId[] {
   const map = theme === 'gamer' ? HEROIC_SKINS : SWEET_SKINS;
   return Object.entries(map)
-    .map(([id, def]) => ({ ...def, id } as PetSkinDef & { id: string }))
+    .map(([id, def]) => ({ ...def, id }))
     .sort((a, b) => a.unlockAt - b.unlockAt);
 }
 
