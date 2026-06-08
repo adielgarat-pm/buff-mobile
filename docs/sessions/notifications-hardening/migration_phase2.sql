@@ -101,10 +101,13 @@ BEGIN
       AND COALESCE(p.is_deleted, false) = false
       -- never activated: zero daily_progress ever
       AND NOT EXISTS (SELECT 1 FROM public.daily_progress dp WHERE dp.child_id = p.id)
-      -- warm window (L5): family 2–14 days old. Strike while warm; don't
-      -- resurrect families that onboarded long ago and clearly abandoned.
-      AND f.created_at <= (now() - INTERVAL '2 days')
-      AND f.created_at >= (now() - INTERVAL '14 days')
+      -- L5 (beta override, Adi 2026-06-08): protect testers — do NOT nudge during
+      -- their 14-day trial (early nudges risk uninstalls that wreck the test).
+      -- Fire only AFTER the trial: family 14–21 days old, once. The "strike while
+      -- warm" day-2 window is the post-beta target, deferred.
+      -- Superseded by migration notifications_hardening_p2_activation_window_post_trial.
+      AND f.created_at <= (now() - INTERVAL '14 days')
+      AND f.created_at >= (now() - INTERVAL '21 days')
       -- respect Pause Mode
       AND COALESCE(aps.pause_mode_active, FALSE) = FALSE
       -- once per child ever

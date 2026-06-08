@@ -180,7 +180,7 @@ No new tables expected. CC confirms exact shapes via `list_tables` before Phase 
 | **L2** | Graduated inactivity: 3 days for barely-established, 5 days for established kids. |
 | **L3** | `anchor_recovery` stays PUSH but under its **own** parent sub-toggle (not forced onto the main "alerts to me" channel). |
 | **L4** | Own-device kids: **6-12 parent decides (default OFF); 13-18 kid decides.** |
-| **L5** | `activation_nudge` window = **family 2-14 days old**; fires day 2 of zero-activity. |
+| **L5** | `activation_nudge` window. **Beta override (Adi 2026-06-08): family 14-21 days old** — never nudge a tester during their 14-day trial (early nudges risk uninstalls that wreck the test); fire once, post-trial. Post-beta target = day-2 "strike while warm" (deferred). |
 | **L6** | Push = action-required only. `parent_engagement` + `family_joined` become **silent/bell-only**. |
 | **L7** | `child_suggestion` copy approved: `{name} רוצה להציע משהו 💡` + suggestion title in body. |
 | **L8** | Split churned (`anchor_recovery`, ever-active gate) from never-activated (`activation_nudge`). |
