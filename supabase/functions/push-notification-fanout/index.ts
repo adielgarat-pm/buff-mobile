@@ -86,6 +86,22 @@ const SKIP_PUSH_TYPES = new Set([
   'family_joined', // "X joined the family" — informational
 ]);
 
+// pkg/notifications-hardening Phase 3b — per-channel preference enforcement.
+// Maps a notification type to the app_settings column the family controls from
+// the in-app Notification Settings screen. A type with no mapping is always
+// allowed (e.g. reward_approved — a direct response to the kid's own request).
+// Note: child reminders are gated family-level here; the 6–12 vs 13–18
+// self-opt-in age split is Phase 5.
+const TYPE_TO_PREF_COLUMN: Record<string, string> = {
+  parent_sos: 'notif_parent_alerts',
+  reward_redeemed: 'notif_parent_alerts',
+  reward_redemption_requested: 'notif_parent_alerts',
+  child_suggestion: 'notif_parent_alerts',
+  anchor_recovery: 'notif_anchor_nudges',
+  activation_nudge: 'notif_activation_nudges',
+  kid_engagement: 'notif_child_reminders',
+};
+
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
 
 const EXPO_PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
@@ -340,6 +356,23 @@ Deno.serve(async (req) => {
   if (!profile) {
     await recordPush(supabase, row.id, 0, 'no_recipient_profile');
     return new Response(JSON.stringify({ skipped: 'no_recipient_profile' }), { status: 200 });
+  }
+
+  // Preference enforcement (Phase 3b) — respect the family's in-app toggles.
+  // Read once per fanout; suppress if the channel's column is explicitly false.
+  const prefColumn = TYPE_TO_PREF_COLUMN[row.type];
+  if (prefColumn) {
+    const { data: settings } = await supabase
+      .from('app_settings')
+      .select(prefColumn)
+      .eq('family_id', row.family_id)
+      .maybeSingle() as { data: Record<string, boolean> | null };
+    // Default-allow when no row/column value is present (mirrors column defaults;
+    // only an explicit false suppresses).
+    if (settings && settings[prefColumn] === false) {
+      await recordPush(supabase, row.id, 0, 'pref_off');
+      return new Response(JSON.stringify({ skipped: 'pref_off', channel: prefColumn }), { status: 200 });
+    }
   }
 
   // Activity-based suppression (IN-2026-05-19-02)
