@@ -39,7 +39,7 @@ export default function ParentSettingsScreen() {
   const { profile, familyShortCode, signOut } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children } = useChildrenDashboard();
-  const { isSubscribed, isLifetimeAccess, isGracePeriod, simulateSubscribed, setSimulateSubscribed } = useSubscription();
+  const { isSubscribed, isLifetimeAccess, isGracePeriod } = useSubscription();
   const [codeCopied, setCodeCopied] = useState(false);
   const { language } = useLanguage();
   const [langModalOpen, setLangModalOpen] = useState(false);
@@ -168,17 +168,6 @@ export default function ParentSettingsScreen() {
           <Text style={[styles.profileName, { color: T.text }]}>{profile?.display_name}</Text>
           <Text style={[styles.profileRole, { color: T.textMuted }]}>Parent · BUFF Coach</Text>
         </View>
-      </View>
-
-      {/* Dev: simulate subscribed */}
-      <View style={[styles.devCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-        <Text style={[styles.devLabel, { color: T.textMuted }]}>🛠 Dev: Simulate Subscribed</Text>
-        <Switch
-          value={simulateSubscribed}
-          onValueChange={setSimulateSubscribed}
-          trackColor={{ false: '#D1D5DB', true: T.accent }}
-          thumbColor="#fff"
-        />
       </View>
 
       {/* Pause Mode — parent control */}

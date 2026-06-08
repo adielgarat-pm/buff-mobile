@@ -8,12 +8,10 @@
  * Subscription state (in priority order):
  *   1. is_lifetime_access on profile  → always subscribed, never sees paywall
  *   2. Grace period (< 2026-05-01)    → everyone subscribed during beta
- *   3. simulateSubscribed dev toggle  → dev testing
- *   4. RevenueCat "BUFF Premium" entitlement → real subscription
+ *   3. RevenueCat "BUFF Premium" entitlement → real subscription
  */
 import { useState, useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Purchases, { type CustomerInfo } from 'react-native-purchases';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamilyMembers } from './useFamilyMembers';
@@ -32,29 +30,14 @@ export const GRACE_PERIOD_END = new Date('2026-05-01T23:59:59');
 export const FREE_CHILD_LIMIT = 1;
 export const FREE_TASK_LIMIT  = 5;
 
-const SIMULATE_SUBSCRIBED_KEY = 'buff_simulate_subscribed';
-
 export function useSubscription() {
   const { profile, user, refreshProfile } = useAuth();
   const { children, parents } = useFamilyMembers();
 
-  const [simulateSubscribed, setSimulateSubscribedState] = useState(false);
   const [rcSubscribed,    setRcSubscribed]    = useState(false);
   const [rcFounding,      setRcFounding]      = useState(false);
   const [customerInfo,    setCustomerInfo]    = useState<CustomerInfo | null>(null);
   const [rcLoading,       setRcLoading]       = useState(true);
-
-  // ── Load dev toggle ────────────────────────────────────────────────────────
-  useEffect(() => {
-    AsyncStorage.getItem(SIMULATE_SUBSCRIBED_KEY).then((val) => {
-      if (val === 'true') setSimulateSubscribedState(true);
-    });
-  }, []);
-
-  const setSimulateSubscribed = useCallback((value: boolean) => {
-    setSimulateSubscribedState(value);
-    AsyncStorage.setItem(SIMULATE_SUBSCRIBED_KEY, String(value));
-  }, []);
 
   // ── Fetch RC status on mount ───────────────────────────────────────────────
   const refreshRC = useCallback(async (): Promise<void> => {
@@ -115,7 +98,6 @@ export function useSubscription() {
     isLifetimeAccess ||
     familyHasEntitlement ||
     isGracePeriod    ||
-    simulateSubscribed ||
     rcSubscribed     ||
     rcFounding       ||
     iosPaywallHidden;
@@ -170,9 +152,6 @@ export function useSubscription() {
     childCount,
     FREE_CHILD_LIMIT,
     FREE_TASK_LIMIT,
-    // Dev toggle
-    simulateSubscribed,
-    setSimulateSubscribed,
     // Purchase actions
     purchaseMonthly,
     purchaseYearly,
