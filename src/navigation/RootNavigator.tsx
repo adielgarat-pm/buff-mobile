@@ -42,6 +42,7 @@ import ChildTabs             from './ChildTabs';
 import PaywallScreen         from '../screens/PaywallScreen';
 import FoundingHundredScreen from '../screens/FoundingHundredScreen';
 import PhilosophyScreen      from '../screens/parent/PhilosophyScreen';
+import NotificationSettingsScreen from '../screens/parent/NotificationSettingsScreen';
 import GamerMeAndBuddyScreen from '../screens/child/GamerMeAndBuddyScreen';
 import NotificationFeedScreen from '../screens/parent/NotificationFeedScreen';
 import ManageChildrenScreen  from '../screens/parent/ManageChildrenScreen';
@@ -158,6 +159,11 @@ export default function RootNavigator() {
             <Stack.Screen
               name="NotificationFeed"
               component={NotificationFeedScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="NotificationSettings"
+              component={NotificationSettingsScreen}
               options={{ presentation: 'modal', headerShown: false }}
             />
             <Stack.Screen

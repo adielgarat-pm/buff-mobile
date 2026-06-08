@@ -64,6 +64,9 @@ export type RootStackParamList = {
   // ── Parent notification feed (modal pushed above ParentApp) ──────────
   NotificationFeed: undefined;
 
+  // ── Notification settings (parent push prefs + permission recovery) ──
+  NotificationSettings: undefined;
+
   // ── Family / child management (parent-only, pushed above ParentApp) ──
   ManageChildren: undefined;
   EditChild:      { childId: string };

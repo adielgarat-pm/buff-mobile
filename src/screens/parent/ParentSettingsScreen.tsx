@@ -125,6 +125,11 @@ export default function ParentSettingsScreen() {
           icon:    'globe-outline' as const,
           onPress: () => setLangModalOpen(true),
         },
+        {
+          label:   t('settings.rowNotifications'),
+          icon:    'notifications-outline' as const,
+          onPress: () => navigation.navigate('NotificationSettings'),
+        },
       ],
     },
     {

@@ -21,13 +21,17 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePushRegistration } from '../hooks/usePushRegistration';
 import { useKidLocalNotifications } from '../hooks/useKidLocalNotifications';
 import { setupNotifications } from '../lib/notificationHandler';
 import { PushPermissionPrePrompt } from '../screens/onboarding/PushPermissionPrePrompt';
+import { PARENT_THEME as T } from '../theme';
 
 export const NotificationGate: React.FC = () => {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const { permission, register } = usePushRegistration();
   // Kid local notifications — internally no-op when profile.role !== 'child'
@@ -36,6 +40,9 @@ export const NotificationGate: React.FC = () => {
   const [promptVisible, setPromptVisible] = useState(false);
   // Prevent re-showing the pre-prompt after dismiss in the same session
   const dismissedThisSession = useRef(false);
+  // Denial-recovery banner: a 'denied' user can never see the OS dialog again,
+  // so without this they stay dark forever. Dismissible per session.
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Run global setup once at mount
   useEffect(() => {
@@ -68,12 +75,58 @@ export const NotificationGate: React.FC = () => {
 
   if (!profile) return null;
 
+  // Show the recovery banner only to parents who actively denied the OS prompt.
+  // (Kid/age routing to settings is Phase 5.) The pre-prompt and the banner are
+  // mutually exclusive: 'unknown' → pre-prompt, 'denied' → banner.
+  const showDeniedBanner =
+    profile.role === 'parent' && permission === 'denied' && !bannerDismissed;
+
   return (
-    <PushPermissionPrePrompt
-      visible={promptVisible}
-      audience={profile.role === 'parent' ? 'parent' : 'kid'}
-      onAccept={handleAccept}
-      onDecline={handleDecline}
-    />
+    <>
+      <PushPermissionPrePrompt
+        visible={promptVisible}
+        audience={profile.role === 'parent' ? 'parent' : 'kid'}
+        onAccept={handleAccept}
+        onDecline={handleDecline}
+      />
+      {showDeniedBanner && (
+        <View style={styles.banner} accessibilityRole="alert">
+          <Text style={styles.bannerText}>{t('notifSettings.deniedBanner.text')}</Text>
+          <View style={styles.bannerActions}>
+            <TouchableOpacity onPress={() => { void Linking.openSettings(); }} accessibilityRole="button">
+              <Text style={styles.bannerCta}>{t('notifSettings.deniedBanner.cta')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setBannerDismissed(true)} accessibilityRole="button" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={styles.bannerDismiss}>✕</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </>
   );
 };
+
+const styles = StyleSheet.create({
+  banner: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 24,
+    backgroundColor: T.text,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  bannerText: { color: '#FFFFFF', fontSize: 14, flex: 1, paddingRight: 12 },
+  bannerActions: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  bannerCta: { color: T.accentLight, fontSize: 14, fontWeight: '700' },
+  bannerDismiss: { color: '#FFFFFF', fontSize: 16, opacity: 0.7 },
+});
