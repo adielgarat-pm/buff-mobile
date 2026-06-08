@@ -170,16 +170,18 @@ export default function ParentSettingsScreen() {
         </View>
       </View>
 
-      {/* Dev: simulate subscribed */}
-      <View style={[styles.devCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-        <Text style={[styles.devLabel, { color: T.textMuted }]}>🛠 Dev: Simulate Subscribed</Text>
-        <Switch
-          value={simulateSubscribed}
-          onValueChange={setSimulateSubscribed}
-          trackColor={{ false: '#D1D5DB', true: T.accent }}
-          thumbColor="#fff"
-        />
-      </View>
+      {/* Dev: simulate subscribed — dev builds only, never shown to testers/users */}
+      {__DEV__ && (
+        <View style={[styles.devCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+          <Text style={[styles.devLabel, { color: T.textMuted }]}>🛠 Dev: Simulate Subscribed</Text>
+          <Switch
+            value={simulateSubscribed}
+            onValueChange={setSimulateSubscribed}
+            trackColor={{ false: '#D1D5DB', true: T.accent }}
+            thumbColor="#fff"
+          />
+        </View>
+      )}
 
       {/* Pause Mode — parent control */}
       <PauseModeCard />
