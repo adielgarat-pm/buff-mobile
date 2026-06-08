@@ -21,7 +21,16 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 
 > ✅ **Cut closed — 1.4.0 (versionCode 34), promoted to Alpha 2026-06-08.** The rows that were riding the train shipped (the fixes via 1.3.1(31); the features stacked on top via 1.4.0(34)) and have moved to **Shipped** below. versionCode **32 and 33 were burned** during the 2026-06-08 cut — 32 consumed remotely, 33 a parallel/superseded build that was never promoted; **34 is the successful, promoted build**. **Next train starts clean: the next production build will be versionCode 35** (EAS `appVersionSource: remote` + `autoIncrement: true` tracks the last code server-side); bump `versionName` at cut time (e.g. 1.4.1 / 1.5.0) to avoid a Play collision with the already-uploaded 1.4.0.
 
-_No rows currently riding the next train. Each new merge to `main` adds a row here._
+**Riding the next train → versionCode 35 (not yet built):** these merged to `main` *after* the 34 cut point (`4139d2e`, 2026-06-08 10:48) and are therefore **NOT in the live Alpha build 34**.
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-06-08 | #198 / `ba5ca8a` | fix | **Pause Mode ends at local midnight (calendar day)** instead of rolling N×24h from tap time. The exact bug רחל + Adi hit live on war-day 2026-06-08 (only their 2 DB rows were hand-fixed; everyone else on build 34 still has the +24h behavior). Code-only, merge-verified, Hat-3 logic verified; Hat-4 device pending | Train | yes | Parent Settings → Pause |
+| 2026-06-08 | #199 / `d449997` | feat | **Off-Routine Day** ("hard-day mode") — per-child third day-state; swaps the weekday plan for a light age-banded anchor bank, app stays active, still earns BUFFs. Pause supersedes off-routine. Hat-3 robustness done; Hat-4 pending | Train | yes | EditChild → Off-Routine card |
+| 2026-06-08 | #201 / `efd5569` | fix | Off-Routine "3 days" ends at local end-of-day (today+2), consistent with the Pause calendar-day fix | Train | yes | EditChild → Off-Routine "3 days" |
+| 2026-06-08 | #194 / `35d4c9d` | fix | Remove the Dev-Simulate-Subscribed toggle from parent settings (was a dev-only control visible in prod) | Train | yes | Parent Settings |
+
+**Server-side, already live (no app build needed):** #204 `pkg/notifications-hardening` Phases 1–3a — Edge Function (push fanout taxonomy + `child_suggestion`) + cron split + activation-window 14–21d + preference columns are **deployed and verified on the server via MCP**; they take effect without a build. Its **client** phases (3b–6: the Settings toggles UI + denial-recovery) are **deferred to a future session** and are NOT in `main` — so build 35 carries no half-built notification UI. (Merging #204 to main only synced the repo to the live Edge Function.)
 
 ### 📣 Post-ship notifications — tell the user when it lands
 - **Tamar** — co-parent join (PR #179): she asked whether her partner can join with his own Google + the family code. **When the build carrying #179 ships to Play, message her** that it's live + the how (partner signs in with Google → Settings → "Join Family" → enter family code). Draft ready (2026-06-06). Until then she can't do it on her installed mobile build.
@@ -56,8 +65,6 @@ Build: EAS `a266ea2f` (1.4.0, versionCode 34). versionCode 32 + 33 burned/supers
 | `fix/duplicate-child-guard` | fix | Atomic create_child_profile + friendly duplicate dialog; delete RPC fix | yes |
 | #189 / `530bc39` | fix | Parents can edit own-device kids (migration 022); real buddy in menu | yes |
 | #191 / `e2e8590` | fix | Show child's real name (not "Preview") in View-as-Child on mint dashboard | yes |
-| #198 / `ba5ca8a` | fix | Pause Mode ends at local midnight (calendar day) not rolling +N×24h | yes |
-| `fix/off-routine-3day-calendar` | fix | Off-Routine "3 days" ends at local end-of-day (today+2) | yes |
 | #192 / `85f6ca6` | feat | Capture `families.platform` at signup (funnel segmentation) | no (instrumentation) |
 | #190 / `6163e6b` | feat | iOS Phase-1: hide paywall + skip RevenueCat init; enable iOS EAS builds | yes (iOS) |
 | #186/#184 / `e6bb935` | feat | Admin Tester Board (internal tool) | no (admin) |
