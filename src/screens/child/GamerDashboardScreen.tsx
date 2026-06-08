@@ -39,6 +39,7 @@ import { trimTasksForLowPower } from '../../utils/vibeUtils';
 import { isWeekendToday } from '../../utils/schoolDay';
 import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import PauseEmptyState from '../../components/PauseEmptyState';
+import OffRoutineBanner from '../../components/OffRoutineBanner';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { BuddyHero } from '../../components/buddy/BuddyHero';
 import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
@@ -134,7 +135,7 @@ export default function GamerDashboardScreen() {
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData } = useChildData(childId);
+  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData, offRoutineActive } = useChildData(childId);
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
@@ -249,6 +250,8 @@ export default function GamerDashboardScreen() {
           <Text style={styles.previewText}>{t('gamerDashboard.previewBanner')}</Text>
         </View>
       )}
+
+      {offRoutineActive && <OffRoutineBanner />}
 
       {/* Header row */}
       <View style={styles.headerRow}>

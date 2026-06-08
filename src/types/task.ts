@@ -42,4 +42,6 @@ export interface Task {
   hideOnWeekend?: boolean;
   assignedTo?: string;
   strategyId?: string;
+  /** Off-routine-day task: shown only while the child's off-routine mode is active. */
+  isOffRoutine?: boolean;
 }

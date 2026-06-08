@@ -23,6 +23,7 @@ import { isWeekendToday } from '../../utils/schoolDay';
 import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import { PetDisplay } from '../../components/PetDisplay';
 import PauseEmptyState from '../../components/PauseEmptyState';
+import OffRoutineBanner from '../../components/OffRoutineBanner';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import VibeCheckScreen from './VibeCheckScreen';
 import GamerDashboardScreen from './GamerDashboardScreen';
@@ -58,7 +59,7 @@ function PastelChildDashboard() {
   const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, dailyGoal, loading, refetch } = useChildData(childId);
+  const { tasks, totalBalance, dailyGoal, loading, refetch, offRoutineActive } = useChildData(childId);
   const { settings, isPauseActive } = useAppSettings();
   const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const welcomeBack = useWelcomeBack();
@@ -152,6 +153,8 @@ function PastelChildDashboard() {
           </Text>
         </TouchableOpacity>
       )}
+
+      {offRoutineActive && !isPauseActive && <OffRoutineBanner />}
 
       {/* Header */}
       <View style={styles.header}>
