@@ -35,7 +35,7 @@ export interface AppSettings {
 }
 
 export type PauseDuration =
-  | { type: 'until'; days: number }  // pause_until = now() + N days
+  | { type: 'until'; days: number }  // pause_until = local midnight, N calendar days out ("today" = 1 = end of today)
   | { type: 'indefinite' };           // pause_until = null
 
 export function useAppSettings() {
@@ -118,10 +118,16 @@ export function useAppSettings() {
   const togglePause = useCallback(async (duration: PauseDuration): Promise<{ error: Error | null }> => {
     if (!familyId) return { error: new Error('No family_id available') };
 
-    const pauseUntil =
-      duration.type === 'indefinite'
-        ? null
-        : new Date(Date.now() + duration.days * 24 * 60 * 60 * 1000).toISOString();
+    // Calendar-day semantics: a pause always ends at LOCAL midnight, not a
+    // rolling N×24h from the tap time. "Just today" (days = 1) → end of today
+    // (tonight's midnight); "3 days" → 3 full calendar days; "1 week" → 7.
+    let pauseUntil: string | null = null;
+    if (duration.type === 'until') {
+      const end = new Date();
+      end.setHours(0, 0, 0, 0);                 // local start of today
+      end.setDate(end.getDate() + duration.days); // local midnight, N calendar days out
+      pauseUntil = end.toISOString();
+    }
 
     // Optimistic update
     if (settings) {
