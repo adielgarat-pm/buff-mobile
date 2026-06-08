@@ -18,6 +18,7 @@ import { useRTLStyles } from '../../contexts/LanguageContext';
 import { resolveChildLang } from '../../lib/i18nString';
 import type { SupportedLanguage } from '../../i18n';
 import { PARENT_THEME as T } from '../../theme';
+import OffRoutineCard from '../../components/OffRoutineCard';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'EditChild'>;
@@ -321,6 +322,9 @@ export default function EditChildScreen() {
           })}
         </View>
         <Text style={[styles.helperNote, { textAlign }]}>{t('editChild.languageNote')}</Text>
+
+        {/* ── Off-routine day (per-child) ──────────────────────────────── */}
+        <OffRoutineCard childId={params.childId} ageGroup={ageGroup} childLang={language} />
 
         {saveErr && (
           <Text style={[styles.errorText, { marginTop: 16 }]}>{saveErr}</Text>

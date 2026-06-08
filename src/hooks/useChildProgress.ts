@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
+import { isOffRoutineActive } from '../utils/offRoutineUtils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -185,6 +186,7 @@ export function useChildData(childId: string | null) {
   const [dailyGoal,           setDailyGoal]            = useState(100);
   const [schoolQuestEnabled,  setSchoolQuestEnabled]   = useState(true);
   const [schoolEndTime,       setSchoolEndTime]        = useState<string | null>(null);
+  const [offRoutineActive,    setOffRoutineActive]     = useState(false);
   const [loading,             setLoading]              = useState(true);
 
   const todayKey = getTodayKey();
@@ -241,6 +243,14 @@ export function useChildData(childId: string | null) {
         .eq('id', childId)
         .single();
 
+      // Off-routine flag in its OWN query — decoupled from the combined select
+      // above so it stays correct even if that select fails on an optional column.
+      const { data: offRow } = await supabase
+        .from('profiles')
+        .select('off_routine_until')
+        .eq('id', childId)
+        .maybeSingle();
+
       const completedTaskIds = new Set(
         progressData?.filter(p => p.completed).map(p => p.task_id) || []
       );
@@ -267,9 +277,17 @@ export function useChildData(childId: string | null) {
                         ? t.schedule_days
                         : [0, 1, 2, 3, 4, 5, 6], // default: every day
         hideOnWeekend: t.hide_on_weekend ?? false,
+        isOffRoutine:  t.is_off_routine ?? false,
       }));
 
-      setTasks(mappedTasks);
+      // Off-routine partition (single source of truth for all child screens):
+      // when the child's off-routine day is active, show ONLY off-routine tasks;
+      // otherwise show ONLY routine tasks. The per-screen scheduleDays/hideOnWeekend
+      // filters then run unchanged on the already-partitioned set. Pause supersedes
+      // at the screen level (screens short-circuit to PauseEmptyState before the list).
+      const offActive = isOffRoutineActive((offRow as { off_routine_until?: string | null } | null)?.off_routine_until);
+      setOffRoutineActive(offActive);
+      setTasks(mappedTasks.filter(t => (t.isOffRoutine ?? false) === offActive));
       setTotalBalance(vaultData?.total_balance || 0);
       setDailyGoal(childProfile?.daily_goal || 100);
       setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);
@@ -452,6 +470,7 @@ export function useChildData(childId: string | null) {
     dailyGoal,
     schoolQuestEnabled,
     schoolEndTime,
+    offRoutineActive,
     loading,
     completeTask,
     uncompleteTask,

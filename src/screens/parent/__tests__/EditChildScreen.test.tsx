@@ -46,6 +46,10 @@ jest.mock('../../../integrations/supabase/client', () => ({
 // on platform-specific native modules that aren't loaded in jsdom.
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
 
+// Off-routine card is its own unit (its own auth/language/supabase deps) — stub
+// it out of the EditChild test so it doesn't pull those into this suite.
+jest.mock('../../../components/OffRoutineCard', () => () => null);
+
 const mockedFrom = supabase.from as jest.MockedFunction<typeof supabase.from>;
 
 // ── Helpers ────────────────────────────────────────────────────────────────
