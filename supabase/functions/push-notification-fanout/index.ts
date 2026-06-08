@@ -72,7 +72,8 @@ const PARENT_RECIPIENT_TYPES = new Set([
   'reward_redeemed',
   'reward_redemption_requested',
   'child_suggestion', // L7 — was unmatched → suppressed as unknown_type
-  'anchor_recovery',
+  'anchor_recovery', // churned kids only (cron applies ever-active gate)
+  'activation_nudge', // L8 — never-activated families (new cron)
 ]);
 
 const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
@@ -117,7 +118,10 @@ function copyForType(
       case 'family_joined':
         return { title: `${name} הצטרף/ה למשפחה 👋`, body: '', data: {} };
       case 'anchor_recovery':
-        return { title: `${name} לקח/ה הפסקה`, body: 'יש שתי הצעות עדינות לפתיחה מחדש', data: {} };
+        // L-OQ4: canonical SPEC-approved copy (normalizing, connection-not-rescue).
+        return { title: 'כולנו צריכים התחלה חדשה לפעמים', body: `הנה דרך עדינה לעזור ל-${name} לחזור`, data: {} };
+      case 'activation_nudge':
+        return { title: `${name} עוד לא התחיל/ה`, body: 'בואו ננסה צעד ראשון קטן ביחד 🌱', data: {} };
       case 'kid_engagement':
         return { title: buddy, body: 'פה, מוכן/ה כשתרצה', data: {} };
       case 'reward_approved':
@@ -141,7 +145,9 @@ function copyForType(
     case 'family_joined':
       return { title: `${name} joined the family 👋`, body: '', data: {} };
     case 'anchor_recovery':
-      return { title: `${name} took a pause`, body: 'two gentle ways to open the door again', data: {} };
+      return { title: 'Everyone needs a fresh start sometimes', body: `Here's a gentle way to help ${name} return`, data: {} };
+    case 'activation_nudge':
+      return { title: `${name} hasn't started yet`, body: "let's try one small first step together 🌱", data: {} };
     case 'kid_engagement':
       return { title: buddy, body: 'here, ready when you are', data: {} };
     case 'reward_approved':
