@@ -21,7 +21,9 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 
 > ✅ **Cut closed — 1.4.0 (versionCode 34), promoted to Alpha 2026-06-08.** The rows that were riding the train shipped (the fixes via 1.3.1(31); the features stacked on top via 1.4.0(34)) and have moved to **Shipped** below. versionCode **32 and 33 were burned** during the 2026-06-08 cut — 32 consumed remotely, 33 a parallel/superseded build that was never promoted; **34 is the successful, promoted build**. **Next train starts clean: the next production build will be versionCode 35** (EAS `appVersionSource: remote` + `autoIncrement: true` tracks the last code server-side); bump `versionName` at cut time (e.g. 1.4.1 / 1.5.0) to avoid a Play collision with the already-uploaded 1.4.0.
 
-**Riding the next train → versionCode 35 (not yet built):** these merged to `main` *after* the 34 cut point (`4139d2e`, 2026-06-08 10:48) and are therefore **NOT in the live Alpha build 34**.
+> 🚧 **CUT IN PROGRESS — 1.4.1 (versionCode 39):** all rows below are draining into `docs/releases/39/MANIFEST.md`. EAS build `37f1c9ee` building 2026-06-08 from `main @ 90956ed` (Gate 1 ✅). They move to **Shipped** once Adi promotes 39 to Alpha + says "verified, tag it". (Build 38 was cut then **canceled** — superseded by 39, which adds the notifications UI; codes 35/36/37 burned by parallel builds.) ⚠️ Deploy the `push-notification-fanout` Edge Function only when 39 is promoted.
+
+**Riding the next train → versionCode 39:** these merged to `main` *after* the 34 cut point (`4139d2e`, 2026-06-08 10:48) and are therefore **NOT in the live Alpha build 34** — they ship in 39.
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
@@ -31,7 +33,7 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 | 2026-06-08 | #194 / `35d4c9d` | fix | Remove the Dev-Simulate-Subscribed toggle from parent settings (was a dev-only control visible in prod) | Train | yes | Parent Settings |
 | 2026-06-08 | `pkg/notifications-client` | feat | **Notifications UI (Phase 4) + Edge enforcement (3b)** — the permission model that finally makes the live server nudges reach testers (was: 0 device tokens registered). Two-toggle Settings screen ("Alerts to me" / "Reminders for my child"), denial-recovery banner (deep-link to system settings — fixes "denied → dark forever"), Edge Function suppresses per family pref (`pref_off`). ⚠️ **Deploy the Edge Function only when this build is promoted** (kid reminders default off). | Train | yes | Parent Settings → Notifications; NotificationGate denial banner |
 
-**Note on the next build:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut from `main @ 6468037` and carries the 4 fix/feature rows above but **NOT** the notifications UI. With the notifications client now merged, the **fuller build supersedes 38** and will carry all rows here.
+**Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
 - **Tamar** — co-parent join (PR #179): she asked whether her partner can join with his own Google + the family code. **When the build carrying #179 ships to Play, message her** that it's live + the how (partner signs in with Google → Settings → "Join Family" → enter family code). Draft ready (2026-06-06). Until then she can't do it on her installed mobile build.
