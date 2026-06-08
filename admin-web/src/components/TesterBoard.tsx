@@ -56,7 +56,7 @@ function FunnelBar({
           <div key={s.key} className="flex items-center gap-2">
             <button
               onClick={() => onPick(s.key)}
-              title={`Click to show families stuck at "${s.label}" (${exact[s.key]})`}
+              title={`Click to show families currently at "${s.label}" (${exact[s.key]})`}
               className={`min-w-[120px] rounded-lg border px-3 py-2 text-left transition-colors ${
                 selected
                   ? 'border-primary bg-primary/5 ring-1 ring-primary'
@@ -67,7 +67,7 @@ function FunnelBar({
               <div className="text-xs text-muted-foreground">
                 {s.label} {i > 0 && <span className="text-gray-400">· {pct}%</span>}
               </div>
-              <div className="text-[10px] text-amber-600">{exact[s.key]} stuck here</div>
+              <div className="text-[10px] text-gray-500">{exact[s.key]} at this stage</div>
             </button>
             {i < STAGE_ORDER.length - 1 && <span className="text-gray-300">→</span>}
           </div>
