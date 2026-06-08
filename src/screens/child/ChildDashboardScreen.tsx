@@ -52,7 +52,7 @@ function PastelChildDashboard() {
   const { t }       = useTranslation();
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, previewChildId, viewMode } = useMode();
+  const { isChildPreview, exitChildPreview, previewChildId, previewChildName, viewMode } = useMode();
   const T = useChildTheme();
   const { isSubscribed } = useSubscription();
   const isChildViewer = viewMode === 'child';
@@ -158,7 +158,9 @@ function PastelChildDashboard() {
         <View>
           <Text style={[styles.greeting, { color: T.mutedForeground }]}>{t('childDashboard.greeting')}</Text>
           <Text style={[styles.name, { color: T.primary }]}>
-            {isChildPreview ? t('childDashboard.previewName') : (profile?.display_name ?? t('childDashboard.fallbackName'))} ⚡
+            {isChildPreview
+              ? (previewChildName ?? t('childDashboard.previewName'))
+              : (profile?.display_name ?? t('childDashboard.fallbackName'))} ⚡
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -199,6 +201,7 @@ function PastelChildDashboard() {
             isChildViewer={isChildViewer}
             isChildPreview={isChildPreview}
             profileName={profile?.display_name ?? undefined}
+            previewChildName={previewChildName}
             justCompletedTask={justCompletedTask}
             setJustCompletedTask={setJustCompletedTask}
             totalBalance={totalBalance}
@@ -227,6 +230,7 @@ interface DashboardActiveContentProps {
   isChildViewer: boolean;
   isChildPreview: boolean;
   profileName: string | undefined;
+  previewChildName: string | null;
   justCompletedTask: boolean;
   setJustCompletedTask: (v: boolean) => void;
   totalBalance: number;
@@ -235,7 +239,7 @@ interface DashboardActiveContentProps {
 
 function DashboardActiveContent({
   T, t, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildViewer, isChildPreview,
-  profileName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
+  profileName, previewChildName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
 }: DashboardActiveContentProps) {
   return (
     <>
@@ -265,7 +269,7 @@ function DashboardActiveContent({
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
         {isSubscribed ? (
           <PetDisplay
-            childName={isChildPreview ? t('childDashboard.previewName') : profileName}
+            childName={isChildPreview ? (previewChildName ?? t('childDashboard.previewName')) : profileName}
             justCompletedTask={justCompletedTask}
             onTaskCompletionAck={() => setJustCompletedTask(false)}
             completedToday={doneTasks}
