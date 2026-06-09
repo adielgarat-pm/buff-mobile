@@ -75,7 +75,7 @@ function PastelChildDashboard() {
   // under `previewChildId` and `daily_vibe` RLS accepts the parent's
   // auth session for any child in the family.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, shareVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
@@ -135,7 +135,13 @@ function PastelChildDashboard() {
     <LowPowerProvider value={lowPowerValue}>
       <VibeCheckScreen
         visible={shouldPromptVibe}
-        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onSelect={(level, type, share) => {
+          // Record first (inserts today's row), then — if the kid opted in —
+          // flip the share flag so migration 025's trigger notifies the parent.
+          void recordVibe(level, type).then(({ error }) => {
+            if (!error && share) void shareVibe();
+          });
+        }}
         onDismiss={() => { void markVibeDismissed(); }}
       />
       <IncomingStickerModal sticker={incomingSticker} onDismiss={() => { void markStickerSeen(); }} />

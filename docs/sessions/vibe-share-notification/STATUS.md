@@ -8,10 +8,10 @@
 |---|---|---|---|---|---|
 | 0 — Decisions (D1–D8) | _passed_ | 2026-06-09 | (this) | — | D1–D8 locked by Adi: kid-initiated + **gentle push** (D2) on `notif_parent_alerts` (D3) + in-flow placement (D4) + non-low≥3 (D5) + no reward (D6) + once/day (D7) + no read-receipt (D8). Branch rebuilt on current `origin/main` (was 133 behind). |
 | 1a — Schema + trigger (migration 025) | _passed_ | 2026-06-09 | (this) | probe ✅ | renumbered 019→025 (main max=024). Applied to mobile DB; probe in rolled-back txn: 3 flips→1 notif (dedup), entity_name='5', 1/parent, child_name resolved, 0 persisted. |
-| 1b — Push wiring (fanout) | _pending_ | — | — | — | **unblocked** — notifications epic already in origin/main (PR #207). 3 edits in `push-notification-fanout`. |
-| 2 — Kid action + in-flow UI | _pending_ | — | — | — | — |
-| 3 — Parent rendering | _pending_ | — | — | — | — |
-| 4 — i18n + Values + tests + PR | _pending_ | — | — | — | — |
+| 1b — Push wiring (fanout) | _passed_ (code) | 2026-06-09 | (this) | tsc ✅ | 3 edits in `push-notification-fanout`: child_vibe_shared → PARENT_RECIPIENT_TYPES + notif_parent_alerts gate + warm copy (he/en) + vibeMoodWord helper. **Deploy still gated on Adi.** |
+| 2 — Kid action + in-flow UI | _passed_ | 2026-06-09 | (this) | tsc ✅ + jest | `shareVibe()` in useDailyVibe (mirrors sendSos); in-flow ShareVibePrompt in VibeCheckScreen (≥3 only, both themes); both dashboards chain recordVibe→shareVibe; isVibeShareable helper + test. |
+| 3 — Parent rendering | _passed_ | 2026-06-09 | (this) | tsc ✅ | router → parent_dashboard; NotificationRow icon happy-outline + body; i18n he/en (row + vibeMood.3/4/5 + kid share strings). |
+| 4 — i18n + Values + tests + PR | _in_progress_ | 2026-06-09 | — | 28/28 | i18n parity done; isVibeShareable tested; Values re-verified in SPEC. Left: Hat-3/Hat-4 visual + copy lock + PR. |
 
 ## Legend
 `_pending_` לא התחיל · `_in_progress_` באמצע · `_passed_` עבר · `_failed_` נכשל · `_blocked_` ממתין לחיצוני

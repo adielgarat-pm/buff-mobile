@@ -74,6 +74,7 @@ const PARENT_RECIPIENT_TYPES = new Set([
   'child_suggestion', // L7 — was unmatched → suppressed as unknown_type
   'anchor_recovery', // churned kids only (cron applies ever-active gate)
   'activation_nudge', // L8 — never-activated families (new cron)
+  'child_vibe_shared', // pkg/vibe-share-notification — kid-initiated positive twin of SOS
 ]);
 
 const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
@@ -100,6 +101,8 @@ const TYPE_TO_PREF_COLUMN: Record<string, string> = {
   anchor_recovery: 'notif_anchor_nudges',
   activation_nudge: 'notif_activation_nudges',
   kid_engagement: 'notif_child_reminders',
+  // pkg/vibe-share-notification (D3): same channel as SOS — "my child reached out to me".
+  child_vibe_shared: 'notif_parent_alerts',
 };
 
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
@@ -109,6 +112,15 @@ const EXPO_PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
 // ─── Copy library (parent declarative + kid body-doubling) ──────────────
 
 type Lang = 'he' | 'en';
+
+// pkg/vibe-share-notification — map a non-low vibe_level (3/4/5, carried in
+// entity_name) to a warm mood word for the push body. Draft copy (OQ-B), Adi's
+// gate. Kept inline here because the Edge runtime has no app-i18n access.
+function vibeMoodWord(level: string, lang: Lang): string {
+  const he: Record<string, string> = { '3': 'בסדר', '4': 'טוב', '5': 'מעולה' };
+  const en: Record<string, string> = { '3': 'okay', '4': 'good', '5': 'great' };
+  return (lang === 'he' ? he : en)[level] ?? '';
+}
 
 function copyForType(
   type: string,
@@ -133,6 +145,9 @@ function copyForType(
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
         return { title: `${name} הצטרף/ה למשפחה 👋`, body: '', data: {} };
+      case 'child_vibe_shared':
+        // pkg/vibe-share-notification — kid-initiated; declarative, warm (OQ-B draft).
+        return { title: `${name} רצה/רצתה לשתף איתך 💛`, body: `מרגיש/ה ${vibeMoodWord(reward, 'he')}`, data: {} };
       case 'anchor_recovery':
         // L-OQ4: canonical SPEC-approved copy (normalizing, connection-not-rescue).
         return { title: 'כולנו צריכים התחלה חדשה לפעמים', body: `הנה דרך עדינה לעזור ל-${name} לחזור`, data: {} };
@@ -160,6 +175,9 @@ function copyForType(
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':
       return { title: `${name} joined the family 👋`, body: '', data: {} };
+    case 'child_vibe_shared':
+      // pkg/vibe-share-notification — kid-initiated; declarative, warm (OQ-B draft).
+      return { title: `${name} wanted to share with you 💛`, body: `feeling ${vibeMoodWord(reward, 'en')}`, data: {} };
     case 'anchor_recovery':
       return { title: 'Everyone needs a fresh start sometimes', body: `Here's a gentle way to help ${name} return`, data: {} };
     case 'activation_nudge':

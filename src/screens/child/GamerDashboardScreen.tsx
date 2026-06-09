@@ -156,7 +156,7 @@ export default function GamerDashboardScreen() {
   // (~65% of families) view-as-child IS the kid's actual interface.
   // See SPEC § Scenario C.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, shareVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
   const shouldPromptVibe =
     !vibeLoading &&
@@ -239,7 +239,13 @@ export default function GamerDashboardScreen() {
     <LowPowerProvider value={lowPowerValue}>
       <VibeCheckScreen
         visible={shouldPromptVibe}
-        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onSelect={(level, type, share) => {
+          // Record first (inserts today's row), then — if the kid opted in —
+          // flip the share flag so migration 025's trigger notifies the parent.
+          void recordVibe(level, type).then(({ error }) => {
+            if (!error && share) void shareVibe();
+          });
+        }}
         onDismiss={() => { void markVibeDismissed(); }}
       />
       <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>

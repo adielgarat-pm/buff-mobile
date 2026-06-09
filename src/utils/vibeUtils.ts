@@ -19,6 +19,10 @@ export interface VibeSnapshot {
   vibe_level:      number;   // CHECK 1-5 at the DB
   low_power_mode:  boolean;
   parent_sos_sent: boolean;
+  // pkg/vibe-share-notification — kid-initiated "share my (non-low) mood with
+  // my parent" flag. Default false; flipping false→true fires migration 025's
+  // trigger → one child_vibe_shared notification per parent.
+  vibe_shared_with_parent: boolean;
   vibe_type:       string;   // 'emoji' | 'bars' | 'battery' in practice
   date:            string;   // 'YYYY-MM-DD'
 }
@@ -60,6 +64,15 @@ export function isLowPowerActive(snap: VibeSnapshot | null | undefined): boolean
  */
 export function computeLowPowerForLevel(level: VibeLevel): boolean {
   return level <= 2;
+}
+
+/**
+ * Whether a vibe level is eligible to be shared with a parent
+ * (pkg/vibe-share-notification, D5). Only non-low moods (level ≥ 3) — low
+ * moods belong to the SOS path, not the positive "share how I feel" path.
+ */
+export function isVibeShareable(level: VibeLevel): boolean {
+  return level >= 3;
 }
 
 /**

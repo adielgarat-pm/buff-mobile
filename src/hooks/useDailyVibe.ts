@@ -56,7 +56,7 @@ export function useDailyVibe(childId: string | null) {
     try {
       const { data, error: queryError } = await supabase
         .from('child_vibes')
-        .select('vibe_level, low_power_mode, parent_sos_sent, vibe_type, date')
+        .select('vibe_level, low_power_mode, parent_sos_sent, vibe_shared_with_parent, vibe_type, date')
         .eq('family_id', familyId)
         .eq('child_id', childId)
         .eq('date', todayKey)
@@ -112,6 +112,7 @@ export function useDailyVibe(childId: string | null) {
   const hasVibedToday = !!todayVibe;
   const isLowPower    = isLowPowerActive(todayVibe);
   const sosSent       = todayVibe?.parent_sos_sent ?? false;
+  const vibeShared    = todayVibe?.vibe_shared_with_parent ?? false;
 
   // ── Actions ──────────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ export function useDailyVibe(childId: string | null) {
       vibe_level:      level,
       low_power_mode:  lowPower,
       parent_sos_sent: false,
+      vibe_shared_with_parent: false,
       vibe_type:       type,
       date:            todayKey,
     };
@@ -195,6 +197,42 @@ export function useDailyVibe(childId: string | null) {
   }, [familyId, childId, todayKey, todayVibe, refetch]);
 
   /**
+   * Flip vibe_shared_with_parent = true on today's row (pkg/vibe-share-
+   * notification). The positive, kid-initiated counterpart of sendSos: it
+   * fires migration 025's trigger → one child_vibe_shared notification per
+   * parent. Caller should gate the share affordance on a non-low level
+   * (isVibeShareable) and on `!vibeShared` so it fires at most once per day.
+   *
+   * Must run AFTER recordVibe has inserted today's row (the trigger is on
+   * UPDATE) — the dashboards chain it: recordVibe().then(share && shareVibe()).
+   */
+  const shareVibe = useCallback(async (): Promise<{ error: Error | null }> => {
+    if (!familyId || !childId) {
+      return { error: new Error('No familyId/childId available') };
+    }
+    if (!todayVibe) {
+      return { error: new Error('No vibe row yet — cannot share vibe') };
+    }
+
+    setTodayVibe({ ...todayVibe, vibe_shared_with_parent: true });
+
+    const { error: updateError } = await supabase
+      .from('child_vibes')
+      .update({ vibe_shared_with_parent: true } as never)
+      .eq('family_id', familyId)
+      .eq('child_id', childId)
+      .eq('date', todayKey);
+
+    if (updateError) {
+      console.error('[useDailyVibe] shareVibe failed:', updateError);
+      await refetch();
+      return { error: updateError as unknown as Error };
+    }
+
+    return { error: null };
+  }, [familyId, childId, todayKey, todayVibe, refetch]);
+
+  /**
    * Add INSTANT_BUFF_AMOUNT BUFFs to the child's credit_vault, atomically.
    * Uses the adjust_credit_vault RPC (migration 021) so a concurrent task
    * completion can't clobber the award. Returns the new balance on success.
@@ -235,9 +273,11 @@ export function useDailyVibe(childId: string | null) {
     hasVibedToday,
     isLowPower,
     sosSent,
+    vibeShared,
     // Actions
     recordVibe,
     sendSos,
+    shareVibe,
     awardInstantBuff,
     refetch,
   };
