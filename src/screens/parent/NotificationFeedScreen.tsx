@@ -71,18 +71,26 @@ export default function NotificationFeedScreen() {
         child_id: notification.child_id ?? undefined,
         family_id: notification.family_id,
       });
-      // For now we just navigate back to the tab navigator; specific
-      // sub-screen navigation requires nested-navigator awareness.
-      // The matrix in `notificationRouter` documents the intended routes;
-      // wiring deferred to a follow-up if needed.
+      // Navigate into the parent tab navigator. ParentApp sits below this modal
+      // in the root stack, so navigate() pops the modal and lands on the tab.
+      // Only ParentRewards takes a param today (childId → pre-select the child
+      // who made the redemption request); the others just switch tab.
       switch (action.kind) {
-        case 'parent_dashboard':
         case 'parent_rewards':
+          navigation.navigate('ParentApp', {
+            screen: 'ParentRewards',
+            params: { childId: action.childId },
+          });
+          break;
         case 'parent_tasks':
-          navigation.goBack();
+          navigation.navigate('ParentApp', { screen: 'ParentTasks' });
+          break;
+        case 'parent_dashboard':
+          navigation.navigate('ParentApp', { screen: 'ParentDashboard' });
           break;
         case 'noop':
         default:
+          navigation.goBack();
           break;
       }
     },
