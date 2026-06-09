@@ -33,6 +33,12 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 | 2026-06-08 | #194 / `35d4c9d` | fix | Remove the Dev-Simulate-Subscribed toggle from parent settings (was a dev-only control visible in prod) | Train | yes | Parent Settings |
 | 2026-06-08 | `pkg/notifications-client` | feat | **Notifications UI (Phase 4) + Edge enforcement (3b)** — the permission model that finally makes the live server nudges reach testers (was: 0 device tokens registered). Two-toggle Settings screen ("Alerts to me" / "Reminders for my child"), denial-recovery banner (deep-link to system settings — fixes "denied → dark forever"), Edge Function suppresses per family pref (`pref_off`). ⚠️ **Deploy the Edge Function only when this build is promoted** (kid reminders default off). | Train | yes | Parent Settings → Notifications; NotificationGate denial banner |
 
+**Riding the train AFTER 39 (merged post-cut `90956ed` — NOT in build 39):**
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-06-09 | #209 / `cf6b353` | feat | **Reward-redemption request discovery + "let's talk" reset.** Notification tap → Rewards tab + auto-selects the requesting child; per-child tab dot for open requests; focus refetch (the engine was correct — this fixes *reachability*: parent couldn't get from notification to the approve button). "Let's talk" is now a two-sided reset: leaves the parent's list; child sees "parent wants to talk" + "Got it" → clears; child re-requests after the talk (new status `discussed`; migration 025 **already live on DB**). tsc+jest+DB verified; **on-device Hat-3 pending**. | Train | yes | Child Rewards → Redeem (request); Parent Rewards → Approve / Let's talk; Notification → tap → child select |
+
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
