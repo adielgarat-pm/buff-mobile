@@ -101,8 +101,12 @@ export default function GamerRewardsScreen() {
   const welcomeBack       = useWelcomeBack();
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
-  const { openForReward, request: requestRedemption, withdraw: withdrawRedemption } =
-    useRewardRedemptions(childId);
+  const {
+    openForReward,
+    request: requestRedemption,
+    withdraw: withdrawRedemption,
+    acknowledge: acknowledgeRedemption,
+  } = useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
   const [tab, setTab]         = useState<TabKey>('parent');
@@ -173,6 +177,12 @@ export default function GamerRewardsScreen() {
   const handleWithdraw = (reward: StoreReward) => {
     const open = openForReward(reward.id);
     if (open) withdrawRedemption(open.id);
+  };
+
+  // "Got it 👍" — child acknowledges the parent wants to talk; clears the card.
+  const handleAcknowledge = (reward: StoreReward) => {
+    const open = openForReward(reward.id);
+    if (open) acknowledgeRedemption(open.id);
   };
 
   // ── Pause active: short-circuit ──────────────────────────────────────────
@@ -290,9 +300,15 @@ export default function GamerRewardsScreen() {
                                 ? t('childRewards.discussingLabel')
                                 : t('childRewards.pendingLabel')}
                             </Text>
-                            <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
-                              <Text style={styles.pendingWithdraw}>{t('childRewards.cancelRequest')}</Text>
-                            </TouchableOpacity>
+                            {pending.status === 'discussing' ? (
+                              <TouchableOpacity onPress={() => handleAcknowledge(reward)} hitSlop={6}>
+                                <Text style={styles.pendingWithdraw}>{t('childRewards.gotIt')}</Text>
+                              </TouchableOpacity>
+                            ) : (
+                              <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                                <Text style={styles.pendingWithdraw}>{t('childRewards.cancelRequest')}</Text>
+                              </TouchableOpacity>
+                            )}
                           </View>
                         ) : isUnlocked ? (
                           <TouchableOpacity

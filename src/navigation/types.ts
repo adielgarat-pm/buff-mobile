@@ -79,7 +79,8 @@ export type RootStackParamList = {
 export type ParentTabsParamList = {
   ParentDashboard: undefined;
   ParentTasks:     undefined;
-  ParentRewards:   undefined;
+  // childId: deep-link from a reward-redemption notification → pre-select that child.
+  ParentRewards:   { childId?: string } | undefined;
   ParentTimetable: undefined;
   ParentSettings:  undefined;
 };

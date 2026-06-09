@@ -60,8 +60,12 @@ function PastelChildRewards() {
   const { totalBalance } = useChildData(childId);
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
-  const { openForReward, request: requestRedemption, withdraw: withdrawRedemption } =
-    useRewardRedemptions(childId);
+  const {
+    openForReward,
+    request: requestRedemption,
+    withdraw: withdrawRedemption,
+    acknowledge: acknowledgeRedemption,
+  } = useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
   const suggestPalette: SuggestPalette = {
@@ -128,6 +132,12 @@ function PastelChildRewards() {
     if (open) withdrawRedemption(open.id);
   };
 
+  // "Got it 👍" — child acknowledges the parent wants to talk; clears the card.
+  const handleAcknowledge = (reward: StoreReward) => {
+    const open = openForReward(reward.id);
+    if (open) acknowledgeRedemption(open.id);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
 
@@ -187,11 +197,19 @@ function PastelChildRewards() {
                         ? t('childRewards.discussingLabel')
                         : t('childRewards.pendingLabel')}
                     </Text>
-                    <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
-                      <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
-                        {t('childRewards.cancelRequest')}
-                      </Text>
-                    </TouchableOpacity>
+                    {pending.status === 'discussing' ? (
+                      <TouchableOpacity onPress={() => handleAcknowledge(reward)} hitSlop={6}>
+                        <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
+                          {t('childRewards.gotIt')}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                        <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
+                          {t('childRewards.cancelRequest')}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 ) : (
                   <TouchableOpacity

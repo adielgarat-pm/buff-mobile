@@ -1644,6 +1644,7 @@
   "childRewards.pendingLabel": "Waiting for approval",
   "childRewards.discussingLabel": "Your parent wants to talk about it 💬",
   "childRewards.cancelRequest": "Cancel request",
+  "childRewards.gotIt": "Got it 👍",
 
   "gamerRewards.title": "REWARDS",
   "gamerRewards.subtitle": "Spend your buffs",
