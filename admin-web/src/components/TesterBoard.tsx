@@ -201,6 +201,12 @@ export function TesterBoardView({
             />
             Exclude test
           </label>
+          <span
+            className="flex items-center gap-1 text-xs text-muted-foreground"
+            title="Auto-refreshes every 60s and when you return to the tab"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500" /> live
+          </span>
           {onReload && (
             <button
               onClick={() => onReload()}
