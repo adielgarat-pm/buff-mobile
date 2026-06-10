@@ -5,16 +5,16 @@
  * the screen before this).
  */
 import { View, Text, StyleSheet } from 'react-native';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 export default function OffRoutineBanner() {
-  const { language } = useLanguage();
-  const text = language === 'he'
-    ? 'יום חופשי — תוכנית קלה, בקצב שלך ✨'
-    : 'Free day — a lighter plan, at your pace ✨';
+  // Strings come from i18next (NOT useLanguage) so the banner follows the
+  // active interface language — including the previewed child's language in
+  // View-as-Child, which useLanguage() deliberately does not track.
+  const { t } = useTranslation();
   return (
     <View style={styles.banner} accessibilityRole="text">
-      <Text style={styles.text}>{text}</Text>
+      <Text style={styles.text}>{t('offRoutine.banner')}</Text>
     </View>
   );
 }
