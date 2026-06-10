@@ -39,6 +39,7 @@ function iconForType(type: string): IconName {
     case 'quest_milestone':    return 'trophy-outline';
     case 'parent_engagement':  return 'leaf-outline';
     case 'family_joined':      return 'people-outline';
+    case 'child_vibe_shared':  return 'happy-outline';
     default:                   return 'ellipse-outline';
   }
 }
@@ -65,6 +66,12 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
       return t('notificationFeed.row.parent_engagement', { name });
     case 'family_joined':
       return t('notificationFeed.row.family_joined', { name });
+    case 'child_vibe_shared': {
+      // entity_name carries the vibe_level (3/4/5) → resolve to a localized
+      // mood word (pkg/vibe-share-notification).
+      const mood = t(`vibeMood.${reward}`, { defaultValue: '' });
+      return t('notificationFeed.row.child_vibe_shared', { name, mood });
+    }
     default:
       return name;
   }
