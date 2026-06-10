@@ -52,6 +52,10 @@ export interface TesterChild {
   last_active: string | null
 }
 
+/** Last platform a family member opened the app on. Null until a build that
+ *  stamps profiles.last_platform runs (forward-filling). */
+export type Platform = 'android' | 'ios' | 'web'
+
 export interface TesterFamily {
   id: string
   name: string
@@ -60,6 +64,7 @@ export interface TesterFamily {
   short_code: string | null
   parent_name: string | null
   parent_email: string | null
+  platform: Platform | null
   children: TesterChild[]
 }
 

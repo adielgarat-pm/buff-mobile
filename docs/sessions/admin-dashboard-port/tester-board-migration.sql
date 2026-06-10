@@ -1,6 +1,7 @@
 -- Tester Board RPC — applied to mobile Supabase (gfrongfnyigxsexuofrg) 2026-06-07
 -- via MCP migrations: admin_tester_board_rpc → _v2_include_childless →
--- drop_old_tester_board_noarg → tester_board_cohort_union (final below).
+-- drop_old_tester_board_noarg → tester_board_cohort_union →
+-- tester_board_platform_from_families (2026-06-10, adds families.platform; final below).
 --
 -- Read-only, admin-gated (is_admin), SECURITY DEFINER. Powers the Tester Board
 -- + Family Deep-Dive. Cohort = families created since the tester window OR with
@@ -21,7 +22,7 @@ BEGIN
   END IF;
 
   WITH cohort_families AS (
-    SELECT f.id, f.name, f.created_at, f.preferred_language, f.short_code
+    SELECT f.id, f.name, f.created_at, f.preferred_language, f.short_code, f.platform
     FROM families f
     WHERE f.created_at >= p_since
        OR EXISTS (
@@ -97,6 +98,9 @@ BEGIN
   family_json AS (
     SELECT
       f.id, f.name, f.created_at, f.preferred_language, f.short_code,
+      -- Canonical platform = families.platform (signup-capture, migration 021,
+      -- backfilled on app-open via backfill_family_platform). android|ios|web.
+      f.platform AS platform,
       (SELECT pp.display_name FROM profiles pp
         WHERE pp.family_id = f.id AND pp.role = 'parent'
         ORDER BY pp.created_at LIMIT 1) AS parent_name,
@@ -109,7 +113,7 @@ BEGIN
       ) AS children
     FROM cohort_families f
     LEFT JOIN child_json cj ON cj.family_id = f.id
-    GROUP BY f.id, f.name, f.created_at, f.preferred_language, f.short_code
+    GROUP BY f.id, f.name, f.created_at, f.preferred_language, f.short_code, f.platform
   )
   SELECT jsonb_agg(to_jsonb(fj) ORDER BY fj.created_at DESC)
   INTO result

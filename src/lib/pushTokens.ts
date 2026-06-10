@@ -124,3 +124,24 @@ export async function bumpLastSeenAt(profileId: string): Promise<boolean> {
   }
   return true;
 }
+
+/**
+ * Backfill families.platform from Platform.OS when it is still NULL.
+ *
+ * The canonical platform column is families.platform (migration 021), captured
+ * at signup. That only tags NEW families — the pre-instrumentation cohort
+ * (created before 2026-06-08) stays NULL forever. This fills it on the next app
+ * open so the admin tester board can segment the existing testers too.
+ *
+ * Idempotent: the RPC writes ONLY when platform IS NULL, so it never overwrites
+ * the real signup-source value and is a no-op once set.
+ */
+export async function backfillFamilyPlatform(profileId: string): Promise<void> {
+  const { error } = await supabase.rpc('backfill_family_platform', {
+    p_profile_id: profileId,
+    p_platform: Platform.OS,
+  });
+  if (error && __DEV__) {
+    console.warn('[pushTokens] backfillFamilyPlatform failed:', error.message);
+  }
+}

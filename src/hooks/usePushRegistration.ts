@@ -28,6 +28,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from '../contexts/AuthContext';
 import {
+  backfillFamilyPlatform,
   bumpLastSeenAt,
   getPushToken,
   getTokenType,
@@ -128,6 +129,9 @@ export function usePushRegistration(): UsePushRegistrationResult {
       }
       // Bump last_seen_at regardless of permission state.
       await bumpLastSeenAt(profileId);
+      // Backfill families.platform for the pre-instrumentation cohort (no-op
+      // once set). Once per profile load is enough — platform doesn't change.
+      await backfillFamilyPlatform(profileId);
     })();
     return () => {
       cancelled = true;
