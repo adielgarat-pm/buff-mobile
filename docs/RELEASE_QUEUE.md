@@ -33,6 +33,8 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 | 2026-06-08 | #194 / `35d4c9d` | fix | Remove the Dev-Simulate-Subscribed toggle from parent settings (was a dev-only control visible in prod) | Train | yes | Parent Settings |
 | 2026-06-08 | `pkg/notifications-client` | feat | **Notifications UI (Phase 4) + Edge enforcement (3b)** — the permission model that finally makes the live server nudges reach testers (was: 0 device tokens registered). Two-toggle Settings screen ("Alerts to me" / "Reminders for my child"), denial-recovery banner (deep-link to system settings — fixes "denied → dark forever"), Edge Function suppresses per family pref (`pref_off`). ⚠️ **Deploy the Edge Function only when this build is promoted** (kid reminders default off). | Train | yes | Parent Settings → Notifications; NotificationGate denial banner |
 
+> 🚧 **CUT IN PROGRESS — 1.4.3 (versionCode 41):** EAS build `0bbd6332` building 2026-06-10 from `pkg/release-41 @ 1148f84` (origin/main `07ba6d0`). Gate 1 ✅; Gate 2 → Hat-4 (delta = banner fix + #211, both real-device). This = **build 40 content + the two rows below** (`80782b4` banner fix + `f6fbc14` #211), which build 40 (1.4.2) predated. They move to **Shipped (41)** once Adi promotes 41 + "verified, tag it". ⚠️ Deploy `push-notification-fanout` Edge Function only when 41 is promoted. (`#209 cf6b353` already shipped in build 40.)
+
 **Riding the train AFTER 39 (merged post-cut `90956ed` — NOT in build 39):**
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
