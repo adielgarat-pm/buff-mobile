@@ -22,6 +22,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePushRegistration } from '../hooks/usePushRegistration';
@@ -30,8 +31,15 @@ import { setupNotifications } from '../lib/notificationHandler';
 import { PushPermissionPrePrompt } from '../screens/onboarding/PushPermissionPrePrompt';
 import { PARENT_THEME as T } from '../theme';
 
+// Mirrors the parent tab bar height in ParentTabs.tsx (height: 56 + insets.bottom).
+// The denied-permission banner sits above BOTH the tab bar and the system nav bar
+// so its CTA / dismiss stay tappable (was bottom:24 → collided with the Android
+// navigation bar on 3-button / gesture devices, making the buttons unreachable).
+const PARENT_TAB_BAR_HEIGHT = 56;
+
 export const NotificationGate: React.FC = () => {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { permission, register } = usePushRegistration();
   // Kid local notifications — internally no-op when profile.role !== 'child'
@@ -90,7 +98,10 @@ export const NotificationGate: React.FC = () => {
         onDecline={handleDecline}
       />
       {showDeniedBanner && (
-        <View style={styles.banner} accessibilityRole="alert">
+        <View
+          style={[styles.banner, { bottom: insets.bottom + PARENT_TAB_BAR_HEIGHT + 12 }]}
+          accessibilityRole="alert"
+        >
           <Text style={styles.bannerText}>{t('notifSettings.deniedBanner.text')}</Text>
           <View style={styles.bannerActions}>
             <TouchableOpacity onPress={() => { void Linking.openSettings(); }} accessibilityRole="button">
@@ -111,7 +122,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     right: 12,
-    bottom: 24,
+    // bottom is set dynamically from safe-area insets + tab bar height (see render).
     backgroundColor: T.text,
     borderRadius: 12,
     paddingVertical: 12,
