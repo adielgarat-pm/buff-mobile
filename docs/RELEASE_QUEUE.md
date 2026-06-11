@@ -44,6 +44,12 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 | 2026-06-10 | #211 / `f6fbc14` | feat | **Kid shares a good mood with a parent** — a non-low Vibe Check (level ≥3) offers an in-flow "share this feeling?" step; on opt-in the parent gets a gentle push (gated on the existing **"Alerts to me"** toggle) **+ an INFO bell row**. Positive, kid-initiated twin of SOS; private by default. migration `025_vibe_shared_notification` (`child_vibes.vibe_shared_with_parent` + `handle_vibe_shared` trigger) **already live on DB**. ⚠️ **`push-notification-fanout` Edge Function NOT yet deployed** → push stays silent until deployed (bell row works once a build ships). Copy is **draft** (kid + push — Adi/Itay gate). tsc + jest(28) + trigger-probe verified; **on-device Hat-3 pending** (emulator contention). File number 025 collides with #209 — harmless (distinct DB versions). | Train | yes | Child Vibe Check → share step; Parent notification feed |
 | 2026-06-10 | #216 / `96dee51` | fix | **Off-Routine banner/card follow the interface language** — `OffRoutineBanner` + `OffRoutineCard` chose copy via `language === 'he' ? …` off `useLanguage()` (device language), which i18next/`ModeContext` deliberately doesn't sync in View-as-Child → the purple "day off" banner stayed Hebrew inside Leia's otherwise-English preview (Adi caught it live on the off-routine day she set). Strings moved to `t()` + en/he.json (**copy byte-identical**); adds a zero-dep Jest guard (`i18nNoHardcodedCopy`) so the pattern can't regress (3rd time of the IN-2026-05-27-04 class). tsc clean; jest env broken on machine → guard verified via raw node; **on-device Hat-3 pending**. | Train | yes | View-as-Child → Off-Routine banner; EditChild → Off-Routine card |
 
+**Riding the train AFTER 41 (merged post-cut — origin/main moved past `07ba6d0` — NOT in build 41):**
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-06-11 | #220 / `fad5ed2` | fix | **Child Rewards tab no longer shows a stale balance + "pending" badge after parent approval** — HQ refetched on focus but the Rewards tab (Mint + Gamer) fetched only on mount, so after approval the two screens disagreed (HQ deducted, Rewards stale). Both screens now refetch balance + open redemption requests on every focus. tsc clean; mirrors the dashboard's proven focus-refetch pattern; on-device Hat-3 pending | Train | yes | Child Rewards → Redeem (request) → parent approve → child Rewards refocus |
+
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
@@ -105,4 +111,4 @@ Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
 ---
 
 **Maintained by:** CC (rows at merge time) · Adi (cut approval).
-**Last updated:** 2026-06-08
+**Last updated:** 2026-06-11
