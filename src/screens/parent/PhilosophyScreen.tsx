@@ -13,8 +13,9 @@
  */
 import {
   View, Text, TouchableOpacity, ScrollView,
-  SafeAreaView, I18nManager, StyleSheet,
+  I18nManager, StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -57,7 +58,7 @@ export default function PhilosophyScreen() {
   const textAlign  = isRTL ? ('right' as const) : ('left' as const);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
         <TouchableOpacity

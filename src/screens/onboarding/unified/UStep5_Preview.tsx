@@ -11,9 +11,9 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, SafeAreaView,
-  Animated, I18nManager, ActivityIndicator, StyleSheet, Alert,
+  View, Text, TouchableOpacity, ScrollView, Animated, I18nManager, ActivityIndicator, StyleSheet, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -337,7 +337,7 @@ export default function UStep5_Preview() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
       <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
