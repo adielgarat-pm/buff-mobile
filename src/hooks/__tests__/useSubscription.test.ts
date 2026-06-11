@@ -12,6 +12,8 @@
  */
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
+import Purchases from 'react-native-purchases';
+import { getIsSubscribed } from '../../services/purchaseService';
 import { useSubscription } from '../useSubscription';
 
 jest.mock('../../contexts/AuthContext', () => ({
@@ -46,6 +48,7 @@ jest.mock('react-native-purchases', () => ({
 
 const originalOS = Platform.OS;
 
+beforeEach(() => jest.clearAllMocks());
 afterEach(() => {
   (Platform as { OS: string }).OS = originalOS;
 });
@@ -61,6 +64,17 @@ describe('useSubscription — iOS paywall gate', () => {
     expect(result.current.needsUpgrade).toBe(false);
   });
 
+  it('does NOT touch the RevenueCat SDK on iOS (never configured there)', async () => {
+    (Platform as { OS: string }).OS = 'ios';
+
+    const { result } = renderHook(() => useSubscription());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // refreshRC must early-return on iOS; calling Purchases.* without configure() would error.
+    expect(Purchases.getCustomerInfo as jest.Mock).not.toHaveBeenCalled();
+    expect(getIsSubscribed as jest.Mock).not.toHaveBeenCalled();
+  });
+
   it('does NOT subscribe an Android user when no entitlement signal is present', async () => {
     (Platform as { OS: string }).OS = 'android';
 
@@ -68,5 +82,7 @@ describe('useSubscription — iOS paywall gate', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.isSubscribed).toBe(false);
+    // Android path is unchanged: it DOES query RevenueCat.
+    expect(Purchases.getCustomerInfo as jest.Mock).toHaveBeenCalled();
   });
 });
