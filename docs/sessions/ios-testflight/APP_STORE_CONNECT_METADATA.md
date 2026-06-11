@@ -7,13 +7,12 @@
 
 ---
 
-## 0. KEY DECISION — do NOT use Apple's "Kids Category" (recommended)
+## 0. KEY DECISION — NOT in Apple's "Kids Category" ✅ DECIDED (Adi, 2026-06-11)
 
-Apple's **Kids Category** bans third-party data/analytics SDKs (BUFF uses **Sentry**, even
-though PII-scrubbed), requires a parental gate, and adds strict review. BUFF's model is
-**parents create the account; kids never log in** — so list it as a **regular app
-positioned as a parent's tool**, NOT in the Kids Category. This sidesteps the Sentry
-conflict and speeds review. (Confidence: high. This is Adi's call to confirm.)
+**Decision: stay OUT of the Kids Category. Everything is parent-controlled.** Apple's Kids
+Category bans third-party data SDKs (BUFF uses Sentry, even PII-scrubbed) and adds strict
+review; BUFF's model is parents create the account and kids never log in, so it lists as a
+**regular app positioned as a parent's tool**.
 
 ---
 
@@ -32,7 +31,7 @@ conflict and speeds review. (Confidence: high. This is Adi's call to confirm.)
 - **Promotional text (170):** `The ADHD app your kid grows out of. Real rewards, not virtual coins. Built for ages 6–18, co-designed with a teen who actually has ADHD.` — `BUFF_MESSAGING.md:261`
 - **Description:** paste the EN full description from `BUFF_MESSAGING.md` (lines 217–256). *Do not retype here — keep canonical source single.*
 - **Keywords:** adhd, kids, teens, routine, chores, rewards, focus, executive function, parenting, habits
-- **Category (RECOMMEND):** Primary **Education**, Secondary **Health & Fitness**. *(Apple has no "ADHD"; Education fits the parent-tool framing. Adi confirms.)*
+- **Category:** Primary **Education**, Secondary **Health & Fitness** ✅ DECIDED (Adi, 2026-06-11).
 - **Support URL:** https://buffadhd.com (confirm a reachable page)
 - **Marketing URL:** https://buffadhd.com
 - **Support / contact email:** adi@buffadhd.com — (`INTEGRATION_LEARNINGS.md`, user memory)
@@ -92,9 +91,28 @@ public content.
 
 ---
 
-## 6. Open items before submit (checklist)
+## 6. Apple Review Guideline compliance (audited 2026-06-11)
+
+| Guideline | Verdict | Internal TF | External TF | App Store |
+|-----------|---------|:---:|:---:|:---:|
+| 3.1.1 — no external payment / paywall fully hidden on iOS | PASS | ✅ | ✅ | ✅ |
+| 4.8 — login (email/password offered beside Google) | PASS | ✅ | ✅ | ✅ |
+| 1.4.1 / 1.3 — no medical claims (disclaimer present) | PASS | ✅ | ✅ | ✅ |
+| 5.1.1 — privacy / permission strings | PASS | ✅ | ✅ | ✅ |
+| 2.1 — iOS RC crash risk (refreshRC) | **FIXED** `b8d17e4` | ✅ | ✅ | ✅ |
+| 5.1.1(v) — in-app **account deletion** | **GAP** | ✅ | ❌ | ❌ |
+
+**Internal TestFlight is fully clear.** The only blocker for **External TestFlight + App
+Store** is **in-app account deletion** (Apple requires it for any app with account
+creation). BUFF currently has only "Sign Out" in parent settings — no delete-account flow.
+This is a separate feature (UI + a destructive backend RPC that cascades family cleanup)
+that needs Adi's scoping/approval; not required to put the first families on Internal TF.
+
+## 7. Open items before submit (checklist)
 - [ ] Apple account verified (Pending as of enrollment)
-- [ ] Confirm category (Education primary) + subtitle wording — Adi
+- [x] Category = Education + Health & Fitness — Adi 2026-06-11
+- [x] Stay OUT of Kids Category — Adi 2026-06-11
+- [ ] Confirm subtitle wording — Adi
 - [ ] Verify privacy-policy URL loads and covers iOS — Adi
 - [ ] Create a throwaway demo parent account (only if doing external testing)
-- [ ] Confirm: stay OUT of Kids Category — Adi
+- [ ] **Account deletion** — decide: scope into this package or a follow-up (blocks External TF / App Store, not Internal)
