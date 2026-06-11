@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.buff.mobile"
+      "bundleIdentifier": "com.buff.mobile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.buffapp.mobile",
@@ -38,7 +41,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "BUFF uses your photo library for profile pictures."
+          "photosPermission": "BUFF uses your photo library to import images, such as a photo of your child's timetable."
         }
       ],
       [
