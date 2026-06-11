@@ -7,8 +7,9 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, SafeAreaView, Platform, Alert,
+  ActivityIndicator, Platform, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -174,7 +175,7 @@ export default function EditChildScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.safe, styles.centered]}>
         <ActivityIndicator color={T.accent} size="large" />
       </SafeAreaView>
     );
@@ -182,7 +183,7 @@ export default function EditChildScreen() {
 
   if (loadErr) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.safe, styles.centered]}>
         <Text style={styles.errorText}>{loadErr}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.cancelBtn}>
           <Text style={styles.cancelText}>{t('editChild.cancel')}</Text>
@@ -192,7 +193,7 @@ export default function EditChildScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={[styles.header, { flexDirection: rowDirection }]}>
         <TouchableOpacity

@@ -2,7 +2,8 @@
  * UStep4_Motivator — multi-select motivators (max 2), then Continue.
  */
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +42,7 @@ export default function UStep4_Motivator() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity

@@ -14,8 +14,8 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, SafeAreaView,
-} from 'react-native';
+  StyleSheet, ActivityIndicator, } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/types';
 import { PARENT_THEME as T } from '../theme';
@@ -98,7 +98,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
   const isBusy = purchasing !== null;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
