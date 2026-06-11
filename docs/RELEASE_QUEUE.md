@@ -49,12 +49,6 @@ _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-te
 | 2026-06-11 | #220 / `fad5ed2` | fix | **Child Rewards tab no longer shows a stale balance + "pending" badge after parent approval** — HQ refetched on focus but the Rewards tab (Mint + Gamer) fetched only on mount, so after approval the two screens disagreed. Both screens now refetch balance + open redemption requests on every focus. Hat-3 verified live 2026-06-11 (emulator): DB balance change + DB approval both reflected on simple tab refocus, badge cleared | Train | yes | Child Rewards → Redeem → parent approve → child Rewards refocus |
 | 2026-06-11 | #219 / `aaf1dda` | feat | **families.platform backfill on app-open + platform in admin Tester Board** — migration 026 RPC (idempotent, fills only NULL) called once per profile load; drains the 203-family NULL cohort as testers open this build; admin-web PlatformBadge. Hat-3 verified live: test family flipped NULL→android on app open | Train | no (analytics) | Admin Tester Board (web); silent app-open call |
 
-**Riding the train AFTER 41 (merged post-cut — origin/main moved past `07ba6d0` — NOT in build 41):**
-
-| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
-|---|---|---|---|---|---|---|
-| 2026-06-11 | #220 / `fad5ed2` | fix | **Child Rewards tab no longer shows a stale balance + "pending" badge after parent approval** — HQ refetched on focus but the Rewards tab (Mint + Gamer) fetched only on mount, so after approval the two screens disagreed (HQ deducted, Rewards stale). Both screens now refetch balance + open redemption requests on every focus. tsc clean; mirrors the dashboard's proven focus-refetch pattern; on-device Hat-3 pending | Train | yes | Child Rewards → Redeem (request) → parent approve → child Rewards refocus |
-
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
