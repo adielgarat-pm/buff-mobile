@@ -11,8 +11,9 @@
  * Not gated behind subscription: the rewards shop is core to Pillar 1
  * (Intrinsic Motivation) and is not a paid feature per BUFF_PRD.md §5.1.
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -57,7 +58,7 @@ function PastelChildRewards() {
   const { previewChildId } = useMode();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { totalBalance } = useChildData(childId);
+  const { totalBalance, refetch: refetchBalance } = useChildData(childId);
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
   const {
@@ -65,8 +66,18 @@ function PastelChildRewards() {
     request: requestRedemption,
     withdraw: withdrawRedemption,
     acknowledge: acknowledgeRedemption,
+    refetch: refetchRedemptions,
   } = useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
+
+  // Tab screens stay mounted, so this screen's useChildData/useRewardRedemptions
+  // instances go stale after a parent approves a redemption: the dashboard
+  // refetches on focus and shows the deducted balance, while this screen kept
+  // the old balance and the "pending" badge. Refetch both on every focus.
+  useFocusEffect(useCallback(() => {
+    refetchBalance();
+    refetchRedemptions();
+  }, [refetchBalance, refetchRedemptions]));
 
   const suggestPalette: SuggestPalette = {
     overlay:    'rgba(0,0,0,0.45)',
