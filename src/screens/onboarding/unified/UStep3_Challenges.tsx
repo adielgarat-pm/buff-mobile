@@ -6,8 +6,9 @@
  */
 import { useState } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, SafeAreaView, StyleSheet,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -48,7 +49,7 @@ export default function UStep3_Challenges() {
   const progress = (STEP + 1) / (TOTAL + 1);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Top bar ───────────────────────────────────────────────────── */}
       <View style={styles.topBar}>
         <TouchableOpacity

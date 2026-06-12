@@ -19,8 +19,11 @@ import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
+import { isWeekendToday } from '../../utils/schoolDay';
+import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import { PetDisplay } from '../../components/PetDisplay';
 import PauseEmptyState from '../../components/PauseEmptyState';
+import OffRoutineBanner from '../../components/OffRoutineBanner';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import VibeCheckScreen from './VibeCheckScreen';
 import GamerDashboardScreen from './GamerDashboardScreen';
@@ -31,6 +34,7 @@ import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
+import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -50,14 +54,15 @@ function PastelChildDashboard() {
   const { t }       = useTranslation();
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, previewChildId, viewMode } = useMode();
+  const { isChildPreview, exitChildPreview, previewChildId, previewChildName, viewMode } = useMode();
   const T = useChildTheme();
   const { isSubscribed } = useSubscription();
   const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, dailyGoal, loading, refetch } = useChildData(childId);
-  const { isPauseActive } = useAppSettings();
+  const { tasks, totalBalance, dailyGoal, loading, refetch, offRoutineActive } = useChildData(childId);
+  const { settings, isPauseActive } = useAppSettings();
+  const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const welcomeBack = useWelcomeBack();
 
   // Refetch on focus — completing a task on the Tasks tab writes to a separate
@@ -71,7 +76,7 @@ function PastelChildDashboard() {
   // under `previewChildId` and `daily_vibe` RLS accepts the parent's
   // auth session for any child in the family.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, shareVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
@@ -106,8 +111,11 @@ function PastelChildDashboard() {
 
   const [justCompletedTask, setJustCompletedTask] = useState(false);
 
-  const doneTasks  = tasks.filter(t => t.completed).length;
-  const totalTasks = tasks.length;
+  // Only today's tasks count toward Focus Fuel — keeps HQ in sync with the
+  // Quests tab (shared day-visibility rule).
+  const todayTasks = tasks.filter(t => isTaskVisibleToday(t, isWeekend));
+  const doneTasks  = todayTasks.filter(t => t.completed).length;
+  const totalTasks = todayTasks.length;
   const fuelPct    = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const atGoal     = fuelPct >= 70;
 
@@ -128,7 +136,13 @@ function PastelChildDashboard() {
     <LowPowerProvider value={lowPowerValue}>
       <VibeCheckScreen
         visible={shouldPromptVibe}
-        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onSelect={(level, type, share) => {
+          // Record first (inserts today's row), then — if the kid opted in —
+          // flip the share flag so migration 025's trigger notifies the parent.
+          void recordVibe(level, type).then(({ error }) => {
+            if (!error && share) void shareVibe();
+          });
+        }}
         onDismiss={() => { void markVibeDismissed(); }}
       />
       <IncomingStickerModal sticker={incomingSticker} onDismiss={() => { void markStickerSeen(); }} />
@@ -147,12 +161,16 @@ function PastelChildDashboard() {
         </TouchableOpacity>
       )}
 
+      {offRoutineActive && !isPauseActive && <OffRoutineBanner />}
+
       {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: T.mutedForeground }]}>{t('childDashboard.greeting')}</Text>
           <Text style={[styles.name, { color: T.primary }]}>
-            {isChildPreview ? t('childDashboard.previewName') : (profile?.display_name ?? t('childDashboard.fallbackName'))} ⚡
+            {isChildPreview
+              ? (previewChildName ?? t('childDashboard.previewName'))
+              : (profile?.display_name ?? t('childDashboard.fallbackName'))} ⚡
           </Text>
         </View>
         <View style={styles.headerRight}>
@@ -169,7 +187,7 @@ function PastelChildDashboard() {
       {/* Buffs total (from credit_vault) — visible even during pause to reassure */}
       <View style={[styles.buffsCard, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
         <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>{t('childDashboard.totalBuffs')}</Text>
-        <Text style={[styles.buffsCount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
+        <Text style={[styles.buffsCount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
         <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>{t('childDashboard.spendHint')}</Text>
       </View>
 
@@ -193,6 +211,7 @@ function PastelChildDashboard() {
             isChildViewer={isChildViewer}
             isChildPreview={isChildPreview}
             profileName={profile?.display_name ?? undefined}
+            previewChildName={previewChildName}
             justCompletedTask={justCompletedTask}
             setJustCompletedTask={setJustCompletedTask}
             totalBalance={totalBalance}
@@ -221,6 +240,7 @@ interface DashboardActiveContentProps {
   isChildViewer: boolean;
   isChildPreview: boolean;
   profileName: string | undefined;
+  previewChildName: string | null;
   justCompletedTask: boolean;
   setJustCompletedTask: (v: boolean) => void;
   totalBalance: number;
@@ -229,7 +249,7 @@ interface DashboardActiveContentProps {
 
 function DashboardActiveContent({
   T, t, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildViewer, isChildPreview,
-  profileName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
+  profileName, previewChildName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
 }: DashboardActiveContentProps) {
   return (
     <>
@@ -259,7 +279,7 @@ function DashboardActiveContent({
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
         {isSubscribed ? (
           <PetDisplay
-            childName={isChildPreview ? t('childDashboard.previewName') : profileName}
+            childName={isChildPreview ? (previewChildName ?? t('childDashboard.previewName')) : profileName}
             justCompletedTask={justCompletedTask}
             onTaskCompletionAck={() => setJustCompletedTask(false)}
             completedToday={doneTasks}

@@ -5,21 +5,9 @@ export type TaskCategory =
   | 'responsibility'
   | 'movement';
 
-export const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  learning: 'Learning',
-  organization: 'Organization',
-  'self-care': 'Self-Care',
-  responsibility: 'Responsibility',
-  movement: 'Movement',
-};
-
-export const CATEGORY_LABELS_HE: Record<TaskCategory, string> = {
-  learning: 'למידה',
-  organization: 'התארגנות',
-  'self-care': 'טיפול עצמי',
-  responsibility: 'בית ואחריות',
-  movement: 'גוף ותנועה',
-};
+// Category display labels live in i18n (`category.*` keys) — render with t(),
+// never from a hardcoded map (the old EN/HE maps here let English leak into
+// the Hebrew UI).
 
 export interface Task {
   id: string;
@@ -33,7 +21,7 @@ export interface Task {
   completedAt?: Date | string;
   description?: string;
   icon?: string;
-  /** Days of week (0 = Sunday … 6 = Saturday). Defaults to [0,1,2,3,4,5] (Sun–Fri). */
+  /** Days of week (0 = Sunday … 6 = Saturday). null/empty → every day (see isTaskVisibleToday). */
   scheduleDays?: number[];
   /**
    * School-day-only task: hidden on weekend days. Weekend = Sat always,
@@ -42,4 +30,6 @@ export interface Task {
   hideOnWeekend?: boolean;
   assignedTo?: string;
   strategyId?: string;
+  /** Off-routine-day task: shown only while the child's off-routine mode is active. */
+  isOffRoutine?: boolean;
 }

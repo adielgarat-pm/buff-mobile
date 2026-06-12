@@ -5,15 +5,19 @@
  *   - useRewardRedemptions(childId) — child side: request to redeem an existing
  *     reward (only ones they can afford), see their own open requests keyed by
  *     reward, and withdraw an own request.
- *   - usePendingRedemptions(childId?) — parent side: list open requests
- *     (requested + discussing) for the family, approve one (atomic deduct via
- *     RPC) or "let's talk about it" (status 'discussing').
+ *   - usePendingRedemptions(childId?) — parent side: list NEW requests
+ *     ('requested') for the family, approve one (atomic deduct via RPC) or
+ *     "let's talk about it" (status 'discussing' — leaves the parent's view).
  *
  * Philosophy (BUFF_VALUES Pillar 2, mirror of useChildSuggestions): there is NO
  * decline. A parent either says "yes, let's do it" (→ approved, points deducted)
- * or "let's talk about it" (→ discussing; the request stays open, points are NOT
- * touched). A child may withdraw their own request. Rewards are repeatable — the
- * reward stays in the catalog and can be redeemed again once affordable.
+ * or "let's talk about it" (→ discussing). "Let's talk" is a two-sided RESET, not
+ * a persistent open state: it leaves the parent's list immediately, the child
+ * sees "your parent wants to talk" and taps "got it" (→ 'discussed', leaves the
+ * child's view too), and after the IRL talk the child re-requests if they still
+ * want it. The parent does NOT approve a discussed item directly. A child may
+ * also withdraw their own request. Rewards are repeatable — the reward stays in
+ * the catalog and can be redeemed again once affordable.
  *
  * The deduction is done by a SECURITY DEFINER RPC (approve_reward_redemption)
  * that locks the vault row and checks funds atomically — children only have
@@ -26,7 +30,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 
-export type RedemptionStatus = 'requested' | 'discussing' | 'approved' | 'withdrawn';
+export type RedemptionStatus =
+  | 'requested'   // child asked, awaiting parent
+  | 'discussing'  // parent tapped "let's talk", awaiting the child to acknowledge
+  | 'discussed'   // child tapped "got it" — closed; reward is re-requestable
+  | 'approved'    // parent approved + deducted (terminal)
+  | 'withdrawn';  // child cancelled (terminal)
 
 export interface RewardRedemption {
   id:            string;
@@ -127,7 +136,31 @@ export function useRewardRedemptions(childId: string | null) {
     [refetch],
   );
 
-  return { open, loading, openForReward, request, withdraw, refetch };
+  /**
+   * "Got it 👍" — the child acknowledges that their parent wants to talk about
+   * the request. Moves it to 'discussed' (terminal), which removes it from the
+   * child's open list. The reward stays in the catalog and can be re-requested
+   * after they talk. NOT a decline — it's a clean reset.
+   */
+  const acknowledge = useCallback(
+    async (id: string): Promise<{ error: Error | null }> => {
+      // Optimistic: drop it from the open list immediately.
+      setOpen(prev => prev.filter(r => r.id !== id));
+      const { error } = await supabase
+        .from('reward_redemptions')
+        .update({ status: 'discussed' } as never)
+        .eq('id', id);
+      if (error) {
+        console.error('[useRewardRedemptions] acknowledge error:', error.message);
+        await refetch();
+        return { error: error as unknown as Error };
+      }
+      return { error: null };
+    },
+    [refetch],
+  );
+
+  return { open, loading, openForReward, request, withdraw, acknowledge, refetch };
 }
 
 // ─── Parent side ──────────────────────────────────────────────────────────────
@@ -151,11 +184,14 @@ export function usePendingRedemptions(childId?: string | null) {
       setLoading(false);
       return;
     }
+    // Only NEW requests reach the parent. Once they tap "let's talk" the row
+    // becomes 'discussing' and leaves their view — "let's talk" is a reset, not
+    // a persistent queue item (the child re-requests after the talk).
     let query = supabase
       .from('reward_redemptions')
       .select(SELECT_COLS)
       .eq('family_id', familyId)
-      .in('status', ['requested', 'discussing'])
+      .eq('status', 'requested')
       .order('requested_at', { ascending: false });
     if (childId) query = query.eq('child_id', childId);
 
@@ -189,12 +225,15 @@ export function usePendingRedemptions(childId?: string | null) {
     [refetch],
   );
 
-  /** "Let's talk about it" — NOT a decline. Stays open; points untouched. */
+  /**
+   * "Let's talk about it" — NOT a decline, and NOT a deduction. Moves the row to
+   * 'discussing' (the child will see "your parent wants to talk") and removes it
+   * from the parent's list immediately — it's a reset, not a queue item.
+   */
   const markDiscussing = useCallback(
     async (id: string): Promise<{ error: Error | null }> => {
-      setPending(prev =>
-        prev.map(r => (r.id === id ? { ...r, status: 'discussing' } : r)),
-      );
+      // Optimistic: drop it from the pending list immediately.
+      setPending(prev => prev.filter(r => r.id !== id));
       const { error } = await supabase
         .from('reward_redemptions')
         .update({ status: 'discussing' } as never)

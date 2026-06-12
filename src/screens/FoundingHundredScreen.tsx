@@ -16,8 +16,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, SafeAreaView,
-} from 'react-native';
+  StyleSheet, ActivityIndicator, } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSubscription } from '../hooks/useSubscription';
 import { FoundingBadge } from '../components/FoundingBadge';
@@ -97,7 +97,7 @@ export default function FoundingHundredScreen() {
   // ── Render: user is already a Founding Member ────────────────────────────
   if (isFoundingMember && foundingMemberNumber) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={['top']} style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <CloseButton />
           <Text style={styles.crown}>🎉</Text>
@@ -117,7 +117,7 @@ export default function FoundingHundredScreen() {
   // ── Render: loading ──────────────────────────────────────────────────────
   if (countLoading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={['top']} style={styles.safe}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#A8E63E" />
         </View>
@@ -128,7 +128,7 @@ export default function FoundingHundredScreen() {
   // ── Render: sold out ─────────────────────────────────────────────────────
   if (isCapReached) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView edges={['top']} style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll}>
           <CloseButton />
           <Text style={styles.crown}>🌟</Text>
@@ -150,7 +150,7 @@ export default function FoundingHundredScreen() {
 
   // ── Render: offer ────────────────────────────────────────────────────────
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <CloseButton />
 

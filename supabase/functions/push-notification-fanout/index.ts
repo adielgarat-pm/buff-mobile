@@ -63,13 +63,18 @@ interface PushPayload {
 
 // ─── Constants (matches Event × Channel Matrix) ─────────────────────────
 
+// pkg/notifications-hardening L6: "push = action-required". Parent-recipient
+// types here all PUSH. INFO-level parent events live in the bell only (see
+// SKIP_PUSH_TYPES below). child_suggestion (L7) needs the parent's approval, so
+// it pushes; recipient = parent_id.
 const PARENT_RECIPIENT_TYPES = new Set([
   'parent_sos',
   'reward_redeemed',
   'reward_redemption_requested',
-  'parent_engagement',
-  'family_joined',
-  'anchor_recovery',
+  'child_suggestion', // L7 — was unmatched → suppressed as unknown_type
+  'anchor_recovery', // churned kids only (cron applies ever-active gate)
+  'activation_nudge', // L8 — never-activated families (new cron)
+  'child_vibe_shared', // pkg/vibe-share-notification — kid-initiated positive twin of SOS
 ]);
 
 const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
@@ -77,7 +82,28 @@ const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
 const SKIP_PUSH_TYPES = new Set([
   'task_completed', // E3 locked off
   'quest_milestone', // E4 stale
+  // pkg/notifications-hardening L6 — INFO-level: bell-only, no push.
+  'parent_engagement', // "kid active this week" — informational, not actionable
+  'family_joined', // "X joined the family" — informational
 ]);
+
+// pkg/notifications-hardening Phase 3b — per-channel preference enforcement.
+// Maps a notification type to the app_settings column the family controls from
+// the in-app Notification Settings screen. A type with no mapping is always
+// allowed (e.g. reward_approved — a direct response to the kid's own request).
+// Note: child reminders are gated family-level here; the 6–12 vs 13–18
+// self-opt-in age split is Phase 5.
+const TYPE_TO_PREF_COLUMN: Record<string, string> = {
+  parent_sos: 'notif_parent_alerts',
+  reward_redeemed: 'notif_parent_alerts',
+  reward_redemption_requested: 'notif_parent_alerts',
+  child_suggestion: 'notif_parent_alerts',
+  anchor_recovery: 'notif_anchor_nudges',
+  activation_nudge: 'notif_activation_nudges',
+  kid_engagement: 'notif_child_reminders',
+  // pkg/vibe-share-notification (D3): same channel as SOS — "my child reached out to me".
+  child_vibe_shared: 'notif_parent_alerts',
+};
 
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
 
@@ -86,6 +112,15 @@ const EXPO_PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
 // ─── Copy library (parent declarative + kid body-doubling) ──────────────
 
 type Lang = 'he' | 'en';
+
+// pkg/vibe-share-notification — map a non-low vibe_level (3/4/5, carried in
+// entity_name) to a warm mood word for the push body. Draft copy (OQ-B), Adi's
+// gate. Kept inline here because the Edge runtime has no app-i18n access.
+function vibeMoodWord(level: string, lang: Lang): string {
+  const he: Record<string, string> = { '3': 'בסדר', '4': 'טוב', '5': 'מעולה' };
+  const en: Record<string, string> = { '3': 'okay', '4': 'good', '5': 'great' };
+  return (lang === 'he' ? he : en)[level] ?? '';
+}
 
 function copyForType(
   type: string,
@@ -104,12 +139,20 @@ function copyForType(
         return { title: `${name} בחר/ה פרס`, body: reward, data: {} };
       case 'reward_redemption_requested':
         return { title: `${name} רוצה לממש פרס`, body: reward, data: {} };
+      case 'child_suggestion':
+        return { title: `${name} רוצה להציע משהו 💡`, body: reward, data: {} };
       case 'parent_engagement':
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
         return { title: `${name} הצטרף/ה למשפחה 👋`, body: '', data: {} };
+      case 'child_vibe_shared':
+        // pkg/vibe-share-notification — kid-initiated; declarative, warm (OQ-B draft).
+        return { title: `${name} רצה/רצתה לשתף איתך 💛`, body: `מרגיש/ה ${vibeMoodWord(reward, 'he')}`, data: {} };
       case 'anchor_recovery':
-        return { title: `${name} לקח/ה הפסקה`, body: 'יש שתי הצעות עדינות לפתיחה מחדש', data: {} };
+        // L-OQ4: canonical SPEC-approved copy (normalizing, connection-not-rescue).
+        return { title: 'כולנו צריכים התחלה חדשה לפעמים', body: `הנה דרך עדינה לעזור ל-${name} לחזור`, data: {} };
+      case 'activation_nudge':
+        return { title: `${name} עוד לא התחיל/ה`, body: 'בואו ננסה צעד ראשון קטן ביחד 🌱', data: {} };
       case 'kid_engagement':
         return { title: buddy, body: 'פה, מוכן/ה כשתרצה', data: {} };
       case 'reward_approved':
@@ -126,12 +169,19 @@ function copyForType(
       return { title: `${name} chose a reward`, body: reward, data: {} };
     case 'reward_redemption_requested':
       return { title: `${name} wants to redeem a reward`, body: reward, data: {} };
+    case 'child_suggestion':
+      return { title: `${name} has a suggestion 💡`, body: reward, data: {} };
     case 'parent_engagement':
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':
       return { title: `${name} joined the family 👋`, body: '', data: {} };
+    case 'child_vibe_shared':
+      // pkg/vibe-share-notification — kid-initiated; declarative, warm (OQ-B draft).
+      return { title: `${name} wanted to share with you 💛`, body: `feeling ${vibeMoodWord(reward, 'en')}`, data: {} };
     case 'anchor_recovery':
-      return { title: `${name} took a pause`, body: 'two gentle ways to open the door again', data: {} };
+      return { title: 'Everyone needs a fresh start sometimes', body: `Here's a gentle way to help ${name} return`, data: {} };
+    case 'activation_nudge':
+      return { title: `${name} hasn't started yet`, body: "let's try one small first step together 🌱", data: {} };
     case 'kid_engagement':
       return { title: buddy, body: 'here, ready when you are', data: {} };
     case 'reward_approved':
@@ -324,6 +374,23 @@ Deno.serve(async (req) => {
   if (!profile) {
     await recordPush(supabase, row.id, 0, 'no_recipient_profile');
     return new Response(JSON.stringify({ skipped: 'no_recipient_profile' }), { status: 200 });
+  }
+
+  // Preference enforcement (Phase 3b) — respect the family's in-app toggles.
+  // Read once per fanout; suppress if the channel's column is explicitly false.
+  const prefColumn = TYPE_TO_PREF_COLUMN[row.type];
+  if (prefColumn) {
+    const { data: settings } = await supabase
+      .from('app_settings')
+      .select(prefColumn)
+      .eq('family_id', row.family_id)
+      .maybeSingle() as { data: Record<string, boolean> | null };
+    // Default-allow when no row/column value is present (mirrors column defaults;
+    // only an explicit false suppresses).
+    if (settings && settings[prefColumn] === false) {
+      await recordPush(supabase, row.id, 0, 'pref_off');
+      return new Response(JSON.stringify({ skipped: 'pref_off', channel: prefColumn }), { status: 200 });
+    }
   }
 
   // Activity-based suppression (IN-2026-05-19-02)

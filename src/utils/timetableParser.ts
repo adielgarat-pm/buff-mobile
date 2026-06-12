@@ -437,13 +437,14 @@ export const parseExcelBase64 = (
   const sheet     = workbook.Sheets[workbook.SheetNames[0]];
   const rawData   = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 });
 
-  if (rawData.length === 0) throw new Error('הקובץ ריק');
+  // Error messages are i18n KEYS — the screen translates them (parser is not a React context).
+  if (rawData.length === 0) throw new Error('timetable.emptyFile');
 
   const { isPivot, headerRowIndex } = detectPivotFormat(rawData);
 
   if (isPivot) {
     const periods = parsePivotFormat(rawData, headerRowIndex);
-    if (periods.length === 0) throw new Error('לא נמצאו שיעורים בטבלה');
+    if (periods.length === 0) throw new Error('timetable.noLessonsFound');
     periods.sort((a, b) => {
       const dOrder = WEEK_DAYS_WITH_FRIDAY.indexOf(a.day) - WEEK_DAYS_WITH_FRIDAY.indexOf(b.day);
       return dOrder !== 0 ? dOrder : (a.lessonNumber ?? 0) - (b.lessonNumber ?? 0);

@@ -39,7 +39,7 @@ export default function ParentSettingsScreen() {
   const { profile, familyShortCode, signOut, deleteAccount } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children } = useChildrenDashboard();
-  const { isSubscribed, isLifetimeAccess, isGracePeriod, simulateSubscribed, setSimulateSubscribed } = useSubscription();
+  const { isSubscribed, isLifetimeAccess, isGracePeriod } = useSubscription();
   const [codeCopied, setCodeCopied] = useState(false);
   const { language } = useLanguage();
   const [langModalOpen, setLangModalOpen] = useState(false);
@@ -150,6 +150,11 @@ export default function ParentSettingsScreen() {
           icon:    'globe-outline' as const,
           onPress: () => setLangModalOpen(true),
         },
+        {
+          label:   t('settings.rowNotifications'),
+          icon:    'notifications-outline' as const,
+          onPress: () => navigation.navigate('NotificationSettings'),
+        },
       ],
     },
     {
@@ -192,19 +197,8 @@ export default function ParentSettingsScreen() {
         </View>
         <View>
           <Text style={[styles.profileName, { color: T.text }]}>{profile?.display_name}</Text>
-          <Text style={[styles.profileRole, { color: T.textMuted }]}>Parent · BUFF Coach</Text>
+          <Text style={[styles.profileRole, { color: T.textMuted }]}>{t('settings.profileRole')}</Text>
         </View>
-      </View>
-
-      {/* Dev: simulate subscribed */}
-      <View style={[styles.devCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-        <Text style={[styles.devLabel, { color: T.textMuted }]}>🛠 Dev: Simulate Subscribed</Text>
-        <Switch
-          value={simulateSubscribed}
-          onValueChange={setSimulateSubscribed}
-          trackColor={{ false: '#D1D5DB', true: T.accent }}
-          thumbColor="#fff"
-        />
       </View>
 
       {/* Pause Mode — parent control */}

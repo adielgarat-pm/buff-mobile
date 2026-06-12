@@ -224,6 +224,7 @@ If Claude.ai is about to send Adi a 3+ step procedure involving terminals, file 
 - **Backend:** Supabase (PostgreSQL + RLS + Auth)
 - **Auth:** Google OAuth (D-2026-04-28 — configured and signed)
 - **Distribution:** Internal testing on Google Play Console; first production AAB v10 shipped 2026-05-25 (`pkg/sentry-eas-resumption` PR #85). EAS Build production profile is live; EAS Submit (Google Play service account JSON) deferred to a future package.
+- **Dev server / emulator:** ONE shared emulator (`Pixel_7`) → one Metro on canonical port 8083, guarded by a lease lock. Any session needing the emulator goes through the **buff-emulator skill**: `source .claude/skills/buff-testing/helpers.sh && metro_acquire` (reuses a healthy Metro, or reports `⛔ EMULATOR BUSY` if another session holds it). `metro_release` when done. Never hand-run `npx expo start` on a random port. See `docs/DEV_SERVER_LIFECYCLE.md`.
 - **Language:** TypeScript
 - **State management:** [verify in code — likely Zustand or Context]
 - **Navigation:** React Navigation

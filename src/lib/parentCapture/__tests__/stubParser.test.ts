@@ -31,8 +31,11 @@ describe('stubParse', () => {
     expect(linked.some((i) => i.owner === 'child')).toBe(true);
   });
 
-  test('image input -> single item', async () => {
-    const items = await stubParse({ kind: 'image', imageUri: 'file://x' }, TODAY);
+  test('file (image) input -> single item', async () => {
+    const items = await stubParse(
+      { kind: 'file', fileUri: 'file://x', mimeType: 'image/jpeg' },
+      TODAY,
+    );
     expect(items.length).toBe(1);
   });
 });

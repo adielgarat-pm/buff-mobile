@@ -11,8 +11,9 @@
  * Not gated behind subscription: the rewards shop is core to Pillar 1
  * (Intrinsic Motivation) and is not a paid feature per BUFF_PRD.md §5.1.
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -26,6 +27,7 @@ import { supabase } from '../../integrations/supabase/client';
 import GamerRewardsScreen from './GamerRewardsScreen';
 import { pickI18nColumn } from '../../lib/i18nString';
 import { getCurrencySymbol } from '../../lib/currency';
+import { formatNum } from '../../lib/uiLocale';
 
 interface StoreReward {
   id:             string;
@@ -57,12 +59,26 @@ function PastelChildRewards() {
   const { previewChildId } = useMode();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { totalBalance } = useChildData(childId);
+  const { totalBalance, refetch: refetchBalance } = useChildData(childId);
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
-  const { openForReward, request: requestRedemption, withdraw: withdrawRedemption } =
-    useRewardRedemptions(childId);
+  const {
+    openForReward,
+    request: requestRedemption,
+    withdraw: withdrawRedemption,
+    acknowledge: acknowledgeRedemption,
+    refetch: refetchRedemptions,
+  } = useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
+
+  // Tab screens stay mounted, so this screen's useChildData/useRewardRedemptions
+  // instances go stale after a parent approves a redemption: the dashboard
+  // refetches on focus and shows the deducted balance, while this screen kept
+  // the old balance and the "pending" badge. Refetch both on every focus.
+  useFocusEffect(useCallback(() => {
+    refetchBalance();
+    refetchRedemptions();
+  }, [refetchBalance, refetchRedemptions]));
 
   const suggestPalette: SuggestPalette = {
     overlay:    'rgba(0,0,0,0.45)',
@@ -128,6 +144,12 @@ function PastelChildRewards() {
     if (open) withdrawRedemption(open.id);
   };
 
+  // "Got it 👍" — child acknowledges the parent wants to talk; clears the card.
+  const handleAcknowledge = (reward: StoreReward) => {
+    const open = openForReward(reward.id);
+    if (open) acknowledgeRedemption(open.id);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: T.background }}>
 
@@ -136,7 +158,7 @@ function PastelChildRewards() {
         <Text style={[styles.title, { color: T.primary }]}>{t('childRewards.title')}</Text>
         <View style={[styles.walletBadge, { backgroundColor: T.card, borderColor: T.border }]}>
           <Text style={styles.walletIcon}>⚡</Text>
-          <Text style={[styles.walletAmount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
+          <Text style={[styles.walletAmount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
           <Text style={[styles.walletLabel, { color: T.mutedForeground }]}>{t('childRewards.walletLabel')}</Text>
         </View>
       </View>
@@ -177,7 +199,7 @@ function PastelChildRewards() {
                   <Text style={[styles.rewardDesc, { color: T.mutedForeground }]}>
                     {reward.cash_value != null
                       ? t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })
-                      : t('childRewards.needed', { count: reward.credits_needed.toLocaleString() })}
+                      : t('childRewards.needed', { count: formatNum(reward.credits_needed) })}
                   </Text>
                 </View>
                 {pending ? (
@@ -187,11 +209,19 @@ function PastelChildRewards() {
                         ? t('childRewards.discussingLabel')
                         : t('childRewards.pendingLabel')}
                     </Text>
-                    <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
-                      <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
-                        {t('childRewards.cancelRequest')}
-                      </Text>
-                    </TouchableOpacity>
+                    {pending.status === 'discussing' ? (
+                      <TouchableOpacity onPress={() => handleAcknowledge(reward)} hitSlop={6}>
+                        <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
+                          {t('childRewards.gotIt')}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                        <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
+                          {t('childRewards.cancelRequest')}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 ) : (
                   <TouchableOpacity

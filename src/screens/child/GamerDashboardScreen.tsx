@@ -36,7 +36,10 @@ import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { trimTasksForLowPower } from '../../utils/vibeUtils';
+import { isWeekendToday } from '../../utils/schoolDay';
+import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import PauseEmptyState from '../../components/PauseEmptyState';
+import OffRoutineBanner from '../../components/OffRoutineBanner';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { BuddyHero } from '../../components/buddy/BuddyHero';
 import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
@@ -48,6 +51,7 @@ import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
+import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -132,11 +136,12 @@ export default function GamerDashboardScreen() {
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData } = useChildData(childId);
+  const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData, offRoutineActive } = useChildData(childId);
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { petState, loading: petLoading } = usePetState('wolf');
-  const { isPauseActive } = useAppSettings();
+  const { settings, isPauseActive } = useAppSettings();
+  const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
   // Refetch tasks/balance AND the buddy on focus — completing a task on the
   // Quests tab writes to a separate useChildData instance, so the dashboard's
@@ -152,7 +157,7 @@ export default function GamerDashboardScreen() {
   // (~65% of families) view-as-child IS the kid's actual interface.
   // See SPEC § Scenario C.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, shareVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
   const shouldPromptVibe =
     !vibeLoading &&
@@ -186,10 +191,16 @@ export default function GamerDashboardScreen() {
   };
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
+  // Day-visibility first (shared rule — keeps HQ in sync with the Quests tab),
+  // then the time-of-day chip on top.
+  const todayTasks = useMemo(
+    () => tasks.filter(t => isTaskVisibleToday(t, isWeekend)),
+    [tasks, isWeekend],
+  );
   const filteredTasks = useMemo(() => {
-    if (timeFilter === 'all') return tasks;
-    return tasks.filter(t => timeBucket(t.time) === timeFilter);
-  }, [tasks, timeFilter]);
+    if (timeFilter === 'all') return todayTasks;
+    return todayTasks.filter(t => timeBucket(t.time) === timeFilter);
+  }, [todayTasks, timeFilter]);
 
   // Low Power Mode trims the task list to the most important + first
   // self-care (max 2). See trimTasksForLowPower for the rule. Stat
@@ -229,7 +240,13 @@ export default function GamerDashboardScreen() {
     <LowPowerProvider value={lowPowerValue}>
       <VibeCheckScreen
         visible={shouldPromptVibe}
-        onSelect={(level, type) => { void recordVibe(level, type); }}
+        onSelect={(level, type, share) => {
+          // Record first (inserts today's row), then — if the kid opted in —
+          // flip the share flag so migration 025's trigger notifies the parent.
+          void recordVibe(level, type).then(({ error }) => {
+            if (!error && share) void shareVibe();
+          });
+        }}
         onDismiss={() => { void markVibeDismissed(); }}
       />
       <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
@@ -240,6 +257,8 @@ export default function GamerDashboardScreen() {
           <Text style={styles.previewText}>{t('gamerDashboard.previewBanner')}</Text>
         </View>
       )}
+
+      {offRoutineActive && <OffRoutineBanner />}
 
       {/* Header row */}
       <View style={styles.headerRow}>
@@ -299,7 +318,7 @@ export default function GamerDashboardScreen() {
       {/* BUFFs total */}
       <View style={styles.buffsCard}>
         <Text style={styles.buffsLabel}>{t('gamerDashboard.totalBuffs')}</Text>
-        <Text style={styles.buffsCount}>{totalBalance.toLocaleString()}</Text>
+        <Text style={styles.buffsCount}>{formatNum(totalBalance)}</Text>
       </View>
 
       {/* Focus fuel meter */}

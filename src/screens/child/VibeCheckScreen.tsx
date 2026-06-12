@@ -21,7 +21,7 @@ import {
 import { useChildTheme } from '../../contexts/ThemeContext';
 import { VibeFaces }   from '../../components/VibeFaces';
 import { VibeBattery } from '../../components/VibeBattery';
-import type { VibeLevel, VibeType } from '../../utils/vibeUtils';
+import { isVibeShareable, type VibeLevel, type VibeType } from '../../utils/vibeUtils';
 
 // ─── BUFF Gamer palette (matches GamerDashboardScreen — BUFF_BRAND.md §7.5) ──
 // Hardcoded here because Gamer screens use a violet+lime brand palette
@@ -44,8 +44,10 @@ export interface VibeCheckScreenProps {
   visible: boolean;
   /** Called when a level is selected. `type` is passed back so the
    *  caller can persist it to `child_vibes.vibe_type` ('emoji' for
-   *  Pastel, 'battery' for Gamer). */
-  onSelect:  (level: VibeLevel, type: VibeType) => void;
+   *  Pastel, 'battery' for Gamer). `share` is true when the kid opted to
+   *  tell their parent about a non-low mood (pkg/vibe-share-notification);
+   *  the caller chains shareVibe() after recordVibe(). */
+  onSelect:  (level: VibeLevel, type: VibeType, share?: boolean) => void;
   /** Called when the kid dismisses without selecting. */
   onDismiss: () => void;
   /** Optional theme override — defaults to useChildTheme().themeName.
@@ -83,50 +85,72 @@ export default function VibeCheckScreen({
 
 interface PastelProps {
   themeTokens: ReturnType<typeof useChildTheme>;
-  onSelect:    (level: VibeLevel, type: VibeType) => void;
+  onSelect:    (level: VibeLevel, type: VibeType, share?: boolean) => void;
   onDismiss:   () => void;
 }
 
 function PastelCheckContent({ themeTokens: T, onSelect, onDismiss }: PastelProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<VibeLevel | null>(null);
+  // pkg/vibe-share-notification — when a non-low level is picked, hold here
+  // and offer the optional "tell your parent?" step before the modal closes.
+  const [pendingShare, setPendingShare] = useState<VibeLevel | null>(null);
 
   const handleSelect = (level: VibeLevel) => {
     setSelected(level);
-    // Tiny delay so the kid sees the selection animate before dismissal.
-    setTimeout(() => onSelect(level, 'emoji'), 180);
+    // Tiny delay so the kid sees the selection animate before the next step.
+    setTimeout(() => {
+      if (isVibeShareable(level)) setPendingShare(level);
+      else onSelect(level, 'emoji');
+    }, 180);
   };
 
   return (
     <SafeAreaView style={[pastelStyles.safe, { backgroundColor: T.background }]}>
       <View style={pastelStyles.container}>
         <View style={[pastelStyles.card, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
-          <Text style={[pastelStyles.title,    { color: T.foreground }]}>
-            {t('vibeCheck.title')}
-          </Text>
-          <Text style={[pastelStyles.subtitle, { color: T.mutedForeground }]}>
-            {t('vibeCheck.subtitle')}
-          </Text>
-
-          <View style={pastelStyles.facesRow}>
-            <VibeFaces
-              selectedLevel={selected}
-              onSelect={handleSelect}
+          {pendingShare !== null ? (
+            <ShareVibePrompt
               palette={{
-                cardBg:         T.muted,
-                cardBorder:     T.border,
-                cardShadow:     T.shadow,
-                selectedFill:   T.primary,
-                selectedBorder: T.accent,
+                title:      T.foreground,
+                subtitle:   T.mutedForeground,
+                shareBg:    T.primary,
+                shareText:  T.primaryForeground,
+                keepText:   T.mutedForeground,
               }}
+              onShare={() => onSelect(pendingShare, 'emoji', true)}
+              onKeep={() => onSelect(pendingShare, 'emoji', false)}
             />
-          </View>
+          ) : (
+            <>
+              <Text style={[pastelStyles.title,    { color: T.foreground }]}>
+                {t('vibeCheck.title')}
+              </Text>
+              <Text style={[pastelStyles.subtitle, { color: T.mutedForeground }]}>
+                {t('vibeCheck.subtitle')}
+              </Text>
 
-          <TouchableOpacity onPress={onDismiss} style={pastelStyles.dismissBtn}>
-            <Text style={[pastelStyles.dismissText, { color: T.mutedForeground }]}>
-              {t('vibeCheck.dismiss')}
-            </Text>
-          </TouchableOpacity>
+              <View style={pastelStyles.facesRow}>
+                <VibeFaces
+                  selectedLevel={selected}
+                  onSelect={handleSelect}
+                  palette={{
+                    cardBg:         T.muted,
+                    cardBorder:     T.border,
+                    cardShadow:     T.shadow,
+                    selectedFill:   T.primary,
+                    selectedBorder: T.accent,
+                  }}
+                />
+              </View>
+
+              <TouchableOpacity onPress={onDismiss} style={pastelStyles.dismissBtn}>
+                <Text style={[pastelStyles.dismissText, { color: T.mutedForeground }]}>
+                  {t('vibeCheck.dismiss')}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -164,54 +188,137 @@ const pastelStyles = StyleSheet.create({
 // ─── Gamer content ───────────────────────────────────────────────────────────
 
 interface GamerProps {
-  onSelect:  (level: VibeLevel, type: VibeType) => void;
+  onSelect:  (level: VibeLevel, type: VibeType, share?: boolean) => void;
   onDismiss: () => void;
 }
 
 function GamerCheckContent({ onSelect, onDismiss }: GamerProps) {
   const { t } = useTranslation();
   const [selected, setSelected] = useState<VibeLevel | null>(null);
+  const [pendingShare, setPendingShare] = useState<VibeLevel | null>(null);
 
   const handleSelect = (level: VibeLevel) => {
     setSelected(level);
-    setTimeout(() => onSelect(level, 'battery'), 180);
+    setTimeout(() => {
+      if (isVibeShareable(level)) setPendingShare(level);
+      else onSelect(level, 'battery');
+    }, 180);
   };
 
   return (
     <SafeAreaView style={[gamerStyles.safe, { backgroundColor: GAMER_PALETTE.canvas }]}>
       <View style={gamerStyles.container}>
         <View style={gamerStyles.card}>
-          <Text style={gamerStyles.title}>
-            {t('vibeCheck.title')}
-          </Text>
-          <Text style={gamerStyles.subtitle}>
-            {t('vibeCheck.subtitle')}
-          </Text>
-
-          <View style={gamerStyles.batteryRow}>
-            <VibeBattery
-              selectedLevel={selected}
-              onSelect={handleSelect}
+          {pendingShare !== null ? (
+            <ShareVibePrompt
               palette={{
-                trackBg:        GAMER_PALETTE.surface,
-                border:         GAMER_PALETTE.border,
-                unselectedFill: GAMER_PALETTE.violet,
-                selectedFill:   GAMER_PALETTE.lime,
-                selectedGlow:   GAMER_PALETTE.lime,
-                boltColor:      GAMER_PALETTE.canvas,
-                labelColor:     GAMER_PALETTE.textMuted,
+                title:      GAMER_PALETTE.text,
+                subtitle:   GAMER_PALETTE.textMuted,
+                shareBg:    GAMER_PALETTE.lime,
+                shareText:  GAMER_PALETTE.canvas,
+                keepText:   GAMER_PALETTE.textFaint,
               }}
+              onShare={() => onSelect(pendingShare, 'battery', true)}
+              onKeep={() => onSelect(pendingShare, 'battery', false)}
             />
-          </View>
+          ) : (
+            <>
+              <Text style={gamerStyles.title}>
+                {t('vibeCheck.title')}
+              </Text>
+              <Text style={gamerStyles.subtitle}>
+                {t('vibeCheck.subtitle')}
+              </Text>
 
-          <TouchableOpacity onPress={onDismiss} style={gamerStyles.dismissBtn}>
-            <Text style={gamerStyles.dismissText}>{t('vibeCheck.dismiss')}</Text>
-          </TouchableOpacity>
+              <View style={gamerStyles.batteryRow}>
+                <VibeBattery
+                  selectedLevel={selected}
+                  onSelect={handleSelect}
+                  palette={{
+                    trackBg:        GAMER_PALETTE.surface,
+                    border:         GAMER_PALETTE.border,
+                    unselectedFill: GAMER_PALETTE.violet,
+                    selectedFill:   GAMER_PALETTE.lime,
+                    selectedGlow:   GAMER_PALETTE.lime,
+                    boltColor:      GAMER_PALETTE.canvas,
+                    labelColor:     GAMER_PALETTE.textMuted,
+                  }}
+                />
+              </View>
+
+              <TouchableOpacity onPress={onDismiss} style={gamerStyles.dismissBtn}>
+                <Text style={gamerStyles.dismissText}>{t('vibeCheck.dismiss')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
     </SafeAreaView>
   );
 }
+
+// ─── Share step (pkg/vibe-share-notification) ────────────────────────────────
+// Theme-agnostic via palette props — rendered inside either theme's card after
+// the kid picks a non-low mood. Kid-initiated consent, mirrors SosButton's
+// tap→confirm shape. Copy is body-double/warm (OQ-A draft; Adi's gate).
+
+interface ShareVibePromptPalette {
+  title:     string;
+  subtitle:  string;
+  shareBg:   string;
+  shareText: string;
+  keepText:  string;
+}
+
+function ShareVibePrompt({
+  palette: P, onShare, onKeep,
+}: {
+  palette: ShareVibePromptPalette;
+  onShare: () => void;
+  onKeep:  () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <View>
+      <Text style={[shareStyles.title, { color: P.title }]}>
+        {t('vibeCheck.share.prompt')}
+      </Text>
+      <Text style={[shareStyles.subtitle, { color: P.subtitle }]}>
+        {t('vibeCheck.share.subtitle')}
+      </Text>
+
+      <TouchableOpacity
+        onPress={onShare}
+        style={[shareStyles.shareBtn, { backgroundColor: P.shareBg }]}
+        accessibilityRole="button"
+      >
+        <Text style={[shareStyles.shareText, { color: P.shareText }]}>
+          {t('vibeCheck.share.yes')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={onKeep} style={shareStyles.keepBtn} accessibilityRole="button">
+        <Text style={[shareStyles.keepText, { color: P.keepText }]}>
+          {t('vibeCheck.share.no')}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const shareStyles = StyleSheet.create({
+  title:    { fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 14, textAlign: 'center', marginBottom: 24 },
+  shareBtn: {
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  shareText: { fontSize: 16, fontWeight: '800' },
+  keepBtn:   { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 20 },
+  keepText:  { fontSize: 14, fontWeight: '600' },
+});
 
 const gamerStyles = StyleSheet.create({
   safe:      { flex: 1 },

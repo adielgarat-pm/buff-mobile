@@ -28,10 +28,11 @@
  *
  * Routing: ChildRewardsScreen routes to this when themeName === 'gamer'.
  */
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,6 +48,7 @@ import { getCurrencySymbol } from '../../lib/currency';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { useRewardRedemptions } from '../../hooks/useRewardRedemptions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { formatNum } from '../../lib/uiLocale';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -95,15 +97,29 @@ export default function GamerRewardsScreen() {
   const { previewChildId } = useMode();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { totalBalance } = useChildData(childId);
+  const { totalBalance, refetch: refetchBalance } = useChildData(childId);
 
   const { isPauseActive } = useAppSettings();
   const welcomeBack       = useWelcomeBack();
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
-  const { openForReward, request: requestRedemption, withdraw: withdrawRedemption } =
-    useRewardRedemptions(childId);
+  const {
+    openForReward,
+    request: requestRedemption,
+    withdraw: withdrawRedemption,
+    acknowledge: acknowledgeRedemption,
+    refetch: refetchRedemptions,
+  } = useRewardRedemptions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
+
+  // Tab screens stay mounted, so this screen's useChildData/useRewardRedemptions
+  // instances go stale after a parent approves a redemption: the dashboard
+  // refetches on focus and shows the deducted balance, while this screen kept
+  // the old balance and the "pending" badge. Refetch both on every focus.
+  useFocusEffect(useCallback(() => {
+    refetchBalance();
+    refetchRedemptions();
+  }, [refetchBalance, refetchRedemptions]));
 
   const [tab, setTab]         = useState<TabKey>('parent');
   const [rewards, setRewards] = useState<StoreReward[]>([]);
@@ -175,6 +191,12 @@ export default function GamerRewardsScreen() {
     if (open) withdrawRedemption(open.id);
   };
 
+  // "Got it 👍" — child acknowledges the parent wants to talk; clears the card.
+  const handleAcknowledge = (reward: StoreReward) => {
+    const open = openForReward(reward.id);
+    if (open) acknowledgeRedemption(open.id);
+  };
+
   // ── Pause active: short-circuit ──────────────────────────────────────────
   if (isPauseActive) {
     return (
@@ -207,7 +229,7 @@ export default function GamerRewardsScreen() {
             <Text style={styles.headerSubtitle}>{t('gamerRewards.subtitle')}</Text>
           </View>
           <View style={styles.buffsBadge}>
-            <Text style={styles.buffsValue}>💎 {totalBalance.toLocaleString()}</Text>
+            <Text style={styles.buffsValue}>💎 {formatNum(totalBalance)}</Text>
           </View>
         </View>
 
@@ -290,9 +312,15 @@ export default function GamerRewardsScreen() {
                                 ? t('childRewards.discussingLabel')
                                 : t('childRewards.pendingLabel')}
                             </Text>
-                            <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
-                              <Text style={styles.pendingWithdraw}>{t('childRewards.cancelRequest')}</Text>
-                            </TouchableOpacity>
+                            {pending.status === 'discussing' ? (
+                              <TouchableOpacity onPress={() => handleAcknowledge(reward)} hitSlop={6}>
+                                <Text style={styles.pendingWithdraw}>{t('childRewards.gotIt')}</Text>
+                              </TouchableOpacity>
+                            ) : (
+                              <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                                <Text style={styles.pendingWithdraw}>{t('childRewards.cancelRequest')}</Text>
+                              </TouchableOpacity>
+                            )}
                           </View>
                         ) : isUnlocked ? (
                           <TouchableOpacity

@@ -56,7 +56,7 @@ export function useDailyVibe(childId: string | null) {
     try {
       const { data, error: queryError } = await supabase
         .from('child_vibes')
-        .select('vibe_level, low_power_mode, parent_sos_sent, vibe_type, date')
+        .select('vibe_level, low_power_mode, parent_sos_sent, vibe_shared_with_parent, vibe_type, date')
         .eq('family_id', familyId)
         .eq('child_id', childId)
         .eq('date', todayKey)
@@ -112,6 +112,7 @@ export function useDailyVibe(childId: string | null) {
   const hasVibedToday = !!todayVibe;
   const isLowPower    = isLowPowerActive(todayVibe);
   const sosSent       = todayVibe?.parent_sos_sent ?? false;
+  const vibeShared    = todayVibe?.vibe_shared_with_parent ?? false;
 
   // ── Actions ──────────────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ export function useDailyVibe(childId: string | null) {
       vibe_level:      level,
       low_power_mode:  lowPower,
       parent_sos_sent: false,
+      vibe_shared_with_parent: false,
       vibe_type:       type,
       date:            todayKey,
     };
@@ -195,10 +197,45 @@ export function useDailyVibe(childId: string | null) {
   }, [familyId, childId, todayKey, todayVibe, refetch]);
 
   /**
-   * Add INSTANT_BUFF_AMOUNT BUFFs to the child's credit_vault.
-   * Mirrors the upsert pattern from useChildProgress.updateTotalBalance.
+   * Flip vibe_shared_with_parent = true on today's row (pkg/vibe-share-
+   * notification). The positive, kid-initiated counterpart of sendSos: it
+   * fires migration 025's trigger → one child_vibe_shared notification per
+   * parent. Caller should gate the share affordance on a non-low level
+   * (isVibeShareable) and on `!vibeShared` so it fires at most once per day.
    *
-   * Returns the new balance on success.
+   * Must run AFTER recordVibe has inserted today's row (the trigger is on
+   * UPDATE) — the dashboards chain it: recordVibe().then(share && shareVibe()).
+   */
+  const shareVibe = useCallback(async (): Promise<{ error: Error | null }> => {
+    if (!familyId || !childId) {
+      return { error: new Error('No familyId/childId available') };
+    }
+    if (!todayVibe) {
+      return { error: new Error('No vibe row yet — cannot share vibe') };
+    }
+
+    setTodayVibe({ ...todayVibe, vibe_shared_with_parent: true });
+
+    const { error: updateError } = await supabase
+      .from('child_vibes')
+      .update({ vibe_shared_with_parent: true } as never)
+      .eq('family_id', familyId)
+      .eq('child_id', childId)
+      .eq('date', todayKey);
+
+    if (updateError) {
+      console.error('[useDailyVibe] shareVibe failed:', updateError);
+      await refetch();
+      return { error: updateError as unknown as Error };
+    }
+
+    return { error: null };
+  }, [familyId, childId, todayKey, todayVibe, refetch]);
+
+  /**
+   * Add INSTANT_BUFF_AMOUNT BUFFs to the child's credit_vault, atomically.
+   * Uses the adjust_credit_vault RPC (migration 021) so a concurrent task
+   * completion can't clobber the award. Returns the new balance on success.
    */
   const awardInstantBuff = useCallback(async (): Promise<{
     error:      Error | null;
@@ -208,47 +245,23 @@ export function useDailyVibe(childId: string | null) {
       return { error: new Error('No familyId/childId available'), newBalance: null };
     }
 
-    const { data: existing, error: selectError } = await supabase
-      .from('credit_vault')
-      .select('id, total_balance')
-      .eq('family_id', familyId)
-      .eq('child_id', childId)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('adjust_credit_vault', {
+      p_child_id: childId,
+      p_delta:    INSTANT_BUFF_AMOUNT,
+      p_reason:   'instant_buff',
+    });
 
-    if (selectError) {
-      console.error('[useDailyVibe] awardInstantBuff select failed:', selectError);
-      return { error: selectError as unknown as Error, newBalance: null };
+    if (error) {
+      console.error('[useDailyVibe] awardInstantBuff RPC failed:', error);
+      return { error: error as unknown as Error, newBalance: null };
+    }
+    const res = data as { ok: boolean; new_balance?: number; error?: string } | null;
+    if (!res?.ok) {
+      console.error('[useDailyVibe] awardInstantBuff rejected:', res?.error);
+      return { error: new Error(res?.error ?? 'adjust_failed'), newBalance: null };
     }
 
-    const currentBalance = existing?.total_balance ?? 0;
-    const newBalance     = currentBalance + INSTANT_BUFF_AMOUNT;
-
-    if (existing) {
-      const { error: updateError } = await supabase
-        .from('credit_vault')
-        .update({ total_balance: newBalance } as never)
-        .eq('id', existing.id);
-
-      if (updateError) {
-        console.error('[useDailyVibe] awardInstantBuff update failed:', updateError);
-        return { error: updateError as unknown as Error, newBalance: null };
-      }
-    } else {
-      const { error: insertError } = await supabase
-        .from('credit_vault')
-        .insert({
-          family_id:     familyId,
-          child_id:      childId,
-          total_balance: newBalance,
-        } as never);
-
-      if (insertError) {
-        console.error('[useDailyVibe] awardInstantBuff insert failed:', insertError);
-        return { error: insertError as unknown as Error, newBalance: null };
-      }
-    }
-
-    return { error: null, newBalance };
+    return { error: null, newBalance: res.new_balance ?? null };
   }, [familyId, childId]);
 
   return {
@@ -260,9 +273,11 @@ export function useDailyVibe(childId: string | null) {
     hasVibedToday,
     isLowPower,
     sosSent,
+    vibeShared,
     // Actions
     recordVibe,
     sendSos,
+    shareVibe,
     awardInstantBuff,
     refetch,
   };

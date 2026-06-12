@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
@@ -33,7 +33,7 @@ export default function AuthCallbackScreen() {
         const displayName = user.user_metadata?.full_name ?? user.email ?? 'Parent';
         const { data: newFamily, error: familyError } = await supabase
           .from('families')
-          .insert({ name: `${displayName}'s Family`, preferred_language: 'en' } as never)
+          .insert({ name: `${displayName}'s Family`, preferred_language: 'en', platform: Platform.OS } as never)
           .select()
           .single();
 

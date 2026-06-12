@@ -7,8 +7,9 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, SafeAreaView, Platform, Alert,
+  ActivityIndicator, Platform, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -19,6 +20,7 @@ import { useRTLStyles } from '../../contexts/LanguageContext';
 import { resolveChildLang } from '../../lib/i18nString';
 import type { SupportedLanguage } from '../../i18n';
 import { PARENT_THEME as T } from '../../theme';
+import OffRoutineCard from '../../components/OffRoutineCard';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'EditChild'>;
@@ -140,7 +142,12 @@ export default function EditChildScreen() {
 
     const nextSettings = { ...prevSettings, age_group: ageGroup ?? null, language };
 
-    const { error: updateErr } = await supabase
+    // `.select()` returns the rows actually updated. An RLS-blocked UPDATE
+    // returns NO error but ZERO rows — so a silent 0-row result means the save
+    // didn't persist (e.g. a child who owns a device, where the parent-update
+    // policy used to require user_id IS NULL). Treat that as an error instead
+    // of navigating back as if it succeeded.
+    const { data: updated, error: updateErr } = await supabase
       .from('profiles')
       .update({
         display_name: trimmed,
@@ -148,10 +155,18 @@ export default function EditChildScreen() {
         birth_date:   birth ? toISODate(birth) : null,
         pro_settings: nextSettings,
       } as never)
-      .eq('id', params.childId);
+      .eq('id', params.childId)
+      .select('id');
 
     if (updateErr) {
       console.warn('[EditChild] save error:', updateErr.message);
+      setSaveErr(t('editChild.saveError'));
+      setSaving(false);
+      return;
+    }
+
+    if (!updated || updated.length === 0) {
+      console.warn('[EditChild] save affected 0 rows (RLS blocked or row missing)');
       setSaveErr(t('editChild.saveError'));
       setSaving(false);
       return;
@@ -210,7 +225,7 @@ export default function EditChildScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.safe, styles.centered]}>
         <ActivityIndicator color={T.accent} size="large" />
       </SafeAreaView>
     );
@@ -218,7 +233,7 @@ export default function EditChildScreen() {
 
   if (loadErr) {
     return (
-      <SafeAreaView style={[styles.safe, styles.centered]}>
+      <SafeAreaView edges={['top']} style={[styles.safe, styles.centered]}>
         <Text style={styles.errorText}>{loadErr}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.cancelBtn}>
           <Text style={styles.cancelText}>{t('editChild.cancel')}</Text>
@@ -228,7 +243,7 @@ export default function EditChildScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={[styles.header, { flexDirection: rowDirection }]}>
         <TouchableOpacity
@@ -358,6 +373,9 @@ export default function EditChildScreen() {
           })}
         </View>
         <Text style={[styles.helperNote, { textAlign }]}>{t('editChild.languageNote')}</Text>
+
+        {/* ── Off-routine day (per-child) ──────────────────────────────── */}
+        <OffRoutineCard childId={params.childId} ageGroup={ageGroup} childLang={language} />
 
         {saveErr && (
           <Text style={[styles.errorText, { marginTop: 16 }]}>{saveErr}</Text>

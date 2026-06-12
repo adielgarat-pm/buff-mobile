@@ -39,6 +39,7 @@ function iconForType(type: string): IconName {
     case 'quest_milestone':    return 'trophy-outline';
     case 'parent_engagement':  return 'leaf-outline';
     case 'family_joined':      return 'people-outline';
+    case 'child_vibe_shared':  return 'happy-outline';
     default:                   return 'ellipse-outline';
   }
 }
@@ -65,21 +66,27 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
       return t('notificationFeed.row.parent_engagement', { name });
     case 'family_joined':
       return t('notificationFeed.row.family_joined', { name });
+    case 'child_vibe_shared': {
+      // entity_name carries the vibe_level (3/4/5) → resolve to a localized
+      // mood word (pkg/vibe-share-notification).
+      const mood = t(`vibeMood.${reward}`, { defaultValue: '' });
+      return t('notificationFeed.row.child_vibe_shared', { name, mood });
+    }
     default:
       return name;
   }
 }
 
-/** Relative time helper — short formatting in feed. */
-function relativeTime(createdAt: string, locale: 'he' | 'en'): string {
+/** Relative time helper — short formatting in feed (copy via t(), per i18n rules). */
+function relativeTime(createdAt: string, t: TFn, locale: 'he' | 'en'): string {
   const diffMs = Date.now() - new Date(createdAt).getTime();
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return locale === 'he' ? 'עכשיו' : 'just now';
-  if (minutes < 60) return locale === 'he' ? `${minutes} ד׳` : `${minutes}m`;
+  if (minutes < 1) return t('time.justNow');
+  if (minutes < 60) return t('time.minutesShort', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return locale === 'he' ? `${hours} ש׳` : `${hours}h`;
+  if (hours < 24) return t('time.hoursShort', { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return locale === 'he' ? `${days} י׳` : `${days}d`;
+  if (days < 7) return t('time.daysShort', { count: days });
   // For older items, the section header carries the date
   return new Date(createdAt).toLocaleDateString(locale);
 }
@@ -88,7 +95,7 @@ export const NotificationRow: React.FC<Props> = ({ notification, onPress }) => {
   const { t, i18n } = useTranslation();
   const locale = (i18n.language === 'he' ? 'he' : 'en') as 'he' | 'en';
   const body = bodyForType(notification, t as unknown as TFn);
-  const time = relativeTime(notification.created_at, locale);
+  const time = relativeTime(notification.created_at, t as unknown as TFn, locale);
   const iconName = iconForType(notification.type);
 
   return (

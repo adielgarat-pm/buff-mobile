@@ -28,7 +28,7 @@ export type PushNotificationData = {
 
 export type RouteAction =
   | { kind: 'parent_dashboard'; childId?: string }
-  | { kind: 'parent_rewards'; entityId?: string }
+  | { kind: 'parent_rewards'; entityId?: string; childId?: string }
   | { kind: 'parent_tasks'; childId?: string }
   | { kind: 'child_dashboard' }
   | { kind: 'child_rewards' }
@@ -43,9 +43,9 @@ export function resolveRouteAction(data: PushNotificationData): RouteAction {
     case 'parent_sos':
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'reward_redeemed':
-      return { kind: 'parent_rewards', entityId: data.entity_id };
+      return { kind: 'parent_rewards', entityId: data.entity_id, childId: data.child_id };
     case 'reward_redemption_requested':
-      return { kind: 'parent_rewards', entityId: data.entity_id };
+      return { kind: 'parent_rewards', entityId: data.entity_id, childId: data.child_id };
     case 'task_completed':
       return { kind: 'parent_tasks', childId: data.child_id };
     case 'child_suggestion':
@@ -53,6 +53,10 @@ export function resolveRouteAction(data: PushNotificationData): RouteAction {
     case 'quest_milestone':
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'parent_engagement':
+      return { kind: 'parent_dashboard', childId: data.child_id };
+    case 'child_vibe_shared':
+      // pkg/vibe-share-notification — tap lands on the parent dashboard, scrolled
+      // to the child who shared their mood (same destination as parent_sos).
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'family_joined':
       return { kind: 'parent_dashboard' };

@@ -10,6 +10,7 @@ import {
   getTodayKey,
   isLowPowerActive,
   computeLowPowerForLevel,
+  isVibeShareable,
   trimTasksForLowPower,
   type VibeSnapshot,
   type TrimmableTask,
@@ -51,11 +52,32 @@ describe('computeLowPowerForLevel', () => {
   });
 });
 
+describe('isVibeShareable', () => {
+  // pkg/vibe-share-notification (D5): only non-low moods (≥3) can be shared;
+  // low moods (≤2) belong to the SOS path.
+  test.each([
+    [1, false],
+    [2, false],
+    [3, true],
+    [4, true],
+    [5, true],
+  ] as const)('level %i → shareable = %s', (level, expected) => {
+    expect(isVibeShareable(level)).toBe(expected);
+  });
+
+  test('shareable boundary mirrors the low-power boundary (never both)', () => {
+    ([1, 2, 3, 4, 5] as const).forEach((lvl) => {
+      expect(isVibeShareable(lvl)).toBe(!computeLowPowerForLevel(lvl));
+    });
+  });
+});
+
 describe('isLowPowerActive', () => {
   const baseSnap: VibeSnapshot = {
     vibe_level:      3,
     low_power_mode:  false,
     parent_sos_sent: false,
+    vibe_shared_with_parent: false,
     vibe_type:       'emoji',
     date:            '2026-05-16',
   };

@@ -4,13 +4,15 @@
  * Parents can add new rewards via the "+ Add Reward" modal.
  * Real data from Supabase — no mock data.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, Alert,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
+import type { ParentTabsParamList } from '../../navigation/types';
 import { PARENT_THEME as T } from '../../theme';
 import PhilosophyTip from '../../components/PhilosophyTip';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
@@ -28,6 +30,7 @@ import {
 } from '../onboarding/unified/onboardingData';
 import { ONBOARDING_CONFIG } from '../../config/onboardingConfig';
 import { getCurrencySymbol } from '../../lib/currency';
+import { formatNum } from '../../lib/uiLocale';
 
 interface StoreReward {
   id:             string;
@@ -58,6 +61,8 @@ const DEFAULT_CREDITS: Record<RewardSize, number> = {
 export default function ParentRewardsScreen() {
   const { t, i18n } = useTranslation();
   const { familyId } = useAuth();
+  const route = useRoute<RouteProp<ParentTabsParamList, 'ParentRewards'>>();
+  const deepLinkChildId = route.params?.childId ?? null;
   const { children, loading: childrenLoading, refetch: refetchChildren } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [rewards, setRewards] = useState<StoreReward[]>([]);
@@ -92,12 +97,40 @@ export default function ParentRewardsScreen() {
     refetch: refetchSuggestions,
   } = usePendingSuggestions(selectedChildId);
 
-  // Redemption requests (child asked to redeem a reward → parent approves/discusses)
+  // Redemption requests (child asked to redeem a reward → parent approves/talks).
+  // Fetch FAMILY-WIDE (not per-child) so a request for a non-selected child is
+  // still discoverable via a dot on its tab; the cards below are filtered to the
+  // selected child.
   const {
-    pending: redemptions,
+    pending: allRedemptions,
     approve: approveRedemption,
     markDiscussing: markRedemptionDiscussing,
-  } = usePendingRedemptions(selectedChildId);
+    refetch: refetchRedemptions,
+  } = usePendingRedemptions();
+
+  const redemptions = useMemo(
+    () => allRedemptions.filter(r => r.child_id === selectedChildId),
+    [allRedemptions, selectedChildId],
+  );
+  const pendingChildIds = useMemo(
+    () => new Set(allRedemptions.map(r => r.child_id)),
+    [allRedemptions],
+  );
+
+  // Refetch pending requests whenever the screen regains focus (e.g. tapping a
+  // redemption notification, or returning to the tab) — there is no realtime
+  // subscription, so without this a request that arrived while the screen was
+  // mounted would never appear.
+  useFocusEffect(
+    useCallback(() => {
+      refetchRedemptions();
+    }, [refetchRedemptions]),
+  );
+
+  // Deep-link from a redemption notification: select the requesting child.
+  useEffect(() => {
+    if (deepLinkChildId) setSelectedChildId(deepLinkChildId);
+  }, [deepLinkChildId]);
 
   // Auto-select first child once list loads
   useEffect(() => {
@@ -309,6 +342,9 @@ export default function ParentRewardsScreen() {
               <Text style={[styles.childTabName, { color: selected ? '#fff' : T.textMuted }]}>
                 {c.displayName}
               </Text>
+              {pendingChildIds.has(c.childId) && (
+                <View style={[styles.tabDot, { backgroundColor: selected ? '#fff' : T.accent }]} />
+              )}
             </TouchableOpacity>
           );
         })}
@@ -335,7 +371,7 @@ export default function ParentRewardsScreen() {
               <View>
                 <Text style={styles.balanceName}>{selectedChild.displayName}</Text>
                 <Text style={styles.balanceAmount}>
-                  {selectedChild.totalBalance.toLocaleString()}
+                  {formatNum(selectedChild.totalBalance)}
                   {' Buffs ⚡'}
                 </Text>
               </View>
@@ -348,51 +384,41 @@ export default function ParentRewardsScreen() {
               <Text style={[styles.sectionLabel, { color: T.textMuted }]}>
                 {t('parentRewards.redemption.sectionTitle')}
               </Text>
-              {redemptions.map((r) => {
-                const discussing = r.status === 'discussing';
-                return (
-                  <View
-                    key={r.id}
-                    style={[styles.redemptionCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}
-                  >
-                    <View style={styles.redemptionTop}>
-                      <Text style={[styles.redemptionTitle, { color: T.text }]} numberOfLines={2}>
-                        {r.reward_title}
+              {redemptions.map((r) => (
+                <View
+                  key={r.id}
+                  style={[styles.redemptionCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}
+                >
+                  <View style={styles.redemptionTop}>
+                    <Text style={[styles.redemptionTitle, { color: T.text }]} numberOfLines={2}>
+                      {r.reward_title}
+                    </Text>
+                    <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
+                      <Text style={[styles.costText, { color: T.accent }]}>
+                        {formatNum(r.credits_spent)} B
                       </Text>
-                      <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
-                        <Text style={[styles.costText, { color: T.accent }]}>
-                          {r.credits_spent.toLocaleString()} B
-                        </Text>
-                      </View>
-                    </View>
-                    {discussing && (
-                      <Text style={[styles.redemptionTag, { color: T.textMuted }]}>
-                        {t('parentRewards.redemption.discussingTag')}
-                      </Text>
-                    )}
-                    <View style={styles.redemptionActions}>
-                      <TouchableOpacity
-                        style={[styles.approveBtn, { backgroundColor: T.accent }]}
-                        onPress={() => handleApproveRedemption(r)}
-                        activeOpacity={0.85}
-                      >
-                        <Text style={styles.approveText}>{t('parentRewards.redemption.approve')}</Text>
-                      </TouchableOpacity>
-                      {!discussing && (
-                        <TouchableOpacity
-                          style={[styles.talkBtn, { borderColor: T.cardBorder }]}
-                          onPress={() => handleRedemptionLetsTalk(r)}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={[styles.talkText, { color: T.text }]}>
-                            {t('parentRewards.redemption.letsTalk')}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
                     </View>
                   </View>
-                );
-              })}
+                  <View style={styles.redemptionActions}>
+                    <TouchableOpacity
+                      style={[styles.approveBtn, { backgroundColor: T.accent }]}
+                      onPress={() => handleApproveRedemption(r)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.approveText}>{t('parentRewards.redemption.approve')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.talkBtn, { borderColor: T.cardBorder }]}
+                      onPress={() => handleRedemptionLetsTalk(r)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.talkText, { color: T.text }]}>
+                        {t('parentRewards.redemption.letsTalk')}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
             </View>
           )}
 
@@ -447,7 +473,7 @@ export default function ParentRewardsScreen() {
                 </View>
                 <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
                   <Text style={[styles.costText, { color: T.accent }]}>
-                    {reward.credits_needed.toLocaleString()} B
+                    {formatNum(reward.credits_needed)} B
                   </Text>
                 </View>
               </View>
@@ -564,7 +590,7 @@ export default function ParentRewardsScreen() {
             {cashMode && newCash.trim() !== '' && (
               <Text style={[styles.cashHint, { color: T.accent }]}>
                 {t('parentRewards.modal.cashHint', {
-                  credits: (parseInt(newCredits, 10) || 0).toLocaleString(),
+                  credits: formatNum(parseInt(newCredits, 10) || 0),
                   symbol: currencySymbol,
                   amount: newCash,
                 })}
@@ -597,6 +623,7 @@ const styles = StyleSheet.create({
   childTab:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 10, backgroundColor: '#F3F4F6', gap: 6 },
   childTabEmoji: { fontSize: 16 },
   childTabName:  { fontSize: 14, fontWeight: '600' },
+  tabDot:        { width: 8, height: 8, borderRadius: 4 },
   centered:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content:       { padding: 20, paddingTop: 4, paddingBottom: 32 },
   balanceCard:   { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 20, gap: 14 },

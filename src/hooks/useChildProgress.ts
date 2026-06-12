@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
+import { isOffRoutineActive } from '../utils/offRoutineUtils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,7 +46,8 @@ export function useChildProgress() {
         .from('profiles')
         .select('*')
         .eq('family_id', familyId)
-        .eq('role', 'child');
+        .eq('role', 'child')
+        .eq('is_deleted', false);
 
       if (childrenErr) {
         console.error('Error fetching children profiles:', childrenErr.message);
@@ -184,6 +186,7 @@ export function useChildData(childId: string | null) {
   const [dailyGoal,           setDailyGoal]            = useState(100);
   const [schoolQuestEnabled,  setSchoolQuestEnabled]   = useState(true);
   const [schoolEndTime,       setSchoolEndTime]        = useState<string | null>(null);
+  const [offRoutineActive,    setOffRoutineActive]     = useState(false);
   const [loading,             setLoading]              = useState(true);
 
   const todayKey = getTodayKey();
@@ -240,6 +243,14 @@ export function useChildData(childId: string | null) {
         .eq('id', childId)
         .single();
 
+      // Off-routine flag in its OWN query — decoupled from the combined select
+      // above so it stays correct even if that select fails on an optional column.
+      const { data: offRow } = await supabase
+        .from('profiles')
+        .select('off_routine_until')
+        .eq('id', childId)
+        .maybeSingle();
+
       const completedTaskIds = new Set(
         progressData?.filter(p => p.completed).map(p => p.task_id) || []
       );
@@ -266,9 +277,17 @@ export function useChildData(childId: string | null) {
                         ? t.schedule_days
                         : [0, 1, 2, 3, 4, 5, 6], // default: every day
         hideOnWeekend: t.hide_on_weekend ?? false,
+        isOffRoutine:  t.is_off_routine ?? false,
       }));
 
-      setTasks(mappedTasks);
+      // Off-routine partition (single source of truth for all child screens):
+      // when the child's off-routine day is active, show ONLY off-routine tasks;
+      // otherwise show ONLY routine tasks. The per-screen scheduleDays/hideOnWeekend
+      // filters then run unchanged on the already-partitioned set. Pause supersedes
+      // at the screen level (screens short-circuit to PauseEmptyState before the list).
+      const offActive = isOffRoutineActive((offRow as { off_routine_until?: string | null } | null)?.off_routine_until);
+      setOffRoutineActive(offActive);
+      setTasks(mappedTasks.filter(t => (t.isOffRoutine ?? false) === offActive));
       setTotalBalance(vaultData?.total_balance || 0);
       setDailyGoal(childProfile?.daily_goal || 100);
       setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);
@@ -287,36 +306,33 @@ export function useChildData(childId: string | null) {
 
   // ── Vault ─────────────────────────────────────────────────────────────────
 
-  const updateTotalBalance = useCallback(async (balance: number) => {
-    if (!familyId || !childId) return;
+  // Atomic balance change via the adjust_credit_vault RPC (migration 021).
+  // Replaces the old read-modify-write of total_balance, which raced: two
+  // concurrent credits both read the same old value and the second clobbered
+  // the first, silently losing BUFFs. The RPC does one server-side UPDATE and
+  // returns the authoritative new balance. Deductions floor at 0 server-side.
+  // Write errors are never swallowed — an own-device child whose RLS blocks the
+  // write must surface it, not silently revert on reload (IN-2026-06-06-01/02).
+  const adjustBalance = useCallback(async (delta: number, reason: string) => {
+    if (!childId || delta === 0) return;
 
-    setTotalBalance(balance);
+    const { data, error } = await supabase.rpc('adjust_credit_vault', {
+      p_child_id: childId,
+      p_delta:    delta,
+      p_reason:   reason,
+    });
 
-    const { data: existing, error: selectErr } = await supabase
-      .from('credit_vault')
-      .select('id')
-      .eq('family_id', familyId)
-      .eq('child_id', childId)
-      .maybeSingle();
-
-    if (selectErr) {
-      console.error('[useChildData] vault read failed (balance not persisted):', selectErr);
+    if (error) {
+      console.error('[useChildData] adjust_credit_vault failed (balance not persisted):', error);
       return;
     }
-
-    // Never swallow the write error. An own-device child whose RLS blocks the
-    // credit_vault write would otherwise see the optimistic balance update and
-    // then watch it revert to 0 on the next reload, with no signal anywhere.
-    // (This silent failure hid the parent-only-vault-RLS bug for weeks — see
-    // INTEGRATION_LEARNINGS IN-2026-06-06-01.)
-    const { error: writeErr } = existing
-      ? await supabase.from('credit_vault').update({ total_balance: balance }).eq('id', existing.id)
-      : await supabase.from('credit_vault').insert({ family_id: familyId, child_id: childId, total_balance: balance });
-
-    if (writeErr) {
-      console.error('[useChildData] vault write failed (balance not persisted):', writeErr);
+    const res = data as { ok: boolean; new_balance?: number; error?: string } | null;
+    if (!res?.ok) {
+      console.error('[useChildData] adjust_credit_vault rejected:', res?.error);
+      return;
     }
-  }, [familyId, childId]);
+    if (typeof res.new_balance === 'number') setTotalBalance(res.new_balance);
+  }, [childId]);
 
   // ── Task completion ───────────────────────────────────────────────────────
 
@@ -351,10 +367,10 @@ export function useChildData(childId: string | null) {
     if (!error && !wasComplete) {
       const task = tasks.find(t => t.id === taskId);
       if (task) {
-        await updateTotalBalance(totalBalance + task.credits);
+        await adjustBalance(task.credits, 'task_complete');
       }
     }
-  }, [familyId, childId, todayKey, tasks, totalBalance, updateTotalBalance]);
+  }, [familyId, childId, todayKey, tasks, adjustBalance]);
 
   const uncompleteTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
@@ -383,10 +399,10 @@ export function useChildData(childId: string | null) {
     if (!error && wasComplete) {
       const task = tasks.find(t => t.id === taskId);
       if (task) {
-        await updateTotalBalance(Math.max(0, totalBalance - task.credits));
+        await adjustBalance(-task.credits, 'task_uncomplete');
       }
     }
-  }, [familyId, childId, todayKey, tasks, totalBalance, updateTotalBalance]);
+  }, [familyId, childId, todayKey, tasks, adjustBalance]);
 
   // ── Task CRUD ─────────────────────────────────────────────────────────────
 
@@ -405,7 +421,7 @@ export function useChildData(childId: string | null) {
         description:   task.description,
         icon:          task.icon,
         strategy_id:   task.strategyId || null,
-        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
+        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Fri+Sat)
       })
       .select()
       .single();
@@ -454,13 +470,14 @@ export function useChildData(childId: string | null) {
     dailyGoal,
     schoolQuestEnabled,
     schoolEndTime,
+    offRoutineActive,
     loading,
     completeTask,
     uncompleteTask,
     addTask,
     updateTask,
     deleteTask,
-    updateTotalBalance,
+    adjustBalance,
     refetch: fetchChildData,
   };
 }

@@ -3,8 +3,8 @@
 > **המסמך המגדיר** של איך עובדים על BUFF. הלולאה תלת-צדדית: Adi / Claude.ai / Claude Code.
 > כל חבילת שיפור, ניתוח לוגים, ו-spec sync — לפי המסמך הזה.
 
-**גרסה:** 1.0
-**עודכן:** 3 במאי 2026
+**גרסה:** 1.1
+**עודכן:** 9 ביוני 2026
 **מקור החלטות:** D-2026-05-02-26 (אימוץ workflow), D-2026-05-02-27 (BUFF_VALUES), D-2026-05-02-28 (VS Code)
 
 ---
@@ -112,6 +112,8 @@
 8. **Capability Check בתחילת כל חבילה.** "מה אני יכולה / מה CC יעשה / מה Adi חייבת בעצמה".
 9. **לא לעדכן מסמכים של Adi חד-צדדית.** GAP_ANALYSIS, DECISIONS_LOG, BUFF_VALUES — אם נדמה לי שצריך עדכון, אני שואלת ראשונה.
 10. **לא לדחוף ל-main בלי אישור Adi.** אפילו אם זה רק תיעוד.
+11. **בדיקת "מגע ראשון" (Reachability) — פיצ'ר לא "בוצע" עד שהמסע מקצה-לקצה נבדק.** כל פיצ'ר שמופעל ע"י משתמש (התראה, בקשה, badge, empty-state) חייב לפחות בדיקה אחת שמתחילה **מנקודת הכניסה של המשתמש** ומסתיימת **בהשלמת הפעולה** — בלי קיצורי-דרך של מפתח (הזרקת JWT, ניווט ישיר למסך, קריאה ישירה ל-RPC). בדיקה שמתחילה באמצע המסך מאמתת את *המנוע*, לא את *הפיצ'ר*. אם נתיב הכניסה לא נבנה — הפיצ'ר לא "בוצע", גם אם המנוע ירוק. _(מקור: IN-2026-06-09-01 — pkg/reward-redemption נבדק עם parent JWT שנכנס ישר למסך האישור; המסע "התראה → לחיצה → כפתור אישור" מעולם לא נבדק, ו-3 פערי-גילוי שרדו עד פרודקשן.)_
+12. **דחייה = FLAG, לא הערת קוד.** כל החלטה לדחות חלק מההיקף ("נשלים אחר כך" / "wiring deferred if needed") חייבת להירשם כ-🚩 ב-`INTEGRATION_LEARNINGS.md` (ובמידת הצורך שורה ב-GAP_ANALYSIS) **לפני ה-merge**. הערת קוד בלבד בלתי-נראית ללולאה — "נדחה" הופך בשקט ל"נשלח בלי זה". _(אותו IN — ה-deep-link מהתראה נדחה כהערת קוד פעמיים, מעולם לא סומן, ולכן נשלח חסר.)_
 
 ---
 
@@ -276,11 +278,13 @@ Critical rules:
 - Inspect actual code AND any platform configs (app.json, eas.json, package.json) before proposing.
 - Plan ships chunk by chunk. Show diff, wait for approval, continue.
 - Values Check: every feature passes the 9 questions in BUFF_VALUES.md before code is written.
+- Reachability: a user-triggered feature is not "done" until its first-touch path (notification / badge / empty-state -> completed action) is tested end-to-end. No dev shortcuts (JWT injection, direct screen nav, direct RPC call). Testing the engine != testing the feature.
 
 Exit deliverables for every phase (same commit as the code):
 - Update relevant canonical docs per SPEC_SYNC.md (this phase's row)
 - Update STATUS.md with the phase row (state, date, commit, tests, learnings link)
 - Append to /docs/INTEGRATION_LEARNINGS.md anything surprising
+- Any DEFERRED scope must be a flag in INTEGRATION_LEARNINGS.md before merge — never just a code comment.
 
 Now read the task below and produce a detailed plan.
 ```
@@ -584,6 +588,7 @@ Rule 7 (NO direct commits to main) חל על EOD. הסיבה:
 | גרסה | תאריך | שינוי |
 |---|---|---|
 | 1.0 | 3.5.2026 | יצירה ראשונית. בוסס על ה-workflow של Tomer (Admilio) עם התאמות ל-BUFF: VS Code Extension, BUFF_VALUES, Capability Check, Values Check, התאמות RN/Expo. |
+| 1.1 | 9.6.2026 | כללי ברזל **11 (Reachability — "מגע ראשון")** + **12 (דחייה = FLAG, לא הערת קוד)**, משתקפים גם ב-Universal Preamble. מקור: IN-2026-06-09-01 — pkg/reward-redemption נשלח עם מנוע תקין אך נתיב-הגילוי (התראה→אישור) לא נבנה ולא נבדק, ודחייתו תועדה כהערת קוד בלבד. |
 
 ---
 

@@ -42,10 +42,12 @@ import {
   Phase, PHASES, getSmartPhaseForTime, getCurrentPhase,
 } from '../../types/phase';
 import { isWeekendToday } from '../../utils/schoolDay';
+import { isTaskVisibleToday } from '../../utils/taskSchedule';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { formatNum } from '../../lib/uiLocale';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -141,15 +143,10 @@ export default function GamerTasksScreen() {
   // Mirrors PhaseView + Lovable: a task only appears on its scheduled weekdays,
   // and school-day-only tasks (hideOnWeekend) drop out on weekends. Previously
   // this screen grouped ALL of the child's tasks regardless of day.
-  const visibleTasks = useMemo(() => {
-    const today = new Date().getDay(); // 0=Sun … 6=Sat
-    return tasks.filter(task => {
-      const scheduleDays = task.scheduleDays ?? [0, 1, 2, 3, 4, 5];
-      if (!scheduleDays.includes(today)) return false;
-      if (isWeekend && task.hideOnWeekend) return false;
-      return true;
-    });
-  }, [tasks, isWeekend]);
+  const visibleTasks = useMemo(
+    () => tasks.filter(task => isTaskVisibleToday(task, isWeekend)),
+    [tasks, isWeekend],
+  );
 
   // ── Group tasks by phase ─────────────────────────────────────────────────
   const tasksByPhase = useMemo(() => {
@@ -226,7 +223,7 @@ export default function GamerTasksScreen() {
             <Text style={styles.headerDate}>{formatToday(locale)}</Text>
           </View>
           <View style={styles.buffsBadge}>
-            <Text style={styles.buffsValue}>{totalBalance.toLocaleString()}</Text>
+            <Text style={styles.buffsValue}>{formatNum(totalBalance)}</Text>
             <Text style={styles.buffsLabel}>{t('gamerTasks.buffsLabel')}</Text>
           </View>
         </View>

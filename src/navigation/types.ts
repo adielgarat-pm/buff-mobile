@@ -64,6 +64,9 @@ export type RootStackParamList = {
   // ── Parent notification feed (modal pushed above ParentApp) ──────────
   NotificationFeed: undefined;
 
+  // ── Notification settings (parent push prefs + permission recovery) ──
+  NotificationSettings: undefined;
+
   // ── Family / child management (parent-only, pushed above ParentApp) ──
   ManageChildren: undefined;
   EditChild:      { childId: string };
@@ -76,7 +79,8 @@ export type RootStackParamList = {
 export type ParentTabsParamList = {
   ParentDashboard: undefined;
   ParentTasks:     undefined;
-  ParentRewards:   undefined;
+  // childId: deep-link from a reward-redemption notification → pre-select that child.
+  ParentRewards:   { childId?: string } | undefined;
   ParentTimetable: undefined;
   ParentSettings:  undefined;
 };

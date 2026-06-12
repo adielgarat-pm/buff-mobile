@@ -27,12 +27,8 @@ export interface InsightCard {
   id:              string;
   type:            'phase' | 'task' | 'general';
   severity:        'info' | 'suggestion' | 'attention';
-  title:           string;
-  titleHe:         string;
-  description:     string;
-  descriptionHe:   string;
-  suggestion:      string;
-  suggestionHe:    string;
+  /** Copy lives in i18n at `insights.<i18nKey>.{title,description,suggestion}`. */
+  i18nKey:         string;
   strategyType?:   'environmental' | 'task-based' | 'self-regulation';
   icon:            string;
   relatedPhase?:   Phase;
@@ -40,78 +36,41 @@ export interface InsightCard {
 }
 
 // ─── Templates ───────────────────────────────────────────────────────────────
+// Copy (title/description/suggestion) is in src/i18n/{en,he}.json under
+// `insights.<id>.*` so it follows the active UI language via t().
 
 const INSIGHT_TEMPLATES: Record<string, Omit<InsightCard, 'id' | 'completionRate'>> = {
   'morning-low': {
     type: 'phase', severity: 'suggestion', icon: '🌅', relatedPhase: 'morning',
-    title: 'Morning Routine Challenge', titleHe: 'אתגר בשגרת הבוקר',
-    description: 'Morning tasks have been challenging lately. This is very common with ADHD - mornings require a lot of transitions.',
-    descriptionHe: 'משימות הבוקר היו מאתגרות לאחרונה. זה נפוץ מאוד עם ADHD - בקרים דורשים הרבה מעברים.',
-    suggestion: 'Try an "Environmental Strategy": Pick out clothes and pack the bag together the night before.',
-    suggestionHe: 'נסו "אסטרטגיה סביבתית": הכינו בגדים ותיק יחד בערב שלפני.',
-    strategyType: 'environmental',
+    i18nKey: 'morning-low', strategyType: 'environmental',
   },
   'school-low': {
     type: 'phase', severity: 'suggestion', icon: '📚', relatedPhase: 'school',
-    title: 'School Day Focus', titleHe: 'ריכוז ביום הלימודים',
-    description: 'School day completion is lower than usual. Sustained attention during long school hours is genuinely hard.',
-    descriptionHe: 'השלמת יום הלימודים נמוכה מהרגיל. קשב מתמשך במהלך שעות לימוד ארוכות זה באמת קשה.',
-    suggestion: 'Ask your child: "Which lesson feels hardest? What would make it 10% easier?"',
-    suggestionHe: 'שאלו את הילד: "איזה שיעור מרגיש הכי קשה? מה יכול להקל ב-10%?"',
-    strategyType: 'self-regulation',
+    i18nKey: 'school-low', strategyType: 'self-regulation',
   },
   'afternoon-low': {
     type: 'phase', severity: 'suggestion', icon: '📖', relatedPhase: 'afternoon',
-    title: 'Afternoon Transition', titleHe: 'מעבר אחר הצהריים',
-    description: 'Afternoons show lower task completion. After a full school day, executive function is often depleted.',
-    descriptionHe: 'אחר הצהריים מראים השלמת משימות נמוכה יותר. אחרי יום לימודים מלא, התפקוד הניהולי מותש.',
-    suggestion: 'Build in a "Recharge Window" before homework — 20–30 minutes of physical activity or a snack.',
-    suggestionHe: 'הכניסו "חלון טעינה" לפני שיעורי בית. 20-30 דקות פעילות גופנית או חטיף יכולים לעזור.',
-    strategyType: 'self-regulation',
+    i18nKey: 'afternoon-low', strategyType: 'self-regulation',
   },
   'evening-low': {
     type: 'phase', severity: 'suggestion', icon: '🌙', relatedPhase: 'evening',
-    title: 'Evening Wind-Down', titleHe: 'רגיעת הערב',
-    description: 'Evening routines are showing some struggles. Transitioning to bedtime can be hard when the brain is still buzzing.',
-    descriptionHe: 'שגרת הערב מראה כמה קשיים. מעבר לשינה יכול להיות קשה כשהמוח עדיין פעיל.',
-    suggestion: 'Create a predictable "Shutdown Ritual": Same order every night — shower → meds → relaxation.',
-    suggestionHe: 'צרו "טקס סגירה" צפוי: אותו סדר כל ערב (מקלחת ← תרופות ← הרגעה).',
-    strategyType: 'environmental',
+    i18nKey: 'evening-low', strategyType: 'environmental',
   },
   'medication-low': {
     type: 'task', severity: 'attention', icon: '💊',
-    title: 'Medication Consistency', titleHe: 'עקביות בתרופות',
-    description: 'Medication tasks have been missed recently. Consistency is key for effectiveness.',
-    descriptionHe: 'משימות תרופות הוחמצו לאחרונה. עקביות היא המפתח ליעילות.',
-    suggestion: 'Link medication to a fixed anchor habit — right after brushing teeth works well.',
-    suggestionHe: 'קשרו את התרופות להרגל עוגן קבוע (למשל מיד אחרי צחצוח שיניים).',
-    strategyType: 'environmental',
+    i18nKey: 'medication-low', strategyType: 'environmental',
   },
   'hygiene-low': {
     type: 'task', severity: 'suggestion', icon: '🚿',
-    title: 'Hygiene Routine Support', titleHe: 'תמיכה בשגרת היגיינה',
-    description: 'Hygiene tasks like showering have been challenging. Sensory sensitivities can make these harder.',
-    descriptionHe: 'משימות היגיינה כמו מקלחת היו מאתגרות. רגישויות חושיות יכולות להקשות.',
-    suggestion: 'Same time, same order. Let your child choose their own soap/shampoo for a sense of control.',
-    suggestionHe: 'אותה שעה, אותו סדר. תנו לילד לבחור סבון/שמפו משלו לתחושת שליטה.',
-    strategyType: 'environmental',
+    i18nKey: 'hygiene-low', strategyType: 'environmental',
   },
   'homework-low': {
     type: 'task', severity: 'suggestion', icon: '📝',
-    title: 'Homework Initiation', titleHe: 'התחלת שיעורי בית',
-    description: 'Starting homework has been difficult. Task initiation is one of the biggest Executive Functioning challenges.',
-    descriptionHe: 'התחלת שיעורי בית הייתה קשה. התחלת משימות היא אחד האתגרים הגדולים של תפקודים ניהוליים.',
-    suggestion: 'Use the 15-minute rule: commit to just 15 minutes. Starting is always the hardest part.',
-    suggestionHe: 'השתמשו בכלל 15 הדקות: התחייבו רק ל-15 דקות. ברגע שמתחילים, המומנטום נבנה.',
-    strategyType: 'task-based',
+    i18nKey: 'homework-low', strategyType: 'task-based',
   },
   'positive-streak': {
     type: 'general', severity: 'info', icon: '⭐',
-    title: 'Great Progress! 🎉', titleHe: 'התקדמות מצוינת! 🎉',
-    description: 'Completion rates have been strong this week. The strategies are working!',
-    descriptionHe: 'שיעורי ההשלמה היו חזקים השבוע. האסטרטגיות עובדות!',
-    suggestion: 'Celebrate this win together! Ask what\'s been helping and reinforce those patterns.',
-    suggestionHe: 'חגגו את ההצלחה יחד! שאלו מה עזר וחזקו את הדפוסים האלה.',
+    i18nKey: 'positive-streak',
   },
 };
 

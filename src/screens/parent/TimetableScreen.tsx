@@ -166,7 +166,10 @@ export default function TimetableScreen() {
       openReview(periods, hasAuto, hasErrors);
     } catch (err: unknown) {
       console.error('[TimetableScreen] Excel error:', err);
-      const msg = err instanceof Error ? err.message : t('timetable.parseError');
+      // The parser throws i18n keys (e.g. 'timetable.emptyFile') — translate them here.
+      const msg = err instanceof Error
+        ? (err.message.startsWith('timetable.') ? t(err.message) : err.message)
+        : t('timetable.parseError');
       Alert.alert(t('timetable.parseError'), msg);
       setMode('choose');
     }
@@ -184,7 +187,7 @@ export default function TimetableScreen() {
 
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('', 'Photo library permission required');
+        Alert.alert('', t('timetable.photoPermission'));
         return;
       }
 

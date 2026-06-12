@@ -14,13 +14,13 @@
 
 import React, { useCallback, useMemo } from 'react';
 import {
-  SafeAreaView,
   SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -71,18 +71,26 @@ export default function NotificationFeedScreen() {
         child_id: notification.child_id ?? undefined,
         family_id: notification.family_id,
       });
-      // For now we just navigate back to the tab navigator; specific
-      // sub-screen navigation requires nested-navigator awareness.
-      // The matrix in `notificationRouter` documents the intended routes;
-      // wiring deferred to a follow-up if needed.
+      // Navigate into the parent tab navigator. ParentApp sits below this modal
+      // in the root stack, so navigate() pops the modal and lands on the tab.
+      // Only ParentRewards takes a param today (childId → pre-select the child
+      // who made the redemption request); the others just switch tab.
       switch (action.kind) {
-        case 'parent_dashboard':
         case 'parent_rewards':
+          navigation.navigate('ParentApp', {
+            screen: 'ParentRewards',
+            params: { childId: action.childId },
+          });
+          break;
         case 'parent_tasks':
-          navigation.goBack();
+          navigation.navigate('ParentApp', { screen: 'ParentTasks' });
+          break;
+        case 'parent_dashboard':
+          navigation.navigate('ParentApp', { screen: 'ParentDashboard' });
           break;
         case 'noop':
         default:
+          navigation.goBack();
           break;
       }
     },
@@ -99,7 +107,7 @@ export default function NotificationFeedScreen() {
   // the unread-only model: it would empty the feed the instant it opened.)
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity

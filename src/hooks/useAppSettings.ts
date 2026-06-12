@@ -31,11 +31,24 @@ export interface AppSettings {
   pause_mode_active: boolean;
   pause_until: string | null;  // ISO timestamp or null = indefinite
   last_child_activity: string | null;
+  // Notification preferences (Phase 3a schema; enforced server-side in the
+  // push-notification-fanout Edge Function — Phase 3b).
+  notif_parent_alerts: boolean;     // def true  — alerts addressed to the parent
+  notif_child_reminders: boolean;   // def false — kid engagement reminders
+  notif_anchor_nudges: boolean;     // def true  — anchor-recovery nudges
+  notif_activation_nudges: boolean; // def true  — activation nudges
   updated_at: string;
 }
 
+/** The user-togglable notification preference columns. */
+export type NotifPrefKey =
+  | 'notif_parent_alerts'
+  | 'notif_child_reminders'
+  | 'notif_anchor_nudges'
+  | 'notif_activation_nudges';
+
 export type PauseDuration =
-  | { type: 'until'; days: number }  // pause_until = now() + N days
+  | { type: 'until'; days: number }  // pause_until = local midnight, N calendar days out ("today" = 1 = end of today)
   | { type: 'indefinite' };           // pause_until = null
 
 export function useAppSettings() {
@@ -118,10 +131,16 @@ export function useAppSettings() {
   const togglePause = useCallback(async (duration: PauseDuration): Promise<{ error: Error | null }> => {
     if (!familyId) return { error: new Error('No family_id available') };
 
-    const pauseUntil =
-      duration.type === 'indefinite'
-        ? null
-        : new Date(Date.now() + duration.days * 24 * 60 * 60 * 1000).toISOString();
+    // Calendar-day semantics: a pause always ends at LOCAL midnight, not a
+    // rolling N×24h from the tap time. "Just today" (days = 1) → end of today
+    // (tonight's midnight); "3 days" → 3 full calendar days; "1 week" → 7.
+    let pauseUntil: string | null = null;
+    if (duration.type === 'until') {
+      const end = new Date();
+      end.setHours(0, 0, 0, 0);                 // local start of today
+      end.setDate(end.getDate() + duration.days); // local midnight, N calendar days out
+      pauseUntil = end.toISOString();
+    }
 
     // Optimistic update
     if (settings) {
@@ -183,6 +202,30 @@ export function useAppSettings() {
   }, [familyId, settings]);
 
   /**
+   * Set a notification preference column for the family. Optimistic + rollback.
+   * The server-side Edge Function (push-notification-fanout) reads these before
+   * dispatch and suppresses channels whose preference is off (Phase 3b).
+   */
+  const setNotifPref = useCallback(async (key: NotifPrefKey, value: boolean): Promise<{ error: Error | null }> => {
+    if (!familyId) return { error: new Error('No family_id available') };
+
+    // Optimistic
+    if (settings) setSettings({ ...settings, [key]: value });
+
+    const { error: updateError } = await supabase
+      .from('app_settings')
+      .update({ [key]: value } as never)
+      .eq('family_id', familyId);
+
+    if (updateError) {
+      console.error(`[useAppSettings] setNotifPref(${key}) failed:`, updateError);
+      await refetch(); // roll back optimistic update
+      return { error: updateError as unknown as Error };
+    }
+    return { error: null };
+  }, [familyId, settings, refetch]);
+
+  /**
    * Toggle whether Friday is a school day for this family
    * (app_settings.friday_enabled). Family-level, mirroring Lovable.
    */
@@ -216,11 +259,17 @@ export function useAppSettings() {
     pauseModeActive: settings?.pause_mode_active ?? false,
     lastChildActivity: settings?.last_child_activity ?? null,
     fridayEnabled: settings?.friday_enabled ?? false,
+    // Notification prefs (defaults mirror the DB column defaults)
+    notifParentAlerts: settings?.notif_parent_alerts ?? true,
+    notifChildReminders: settings?.notif_child_reminders ?? false,
+    notifAnchorNudges: settings?.notif_anchor_nudges ?? true,
+    notifActivationNudges: settings?.notif_activation_nudges ?? true,
     // Actions
     togglePause,
     resumePause,
     recordChildActivity,
     setFridayEnabled,
+    setNotifPref,
     refetch,
   };
 }
