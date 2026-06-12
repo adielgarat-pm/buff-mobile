@@ -10,6 +10,7 @@ import {
 import { Linking, Platform } from 'react-native';
 import { User, Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
 import i18n from '../i18n';
@@ -57,6 +58,7 @@ interface AuthContextType {
     marketingConsent?: boolean
   ) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithApple: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<{ error: Error | null }>;
   refreshProfile: (userId?: string) => Promise<Profile | null>;
@@ -380,6 +382,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Native Sign in with Apple (iOS only) — Apple Guideline 4.8 requires an
+  // Apple-equivalent option when third-party login (Google) is offered.
+  const signInWithApple = async (): Promise<{ error: Error | null }> => {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        return { error: new Error('No identity token returned from Apple') };
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+      return { error };
+    } catch (err) {
+      // User dismissed the native Apple sheet — not an error.
+      if ((err as { code?: string })?.code === 'ERR_REQUEST_CANCELED') {
+        return { error: null };
+      }
+      return { error: err instanceof Error ? err : new Error(String(err)) };
+    }
+  };
+
   const signUp = async (
     email: string,
     password: string,
@@ -542,6 +573,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signInWithGoogle,
+        signInWithApple,
         signOut,
         deleteAccount,
         refreshProfile,

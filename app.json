@@ -16,8 +16,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.buff.mobile",
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
       }
     },
     "android": {
@@ -35,6 +37,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-apple-authentication",
       "expo-web-browser",
       "expo-localization",
       "@react-native-community/datetimepicker",
