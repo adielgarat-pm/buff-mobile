@@ -268,7 +268,7 @@ export default function GamerDashboardScreen() {
           </Text>
           <Text style={styles.greetingName}>
             {isChildPreview
-              ? (previewChildName ?? profile?.display_name ?? t('gamerDashboard.fallbackName'))
+              ? (previewChildName ?? t('gamerDashboard.previewName'))
               : (profile?.display_name ?? t('gamerDashboard.fallbackName'))}
           </Text>
         </View>
