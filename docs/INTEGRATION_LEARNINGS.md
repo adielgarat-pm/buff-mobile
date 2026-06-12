@@ -14,6 +14,21 @@
 
 ## Implementation Notes
 
+### IN-2026-06-12-01: Full-app i18n sweep — 19 silently-shadowed duplicate JSON keys + four "wrong language leaks" bug shapes, now all guard-tested
+
+- **תאריך:** 2026-06-12
+- **מקור:** Adi — "יש לנו עדיין שבירות של עברית-אנגלית בכל האפליקציה" (Hebrew users seeing English, English users seeing Hebrew). Full sweep via `pkg/i18n-sweep`.
+- **תיאור (what was actually broken — 4 distinct shapes, none of them the already-guarded `useLanguage()` ternary from PR #216):**
+  1. **Hardcoded copy maps consumed in one language only:** `PhaseTaskCard` rendered `CATEGORY_LABELS` (English) on every child task card — `CATEGORY_LABELS_HE` existed but had **zero consumers**; `useParentInsights` carried full bilingual copy (`title`/`titleHe`…) but `ParentDashboardScreen` rendered only the English fields. Hebrew parents always saw English insight cards; Hebrew kids always saw English category chips.
+  2. **Hebrew literals on code paths that surface to UI:** `timetableParser` threw Hebrew error strings (`'הקובץ ריק'`) that `TimetableScreen` alerts verbatim — English users got Hebrew alerts. `NotificationRow` picked relative-time copy (`'עכשיו'`/`'just now'`) with an inline ternary.
+  3. **Device-locale formatters:** 13 bare `toLocaleString()` + 1 `toLocaleTimeString([])` format numbers/times by DEVICE locale, leaking the wrong format in View-as-Child. New `src/lib/uiLocale.ts` (`uiLocale()`/`formatNum()`) now routes all of them off `i18n.language`.
+  4. **19 duplicate keys in EACH of en.json/he.json** (`onboarding.step*`, `joinFamily.*`, `timetable.*`) — `JSON.parse` silently keeps the LAST occurrence, so the first definitions were dead copy that *looked* live in the file. Removed the shadowed lines (keep-last = exactly the previous runtime behavior).
+- **השפעה:** parent dashboard insights, child task-card category chips, timetable import errors, notification-feed timestamps, and all number/time formatting now follow the active UI language; catalog is duplicate-free with full en↔he parity (1861 = 1861 keys).
+- **Guard (the recurrence stopper):** new `src/lib/__tests__/i18nCatalogIntegrity.test.ts` (zero-dep, like `i18nNoHardcodedCopy.test.ts`) fails the build on: duplicate catalog keys, en↔he key-set drift, bare `toLocaleString()`/`toLocaleTimeString([])`, and **any Hebrew literal in components outside an explicit bilingual-data/parser allowlist**.
+- **Known non-fixes (out of scope, flagged):** task/reward TITLES stored in the DB stay in whatever language they were created in (onboarding-time language) — that's content, not chrome, and needs a product decision; `'Buddy'`/`'BUDDY'` brand-name fallbacks left as-is; `settings.profileRole` Hebrew copy ("הורה · מלווה BUFF") is CC-drafted — Adi to review.
+- **סטטוס:** `resolved` (pending merge)
+- **קשור ל:** PR #216 (`pkg/off-routine-i18n`, the ternary guard), IN-2026-05-27-04 (data-path pick), D-2026-06-06 (₪ currency rule).
+
 ### IN-2026-06-09-01: Reward redemption shipped "engine-complete" but not "reachable" — discovery wiring deferred as a code comment, never flagged + "let's talk" redesigned as a reset
 
 - **תאריך:** 2026-06-09

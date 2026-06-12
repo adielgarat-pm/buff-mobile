@@ -27,6 +27,7 @@ import { supabase } from '../../integrations/supabase/client';
 import GamerRewardsScreen from './GamerRewardsScreen';
 import { pickI18nColumn } from '../../lib/i18nString';
 import { getCurrencySymbol } from '../../lib/currency';
+import { formatNum } from '../../lib/uiLocale';
 
 interface StoreReward {
   id:             string;
@@ -157,7 +158,7 @@ function PastelChildRewards() {
         <Text style={[styles.title, { color: T.primary }]}>{t('childRewards.title')}</Text>
         <View style={[styles.walletBadge, { backgroundColor: T.card, borderColor: T.border }]}>
           <Text style={styles.walletIcon}>⚡</Text>
-          <Text style={[styles.walletAmount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
+          <Text style={[styles.walletAmount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
           <Text style={[styles.walletLabel, { color: T.mutedForeground }]}>{t('childRewards.walletLabel')}</Text>
         </View>
       </View>
@@ -198,7 +199,7 @@ function PastelChildRewards() {
                   <Text style={[styles.rewardDesc, { color: T.mutedForeground }]}>
                     {reward.cash_value != null
                       ? t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })
-                      : t('childRewards.needed', { count: reward.credits_needed.toLocaleString() })}
+                      : t('childRewards.needed', { count: formatNum(reward.credits_needed) })}
                   </Text>
                 </View>
                 {pending ? (

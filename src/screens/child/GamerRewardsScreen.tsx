@@ -48,6 +48,7 @@ import { getCurrencySymbol } from '../../lib/currency';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { useRewardRedemptions } from '../../hooks/useRewardRedemptions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { formatNum } from '../../lib/uiLocale';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -228,7 +229,7 @@ export default function GamerRewardsScreen() {
             <Text style={styles.headerSubtitle}>{t('gamerRewards.subtitle')}</Text>
           </View>
           <View style={styles.buffsBadge}>
-            <Text style={styles.buffsValue}>💎 {totalBalance.toLocaleString()}</Text>
+            <Text style={styles.buffsValue}>💎 {formatNum(totalBalance)}</Text>
           </View>
         </View>
 

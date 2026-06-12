@@ -171,7 +171,7 @@ export default function ParentSettingsScreen() {
         </View>
         <View>
           <Text style={[styles.profileName, { color: T.text }]}>{profile?.display_name}</Text>
-          <Text style={[styles.profileRole, { color: T.textMuted }]}>Parent · BUFF Coach</Text>
+          <Text style={[styles.profileRole, { color: T.textMuted }]}>{t('settings.profileRole')}</Text>
         </View>
       </View>
 

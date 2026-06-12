@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Task, TaskCategory, CATEGORY_LABELS } from '../types/task';
+import { useTranslation } from 'react-i18next';
+import { Task, TaskCategory } from '../types/task';
 import { Phase, PhaseConfig } from '../types/phase';
 import { useChildTheme } from '../contexts/ThemeContext';
+import { uiLocale } from '../lib/uiLocale';
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -16,6 +18,14 @@ const CATEGORY_ICONS: Record<TaskCategory, IoniconsName> = {
   'self-care':    'sparkles-outline',
   responsibility: 'home-outline',
   movement:       'walk-outline',
+};
+
+const CATEGORY_I18N_KEYS: Record<TaskCategory, string> = {
+  learning:       'category.learning',
+  organization:   'category.organization',
+  'self-care':    'category.selfCare',
+  responsibility: 'category.responsibility',
+  movement:       'category.movement',
 };
 
 // ─── Out-of-window detection ──────────────────────────────────────────────────
@@ -33,10 +43,10 @@ function isOutOfWindow(completedAt: Date | string | undefined, phase: PhaseConfi
   return h < phase.startHour || h >= end;
 }
 
-/** Format a Date/string as "2:30 PM" */
+/** Format a Date/string as "2:30 PM" (in the active UI language's locale). */
 function formatTime(completedAt: Date | string): string {
   const d = completedAt instanceof Date ? completedAt : new Date(completedAt);
-  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return d.toLocaleTimeString(uiLocale(), { hour: 'numeric', minute: '2-digit' });
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -53,9 +63,10 @@ interface Props {
 export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEnabled = true }: Props) {
   const T = useChildTheme();
   const [pressed, setPressed] = useState(false);
+  const { t } = useTranslation();
 
   const outOfWindow = task.completed && isOutOfWindow(task.completedAt, phase);
-  const categoryLabel = CATEGORY_LABELS[task.category];
+  const categoryLabel = t(CATEGORY_I18N_KEYS[task.category]);
   const iconName      = CATEGORY_ICONS[task.category];
 
   const handlePress = () => {

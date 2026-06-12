@@ -25,6 +25,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { isWeekendToday } from '../../utils/schoolDay';
 import GamerTasksScreen from './GamerTasksScreen';
+import { formatNum } from '../../lib/uiLocale';
 
 /** Derive the current phase from the clock + school config. */
 function getCurrentSmartPhase(schoolEndTime: string, isSchoolDay: boolean): Phase {
@@ -133,7 +134,7 @@ function PastelChildTasks() {
       <View style={styles.header}>
         <Text style={[styles.heading, { color: T.primary }]}>{t('child.heading.quests')}</Text>
         <View style={[styles.buffBadge, { backgroundColor: T.card, borderColor: T.border }]}>
-          <Text style={[styles.buffEarned, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
+          <Text style={[styles.buffEarned, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
           <Text style={[styles.buffSep,    { color: T.mutedForeground }]}>{t('childTasks.buffsSuffix')}</Text>
         </View>
       </View>
