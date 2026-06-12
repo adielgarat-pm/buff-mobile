@@ -30,6 +30,7 @@ import {
 } from '../onboarding/unified/onboardingData';
 import { ONBOARDING_CONFIG } from '../../config/onboardingConfig';
 import { getCurrencySymbol } from '../../lib/currency';
+import { formatNum } from '../../lib/uiLocale';
 
 interface StoreReward {
   id:             string;
@@ -370,7 +371,7 @@ export default function ParentRewardsScreen() {
               <View>
                 <Text style={styles.balanceName}>{selectedChild.displayName}</Text>
                 <Text style={styles.balanceAmount}>
-                  {selectedChild.totalBalance.toLocaleString()}
+                  {formatNum(selectedChild.totalBalance)}
                   {' Buffs ⚡'}
                 </Text>
               </View>
@@ -394,7 +395,7 @@ export default function ParentRewardsScreen() {
                     </Text>
                     <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
                       <Text style={[styles.costText, { color: T.accent }]}>
-                        {r.credits_spent.toLocaleString()} B
+                        {formatNum(r.credits_spent)} B
                       </Text>
                     </View>
                   </View>
@@ -472,7 +473,7 @@ export default function ParentRewardsScreen() {
                 </View>
                 <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
                   <Text style={[styles.costText, { color: T.accent }]}>
-                    {reward.credits_needed.toLocaleString()} B
+                    {formatNum(reward.credits_needed)} B
                   </Text>
                 </View>
               </View>
@@ -589,7 +590,7 @@ export default function ParentRewardsScreen() {
             {cashMode && newCash.trim() !== '' && (
               <Text style={[styles.cashHint, { color: T.accent }]}>
                 {t('parentRewards.modal.cashHint', {
-                  credits: (parseInt(newCredits, 10) || 0).toLocaleString(),
+                  credits: formatNum(parseInt(newCredits, 10) || 0),
                   symbol: currencySymbol,
                   amount: newCash,
                 })}

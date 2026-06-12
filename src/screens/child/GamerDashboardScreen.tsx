@@ -51,6 +51,7 @@ import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
+import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -317,7 +318,7 @@ export default function GamerDashboardScreen() {
       {/* BUFFs total */}
       <View style={styles.buffsCard}>
         <Text style={styles.buffsLabel}>{t('gamerDashboard.totalBuffs')}</Text>
-        <Text style={styles.buffsCount}>{totalBalance.toLocaleString()}</Text>
+        <Text style={styles.buffsCount}>{formatNum(totalBalance)}</Text>
       </View>
 
       {/* Focus fuel meter */}

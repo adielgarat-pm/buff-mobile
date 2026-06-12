@@ -180,7 +180,7 @@ export default function ChildJoinScreen() {
               <Text style={styles.familyCodeLabel}>{t('auth.familyCodeLabel')}</Text>
               <TextInput
                 style={styles.familyCodeInput}
-                placeholder="ABC123"
+                placeholder={t('auth.familyCodePlaceholder')}
                 placeholderTextColor={TEXT_MUTED}
                 value={familyCode}
                 onChangeText={(v) => setFamilyCode(v.toUpperCase())}

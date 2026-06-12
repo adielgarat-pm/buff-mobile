@@ -38,6 +38,7 @@ import { useAnchorRecoveryPrompts } from '../../hooks/useAnchorRecoveryPrompts';
 import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
 import { STICKER_CATALOG } from '../../lib/stickerCatalog';
+import { formatNum } from '../../lib/uiLocale';
 import type { RootStackParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -350,9 +351,9 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightStat}>
             {topInsight!.completionRate !== undefined ? `${topInsight!.completionRate}%` : '—'}
           </Text>
-          <Text style={styles.insightLabel}>{topInsight!.title}</Text>
-          <Text style={styles.insightDesc}>{topInsight!.description}</Text>
-          <Text style={styles.insightTip}>💬 {topInsight!.suggestion}</Text>
+          <Text style={styles.insightLabel}>{t(`insights.${topInsight!.i18nKey}.title`)}</Text>
+          <Text style={styles.insightDesc}>{t(`insights.${topInsight!.i18nKey}.description`)}</Text>
+          <Text style={styles.insightTip}>💬 {t(`insights.${topInsight!.i18nKey}.suggestion`)}</Text>
         </View>
       )}
 
@@ -498,7 +499,7 @@ export default function ParentDashboardScreen() {
                     )}
                   </View>
                   <Text style={[styles.childSub, { color: T.textMuted }]}>
-                    {child.tasksCompleted}/{child.tasksTotal} {t('overview.tasks')} · ⚡ {child.totalBalance.toLocaleString()} {t('parentSettings.buffPoints')}
+                    {child.tasksCompleted}/{child.tasksTotal} {t('overview.tasks')} · ⚡ {formatNum(child.totalBalance)} {t('parentSettings.buffPoints')}
                   </Text>
                 </View>
                 <View style={[styles.badge, { backgroundColor: atGoal ? '#ECFDF5' : '#FEF3C7' }]}>

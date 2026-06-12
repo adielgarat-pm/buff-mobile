@@ -22,6 +22,7 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
 import { PET_SKINS, getSkinsForTheme, getDefaultSkin } from '../../types/pet';
 import type { RootStackParamList } from '../../navigation/types';
+import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -105,7 +106,7 @@ export default function ChildSettingsScreen() {
             {profile?.display_name ?? ''}
           </Text>
           <Text style={[styles.profileBuffs, { color: T.buff }]}>
-            {totalBalance.toLocaleString()} {t('childSettings.buffsSuffix')}
+            {formatNum(totalBalance)} {t('childSettings.buffsSuffix')}
           </Text>
         </View>
       </View>
