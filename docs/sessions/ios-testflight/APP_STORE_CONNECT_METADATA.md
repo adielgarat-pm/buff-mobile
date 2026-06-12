@@ -100,13 +100,13 @@ public content.
 | 1.4.1 / 1.3 — no medical claims (disclaimer present) | PASS | ✅ | ✅ | ✅ |
 | 5.1.1 — privacy / permission strings | PASS | ✅ | ✅ | ✅ |
 | 2.1 — iOS RC crash risk (refreshRC) | **FIXED** `b8d17e4` | ✅ | ✅ | ✅ |
-| 5.1.1(v) — in-app **account deletion** | **GAP** | ✅ | ❌ | ❌ |
+| 5.1.1(v) — in-app **account deletion** | **DONE** `81abb5c` | ✅ | ✅ | ✅ |
 
-**Internal TestFlight is fully clear.** The only blocker for **External TestFlight + App
-Store** is **in-app account deletion** (Apple requires it for any app with account
-creation). BUFF currently has only "Sign Out" in parent settings — no delete-account flow.
-This is a separate feature (UI + a destructive backend RPC that cascades family cleanup)
-that needs Adi's scoping/approval; not required to put the first families on Internal TF.
+**All audited guidelines now PASS.** Account deletion shipped: `delete_my_account` RPC
+(migration 021, applied) + a Danger-Zone "Delete account" row with destructive confirm.
+Sole parent → deletes the whole family + all members' auth logins; co-parent/child →
+deletes only the caller's profile. FK-ordering verified via an isolated ROLLBACK dry-run.
+Nothing else blocks External TestFlight / App Store on the guideline side.
 
 ## 7. Open items before submit (checklist)
 - [ ] Apple account verified (Pending as of enrollment)
@@ -115,4 +115,4 @@ that needs Adi's scoping/approval; not required to put the first families on Int
 - [ ] Confirm subtitle wording — Adi
 - [ ] Verify privacy-policy URL loads and covers iOS — Adi
 - [ ] Create a throwaway demo parent account (only if doing external testing)
-- [ ] **Account deletion** — decide: scope into this package or a follow-up (blocks External TF / App Store, not Internal)
+- [x] **Account deletion** — shipped `81abb5c` (Apple 5.1.1(v) satisfied)
