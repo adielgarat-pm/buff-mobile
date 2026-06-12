@@ -38,6 +38,12 @@ jest.mock('../../../contexts/LanguageContext', () => ({
   }),
 }));
 
+// EditChildScreen now reads deleteAccount from AuthContext (for the last-child →
+// delete-family flow). Mock it so the real context (and its i18n init) isn't pulled in.
+jest.mock('../../../contexts/AuthContext', () => ({
+  useAuth: () => ({ deleteAccount: jest.fn() }),
+}));
+
 jest.mock('../../../integrations/supabase/client', () => ({
   supabase: { from: jest.fn() },
 }));

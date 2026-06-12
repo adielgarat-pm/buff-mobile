@@ -32,6 +32,7 @@ export function useFamilyMembers() {
         .from('profiles')
         .select('*')
         .eq('family_id', familyId)
+        .eq('is_deleted', false) // exclude soft-deleted children
         .order('role', { ascending: false }) // parents first
         .order('created_at');
 
