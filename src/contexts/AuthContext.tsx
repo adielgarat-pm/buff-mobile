@@ -58,6 +58,7 @@ interface AuthContextType {
   ) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<{ error: Error | null }>;
   refreshProfile: (userId?: string) => Promise<Profile | null>;
 }
 
@@ -508,6 +509,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFamilyShortCode(null);
   };
 
+  // Permanent in-app account deletion (Apple Guideline 5.1.1(v)). The RPC deletes
+  // the caller's account + data server-side (sole parent => whole family; co-parent
+  // => only this profile). On success the auth user no longer exists, so we clear
+  // local session state directly (a server-side signOut may fail and is ignored).
+  const deleteAccount = async (): Promise<{ error: Error | null }> => {
+    const { data, error } = await supabase.rpc('delete_my_account');
+    if (error) return { error };
+    const result = data as { success?: boolean; reason?: string } | null;
+    if (!result?.success) {
+      return { error: new Error(result?.reason ?? 'delete_failed') };
+    }
+    try { await supabase.auth.signOut(); } catch { /* auth user already gone */ }
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setFamilyShortCode(null);
+    return { error: null };
+  };
+
   const familyId = profile?.family_id ?? null;
 
   return (
@@ -523,6 +543,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signInWithGoogle,
         signOut,
+        deleteAccount,
         refreshProfile,
       }}
     >
