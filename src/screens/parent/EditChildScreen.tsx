@@ -15,6 +15,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../../integrations/supabase/client';
+import { useAuth } from '../../contexts/AuthContext';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 import { resolveChildLang } from '../../lib/i18nString';
 import type { SupportedLanguage } from '../../i18n';
@@ -45,6 +46,7 @@ export default function EditChildScreen() {
   const navigation       = useNavigation<Nav>();
   const { params }       = useRoute<Route>();
   const { t, i18n }      = useTranslation();
+  const { deleteAccount } = useAuth();
   const { isRTL, rowDirection, textAlign } = useRTLStyles();
 
   const [loading,  setLoading]   = useState(true);
@@ -60,6 +62,7 @@ export default function EditChildScreen() {
 
   const [saving,   setSaving]    = useState(false);
   const [saveErr,  setSaveErr]   = useState<string | null>(null);
+  const [deleting, setDeleting]  = useState(false);
 
   // ── Load existing child profile ─────────────────────────────────────────
   // `t` intentionally omitted from deps — its identity changes on every render
@@ -171,6 +174,53 @@ export default function EditChildScreen() {
 
     setSaving(false);
     navigation.goBack();
+  };
+
+  // ── Remove this child (soft delete) ───────────────────────────────────────
+  // If they were the only child, offer to delete the family account too.
+  const doDelete = async () => {
+    setDeleting(true);
+    const { data, error } = await supabase.rpc('soft_delete_child', { p_child_id: params.childId });
+    setDeleting(false);
+
+    const result = data as { success?: boolean; remaining_children?: number } | null;
+    if (error || !result?.success) {
+      Alert.alert(t('editChild.deleteError'));
+      return;
+    }
+
+    if ((result.remaining_children ?? 0) === 0) {
+      // That was the only child — offer to delete the whole family account.
+      Alert.alert(
+        t('editChild.lastChildTitle'),
+        t('editChild.lastChildMessage'),
+        [
+          { text: t('editChild.lastChildKeep'), style: 'cancel', onPress: () => navigation.goBack() },
+          {
+            text: t('editChild.lastChildDelete'),
+            style: 'destructive',
+            onPress: async () => {
+              const { error: delErr } = await deleteAccount();
+              if (delErr) Alert.alert(t('editChild.deleteError'));
+              // On success the auth state clears and the navigator returns to login.
+            },
+          },
+        ],
+      );
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const handleDelete = () => {
+    Alert.alert(
+      t('editChild.deleteTitle', { name: name.trim() || t('editChild.thisChild') }),
+      t('editChild.deleteMessage'),
+      [
+        { text: t('editChild.deleteCancel'), style: 'cancel' },
+        { text: t('editChild.deleteConfirm'), style: 'destructive', onPress: doDelete },
+      ],
+    );
   };
 
   if (loading) {
@@ -349,10 +399,25 @@ export default function EditChildScreen() {
         <TouchableOpacity
           style={styles.cancelBtn}
           onPress={() => navigation.goBack()}
-          disabled={saving}
+          disabled={saving || deleting}
           testID="edit-child-cancel"
         >
           <Text style={styles.cancelText}>{t('editChild.cancel')}</Text>
+        </TouchableOpacity>
+
+        {/* ── Remove child (destructive) ───────────────────────────────── */}
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={handleDelete}
+          disabled={saving || deleting}
+          activeOpacity={0.7}
+          testID="edit-child-delete"
+        >
+          {deleting ? (
+            <ActivityIndicator color="#DC2626" />
+          ) : (
+            <Text style={styles.deleteText}>{t('editChild.deleteButton')}</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -452,4 +517,7 @@ const styles = StyleSheet.create({
 
   cancelBtn:    { paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   cancelText:   { color: T.textMuted, fontSize: 14 },
+
+  deleteBtn:    { paddingVertical: 14, alignItems: 'center', marginTop: 12 },
+  deleteText:   { color: '#DC2626', fontSize: 14, fontWeight: '600' },
 });
