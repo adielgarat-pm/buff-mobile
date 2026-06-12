@@ -86,8 +86,8 @@ public content.
   enter the app without Google OAuth. *(Create a throwaway parent account before submit.)*
 - **Contact:** Adi / adi@buffadhd.com
 - **Review notes:** "Kids never log in — parents create the family and use View-as-Child.
-  Payments are intentionally disabled in this iOS beta. Email/password sign-in is offered
-  alongside Google (satisfies Guideline 4.8)."
+  Payments are intentionally disabled in this iOS beta. Sign in with Apple is offered
+  alongside Google and email/password (satisfies Guideline 4.8)."
 
 ---
 
@@ -96,7 +96,7 @@ public content.
 | Guideline | Verdict | Internal TF | External TF | App Store |
 |-----------|---------|:---:|:---:|:---:|
 | 3.1.1 — no external payment / paywall fully hidden on iOS | PASS | ✅ | ✅ | ✅ |
-| 4.8 — login (email/password offered beside Google) | PASS | ✅ | ✅ | ✅ |
+| 4.8 — login: native **Sign in with Apple** beside Google + email/password | **DONE** 2026-06-12 | ✅ | ✅ | ✅ |
 | 1.4.1 / 1.3 — no medical claims (disclaimer present) | PASS | ✅ | ✅ | ✅ |
 | 5.1.1 — privacy / permission strings | PASS | ✅ | ✅ | ✅ |
 | 2.1 — iOS RC crash risk (refreshRC) | **FIXED** `b8d17e4` | ✅ | ✅ | ✅ |
@@ -109,10 +109,14 @@ deletes only the caller's profile. FK-ordering verified via an isolated ROLLBACK
 Nothing else blocks External TestFlight / App Store on the guideline side.
 
 ## 7. Open items before submit (checklist)
-- [ ] Apple account verified (Pending as of enrollment)
+- [ ] Apple account verified (Pending as of enrollment) → then run `ACCOUNT_DAY_RUNBOOK.md`
 - [x] Category = Education + Health & Fitness — Adi 2026-06-11
 - [x] Stay OUT of Kids Category — Adi 2026-06-11
 - [ ] Confirm subtitle wording — Adi
-- [ ] Verify privacy-policy URL loads and covers iOS — Adi
+- [x] Verify privacy-policy URL loads and covers iOS — CC 2026-06-12 (loads; mentions Apple
+      App Store + account deletion; optional polish: name "Sign in with Apple" explicitly)
 - [ ] Create a throwaway demo parent account (only if doing external testing)
 - [x] **Account deletion** — shipped `81abb5c` (Apple 5.1.1(v) satisfied)
+- [x] **Sign in with Apple** — shipped 2026-06-12 (native button, iOS-only; Supabase
+      provider toggle is Step 1 of the runbook)
+- [x] **Alpha-free iOS icon** — `assets/BUFF_LOGO-IOS.png` wired to `ios.icon`
