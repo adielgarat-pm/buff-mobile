@@ -60,9 +60,7 @@ export default function ParentSettingsScreen() {
   // working per-child preview button (avoids guessing which child).
   const handleViewAsChild = () => {
     if (children.length === 1) {
-      // Pass the name so preview headers show the child immediately (no
-      // "Preview" placeholder while ModeContext re-fetches it).
-      enterChildPreview(children[0].childId, children[0].displayName);
+      enterChildPreview(children[0].childId);
     } else if (children.length > 1) {
       navigation.navigate('ParentDashboard' as never);
     }

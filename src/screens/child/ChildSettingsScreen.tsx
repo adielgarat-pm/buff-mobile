@@ -37,7 +37,7 @@ const THEME_OPTIONS: { name: ChildThemeName; labelKey: string; descKey: string; 
 export default function ChildSettingsScreen() {
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, viewMode, previewChildId, previewChildName } = useMode();
+  const { isChildPreview, exitChildPreview, viewMode, previewChildId } = useMode();
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
@@ -103,8 +103,7 @@ export default function ChildSettingsScreen() {
         <Text style={styles.profileEmoji}>{PET_SKINS[selectedSkin]?.emoji ?? '🐶'}</Text>
         <View>
           <Text style={[styles.profileName,  { color: T.foreground }]}>
-            {/* In View-as-Child, profile is the PARENT — show the previewed child's name */}
-            {isChildPreview ? (previewChildName ?? '') : (profile?.display_name ?? '')}
+            {profile?.display_name ?? ''}
           </Text>
           <Text style={[styles.profileBuffs, { color: T.buff }]}>
             {formatNum(totalBalance)} {t('childSettings.buffsSuffix')}
