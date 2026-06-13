@@ -120,8 +120,11 @@ function PastelChildDashboard() {
 
   // Streak from pet state (AsyncStorage, per-device). Hidden when 0 to avoid
   // a demotivating "0🔥" badge for new kids before their first task completion.
-  const { petState } = usePetState();
+  const { petState, reload: reloadPet } = usePetState();
   const streak = petState.daily_streak ?? 0;
+  // Streak/XP advances on the Quests tab's separate hook instance; re-read on
+  // focus so the badge reflects today's completions when returning to HQ.
+  useFocusEffect(useCallback(() => { reloadPet(); }, [reloadPet]));
 
   if (loading) {
     return (

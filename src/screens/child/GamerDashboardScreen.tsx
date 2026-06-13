@@ -138,7 +138,7 @@ export default function GamerDashboardScreen() {
   const { tasks, totalBalance, loading: dataLoading, completeTask, uncompleteTask, refetch: refetchChildData, offRoutineActive } = useChildData(childId);
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
-  const { petState, loading: petLoading } = usePetState('wolf');
+  const { petState, loading: petLoading, reload: reloadPet } = usePetState('wolf');
   const { settings, isPauseActive } = useAppSettings();
   const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
@@ -148,7 +148,8 @@ export default function GamerDashboardScreen() {
   useFocusEffect(useCallback(() => {
     refetchBuddy();
     refetchChildData();
-  }, [refetchBuddy, refetchChildData]));
+    reloadPet(); // streak/XP may have advanced on the Quests tab's hook instance
+  }, [refetchBuddy, refetchChildData, reloadPet]));
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
