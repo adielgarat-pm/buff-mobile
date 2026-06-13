@@ -713,92 +713,107 @@ export default function TimetableScreen() {
               <View
                 key={period.id}
                 style={[
-                  styles.reviewRow,
+                  styles.equipCard,
                   { borderColor: hasError ? '#EF4444' : (isSplit ? '#6366F1' : T.cardBorder) },
                   hasError && { backgroundColor: '#FEE2E210' },
                   isAlternate && { backgroundColor: '#EEF2FF50' },
                 ]}
               >
-                {/* Select toggle */}
-                <TouchableOpacity
-                  onPress={() => togglePeriod(period.id)}
-                  style={[styles.checkbox, { borderColor: period.selected ? T.accent : T.cardBorder,
-                    backgroundColor: period.selected ? T.accent : 'transparent' }]}
-                >
-                  {period.selected && <Ionicons name="checkmark" size={14} color="#fff" />}
-                </TouchableOpacity>
+                <View style={styles.cardTopRow}>
+                  {/* Select toggle */}
+                  <TouchableOpacity
+                    onPress={() => togglePeriod(period.id)}
+                    style={[styles.checkbox, { borderColor: period.selected ? T.accent : T.cardBorder,
+                      backgroundColor: period.selected ? T.accent : 'transparent' }]}
+                  >
+                    {period.selected && <Ionicons name="checkmark" size={14} color="#fff" />}
+                  </TouchableOpacity>
 
-                {/* Lesson number */}
-                {!!period.lessonNumber && (
-                  <View style={[styles.lessonBadge, { backgroundColor: T.accent + '22' }]}>
-                    <Text style={[styles.lessonBadgeText, { color: T.accent }]}>
-                      {period.lessonNumber}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Split-group badge (e.g. "1/3") + teacher name */}
-                {isSplit && (
-                  <View style={styles.groupBadge}>
-                    <Text style={styles.groupBadgeText}>
-                      {(period.groupIndex ?? 0) + 1}/{period.groupTotal}
-                    </Text>
-                    {!!period.teacher && (
-                      <Text style={styles.groupTeacher} numberOfLines={1}>
-                        {period.teacher}
+                  {/* Lesson number */}
+                  {!!period.lessonNumber && (
+                    <View style={[styles.lessonBadge, { backgroundColor: T.accent + '22' }]}>
+                      <Text style={[styles.lessonBadgeText, { color: T.accent }]}>
+                        {period.lessonNumber}
                       </Text>
-                    )}
-                  </View>
-                )}
+                    </View>
+                  )}
 
-                {/* Time input */}
-                <TextInput
-                  value={period.time}
-                  onChangeText={v => updatePeriod(period.id, { time: v, autoTime: false })}
-                  style={[
-                    styles.timeInput,
-                    { borderColor: period.autoTime ? '#F59E0B' : T.cardBorder, color: T.text },
-                  ]}
-                  placeholder="HH:MM"
-                  placeholderTextColor={T.textMuted}
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={5}
-                />
+                  {/* Split-group badge (e.g. "1/3") + teacher name */}
+                  {isSplit && (
+                    <View style={styles.groupBadge}>
+                      <Text style={styles.groupBadgeText}>
+                        {(period.groupIndex ?? 0) + 1}/{period.groupTotal}
+                      </Text>
+                      {!!period.teacher && (
+                        <Text style={styles.groupTeacher} numberOfLines={1}>
+                          {period.teacher}
+                        </Text>
+                      )}
+                    </View>
+                  )}
 
-                {/* Subject input */}
-                <TextInput
-                  value={period.subject}
-                  onChangeText={v => updatePeriod(period.id, { subject: v })}
-                  style={[
-                    styles.subjectInput,
-                    { borderColor: period.missingSubject ? '#EF4444' : T.cardBorder, color: T.text },
-                  ]}
-                  placeholder={t('timetable.lessonPlaceholder')}
-                  placeholderTextColor={T.textMuted}
-                />
+                  {/* Time input */}
+                  <TextInput
+                    value={period.time}
+                    onChangeText={v => updatePeriod(period.id, { time: v, autoTime: false })}
+                    style={[
+                      styles.timeInput,
+                      { borderColor: period.autoTime ? '#F59E0B' : T.cardBorder, color: T.text },
+                    ]}
+                    placeholder="HH:MM"
+                    placeholderTextColor={T.textMuted}
+                    keyboardType="numbers-and-punctuation"
+                    maxLength={5}
+                  />
 
-                {/* Day picker chip — tap to change day for this row */}
-                <TouchableOpacity
-                  onPress={() => setDayPickerForId(period.id)}
-                  style={[
-                    styles.dayPickerChip,
-                    {
-                      borderColor: period.missingDay ? '#EF4444' : T.cardBorder,
-                      backgroundColor: period.missingDay ? '#FEE2E210' : '#F3F4F6',
-                    },
-                  ]}
-                  accessibilityLabel={t('timetable.changeDay')}
-                >
-                  <Text style={[styles.dayPickerChipText, { color: T.text }]}>
-                    {dayLabels[period.day]}
-                  </Text>
-                  <Ionicons name="chevron-down" size={10} color={T.textMuted} />
-                </TouchableOpacity>
+                  {/* Subject input */}
+                  <TextInput
+                    value={period.subject}
+                    onChangeText={v => updatePeriod(period.id, { subject: v })}
+                    style={[
+                      styles.subjectInput,
+                      { borderColor: period.missingSubject ? '#EF4444' : T.cardBorder, color: T.text },
+                    ]}
+                    placeholder={t('timetable.lessonPlaceholder')}
+                    placeholderTextColor={T.textMuted}
+                  />
 
-                {/* Delete */}
-                <TouchableOpacity onPress={() => deletePeriod(period.id)} style={styles.deleteBtn}>
-                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                </TouchableOpacity>
+                  {/* Day picker chip — tap to change day for this row */}
+                  <TouchableOpacity
+                    onPress={() => setDayPickerForId(period.id)}
+                    style={[
+                      styles.dayPickerChip,
+                      {
+                        borderColor: period.missingDay ? '#EF4444' : T.cardBorder,
+                        backgroundColor: period.missingDay ? '#FEE2E210' : '#F3F4F6',
+                      },
+                    ]}
+                    accessibilityLabel={t('timetable.changeDay')}
+                  >
+                    <Text style={[styles.dayPickerChipText, { color: T.text }]}>
+                      {dayLabels[period.day]}
+                    </Text>
+                    <Ionicons name="chevron-down" size={10} color={T.textMuted} />
+                  </TouchableOpacity>
+
+                  {/* Delete */}
+                  <TouchableOpacity onPress={() => deletePeriod(period.id)} style={styles.deleteBtn}>
+                    <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Equipment for this lesson */}
+                <View style={styles.equipRow}>
+                  <Text style={styles.equipIcon}>🎒</Text>
+                  <TextInput
+                    value={period.equipment ?? ''}
+                    onChangeText={v => updatePeriod(period.id, { equipment: v })}
+                    style={[styles.equipInput, { borderColor: T.cardBorder, color: T.text }]}
+                    placeholder={t('timetable.equipmentBagPlaceholder')}
+                    placeholderTextColor={T.textMuted}
+                    accessibilityLabel={t('timetable.equipmentForLesson')}
+                  />
+                </View>
               </View>
             );
           })}
@@ -904,29 +919,42 @@ export default function TimetableScreen() {
 
         <ScrollView contentContainerStyle={styles.periodList}>
           {manualLessons.map((lesson, i) => (
-            <View key={i} style={[styles.reviewRow, { borderColor: T.cardBorder }]}>
-              <View style={[styles.lessonBadge, { backgroundColor: T.accent + '22' }]}>
-                <Text style={[styles.lessonBadgeText, { color: T.accent }]}>{i + 1}</Text>
+            <View key={i} style={[styles.equipCard, { borderColor: T.cardBorder }]}>
+              <View style={styles.cardTopRow}>
+                <View style={[styles.lessonBadge, { backgroundColor: T.accent + '22' }]}>
+                  <Text style={[styles.lessonBadgeText, { color: T.accent }]}>{i + 1}</Text>
+                </View>
+                <TextInput
+                  value={lesson.startTime}
+                  onChangeText={v => manualUpdateLesson(manualDay, i, { startTime: v })}
+                  style={[styles.timeInput, { borderColor: T.cardBorder, color: T.text }]}
+                  placeholder="HH:MM"
+                  placeholderTextColor={T.textMuted}
+                  keyboardType="numbers-and-punctuation"
+                  maxLength={5}
+                />
+                <TextInput
+                  value={lesson.subject}
+                  onChangeText={v => manualUpdateLesson(manualDay, i, { subject: v })}
+                  style={[styles.subjectInput, { borderColor: T.cardBorder, color: T.text }]}
+                  placeholder={t('timetable.lessonPlaceholder')}
+                  placeholderTextColor={T.textMuted}
+                />
+                <TouchableOpacity onPress={() => manualDeleteLesson(manualDay, i)} style={styles.deleteBtn}>
+                  <Ionicons name="trash-outline" size={18} color="#EF4444" />
+                </TouchableOpacity>
               </View>
-              <TextInput
-                value={lesson.startTime}
-                onChangeText={v => manualUpdateLesson(manualDay, i, { startTime: v })}
-                style={[styles.timeInput, { borderColor: T.cardBorder, color: T.text }]}
-                placeholder="HH:MM"
-                placeholderTextColor={T.textMuted}
-                keyboardType="numbers-and-punctuation"
-                maxLength={5}
-              />
-              <TextInput
-                value={lesson.subject}
-                onChangeText={v => manualUpdateLesson(manualDay, i, { subject: v })}
-                style={[styles.subjectInput, { borderColor: T.cardBorder, color: T.text }]}
-                placeholder={t('timetable.lessonPlaceholder')}
-                placeholderTextColor={T.textMuted}
-              />
-              <TouchableOpacity onPress={() => manualDeleteLesson(manualDay, i)} style={styles.deleteBtn}>
-                <Ionicons name="trash-outline" size={18} color="#EF4444" />
-              </TouchableOpacity>
+              <View style={styles.equipRow}>
+                <Text style={styles.equipIcon}>🎒</Text>
+                <TextInput
+                  value={lesson.equipment ?? ''}
+                  onChangeText={v => manualUpdateLesson(manualDay, i, { equipment: v })}
+                  style={[styles.equipInput, { borderColor: T.cardBorder, color: T.text }]}
+                  placeholder={t('timetable.equipmentBagPlaceholder')}
+                  placeholderTextColor={T.textMuted}
+                  accessibilityLabel={t('timetable.equipmentForLesson')}
+                />
+              </View>
             </View>
           ))}
 
@@ -1020,8 +1048,11 @@ const styles = StyleSheet.create({
                    marginBottom: 8, padding: 10, borderRadius: 8, borderWidth: 1 },
   bannerText:    { flex: 1, fontSize: 13 },
 
-  reviewRow:     { flexDirection: 'row', alignItems: 'center', gap: 8,
-                   padding: 10, borderRadius: 12, borderWidth: 1.5, backgroundColor: '#fff' },
+  equipCard:     { padding: 10, borderRadius: 12, borderWidth: 1.5, backgroundColor: '#fff', gap: 8 },
+  cardTopRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  equipRow:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  equipIcon:     { fontSize: 15 },
+  equipInput:    { flex: 1, height: 34, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 8, fontSize: 13 },
   checkbox:      { width: 22, height: 22, borderRadius: 6, borderWidth: 2,
                    alignItems: 'center', justifyContent: 'center' },
   lessonBadge:   { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
