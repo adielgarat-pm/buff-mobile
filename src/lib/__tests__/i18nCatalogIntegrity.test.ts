@@ -95,6 +95,8 @@ const HEBREW_ALLOWLIST = new Set<string>([
   'screens/onboarding/unified/onboardingData.ts',           // bilingual {en,he} seed
   'screens/onboarding/unified/starterTasks/taskLibrary.ts', // bilingual {en,he} seed
   'screens/onboarding/unified/starterTasks/offRoutineTasks.ts',
+  'types/activities.ts',                                    // bilingual {en,he} weekday labels (#229)
+  'lib/packingTemplates/catalog.ts',                        // bilingual {en,he} packing-template seed (#228)
   'hooks/useParentInsights.ts',                             // matches Hebrew task titles (data, not copy)
   'screens/child/ChildSettingsScreen.tsx',                  // 'עברית' picker label
   'screens/parent/ParentSettingsScreen.tsx',                // 'עברית' picker label
