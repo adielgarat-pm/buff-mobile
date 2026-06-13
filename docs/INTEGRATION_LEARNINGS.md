@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-06-13-02: Streak moved per-device → per-child, derived on read from daily_progress (fix B, resolves the IN-2026-06-13-01 FLAG)
+
+- **תאריך:** 2026-06-13
+- **מקור:** CC — Adi asked to also do fix B ("את מתעכבת עם גרסה") so the shared-device streak ships in the same release as fix A.
+- **תיאור (decision):** instead of storing a per-child streak counter (the obvious move — add `daily_streak`/`last_task_completion_date` to `buddy_relationships` + an upsert RPC + backfill), the streak is now **computed on read** from `daily_progress` — the table `completeTask` already writes live. New SQL function `child_task_streak(p_child_id)` (migration `029_child_task_streak.sql`, **applied to the mobile DB**) returns the run of consecutive calendar days, ending today or yesterday (UTC, matching how `daily_progress.date` — a TEXT ISO key — is written via `toISOString`), with ≥1 completed task. Classic gaps-and-islands (`day + row_number() over (order by day desc)` constant within a run). `SECURITY INVOKER` so `daily_progress` RLS scopes rows to the caller's family on its own (an arbitrary child_id the caller can't see → 0); `GRANT EXECUTE` to anon+authenticated.
+- **תיאור (why derive, not store):** (1) **per-child by construction** — kills the shared-device bug completely; (2) **can't drift** — no stored counter to get out of sync (the opposite of the credit-balance fragility, project_buff_credit_fragility); (3) **zero backfill** — it reads history, so every existing tester gets their *real* streak the moment the build ships (Alon included); (4) far less code than a stored-counter + migration + backfill.
+- **Client:** new `useChildStreak(childId)` hook (RPC + focus refetch, session-mode-agnostic like `useIncomingSticker`); both dashboards now read the streak from it instead of `petState.daily_streak`. Gamer HQ also calls `refetchStreak()` after an on-screen task tap (HQ completion doesn't change focus). Mint dashboard dropped its `usePetState` usage entirely (it only fed the streak).
+- **השפעה:** the streak Alon reported is now correct AND per-child. `pet_state.daily_streak` (AsyncStorage) is no longer read for display; `applyTaskCompletionToPet` (fix A) stays — it still drives the Buddy's `evolution_days_count`/XP.
+- **Verified by CC:** function deployed + probed live on the mobile DB — active child with a run ending today = **4**, war-non-return child (last completion 2026-04-06) = **0**, unknown child = **0**, gap-splitting correct (a separate earlier run is excluded). `tsc --noEmit` clean (only the 2 pre-existing `expo-apple-authentication` env errors, unrelated); 28 child/hook tests pass.
+- **DEFERRED (residual, smaller):** 🚩 the Buddy's **evolution/XP** (`evolution_days_count`, `experience`, `rest_cards_balance`) are still per-device in AsyncStorage. Not what Alon reported; a future package can move them to `buddy_relationships` if shared-device evolution becomes a real complaint. 🚩 on-device Hat-3 still pending (shared-emulator contention).
+- **סטטוס:** `code-complete-pending-Hat-3` — `pkg/streak-per-child`. **The per-device-streak FLAG from IN-2026-06-13-01 is resolved.**
+- **קשור ל:** IN-2026-06-13-01 (fix A — the wiring), `buddy_relationships`/`buddy_daily_check` (the BUDDY V0.5 per-child model — note `buddy_daily_check` is a cron snapshot with `tasks_completed=0` on the current day, which is why the live streak derives from `daily_progress`, not it).
+
 ### IN-2026-06-13-01: Day-streak stuck at 0 for every tester — the increment function existed but was wired to nothing
 
 - **תאריך:** 2026-06-13

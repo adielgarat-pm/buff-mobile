@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
-import { usePetState } from '../../hooks/usePetState';
+import { useChildStreak } from '../../hooks/useChildStreak';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
@@ -120,13 +120,11 @@ function PastelChildDashboard() {
   const fuelPct    = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const atGoal     = fuelPct >= 70;
 
-  // Streak from pet state (AsyncStorage, per-device). Hidden when 0 to avoid
-  // a demotivating "0🔥" badge for new kids before their first task completion.
-  const { petState, reload: reloadPet } = usePetState();
-  const streak = petState.daily_streak ?? 0;
-  // Streak/XP advances on the Quests tab's separate hook instance; re-read on
-  // focus so the badge reflects today's completions when returning to HQ.
-  useFocusEffect(useCallback(() => { reloadPet(); }, [reloadPet]));
+  // Streak is server-derived per child (migration 029, read from daily_progress)
+  // so it's correct on shared devices. The hook refetches on focus, so the badge
+  // reflects tasks completed on the Tasks tab when the child returns to HQ.
+  // Hidden when 0 to avoid a demotivating "0🔥" badge before the first completion.
+  const { streak } = useChildStreak(childId);
 
   if (loading) {
     return (

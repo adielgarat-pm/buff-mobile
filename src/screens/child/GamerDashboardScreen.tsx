@@ -31,6 +31,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
+import { useChildStreak } from '../../hooks/useChildStreak';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
@@ -141,6 +142,9 @@ export default function GamerDashboardScreen() {
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { petState, loading: petLoading, reload: reloadPet } = usePetState('wolf');
+  // Streak is server-derived per child (migration 029) — not the per-device
+  // pet_state.daily_streak — so siblings on a shared device each get their own.
+  const { streak: dailyStreak, refetch: refetchStreak } = useChildStreak(childId);
   const { settings, isPauseActive } = useAppSettings();
   const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
@@ -187,9 +191,12 @@ export default function GamerDashboardScreen() {
   // Tap a task anywhere it appears (HQ list) to toggle completion — same
   // contract as the Quests tab (GamerTasksScreen). Writes under previewChildId
   // in view-as-child; RLS allows the family member to write daily_progress.
-  const onTaskTap = (taskId: string, completed: boolean) => {
-    if (completed) uncompleteTask(taskId);
-    else           completeTask(taskId);
+  const onTaskTap = async (taskId: string, completed: boolean) => {
+    if (completed) await uncompleteTask(taskId);
+    else           await completeTask(taskId);
+    // Completing on HQ doesn't change focus, so refresh the server streak here
+    // (the focus effect covers tasks completed on the Quests tab).
+    void refetchStreak();
   };
 
   // ── Filtered tasks ─────────────────────────────────────────────────────
@@ -313,7 +320,7 @@ export default function GamerDashboardScreen() {
             <Ionicons name="flame" size={14} color={COLORS.lime} />
             <Text style={styles.statLabel}>{t('gamerDashboard.currentStreak')}</Text>
           </View>
-          <Text style={[styles.statValue, { color: COLORS.lime }]}>{petState.daily_streak}</Text>
+          <Text style={[styles.statValue, { color: COLORS.lime }]}>{dailyStreak}</Text>
         </View>
       </View>
 
