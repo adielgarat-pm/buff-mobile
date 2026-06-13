@@ -32,6 +32,7 @@ import { useIncomingSticker } from '../../hooks/useIncomingSticker';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
+import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
@@ -200,6 +201,7 @@ function PastelChildDashboard() {
       ) : (
         <>
           <LowPowerBanner palette={pastelLPPalettes.banner} />
+          <PackingCard childId={childId} />
           <DashboardActiveContent
             T={T}
             t={t}

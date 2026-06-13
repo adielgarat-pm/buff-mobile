@@ -116,6 +116,7 @@ export default function ParentSettingsScreen() {
       rows: [
         { label: t('settings.rowAddChild'),       onPress: () => navigation.navigate('UStep1') },
         { label: t('settings.rowManageChildren'), onPress: () => navigation.navigate('ManageChildren') },
+        { label: t('settings.rowActivities'),     onPress: () => navigation.navigate('Activities') },
       ],
     },
     ...(children.length > 0

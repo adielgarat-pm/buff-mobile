@@ -49,6 +49,7 @@ import { useIncomingSticker } from '../../hooks/useIncomingSticker';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
+import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
@@ -342,6 +343,9 @@ export default function GamerDashboardScreen() {
 
       {/* Low Power Mode banner — self-conditional (only renders when isLowPower) */}
       <LowPowerBanner palette={GAMER_LP_PALETTES.banner} />
+
+      {/* What-to-pack today (activities + seasonal packing) */}
+      <PackingCard childId={childId} />
 
       {/* Time-of-day filter chips */}
       <ScrollView
