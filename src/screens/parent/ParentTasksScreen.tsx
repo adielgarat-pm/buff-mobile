@@ -20,6 +20,7 @@ import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 import { HeaderActions } from '../../components/parent/HeaderActions';
 import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
+import { DayScheduleToggles } from '../../components/DayScheduleToggles';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 import type { AgeGroup, Gender } from '../onboarding/unified/onboardingData';
@@ -69,7 +70,10 @@ export default function ParentTasksScreen() {
   const [approveTitle, setApproveTitle]     = useState('');
   const [approveTime, setApproveTime]       = useState('16:00');
   const [approveCredits, setApproveCredits] = useState('10');
+  const [approveDays, setApproveDays]        = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [approveSaving, setApproveSaving]   = useState(false);
+
+  const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
   // Tasks created via the empty-state CTA land back here while this tab is still
   // mounted — useChildData has no focus/realtime refetch, so re-pull on focus.
@@ -86,6 +90,7 @@ export default function ParentTasksScreen() {
     setApproveTitle('');
     setApproveTime('16:00');
     setApproveCredits('10');
+    setApproveDays(ALL_DAYS);
     setApproveOpen(true);
   };
 
@@ -95,15 +100,17 @@ export default function ParentTasksScreen() {
     setApproveTitle(s.title);
     setApproveTime('16:00');
     setApproveCredits('10');
+    setApproveDays(ALL_DAYS);
     setApproveOpen(true);
   };
 
-  const handleEditTask = (task: { id: string; title: string; time: string; credits: number }) => {
+  const handleEditTask = (task: { id: string; title: string; time: string; credits: number; scheduleDays?: number[] }) => {
     setApprovingId(null);
     setEditingId(task.id);
     setApproveTitle(task.title);
     setApproveTime(task.time);
     setApproveCredits(String(task.credits));
+    setApproveDays(task.scheduleDays && task.scheduleDays.length > 0 ? task.scheduleDays : ALL_DAYS);
     setApproveOpen(true);
   };
 
@@ -148,7 +155,7 @@ export default function ParentTasksScreen() {
 
     // Edit mode — update the existing task in place.
     if (editingId) {
-      await updateTask(editingId, { title, time: approveTime, credits });
+      await updateTask(editingId, { title, time: approveTime, credits, scheduleDays: approveDays });
       await refetch();
       setApproveSaving(false);
       closeTaskModal();
@@ -163,7 +170,7 @@ export default function ParentTasksScreen() {
       time:              approveTime,
       category:          'responsibility',
       credits,
-      schedule_days:     [0, 1, 2, 3, 4, 5, 6],
+      schedule_days:     approveDays,
       proposed_by_child: !!approvingId,
     } as never).select('id').single();
 
@@ -388,6 +395,9 @@ export default function ParentTasksScreen() {
               maxLength={5}
               selectTextOnFocus
             />
+
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentTasks.daysLabel')}</Text>
+            <DayScheduleToggles selectedDays={approveDays} onChange={setApproveDays} />
 
             <TouchableOpacity
               style={[styles.confirmBtn, { backgroundColor: T.accent }, (approveSaving || !approveTitle.trim()) && { opacity: 0.6 }]}
