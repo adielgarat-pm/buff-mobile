@@ -3,6 +3,7 @@ import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
 import { isOffRoutineActive } from '../utils/offRoutineUtils';
+import { applyTaskCompletionToPet } from './usePetState';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -369,6 +370,11 @@ export function useChildData(childId: string | null) {
       if (task) {
         await adjustBalance(task.credits, 'task_complete');
       }
+      // Advance the pet/streak state on a real incomplete→complete transition.
+      // Idempotent per day (the streak only bumps once a calendar day), so it's
+      // safe to call on every completed task; an unknown task still records
+      // "did something today" and accrues the minimum XP floor.
+      await applyTaskCompletionToPet(task?.credits ?? 0);
     }
   }, [familyId, childId, todayKey, tasks, adjustBalance]);
 

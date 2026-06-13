@@ -14,6 +14,17 @@
 
 ## Implementation Notes
 
+### IN-2026-06-13-01: Day-streak stuck at 0 for every tester — the increment function existed but was wired to nothing
+
+- **תאריך:** 2026-06-13
+- **מקור:** CC — אלון (tester) reported "הרצף של הימים לא עובד, תמיד על אפס".
+- **תיאור (root cause):** the streak displayed on both child dashboards reads `petState.daily_streak` from `usePetState` (AsyncStorage). The only code that advances it is the hook's `onTaskCompleted` — and **`onTaskCompleted` was never called anywhere** (it was destructured in [`PetDisplay`](../src/components/PetDisplay.tsx) but never invoked; the celebration animation there is driven by the separate `justCompletedTask` prop). Task completion flows through `useChildData.completeTask` (`daily_progress` + credit vault in Supabase) — a completely separate path that never touched the pet state. So `last_task_completion_date` was never written and `daily_streak` stayed at its `0` default forever. Same disconnect also froze `evolution_days_count` (Buddy never evolved; partially masked because egg-crack visuals run off `completedToday`/`totalToday` props).
+- **תיאור (fix — `pkg/fix-streak-counter`):** extracted the pet-completion logic into a pure `computeTaskCompletion(state, credits)` + a module-level `applyTaskCompletionToPet(credits)` (reads/writes AsyncStorage) in `usePetState.ts`; `onTaskCompleted` now delegates to the pure fn (behaviour identical). Wired `applyTaskCompletionToPet(task.credits)` into `useChildData.completeTask` on the real `!wasComplete` (incomplete→complete) transition — the single chokepoint all three task screens (Gamer HQ, Gamer Quests, Mint) share, right next to the existing vault credit. Idempotent per calendar day via the `lastDate !== today` guard. Added `reload()` to `usePetState`, called from both dashboards' `useFocusEffect`, so a streak advanced on the Quests tab's separate hook instance shows when returning to HQ.
+- **השפעה:** streak now advances once per day on first completion; Buddy evolution also unblocks. Verified: `tsc --noEmit` clean; 41 existing child/hook tests pass; **4 new regression tests** (`usePetState.streak.test.ts`) lock the 0→1 start, same-day no-double-bump + XP accrual, yesterday→increment, and 5-day rest-card milestone.
+- **DEFERRED:** 🚩 **streak is per-device (AsyncStorage), not per-child.** On shared devices (~65% of families, View-as-Child) all siblings share one streak. **Fix B = move the streak to Supabase keyed per `profile_id`** — Adi-approved as a follow-up package after this quick fix ships (requires schema, hence a separate package). 🚩 **on-device Hat-3** (tap a task → streak shows 1; next-day increment) pending a shared-emulator run.
+- **סטטוס:** `code-complete-pending-Hat-3` — `pkg/fix-streak-counter`. Fix B `open`.
+- **קשור ל:** `useChildProgress.ts` (`completeTask` chokepoint), `usePetState.ts`, the proposed `WORKFLOW.md` reachability gate (IN-2026-06-09-01 — same class: a feature whose engine existed but whose trigger was never wired).
+
 ### IN-2026-06-12-01: Full-app i18n sweep — 19 silently-shadowed duplicate JSON keys + four "wrong language leaks" bug shapes, now all guard-tested
 
 - **תאריך:** 2026-06-12
