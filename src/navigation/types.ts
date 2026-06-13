@@ -88,6 +88,7 @@ export type ParentTabsParamList = {
 export type ChildTabsParamList = {
   ChildDashboard: undefined;
   ChildTasks:     undefined;
+  ChildBagPrep:   undefined;
   ChildRewards:   undefined;
   ChildMyStats:   undefined;
   ChildSettings:  undefined;

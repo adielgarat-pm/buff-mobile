@@ -14,6 +14,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 import ChildDashboardScreen from '../screens/child/ChildDashboardScreen';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
+import ChildBagPrepScreen from '../screens/child/ChildBagPrepScreen';
 import ChildRewardsScreen from '../screens/child/ChildRewardsScreen';
 import ChildMyStatsScreen from '../screens/child/ChildMyStatsScreen';
 import ChildSettingsScreen from '../screens/child/ChildSettingsScreen';
@@ -28,6 +29,7 @@ const TAB_CONFIG: Record<
 > = {
   ChildDashboard: { labelKey: 'tabs.child.hq',     icon: 'game-controller-outline', iconActive: 'game-controller' },
   ChildTasks:     { labelKey: 'tabs.child.quests', icon: 'rocket-outline',           iconActive: 'rocket' },
+  ChildBagPrep:   { labelKey: 'tabs.child.gear',   icon: 'briefcase-outline',        iconActive: 'briefcase' },
   ChildRewards:   { labelKey: 'tabs.child.shop',   icon: 'bag-outline',              iconActive: 'bag' },
   ChildMyStats:   { labelKey: 'tabs.child.stats',  icon: 'stats-chart-outline',      iconActive: 'stats-chart' },
   ChildSettings:  { labelKey: 'tabs.child.menu',   icon: 'menu-outline',             iconActive: 'menu' },
@@ -109,6 +111,7 @@ export default function ChildTabs() {
       <Tab.Navigator screenOptions={screenOptions}>
         <Tab.Screen name="ChildDashboard" component={ChildDashboardScreen} />
         <Tab.Screen name="ChildTasks"     component={ChildTasksScreen} />
+        <Tab.Screen name="ChildBagPrep"   component={ChildBagPrepScreen} />
         <Tab.Screen name="ChildRewards"   component={ChildRewardsScreen} />
         <Tab.Screen name="ChildMyStats"   component={ChildMyStatsScreen} options={myStatsOptions} />
         <Tab.Screen name="ChildSettings"  component={ChildSettingsScreen} />
