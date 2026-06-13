@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Platform, SafeAreaView, ActivityIndicator,
 } from 'react-native';
@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMode } from '../../contexts/ModeContext';
+import { supabase } from '../../integrations/supabase/client';
 import { useChildTheme } from '../../contexts/ThemeContext';
 import { useActivities } from '../../hooks/useActivities';
 import { childAddOptions, isTeenAgeGroup } from '../../lib/activities/childMode';
@@ -33,11 +35,34 @@ export default function ChildAddActivityScreen() {
   const navigation = useNavigation();
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
+  const { previewChildId } = useMode();
   const T = useChildTheme();
   const lang = i18n.language;
 
-  const childId = profile?.id ?? null;
-  const ageGroup = (profile as any)?.pro_settings?.age_group as string | undefined;
+  // In View-as-Child (shared device) the auth profile is the PARENT, so the
+  // acting child comes from preview mode; on an own-device child it's the
+  // child's own profile. Mirrors the dashboards' childId derivation.
+  const childId = previewChildId ?? profile?.id ?? null;
+  const [ageGroup, setAgeGroup] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!childId) { setAgeGroup(undefined); return; }
+      if (profile?.id === childId) {
+        setAgeGroup((profile as any)?.pro_settings?.age_group);
+        return;
+      }
+      const { data } = await supabase
+        .from('profiles')
+        .select('pro_settings')
+        .eq('id', childId)
+        .maybeSingle();
+      if (!cancelled) setAgeGroup((data as any)?.pro_settings?.age_group);
+    })();
+    return () => { cancelled = true; };
+  }, [childId, profile]);
+
   const teen = isTeenAgeGroup(ageGroup);
 
   const { addActivity, saving } = useActivities(childId);

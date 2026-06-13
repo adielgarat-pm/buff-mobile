@@ -39,6 +39,10 @@ CREATE INDEX IF NOT EXISTS idx_activities_child_id  ON public.activities(child_i
 
 ALTER TABLE public.activities ENABLE ROW LEVEL SECURITY;
 
+-- Table privileges (RLS still gates rows). Mirrors timetables; required because
+-- tables created via MCP apply_migration don't inherit Supabase default grants.
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.activities TO anon, authenticated;
+
 DROP TRIGGER IF EXISTS update_activities_updated_at ON public.activities;
 CREATE TRIGGER update_activities_updated_at
   BEFORE UPDATE ON public.activities

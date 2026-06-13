@@ -12,8 +12,24 @@
 
 ## Verification summary
 - **Hat-1:** `tsc --noEmit` 0 errors (whole repo) · jest 25/25 (packing 12, catalog 9, childMode 4) · i18n key parity ✅ both locales.
-- **DB:** migrations 026 + 027 applied to the mobile project (no prod users) and verified via list_tables — `activities` exists, RLS on, constraints + child policies in place.
-- **Hat-3/Hat-4 (device):** PENDING — feature screens are auth-gated; Expo web reaches only the login screen. Needs Adi's emulator/device login. Checklist below.
+- **DB:** migrations 026 + 027 + 028 applied to the mobile project (no prod users) and verified — `activities` exists, RLS on, constraints + child policies + table grants in place.
+- **Hat-3 (emulator, adb-driven, 2026-06-13):** ✅ PASSED — ran the worktree bundle on emulator-5554 (junction node_modules + fresh Metro from worktree). Verdicts below.
+
+### Hat-3 verdicts (emulator)
+| Scenario | Verdict | Evidence |
+|---|---|---|
+| 1 — Settings → Activities, empty state | ✅ | Row opens ActivitiesScreen; "No activities yet" + dashed add (not a broken box). |
+| 2 — Add recurring activity (UI write path) | ✅ | Saved row persisted: recurring + saturday + active (DB-confirmed). Title/gear were Gboard IME artifacts, not app bugs. |
+| 3 — Pool day template (pre-fill + icon) | ✅ | Card shows template water-icon + Swimsuit/Towel/Sunscreen/Water bottle; catalog logic unit-tested. |
+| 4 — Child PackingCard + check-off + persist | ✅ | Gamer dark theme (theme-aware), body-double header, grouped w/ time anchors, child checked Swimsuit → green ✓, **persisted across remount** (AsyncStorage). No counter. |
+| 5 — No-activity empty state | 🤔 code-verified | Today had activities; ActivitiesScreen empty state seen live; PackingCard empty path is a simple conditional (not exercised live). |
+| 6 — Child-add (Teen direct / parent approve) | ✅ | Parent approval strip → Approve flipped proposed→active (DB-confirmed). Child "+ Add my own" opens; teen sees direct-add (no propose note) after the preview-mode fix. Full teen-save tap blocked by IME (title typing) — Hat-4 quick confirm. |
+
+### 🐛 Bugs found + fixed during Hat-3
+- **BUG-2026-06-13-01 (High, FIXED):** `permission denied for table activities` — tables made via MCP `apply_migration` don't inherit Supabase default role grants. Fix: migration 028 (+ folded into 026) `GRANT … TO anon, authenticated`. Verified: fetch clean after fix.
+- **BUG-2026-06-13-02 (Medium, FIXED):** `ChildAddActivityScreen` used `useAuth().profile` for childId + teen-detection → wrong in View-as-Child (auth profile is the parent). Fix: derive `childId` from `previewChildId` and fetch the previewed child's `age_group`. Verified: teen propose-note correctly disappears for Itay.
+
+- **Hat-4 (real device):** remaining — full teen-direct save via real keyboard, EN/Hebrew RTL, no-activity empty card. Checklist below.
 
 ## Hat-4 device checklist (Adi)
 1. Parent → Settings → "חוגים ופעילויות" → add a recurring חוג (weekday + time + gear) and a one-off pool day (template).
