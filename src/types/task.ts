@@ -5,21 +5,9 @@ export type TaskCategory =
   | 'responsibility'
   | 'movement';
 
-export const CATEGORY_LABELS: Record<TaskCategory, string> = {
-  learning: 'Learning',
-  organization: 'Organization',
-  'self-care': 'Self-Care',
-  responsibility: 'Responsibility',
-  movement: 'Movement',
-};
-
-export const CATEGORY_LABELS_HE: Record<TaskCategory, string> = {
-  learning: 'למידה',
-  organization: 'התארגנות',
-  'self-care': 'טיפול עצמי',
-  responsibility: 'בית ואחריות',
-  movement: 'גוף ותנועה',
-};
+// Category display labels live in i18n (`category.*` keys) — render with t(),
+// never from a hardcoded map (the old EN/HE maps here let English leak into
+// the Hebrew UI).
 
 export interface Task {
   id: string;

@@ -11,9 +11,9 @@
  */
 import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
-import { useLanguage } from '../contexts/LanguageContext';
 import { isOffRoutineActive } from '../utils/offRoutineUtils';
 import { ensureOffRoutineTasks } from '../lib/offRoutineSeed';
 import { PARENT_THEME as T } from '../theme';
@@ -25,17 +25,21 @@ type Props = {
   childLang: 'he' | 'en';
 };
 
-const STR = {
-  he: { title: 'יום מחוץ לשגרה', hint: 'תוכנית קלה ליום חופשי — בלי משימות בית-ספר. לחיצה אחת, וחוזרים לשגרה.',
-        off: 'כבוי', today: 'היום', days3: '3 ימים', activeUntil: 'פעיל עד', err: 'משהו השתבש, נסו שוב' },
-  en: { title: 'Off-routine day', hint: 'A lighter plan for a free day — no school tasks. One tap back to routine.',
-        off: 'Off', today: 'Today', days3: '3 days', activeUntil: 'Active until', err: 'Something went wrong, try again' },
-};
-
 export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) {
   const { familyId } = useAuth();
-  const { language } = useLanguage();
-  const s = STR[language === 'he' ? 'he' : 'en'];
+  // Card chrome follows the interface language via i18next (parent surface).
+  // childLang (prop) is the SEPARATE concern of which language to seed the
+  // child's tasks in — kept distinct on purpose.
+  const { t, i18n } = useTranslation();
+  const s = {
+    title:       t('offRoutine.card.title'),
+    hint:        t('offRoutine.card.hint'),
+    off:         t('offRoutine.card.off'),
+    today:       t('offRoutine.card.today'),
+    days3:       t('offRoutine.card.days3'),
+    activeUntil: t('offRoutine.card.activeUntil'),
+    err:         t('offRoutine.card.err'),
+  };
 
   const [until,  setUntil]  = useState<string | null>(null);
   const [busy,   setBusy]   = useState(false);
@@ -130,7 +134,7 @@ export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) 
       </View>
       {active && until && (
         <Text style={styles.activeNote}>
-          {s.activeUntil} {new Date(until).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', { day: 'numeric', month: 'short' })}
+          {s.activeUntil} {new Date(until).toLocaleDateString(i18n.language === 'he' ? 'he-IL' : 'en-US', { day: 'numeric', month: 'short' })}
         </Text>
       )}
     </View>

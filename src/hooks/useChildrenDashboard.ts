@@ -47,7 +47,7 @@ export function useChildrenDashboard() {
         .select('id, display_name, avatar, created_at')
         .eq('family_id', familyId)
         .eq('role', 'child')
-        .eq('is_deleted', false);
+        .eq('is_deleted', false); // hide children a parent has removed (soft delete)
 
       console.log('[Dashboard] raw result:', JSON.stringify(profiles), 'error:', profilesErr?.message ?? null);
       console.log('[Dashboard] profiles rows:', profiles?.length ?? 0, 'error:', profilesErr?.message ?? 'none');

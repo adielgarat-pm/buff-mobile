@@ -9,12 +9,14 @@ import { useState } from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../contexts/LanguageContext';
 import { VIOLET_ACCENT } from '../theme/palette';
 import LanguagePickerModal from './LanguagePickerModal';
 
 export default function LanguagePicker() {
   const { isRTL } = useLanguage();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
 
@@ -29,7 +31,7 @@ export default function LanguagePicker() {
         ]}
         onPress={() => setOpen(true)}
         activeOpacity={0.7}
-        accessibilityLabel="Change language"
+        accessibilityLabel={t('a11y.changeLanguage')}
         accessibilityRole="button"
       >
         <Ionicons name="globe-outline" size={20} color={VIOLET_ACCENT} />

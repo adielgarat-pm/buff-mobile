@@ -41,6 +41,10 @@ export function useSubscription() {
 
   // ── Fetch RC status on mount ───────────────────────────────────────────────
   const refreshRC = useCallback(async (): Promise<void> => {
+    // iOS Phase 1: RevenueCat is never configured (see initRevenueCat's iOS guard), so
+    // calling Purchases.* here would error. iOS users are already entitled via the
+    // paywall-hidden branch, so there is nothing to fetch — skip. Remove in Phase 2.
+    if (Platform.OS === 'ios') return;
     try {
       const [subscribed, founding, info] = await Promise.all([
         getIsSubscribed(),

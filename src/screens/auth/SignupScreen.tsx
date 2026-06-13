@@ -17,6 +17,7 @@ import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import LanguagePicker from '../../components/LanguagePicker';
+import AppleSignInButton from '../../components/AppleSignInButton';
 import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 
@@ -201,6 +202,9 @@ export default function SignupScreen() {
           <Text style={styles.dividerText}>{t('auth.orContinueWith')}</Text>
           <View style={styles.dividerLine} />
         </View>
+
+        {/* Sign up with Apple — iOS only (Guideline 4.8) */}
+        <AppleSignInButton mode="signup" />
 
         {/* Google */}
         <TouchableOpacity

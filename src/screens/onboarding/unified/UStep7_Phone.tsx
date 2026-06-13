@@ -8,7 +8,8 @@
  * NOTE: expo-notifications is not installed; the 24h notification is stubbed out.
  * Install expo-notifications and replace the TODO block to enable it.
  */
-import { View, Text, TouchableOpacity, SafeAreaView, Share, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Share, Alert, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -68,7 +69,7 @@ export default function UStep7_Phone() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity

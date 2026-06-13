@@ -3,7 +3,7 @@
     "name": "BUFF",
     "slug": "buff-mobile",
     "scheme": "buff",
-    "version": "1.4.2",
+    "version": "1.4.4",
     "orientation": "portrait",
     "icon": "./assets/BUFF_LOGO.png",
     "userInterfaceStyle": "light",
@@ -15,7 +15,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.buff.mobile"
+      "bundleIdentifier": "com.buff.mobile",
+      "icon": "./assets/BUFF_LOGO-IOS.png",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
       "package": "com.buffapp.mobile",
@@ -32,13 +38,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "expo-apple-authentication",
       "expo-web-browser",
       "expo-localization",
       "@react-native-community/datetimepicker",
       [
         "expo-image-picker",
         {
-          "photosPermission": "BUFF uses your photo library for profile pictures."
+          "photosPermission": "BUFF uses your photo library to import images, such as a photo of your child's timetable."
         }
       ],
       [

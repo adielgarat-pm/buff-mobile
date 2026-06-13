@@ -47,6 +47,7 @@ import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { formatNum } from '../../lib/uiLocale';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -222,7 +223,7 @@ export default function GamerTasksScreen() {
             <Text style={styles.headerDate}>{formatToday(locale)}</Text>
           </View>
           <View style={styles.buffsBadge}>
-            <Text style={styles.buffsValue}>{totalBalance.toLocaleString()}</Text>
+            <Text style={styles.buffsValue}>{formatNum(totalBalance)}</Text>
             <Text style={styles.buffsLabel}>{t('gamerTasks.buffsLabel')}</Text>
           </View>
         </View>

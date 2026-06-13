@@ -2,7 +2,8 @@
  * Shared layout wrapper for all onboarding steps.
  * Provides: step progress bar, back chevron, BUFF branding, Next button.
  */
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, I18nManager } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, I18nManager } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +33,7 @@ export default function OnboardingShell({
   const chevron = isRTL ? '›' : '‹';
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity

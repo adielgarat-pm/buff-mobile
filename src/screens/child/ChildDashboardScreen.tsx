@@ -32,8 +32,10 @@ import { useIncomingSticker } from '../../hooks/useIncomingSticker';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
+import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
+import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -189,7 +191,7 @@ function PastelChildDashboard() {
       {/* Buffs total (from credit_vault) — visible even during pause to reassure */}
       <View style={[styles.buffsCard, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
         <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>{t('childDashboard.totalBuffs')}</Text>
-        <Text style={[styles.buffsCount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
+        <Text style={[styles.buffsCount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
         <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>{t('childDashboard.spendHint')}</Text>
       </View>
 
@@ -202,6 +204,7 @@ function PastelChildDashboard() {
       ) : (
         <>
           <LowPowerBanner palette={pastelLPPalettes.banner} />
+          <PackingCard childId={childId} />
           <DashboardActiveContent
             T={T}
             t={t}
