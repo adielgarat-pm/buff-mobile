@@ -6,7 +6,8 @@
 **Branch:** `pkg/release-43` (clean worktree off `origin/main @ 4984572` — build-from-main policy).
 **Track:** internal / Alpha
 **versionName:** **1.5.0** — minor bump (Adi's call 2026-06-13). Carries new features (equipment backpack, activities, account deletion) on top of the un-promoted 39/41/42 stack. Distinct from the already-uploaded 1.4.1/1.4.3/1.4.4 names → no Play collision.
-**versionCode:** **43** (EAS `appVersionSource: remote` + `autoIncrement: true` — confirm in build log).
+**versionCode:** **43** — EAS auto-incremented 42→43 at build time ✅ (remote source).
+**EAS build (43):** https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/9862e850-02fb-43ff-965b-bb73f10606d5 — building 2026-06-13 from `aa68a8d`, remote keystore `dG1dqozJHO`.
 
 ## What this build is
 
@@ -35,14 +36,29 @@ Carried verbatim from `docs/releases/{39,41,42}/MANIFEST.md` — all ancestors o
   - Inherited: all 39/41/42 migrations already live (off-routine, notifications hardening, redemption-talk, vibe-shared, platform reconcile, etc.)
 - No build-blocking unapplied migration (every feature's schema is live).
 
-## Gate 1 — Static (2026-06-13, worktree `release-43` @ `4984572`)
+## Gate 1 — Static (2026-06-13, worktree `release-43` @ `aa68a8d`)
 | Check | Result |
 |---|---|
 | tsc | ✅ 0 errors |
-| jest | _running serially — see below_ |
+| jest | ✅ 388/388 (37 suites, 6 snapshots) — serial run; the 2 timeout "fails" on the parallel run were CPU-contention flakes (12 concurrent sessions), green serially |
 | expo-doctor | ✅ 18/18 |
 | i18n parity | ✅ 0 missing either locale |
 | Values Check | ✅ (below) |
+
+> **Gate 1 fix applied this cut:** `main` was red on jest — `i18nCatalogIntegrity` caught hardcoded Hebrew in two NEW bilingual `{en,he}` seed files (`types/activities.ts` #229, `lib/packingTemplates/catalog.ts` #228) that merged today without being allowlisted. Both confirmed bilingual (every Hebrew paired with English, picked via `pickLang`) → added to the guard allowlist (commit `aa68a8d`). No copy/behavior change. **`main` itself still needs this one-line fix** (flagged to Adi).
+
+## Gate 2 — Functional (2026-06-13, emulator-5554, release-43 dev bundle via Metro 8083)
+| Scenario | Verdict | Evidence |
+|---|---|---|
+| Boot — fresh Metro bundle of release-43 → app launches | ✅ | dev client connected to `10.0.2.2:8083`, JS bundle loaded |
+| F1 (session routing) | ✅ | `[RootNavigator] role: parent, onboardingComplete: true, hasChildren: true` |
+| F4 (parent dashboard) | ✅ | full render: insights, child card (Itay 0/11, 24 Buffs), Today/Yesterday, +Add Child, +Bonus, Send Sticker, View-as-Child, invite code, 5 tabs |
+| F8 / #161 (notification feed) | ✅ | unread-only feed renders ("Itay · 1d" + purple unread dot) |
+| #221 (safe-area-top) | ✅ | "Mark all as read" reachable at top of feed (header clears status bar) |
+| Paywall (premium gating) | ✅ | "Unlock BUFF Premium" modal renders; RC offerings error is expected emulator `BILLING_UNAVAILABLE` (no Play billing on emulator) |
+| #226 account deletion · #227 sticker-no-consume · #228 packing · #229 activities · F5 child dashboard | ⚠️ Hat-4 | **harness-blocked, not failed:** this build returns a 0-byte `uiautomator` dump (no node tree → no reliable adb coordinates/text assertions) + dev-only RC LogBox occludes the tab bar. Deep real-touch flows deferred to Adi's device — see HAT4_CHECKLIST.md |
+
+**Gate 2 verdict:** boot + core-render smoke **PASS, zero ❌** → does not hard-stop. Deep new-feature UI flows routed to Hat-4 (real device), where the dev LogBox is absent and touch is reliable. Feature *logic* is covered by jest 388/388.
 
 ### Values Check — new feats
 - **#226 account deletion / remove child (feat):** parent-facing autonomy/safety control; no child-facing manipulation, no dark pattern. Deletion is user-initiated, reversible-by-recreate, honors Apple 5.1.1(v) + Play data-deletion. ✅
