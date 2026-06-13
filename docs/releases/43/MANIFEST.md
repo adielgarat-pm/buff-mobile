@@ -7,7 +7,8 @@
 **Track:** internal / Alpha
 **versionName:** **1.5.0** — minor bump (Adi's call 2026-06-13). Carries new features (equipment backpack, activities, account deletion) on top of the un-promoted 39/41/42 stack. Distinct from the already-uploaded 1.4.1/1.4.3/1.4.4 names → no Play collision.
 **versionCode:** **43** — EAS auto-incremented 42→43 at build time ✅ (remote source).
-**EAS build (43):** https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/9862e850-02fb-43ff-965b-bb73f10606d5 — building 2026-06-13 from `aa68a8d`, remote keystore `dG1dqozJHO`.
+**EAS build (43):** https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/9862e850-02fb-43ff-965b-bb73f10606d5 — ✔ **Build finished** 2026-06-13, from `aa68a8d`, remote keystore `dG1dqozJHO`.
+**AAB artifact (43):** https://expo.dev/artifacts/eas/fIwyfIoZkz9oS6UBon-t5rtIRiY3y04JyrKPPgAz7Ow.aab — **this is the file to upload to the Alpha track (Hat-4).**
 
 ## What this build is
 
