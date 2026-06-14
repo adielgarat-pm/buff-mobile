@@ -14,6 +14,24 @@
 
 ## Implementation Notes
 
+### IN-2026-06-14-01: Two different "gamer" palettes coexist — the legacy `ThemeContext` gamer tokens (cyan/navy) are NOT what Gamer screens actually look like (violet/lime brand)
+
+- **תאריך:** 2026-06-14
+- **מקור:** CC — בהקשר של `sessions/buff-catch-game/` (chunk 1)
+- **תיאור:** ה-SPEC ביקש "ערכת נושא לפי הילד (ThemeContext — Mint/Gamer)". אבל `ThemeContext.GAMER` הוא ציאן על נייבי (`#22D3EE`/`#171C2E`), בעוד שכל מסכי ה-Gamer בפועל (Dashboard/Tasks/Stats/Me&Buddy) משתמשים בפלטת המותג סגול/ליים (`#A8E63E`/`#1a1636`, BUFF_BRAND §7.5) דרך קבוע `COLORS` מקומי, לא דרך ThemeContext. כלומר ה-ThemeContext gamer tokens הם למעשה legacy/לא-בשימוש במסכי הילד החדשים.
+- **השפעה:** כל פיצ'ר עתידי ש"קורא ThemeContext לגיימר" יקבל מראה ציאן שלא תואם את שאר האפליקציה. ב-BuffCatch בחרתי במכוון בפלטת סגול/ליים (אושר ע"י Adi 2026-06-14) להמשכיות חזותית. שווה לשקול לאחד: או לעדכן את ThemeContext.GAMER לטוקנים של המותג, או לתעד שמסכי גיימר משתמשים ב-`COLORS` המקומי ולא ב-ThemeContext.
+- **סטטוס:** `open`
+- **קשור ל:** `pkg/buff-catch-game`, BUFF_BRAND §7.5, `pkg/color-consolidation`
+
+### IN-2026-06-14-02: No client telemetry infrastructure exists — BUFF Catch's `buff_catch_played` shipped as a Sentry breadcrumb, server-side analytics deferred
+
+- **תאריך:** 2026-06-14
+- **מקור:** CC — בהקשר של `sessions/buff-catch-game/` (chunk 3)
+- **תיאור:** SPEC §10 ביקש event `buff_catch_played` כדי לבדוק את ההשערה "המשחקון מחזיר ילדים". אבל אין באפליקציה שום תשתית אנליטיקס client-side (אין טבלת events, אין helper `track`/`logEvent`). מימשתי טלמטריה קלה: breadcrumb של Sentry + console.log ב-dev (`src/lib/buffCatchTelemetry.ts`), בלי טבלה ובלי שינוי schema — נאמן ל"בלי schema/deps" של ה-SPEC. החיסרון: breadcrumb לא ניתן לתשאול ולכן לא באמת עונה על שאלת ה"חזרה".
+- **השפעה:** כדי לבדוק את השערת §10 צריך טבלה queryable per-child שמזינה את ה-Admin Tester Board. הצעה: `pkg/buff-catch-telemetry-table`.
+- **סטטוס:** `deferred`
+- **קשור ל:** `pkg/buff-catch-game`, Admin Tester Board (`memory/project_admin_tester_board.md`)
+
 ### IN-2026-06-13-02: Streak moved per-device → per-child, derived on read from daily_progress (fix B, resolves the IN-2026-06-13-01 FLAG)
 
 - **תאריך:** 2026-06-13

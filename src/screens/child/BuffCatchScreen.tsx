@@ -22,7 +22,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, AppState,
+  View, Text, StyleSheet, TouchableOpacity, Animated, AppState, ActivityIndicator,
   type LayoutChangeEvent,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -31,7 +31,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useMode } from '../../contexts/ModeContext';
+import { useBuffCatch } from '../../hooks/useBuffCatch';
 import type { RootStackParamList } from '../../navigation/types';
+
+// BUDDY end-of-round lines — warm body-double voice, no mention of score /
+// rewards / "play again or else" (kid microcopy rule + Pillar 2). One is
+// picked at random per round.
+const BUDDY_KEYS = ['buffCatch.buddy.a', 'buffCatch.buddy.b', 'buffCatch.buddy.c'];
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -102,10 +110,18 @@ export default function BuffCatchScreen() {
 
   const P = themeName === 'gamer' ? GAMER_PALETTE : MINT_PALETTE;
 
+  // View-as-child: best/plays live under the previewed child, never the parent.
+  const { profile } = useAuth();
+  const { previewChildId } = useMode();
+  const childId = previewChildId ?? profile?.id ?? null;
+  const { best, playsLeft, loading, consumePlay, saveResult } = useBuffCatch(childId);
+
   const [phase, setPhase]       = useState<Phase>('idle');
   const [score, setScore]       = useState(0);
   const [timeLeft, setTimeLeft] = useState(ROUND_MS / 1000);
   const [buffs, setBuffs]       = useState<Buff[]>([]);
+  const [result, setResult]     = useState<{ isNewBest: boolean; best: number } | null>(null);
+  const [buddyKey, setBuddyKey] = useState(BUDDY_KEYS[0]);
 
   // ── Refs (mutable game state read inside timer callbacks) ──────────────────
   const areaRef     = useRef({ w: 0, h: 0 });
@@ -117,6 +133,7 @@ export default function BuffCatchScreen() {
   const startAt     = useRef(0);
   const nextId      = useRef(0);
   const phaseRef    = useRef<Phase>('idle');
+  const scoreRef    = useRef(0); // source of truth read inside timer callbacks
 
   const setPhaseSafe = (p: Phase) => { phaseRef.current = p; setPhase(p); };
 
@@ -175,17 +192,24 @@ export default function BuffCatchScreen() {
     buffsRef.current = [];
     setBuffs([]);
     setTimeLeft(0);
+    setBuddyKey(BUDDY_KEYS[Math.floor(Math.random() * BUDDY_KEYS.length)]);
     setPhaseSafe('done');
+    // Persist best + fire telemetry off the ref (score state may be stale here).
+    void saveResult(scoreRef.current).then(setResult);
   };
 
   const startRound = () => {
+    if (playsLeft <= 0) return; // daily cap reached
     clearAllTimers();
     buffsRef.current = [];
     setBuffs([]);
+    scoreRef.current = 0;
     setScore(0);
+    setResult(null);
     setTimeLeft(ROUND_MS / 1000);
     startAt.current = Date.now();
     setPhaseSafe('playing');
+    void consumePlay(); // a started round consumes one of today's plays
 
     scheduleSpawn();
     roundTimer.current = setTimeout(endRound, ROUND_MS);
@@ -196,7 +220,8 @@ export default function BuffCatchScreen() {
   };
 
   const onCatch = (buff: Buff) => {
-    setScore(s => s + (buff.golden ? GOLDEN_POINTS : NORMAL_POINTS));
+    scoreRef.current += buff.golden ? GOLDEN_POINTS : NORMAL_POINTS;
+    setScore(scoreRef.current);
     removeBuff(buff.id);
   };
 
@@ -247,19 +272,44 @@ export default function BuffCatchScreen() {
 
       {/* ── IDLE ───────────────────────────────────────────────────────── */}
       {phase === 'idle' && (
-        <View style={styles.center}>
-          <Text style={styles.bigEmoji}>⚡</Text>
-          <Text style={[styles.ready, { color: P.text }]}>{t('buffCatch.ready')}</Text>
-          <TouchableOpacity
-            style={[styles.startBtn, { backgroundColor: P.accent }]}
-            activeOpacity={0.85}
-            onPress={startRound}
-            accessibilityRole="button"
-            accessibilityLabel={t('buffCatch.start')}
-          >
-            <Text style={[styles.startText, { color: P.accentText }]}>{t('buffCatch.start')}</Text>
-          </TouchableOpacity>
-        </View>
+        loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={P.accent} />
+          </View>
+        ) : playsLeft <= 0 ? (
+          // Daily cap reached — friendly, no pressure (SPEC §2.3 / Pillar 2).
+          <View style={styles.center}>
+            <Text style={styles.bigEmoji}>🌙</Text>
+            <Text style={[styles.ready, { color: P.text }]}>{t('buffCatch.capTitle')}</Text>
+            <Text style={[styles.capSub, { color: P.textMuted }]}>{t('buffCatch.capSub')}</Text>
+            {best > 0 && (
+              <Text style={[styles.bestLine, { color: P.textMuted }]}>
+                {t('buffCatch.bestLine', { best })}
+              </Text>
+            )}
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.secondaryBtn}>
+              <Text style={[styles.secondaryText, { color: P.textMuted }]}>{t('buffCatch.done')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.center}>
+            <Text style={styles.bigEmoji}>⚡</Text>
+            <Text style={[styles.ready, { color: P.text }]}>{t('buffCatch.ready')}</Text>
+            <TouchableOpacity
+              style={[styles.startBtn, { backgroundColor: P.accent }]}
+              activeOpacity={0.85}
+              onPress={startRound}
+              accessibilityRole="button"
+              accessibilityLabel={t('buffCatch.start')}
+            >
+              <Text style={[styles.startText, { color: P.accentText }]}>{t('buffCatch.start')}</Text>
+            </TouchableOpacity>
+            <Text style={[styles.metaLine, { color: P.textMuted }]}>
+              {best > 0 ? t('buffCatch.bestLine', { best }) + '  ·  ' : ''}
+              {t('buffCatch.playsLeft', { left: playsLeft })}
+            </Text>
+          </View>
+        )
       )}
 
       {/* ── PLAYING ─────────────────────────────────────────────────────── */}
@@ -271,21 +321,38 @@ export default function BuffCatchScreen() {
         </View>
       )}
 
-      {/* ── DONE (minimal placeholder — full end screen in chunk 3) ──────── */}
+      {/* ── DONE — score, personal best, BUDDY line, replay/exit ────────── */}
       {phase === 'done' && (
         <View style={styles.center}>
-          <Text style={styles.bigEmoji}>🎉</Text>
+          <Text style={styles.bigEmoji}>{result?.isNewBest ? '🏆' : '🎉'}</Text>
           <Text style={[styles.doneScore, { color: P.accent }]}>{score}</Text>
           <Text style={[styles.ready, { color: P.textMuted }]}>{t('buffCatch.roundScore')}</Text>
-          <TouchableOpacity
-            style={[styles.startBtn, { backgroundColor: P.accent }]}
-            activeOpacity={0.85}
-            onPress={startRound}
-            accessibilityRole="button"
-            accessibilityLabel={t('buffCatch.playAgain')}
-          >
-            <Text style={[styles.startText, { color: P.accentText }]}>{t('buffCatch.playAgain')}</Text>
-          </TouchableOpacity>
+
+          {result?.isNewBest ? (
+            <Text style={[styles.newBest, { color: P.golden }]}>{t('buffCatch.newBest')}</Text>
+          ) : (
+            <Text style={[styles.bestLine, { color: P.textMuted }]}>
+              {t('buffCatch.bestLine', { best: result?.best ?? best })}
+            </Text>
+          )}
+
+          {/* BUDDY presence line — warm, no pressure */}
+          <Text style={[styles.buddyLine, { color: P.text }]}>{t(buddyKey)}</Text>
+
+          {playsLeft > 0 ? (
+            <TouchableOpacity
+              style={[styles.startBtn, { backgroundColor: P.accent }]}
+              activeOpacity={0.85}
+              onPress={startRound}
+              accessibilityRole="button"
+              accessibilityLabel={t('buffCatch.playAgain')}
+            >
+              <Text style={[styles.startText, { color: P.accentText }]}>{t('buffCatch.playAgain')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={[styles.capSub, { color: P.textMuted }]}>{t('buffCatch.capSub')}</Text>
+          )}
+
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.secondaryBtn}>
             <Text style={[styles.secondaryText, { color: P.textMuted }]}>{t('buffCatch.done')}</Text>
           </TouchableOpacity>
@@ -367,6 +434,11 @@ const styles = StyleSheet.create({
   startText: { fontSize: 18, fontWeight: '900', letterSpacing: 0.5 },
   secondaryBtn:  { marginTop: 18, paddingVertical: 8, paddingHorizontal: 20 },
   secondaryText: { fontSize: 15, fontWeight: '700' },
+  capSub:    { fontSize: 15, textAlign: 'center', marginBottom: 12, lineHeight: 22 },
+  bestLine:  { fontSize: 15, fontWeight: '700', marginBottom: 8 },
+  metaLine:  { fontSize: 14, fontWeight: '600', marginTop: 18 },
+  newBest:   { fontSize: 18, fontWeight: '900', marginBottom: 8 },
+  buddyLine: { fontSize: 16, fontWeight: '700', textAlign: 'center', marginBottom: 28, marginTop: 4 },
 
   playArea: { flex: 1, position: 'relative' },
   buff: {
