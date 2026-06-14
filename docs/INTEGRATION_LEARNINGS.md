@@ -14,6 +14,33 @@
 
 ## Implementation Notes
 
+### IN-2026-06-14-03: A worktree under `.claude/worktrees/` can't be Hat-3 tested directly — `metro.config.js` blockList `/[\\/]\.claude[\\/]/` ignores the worktree's own root, so every bundle fails entry resolution
+
+- **תאריך:** 2026-06-14
+- **מקור:** CC — בהקשר של `sessions/buff-catch-game/` (Hat-3 verification attempt)
+- **תיאור:** ניסיתי `metro_acquire` מתוך ה-worktree (`...\.claude\worktrees\buff-catch-game`). Metro אכן עלה מושרש ב-worktree, אבל כל בקשת bundle החזירה `UnableToResolveError: Unable to resolve module ./index` — למרות ש-`index.ts` קיים. הסיבה: `metro.config.js` חוסם כל path שמכיל `\.claude\` (כדי לא לסרוק עשרות worktrees כשמריצים מ-main). כשמריצים מ*תוך* worktree, ה-root עצמו מכיל `.claude\worktrees\` → כל הקבצים שלו (כולל ה-entry) מסוננים → אין bundle.
+- **השפעה:** אי אפשר לאמת קוד של worktree לא-ממוזג ב-Hat-3 ישירות. אימות אינטראקטיבי על האמולטור חייב לרוץ מ-**main** (Metro מושרש ב-root הראשי, שאין בו `.claude` ב-path) — כלומר **אחרי merge**. עד אז: typecheck + מוקאפ עיצוב הם הראיה הזמינה. תיקון עתידי אפשרי (מחוץ לסקופ): לחדד את ה-blockList כך שיחריג רק worktrees *אחרים* ולא את ה-`__dirname` הנוכחי.
+- **סטטוס:** `open`
+- **קשור ל:** `metro.config.js`, buff-emulator/buff-testing skills, `docs/DEV_SERVER_LIFECYCLE.md`, `pkg/buff-catch-game`
+
+### IN-2026-06-14-01: Two different "gamer" palettes coexist — the legacy `ThemeContext` gamer tokens (cyan/navy) are NOT what Gamer screens actually look like (violet/lime brand)
+
+- **תאריך:** 2026-06-14
+- **מקור:** CC — בהקשר של `sessions/buff-catch-game/` (chunk 1)
+- **תיאור:** ה-SPEC ביקש "ערכת נושא לפי הילד (ThemeContext — Mint/Gamer)". אבל `ThemeContext.GAMER` הוא ציאן על נייבי (`#22D3EE`/`#171C2E`), בעוד שכל מסכי ה-Gamer בפועל (Dashboard/Tasks/Stats/Me&Buddy) משתמשים בפלטת המותג סגול/ליים (`#A8E63E`/`#1a1636`, BUFF_BRAND §7.5) דרך קבוע `COLORS` מקומי, לא דרך ThemeContext. כלומר ה-ThemeContext gamer tokens הם למעשה legacy/לא-בשימוש במסכי הילד החדשים.
+- **השפעה:** כל פיצ'ר עתידי ש"קורא ThemeContext לגיימר" יקבל מראה ציאן שלא תואם את שאר האפליקציה. ב-BuffCatch בחרתי במכוון בפלטת סגול/ליים (אושר ע"י Adi 2026-06-14) להמשכיות חזותית. שווה לשקול לאחד: או לעדכן את ThemeContext.GAMER לטוקנים של המותג, או לתעד שמסכי גיימר משתמשים ב-`COLORS` המקומי ולא ב-ThemeContext.
+- **סטטוס:** `open`
+- **קשור ל:** `pkg/buff-catch-game`, BUFF_BRAND §7.5, `pkg/color-consolidation`
+
+### IN-2026-06-14-02: No client telemetry infrastructure exists — BUFF Catch's `buff_catch_played` shipped as a Sentry breadcrumb, server-side analytics deferred
+
+- **תאריך:** 2026-06-14
+- **מקור:** CC — בהקשר של `sessions/buff-catch-game/` (chunk 3)
+- **תיאור:** SPEC §10 ביקש event `buff_catch_played` כדי לבדוק את ההשערה "המשחקון מחזיר ילדים". אבל אין באפליקציה שום תשתית אנליטיקס client-side (אין טבלת events, אין helper `track`/`logEvent`). מימשתי טלמטריה קלה: breadcrumb של Sentry + console.log ב-dev (`src/lib/buffCatchTelemetry.ts`), בלי טבלה ובלי שינוי schema — נאמן ל"בלי schema/deps" של ה-SPEC. החיסרון: breadcrumb לא ניתן לתשאול ולכן לא באמת עונה על שאלת ה"חזרה".
+- **השפעה:** כדי לבדוק את השערת §10 צריך טבלה queryable per-child שמזינה את ה-Admin Tester Board. הצעה: `pkg/buff-catch-telemetry-table`.
+- **סטטוס:** `deferred`
+- **קשור ל:** `pkg/buff-catch-game`, Admin Tester Board (`memory/project_admin_tester_board.md`)
+
 ### IN-2026-06-13-02: Streak moved per-device → per-child, derived on read from daily_progress (fix B, resolves the IN-2026-06-13-01 FLAG)
 
 - **תאריך:** 2026-06-13

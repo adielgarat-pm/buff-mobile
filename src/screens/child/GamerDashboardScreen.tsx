@@ -32,6 +32,7 @@ import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
 import { useChildStreak } from '../../hooks/useChildStreak';
+import { useBuffCatch } from '../../hooks/useBuffCatch';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
@@ -148,6 +149,8 @@ export default function GamerDashboardScreen() {
   const { settings, isPauseActive } = useAppSettings();
   const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const { relationship, setBuddyVisible, refetch: refetchBuddy } = useBuddyRelationship(childId);
+  // BUFF Catch entry-card stats (personal best + plays left today).
+  const { best: catchBest, playsLeft: catchPlaysLeft, reload: reloadCatch } = useBuffCatch(childId);
   // Refetch tasks/balance AND the buddy on focus — completing a task on the
   // Quests tab writes to a separate useChildData instance, so the dashboard's
   // copy is stale until we re-pull on return.
@@ -155,7 +158,8 @@ export default function GamerDashboardScreen() {
     refetchBuddy();
     refetchChildData();
     reloadPet(); // streak/XP may have advanced on the Quests tab's hook instance
-  }, [refetchBuddy, refetchChildData, reloadPet]));
+    void reloadCatch(); // refresh mini-game stats after a round
+  }, [refetchBuddy, refetchChildData, reloadPet, reloadCatch]));
   const welcomeBack = useWelcomeBack();
 
   // Daily Vibe Check — same wiring as PastelChildDashboard, gated by
@@ -348,6 +352,30 @@ export default function GamerDashboardScreen() {
           <Text style={styles.goalText}>{t('gamerDashboard.ignitionReached')}</Text>
         )}
       </View>
+
+      {/* BUFF Catch — daily mini-game entry card (full-screen on tap) */}
+      <TouchableOpacity
+        style={styles.catchCard}
+        onPress={() => navigation.navigate('BuffCatch')}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('buffCatch.entryTitle')}
+      >
+        <Text style={styles.catchEmoji}>⚡</Text>
+        <View style={styles.catchTextCol}>
+          <Text style={styles.catchTitle}>{t('buffCatch.entryTitle')}</Text>
+          <Text style={styles.catchSub}>
+            {catchPlaysLeft > 0
+              ? t('buffCatch.entryStats', { best: catchBest, left: catchPlaysLeft })
+              : t('buffCatch.capSub')}
+          </Text>
+        </View>
+        <View style={[styles.catchCta, { opacity: catchPlaysLeft > 0 ? 1 : 0.5 }]}>
+          <Text style={styles.catchCtaText}>
+            {catchPlaysLeft > 0 ? t('buffCatch.entryCta') : t('buffCatch.entryCtaTomorrow')}
+          </Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Low Power Mode banner — self-conditional (only renders when isLowPower) */}
       <LowPowerBanner palette={GAMER_LP_PALETTES.banner} />
@@ -584,4 +612,22 @@ const styles = StyleSheet.create({
   taskTitle:     { flex: 1, color: COLORS.text, fontSize: 14, fontWeight: '500' },
   taskTitleDone: { textDecorationLine: 'line-through', color: COLORS.textMuted },
   taskCredits:   { color: COLORS.lime, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+
+  catchCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 230, 62, 0.20)',
+  },
+  catchEmoji:   { fontSize: 28 },
+  catchTextCol: { flex: 1 },
+  catchTitle:   { color: COLORS.text, fontSize: 15, fontWeight: '800', marginBottom: 2 },
+  catchSub:     { color: COLORS.textMuted, fontSize: 12 },
+  catchCta:     { backgroundColor: COLORS.lime, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 8 },
+  catchCtaText: { color: COLORS.canvas, fontSize: 14, fontWeight: '800' },
 });

@@ -15,6 +15,7 @@ import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useChildStreak } from '../../hooks/useChildStreak';
+import { useBuffCatch } from '../../hooks/useBuffCatch';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
@@ -65,11 +66,14 @@ function PastelChildDashboard() {
   const { settings, isPauseActive } = useAppSettings();
   const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const welcomeBack = useWelcomeBack();
+  // BUFF Catch entry-card stats (personal best + plays left today).
+  const { best: catchBest, playsLeft: catchPlaysLeft, reload: reloadCatch } = useBuffCatch(childId);
 
   // Refetch on focus — completing a task on the Tasks tab writes to a separate
   // useChildData instance, so the dashboard's stat tiles are stale until we
-  // re-pull when the child navigates back here.
-  useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
+  // re-pull when the child navigates back here. Also refresh the mini-game
+  // stats so the card reflects a just-played round.
+  useFocusEffect(useCallback(() => { refetch(); void reloadCatch(); }, [refetch, reloadCatch]));
 
   // Daily Vibe Check — once per day, gated by Pause (Pause wins per SPEC
   // Scenario C). View-as-child IS the kid's actual interface on shared
@@ -219,6 +223,8 @@ function PastelChildDashboard() {
             setJustCompletedTask={setJustCompletedTask}
             totalBalance={totalBalance}
             navigation={navigation}
+            catchBest={catchBest}
+            catchPlaysLeft={catchPlaysLeft}
           />
           <InstantBuffCard palette={pastelLPPalettes.instantBuff} />
           <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
@@ -234,7 +240,7 @@ function PastelChildDashboard() {
 // stats row. Pure presentational — no hooks of its own.
 interface DashboardActiveContentProps {
   T: ReturnType<typeof useChildTheme>;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   doneTasks: number;
   totalTasks: number;
   fuelPct: number;
@@ -248,11 +254,14 @@ interface DashboardActiveContentProps {
   setJustCompletedTask: (v: boolean) => void;
   totalBalance: number;
   navigation: Nav;
+  catchBest: number;
+  catchPlaysLeft: number;
 }
 
 function DashboardActiveContent({
   T, t, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildViewer, isChildPreview,
   profileName, previewChildName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
+  catchBest, catchPlaysLeft,
 }: DashboardActiveContentProps) {
   return (
     <>
@@ -277,6 +286,30 @@ function DashboardActiveContent({
           </Text>
         </View>
       </View>
+
+      {/* BUFF Catch — daily mini-game entry card (full-screen on tap) */}
+      <TouchableOpacity
+        style={[styles.catchCard, { backgroundColor: T.card, borderColor: T.border }]}
+        onPress={() => navigation.navigate('BuffCatch')}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('buffCatch.entryTitle')}
+      >
+        <Text style={styles.catchEmoji}>⚡</Text>
+        <View style={styles.catchTextCol}>
+          <Text style={[styles.catchTitle, { color: T.foreground }]}>{t('buffCatch.entryTitle')}</Text>
+          <Text style={[styles.catchSub, { color: T.mutedForeground }]}>
+            {catchPlaysLeft > 0
+              ? t('buffCatch.entryStats', { best: catchBest, left: catchPlaysLeft })
+              : t('buffCatch.capSub')}
+          </Text>
+        </View>
+        <View style={[styles.catchCta, { backgroundColor: T.primary, opacity: catchPlaysLeft > 0 ? 1 : 0.5 }]}>
+          <Text style={[styles.catchCtaText, { color: T.primaryForeground }]}>
+            {catchPlaysLeft > 0 ? t('buffCatch.entryCta') : t('buffCatch.entryCtaTomorrow')}
+          </Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Virtual pet — Premium gate */}
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
@@ -373,6 +406,13 @@ const styles = StyleSheet.create({
   lockedPetSub:    { fontSize: 13, textAlign: 'center', marginBottom: 16, lineHeight: 18 },
   lockedPetCta:    { borderRadius: 10, paddingHorizontal: 20, paddingVertical: 8 },
   lockedPetCtaText: { fontSize: 13, fontWeight: '700' },
+  catchCard:     { borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  catchEmoji:    { fontSize: 30 },
+  catchTextCol:  { flex: 1 },
+  catchTitle:    { fontSize: 16, fontWeight: '800', marginBottom: 2 },
+  catchSub:      { fontSize: 13 },
+  catchCta:      { borderRadius: 12, paddingHorizontal: 18, paddingVertical: 8 },
+  catchCtaText:  { fontSize: 14, fontWeight: '800' },
   statsRow:      { flexDirection: 'row', gap: 10 },
   statCard:      { flex: 1, borderRadius: 12, padding: 14, borderWidth: 1, alignItems: 'center' },
   statEmoji:     { fontSize: 22, marginBottom: 6 },
