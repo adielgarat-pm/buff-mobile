@@ -179,7 +179,10 @@ export default function ParentDashboardScreen() {
       const has = new Set<string>();
       for (const row of data as { assigned_to: string; title: string | null; is_system_generated: boolean | null }[]) {
         const tl = (row.title ?? '').toLowerCase();
-        const isMed = tl.includes('תרופה') || tl.includes('medication');
+        // Match the stem "תרופ" — covers תרופה / תרופת (construct, as in our own
+        // two-dose titles + UGC like "נטילת תרופת ערב") / תרופות. Plain "תרופה"
+        // would miss the construct form. (Refines locked OQ7; flagged to Adi.)
+        const isMed = tl.includes('תרופ') || tl.includes('medication');
         if (!isMed) continue;
         const standalone =
           !!row.is_system_generated ||
