@@ -9,8 +9,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, SafeAreaView,
-} from 'react-native';
+  ActivityIndicator, } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -104,7 +104,7 @@ export default function ManageChildrenScreen() {
   const addChild = () => navigation.navigate('UStep1');
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={[styles.header, { flexDirection: rowDirection }]}>
         <TouchableOpacity

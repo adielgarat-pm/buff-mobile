@@ -2,8 +2,9 @@ import { useState } from 'react';
 import {
   View, Text, Image, TextInput, TouchableOpacity,
   ActivityIndicator, KeyboardAvoidingView,
-  Platform, Alert, ScrollView, SafeAreaView, StyleSheet,
+  Platform, Alert, ScrollView, StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -143,7 +144,7 @@ export default function ChildJoinScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Back link */}
       <TouchableOpacity
         style={styles.backBtn}
@@ -179,7 +180,7 @@ export default function ChildJoinScreen() {
               <Text style={styles.familyCodeLabel}>{t('auth.familyCodeLabel')}</Text>
               <TextInput
                 style={styles.familyCodeInput}
-                placeholder="ABC123"
+                placeholder={t('auth.familyCodePlaceholder')}
                 placeholderTextColor={TEXT_MUTED}
                 value={familyCode}
                 onChangeText={(v) => setFamilyCode(v.toUpperCase())}

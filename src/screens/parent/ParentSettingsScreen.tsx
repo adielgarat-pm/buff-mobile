@@ -2,7 +2,7 @@
  * Parent Settings — Zen Mode
  * Account, family management, mode switching, preferences.
  */
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert } from 'react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -36,7 +36,7 @@ interface SettingsRow {
 export default function ParentSettingsScreen() {
   const { t }        = useTranslation();
   const navigation   = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { profile, familyShortCode, signOut } = useAuth();
+  const { profile, familyShortCode, signOut, deleteAccount } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children } = useChildrenDashboard();
   const { isSubscribed, isLifetimeAccess, isGracePeriod } = useSubscription();
@@ -66,6 +66,31 @@ export default function ParentSettingsScreen() {
     }
   };
 
+  // In-app account deletion (Apple Guideline 5.1.1(v)). Two-tap destructive confirm.
+  // On success the auth state clears and the navigator returns to the login screen.
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('settings.deleteAccountTitle'),
+      t('settings.deleteAccountMessage'),
+      [
+        { text: t('settings.deleteAccountCancel'), style: 'cancel' },
+        {
+          text: t('settings.deleteAccountConfirm'),
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await deleteAccount();
+            if (error) {
+              Alert.alert(
+                t('settings.deleteAccountErrorTitle'),
+                t('settings.deleteAccountErrorMessage'),
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const SECTIONS: { title: string; rows: SettingsRow[] }[] = [
     {
       title: t('settings.sectionAccount'),
@@ -91,6 +116,7 @@ export default function ParentSettingsScreen() {
       rows: [
         { label: t('settings.rowAddChild'),       onPress: () => navigation.navigate('UStep1') },
         { label: t('settings.rowManageChildren'), onPress: () => navigation.navigate('ManageChildren') },
+        { label: t('settings.rowActivities'),     onPress: () => navigation.navigate('Activities') },
       ],
     },
     ...(children.length > 0
@@ -151,6 +177,7 @@ export default function ParentSettingsScreen() {
       title: t('settings.sectionDangerZone'),
       rows: [
         { label: t('settings.rowSignOut'), onPress: signOut, danger: true },
+        { label: t('settings.rowDeleteAccount'), onPress: handleDeleteAccount, danger: true },
       ],
     },
   ];
@@ -171,7 +198,7 @@ export default function ParentSettingsScreen() {
         </View>
         <View>
           <Text style={[styles.profileName, { color: T.text }]}>{profile?.display_name}</Text>
-          <Text style={[styles.profileRole, { color: T.textMuted }]}>Parent · BUFF Coach</Text>
+          <Text style={[styles.profileRole, { color: T.textMuted }]}>{t('settings.profileRole')}</Text>
         </View>
       </View>
 

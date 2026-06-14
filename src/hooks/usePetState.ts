@@ -78,6 +78,80 @@ function normalizePetState(raw: Record<string, unknown>): PetState {
   };
 }
 
+// ─── Task-completion logic (shared by the hook and the data layer) ────────────
+
+/**
+ * computeTaskCompletion — pure. Given the current pet state and the credits a
+ * task awarded, returns the next pet state: bumps the daily streak + evolution
+ * day once per calendar day (idempotent via the lastDate !== today guard),
+ * accrues XP/level on every call, and grants rest cards at 5-day milestones.
+ */
+function computeTaskCompletion(state: PetState, credits: number): PetState {
+  const today = getTodayKey();
+  const xp    = Math.max(5, Math.round(credits * 0.5));
+
+  let newStreak  = state.daily_streak;
+  let newEvoDays = state.evolution_days_count;
+  const lastDate = state.last_task_completion_date;
+
+  if (lastDate !== today) {
+    if (lastDate) {
+      const diffDays = Math.floor(
+        (new Date(today).getTime() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      newStreak = diffDays === 1
+        ? newStreak + 1
+        : state.daily_streak > 0 ? state.daily_streak + 1 : 1;
+    } else {
+      newStreak = 1;
+    }
+    newEvoDays += 1;
+  }
+
+  const newStage = getEvolutionStage(newEvoDays);
+  const newXp    = state.experience + xp;
+
+  let newLevel = state.level;
+  while (newLevel < MAX_LEVEL && newXp >= LEVEL_THRESHOLDS[newLevel]) newLevel++;
+
+  const prevCardMilestone = Math.floor(state.evolution_days_count / 5);
+  const newCardMilestone  = Math.floor(newEvoDays / 5);
+  const newRestCards = state.rest_cards_balance + Math.max(0, newCardMilestone - prevCardMilestone);
+
+  return {
+    ...state,
+    experience:                newXp,
+    level:                     newLevel,
+    energy_level:              Math.min(100, state.energy_level + 15),
+    last_interaction:          new Date().toISOString(),
+    evolution_stage:           newStage,
+    evolution_days_count:      newEvoDays,
+    daily_streak:              newStreak,
+    rest_cards_balance:        newRestCards,
+    last_task_completion_date: today,
+  };
+}
+
+/**
+ * applyTaskCompletionToPet — module-level entry point for the task-completion
+ * side-effect on the pet/streak state. Reads buff_pet_state from AsyncStorage,
+ * applies computeTaskCompletion, and writes it back. Called from the data layer
+ * (useChildData.completeTask) on a real incomplete→complete transition, so the
+ * daily streak advances no matter which screen completed the task.
+ *
+ * Per-device (AsyncStorage), not per-child. On shared devices (~65% of families,
+ * View-as-Child) this means one streak shared across siblings — tracked as a
+ * FLAG for a follow-up package that moves the streak to Supabase per child.
+ */
+export async function applyTaskCompletionToPet(credits: number): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem(PET_STATE_KEY);
+    const current = raw ? normalizePetState(JSON.parse(raw)) : { ...DEFAULT_PET_STATE };
+    const next = computeTaskCompletion(current, credits);
+    await AsyncStorage.setItem(PET_STATE_KEY, JSON.stringify(next));
+  } catch {}
+}
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function usePetState(defaultSkin?: string) {
@@ -199,51 +273,7 @@ export function usePetState(defaultSkin?: string) {
 
   // ── onTaskCompleted ───────────────────────────────────────────────────────
   const onTaskCompleted = useCallback(async (credits: number) => {
-    const today = getTodayKey();
-    const xp    = Math.max(5, Math.round(credits * 0.5));
-
-    let newStreak  = petState.daily_streak;
-    let newEvoDays = petState.evolution_days_count;
-    const lastDate = petState.last_task_completion_date;
-
-    if (lastDate !== today) {
-      if (lastDate) {
-        const diffDays = Math.floor(
-          (new Date(today).getTime() - new Date(lastDate).getTime()) / (1000 * 60 * 60 * 24)
-        );
-        newStreak = diffDays === 1
-          ? newStreak + 1
-          : petState.daily_streak > 0 ? petState.daily_streak + 1 : 1;
-      } else {
-        newStreak = 1;
-      }
-      newEvoDays += 1;
-    }
-
-    const newStage = getEvolutionStage(newEvoDays);
-    const evolved  = newStage !== petState.evolution_stage;
-    const newXp    = petState.experience + xp;
-
-    let newLevel = petState.level;
-    while (newLevel < MAX_LEVEL && newXp >= LEVEL_THRESHOLDS[newLevel]) newLevel++;
-
-    const prevCardMilestone = Math.floor(petState.evolution_days_count / 5);
-    const newCardMilestone  = Math.floor(newEvoDays / 5);
-    const newRestCards = petState.rest_cards_balance + Math.max(0, newCardMilestone - prevCardMilestone);
-    const restCardDepleted = newRestCards === 0 && petState.rest_cards_balance > 0;
-
-    const next: PetState = {
-      ...petState,
-      experience:                newXp,
-      level:                     newLevel,
-      energy_level:              Math.min(100, petState.energy_level + 15),
-      last_interaction:          new Date().toISOString(),
-      evolution_stage:           newStage,
-      evolution_days_count:      newEvoDays,
-      daily_streak:              newStreak,
-      rest_cards_balance:        newRestCards,
-      last_task_completion_date: today,
-    };
+    const next = computeTaskCompletion(petState, credits);
 
     await savePetState(next);
 
@@ -253,8 +283,32 @@ export function usePetState(defaultSkin?: string) {
       if (restTimerRef.current) clearTimeout(restTimerRef.current);
     }
 
-    return { leveledUp: newLevel > petState.level, newLevel, evolved, newStage, restCardDepleted };
+    return {
+      leveledUp:        next.level > petState.level,
+      newLevel:         next.level,
+      evolved:          next.evolution_stage !== petState.evolution_stage,
+      newStage:         next.evolution_stage,
+      restCardDepleted: next.rest_cards_balance === 0 && petState.rest_cards_balance > 0,
+    };
   }, [petState, savePetState, isResting]);
+
+  // ── reload ────────────────────────────────────────────────────────────────
+  // Re-read pet state from AsyncStorage. The streak/XP side-effect of completing
+  // a task is written by applyTaskCompletionToPet from the data layer (and can
+  // happen on a different screen's hook instance), so a dashboard that mounted
+  // earlier holds a stale copy. Dashboards call this from their focus effect.
+  const reload = useCallback(async () => {
+    try {
+      const raw = await AsyncStorage.getItem(PET_STATE_KEY);
+      if (!raw) return;
+      const parsed    = normalizePetState(JSON.parse(raw));
+      const processed = checkStreakOnLoad(parsed);
+      if (processed !== parsed) {
+        await AsyncStorage.setItem(PET_STATE_KEY, JSON.stringify(processed));
+      }
+      setPetState(processed);
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── recordInteraction ─────────────────────────────────────────────────────
   const recordInteraction = useCallback(async () => {
@@ -289,6 +343,7 @@ export function usePetState(defaultSkin?: string) {
     isResting,
     loading,
     onTaskCompleted,
+    reload,
     recordInteraction,
     changeSkin,
     xpProgress,

@@ -2,6 +2,7 @@ import { childRewardRedeemed, relativeTime } from '@/lib/cohort'
 import { challengeLabel, motivatorLabel } from '@/lib/labels'
 import { onboardingDiff } from '@/lib/onboardingDiff'
 import type { TesterChild, TesterFamily } from '@/lib/types'
+import { PlatformBadge } from './badges'
 
 function exportFamilyJson(f: TesterFamily) {
   const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' })
@@ -171,7 +172,10 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b bg-white px-5 py-4 rounded-t-xl">
           <div>
-            <h2 className="text-lg font-bold">{family.parent_name ?? family.name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold">{family.parent_name ?? family.name}</h2>
+              <PlatformBadge platform={family.platform} />
+            </div>
             <div className="text-sm text-muted-foreground">
               {family.parent_email && (
                 <span>

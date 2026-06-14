@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
-import { usePetState } from '../../hooks/usePetState';
+import { useChildStreak } from '../../hooks/useChildStreak';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
@@ -32,8 +32,10 @@ import { useIncomingSticker } from '../../hooks/useIncomingSticker';
 import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
+import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
+import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -118,10 +120,11 @@ function PastelChildDashboard() {
   const fuelPct    = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
   const atGoal     = fuelPct >= 70;
 
-  // Streak from pet state (AsyncStorage, per-device). Hidden when 0 to avoid
-  // a demotivating "0🔥" badge for new kids before their first task completion.
-  const { petState } = usePetState();
-  const streak = petState.daily_streak ?? 0;
+  // Streak is server-derived per child (migration 029, read from daily_progress)
+  // so it's correct on shared devices. The hook refetches on focus, so the badge
+  // reflects tasks completed on the Tasks tab when the child returns to HQ.
+  // Hidden when 0 to avoid a demotivating "0🔥" badge before the first completion.
+  const { streak } = useChildStreak(childId);
 
   if (loading) {
     return (
@@ -186,7 +189,7 @@ function PastelChildDashboard() {
       {/* Buffs total (from credit_vault) — visible even during pause to reassure */}
       <View style={[styles.buffsCard, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
         <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>{t('childDashboard.totalBuffs')}</Text>
-        <Text style={[styles.buffsCount, { color: T.buff }]}>{totalBalance.toLocaleString()}</Text>
+        <Text style={[styles.buffsCount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
         <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>{t('childDashboard.spendHint')}</Text>
       </View>
 
@@ -199,6 +202,7 @@ function PastelChildDashboard() {
       ) : (
         <>
           <LowPowerBanner palette={pastelLPPalettes.banner} />
+          <PackingCard childId={childId} />
           <DashboardActiveContent
             T={T}
             t={t}

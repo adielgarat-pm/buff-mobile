@@ -14,13 +14,13 @@
 
 import React, { useCallback, useMemo } from 'react';
 import {
-  SafeAreaView,
   SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -107,7 +107,7 @@ export default function NotificationFeedScreen() {
   // the unread-only model: it would empty the feed the instant it opened.)
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={['top']} style={styles.container}>
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity

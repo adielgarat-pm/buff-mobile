@@ -77,16 +77,16 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
   }
 }
 
-/** Relative time helper — short formatting in feed. */
-function relativeTime(createdAt: string, locale: 'he' | 'en'): string {
+/** Relative time helper — short formatting in feed (copy via t(), per i18n rules). */
+function relativeTime(createdAt: string, t: TFn, locale: 'he' | 'en'): string {
   const diffMs = Date.now() - new Date(createdAt).getTime();
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return locale === 'he' ? 'עכשיו' : 'just now';
-  if (minutes < 60) return locale === 'he' ? `${minutes} ד׳` : `${minutes}m`;
+  if (minutes < 1) return t('time.justNow');
+  if (minutes < 60) return t('time.minutesShort', { count: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return locale === 'he' ? `${hours} ש׳` : `${hours}h`;
+  if (hours < 24) return t('time.hoursShort', { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 7) return locale === 'he' ? `${days} י׳` : `${days}d`;
+  if (days < 7) return t('time.daysShort', { count: days });
   // For older items, the section header carries the date
   return new Date(createdAt).toLocaleDateString(locale);
 }
@@ -95,7 +95,7 @@ export const NotificationRow: React.FC<Props> = ({ notification, onPress }) => {
   const { t, i18n } = useTranslation();
   const locale = (i18n.language === 'he' ? 'he' : 'en') as 'he' | 'en';
   const body = bodyForType(notification, t as unknown as TFn);
-  const time = relativeTime(notification.created_at, locale);
+  const time = relativeTime(notification.created_at, t as unknown as TFn, locale);
   const iconName = iconForType(notification.type);
 
   return (

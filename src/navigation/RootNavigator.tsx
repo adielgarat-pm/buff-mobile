@@ -49,6 +49,8 @@ import ManageChildrenScreen  from '../screens/parent/ManageChildrenScreen';
 import EditChildScreen       from '../screens/parent/EditChildScreen';
 import CaptureScreen         from '../screens/parent/CaptureScreen';
 import ThisWeekScreen        from '../screens/parent/ThisWeekScreen';
+import ActivitiesScreen      from '../screens/parent/ActivitiesScreen';
+import ChildAddActivityScreen from '../screens/child/ChildAddActivityScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -174,6 +176,16 @@ export default function RootNavigator() {
             <Stack.Screen
               name="EditChild"
               component={EditChildScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="Activities"
+              component={ActivitiesScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="ChildAddActivity"
+              component={ChildAddActivityScreen}
               options={{ presentation: 'modal', headerShown: false }}
             />
             <Stack.Screen

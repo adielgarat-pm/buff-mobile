@@ -10,6 +10,7 @@ import {
 import { Linking, Platform } from 'react-native';
 import { User, Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
 import i18n from '../i18n';
@@ -57,7 +58,9 @@ interface AuthContextType {
     marketingConsent?: boolean
   ) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithApple: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<{ error: Error | null }>;
   refreshProfile: (userId?: string) => Promise<Profile | null>;
 }
 
@@ -379,6 +382,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Native Sign in with Apple (iOS only) — Apple Guideline 4.8 requires an
+  // Apple-equivalent option when third-party login (Google) is offered.
+  const signInWithApple = async (): Promise<{ error: Error | null }> => {
+    try {
+      const credential = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        return { error: new Error('No identity token returned from Apple') };
+      }
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+      return { error };
+    } catch (err) {
+      // User dismissed the native Apple sheet — not an error.
+      if ((err as { code?: string })?.code === 'ERR_REQUEST_CANCELED') {
+        return { error: null };
+      }
+      return { error: err instanceof Error ? err : new Error(String(err)) };
+    }
+  };
+
   const signUp = async (
     email: string,
     password: string,
@@ -508,6 +540,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFamilyShortCode(null);
   };
 
+  // Permanent in-app account deletion (Apple Guideline 5.1.1(v)). The RPC deletes
+  // the caller's account + data server-side (sole parent => whole family; co-parent
+  // => only this profile). On success the auth user no longer exists, so we clear
+  // local session state directly (a server-side signOut may fail and is ignored).
+  const deleteAccount = async (): Promise<{ error: Error | null }> => {
+    const { data, error } = await supabase.rpc('delete_my_account');
+    if (error) return { error };
+    const result = data as { success?: boolean; reason?: string } | null;
+    if (!result?.success) {
+      return { error: new Error(result?.reason ?? 'delete_failed') };
+    }
+    try { await supabase.auth.signOut(); } catch { /* auth user already gone */ }
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setFamilyShortCode(null);
+    return { error: null };
+  };
+
   const familyId = profile?.family_id ?? null;
 
   return (
@@ -522,7 +573,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signInWithGoogle,
+        signInWithApple,
         signOut,
+        deleteAccount,
         refreshProfile,
       }}
     >
