@@ -61,6 +61,9 @@ export type RootStackParamList = {
   // ── Buddy detail (5A Me & Buddy, stack-pushed from child app) ────────
   GamerMeAndBuddy: undefined;
 
+  // ── BUFF Catch mini-game (full-screen, pushed from dashboard card) ───
+  BuffCatch: undefined;
+
   // ── Parent notification feed (modal pushed above ParentApp) ──────────
   NotificationFeed: undefined;
 

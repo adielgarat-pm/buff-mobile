@@ -44,6 +44,7 @@ import FoundingHundredScreen from '../screens/FoundingHundredScreen';
 import PhilosophyScreen      from '../screens/parent/PhilosophyScreen';
 import NotificationSettingsScreen from '../screens/parent/NotificationSettingsScreen';
 import GamerMeAndBuddyScreen from '../screens/child/GamerMeAndBuddyScreen';
+import BuffCatchScreen from '../screens/child/BuffCatchScreen';
 import NotificationFeedScreen from '../screens/parent/NotificationFeedScreen';
 import ManageChildrenScreen  from '../screens/parent/ManageChildrenScreen';
 import EditChildScreen       from '../screens/parent/EditChildScreen';
@@ -118,6 +119,11 @@ export default function RootNavigator() {
               options={{ headerShown: false }}
             />
             <Stack.Screen
+              name="BuffCatch"
+              component={BuffCatchScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="Paywall"
               component={PaywallScreen}
               options={{ presentation: 'modal', headerShown: false }}
@@ -156,6 +162,11 @@ export default function RootNavigator() {
             <Stack.Screen
               name="GamerMeAndBuddy"
               component={GamerMeAndBuddyScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="BuffCatch"
+              component={BuffCatchScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen

@@ -278,6 +278,24 @@ function DashboardActiveContent({
         </View>
       </View>
 
+      {/* BUFF Catch — daily mini-game entry card (full-screen on tap) */}
+      <TouchableOpacity
+        style={[styles.catchCard, { backgroundColor: T.card, borderColor: T.border }]}
+        onPress={() => navigation.navigate('BuffCatch')}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('buffCatch.entryTitle')}
+      >
+        <Text style={styles.catchEmoji}>⚡</Text>
+        <View style={styles.catchTextCol}>
+          <Text style={[styles.catchTitle, { color: T.foreground }]}>{t('buffCatch.entryTitle')}</Text>
+          <Text style={[styles.catchSub, { color: T.mutedForeground }]}>{t('buffCatch.entrySubtitle')}</Text>
+        </View>
+        <View style={[styles.catchCta, { backgroundColor: T.primary }]}>
+          <Text style={[styles.catchCtaText, { color: T.primaryForeground }]}>{t('buffCatch.entryCta')}</Text>
+        </View>
+      </TouchableOpacity>
+
       {/* Virtual pet — Premium gate */}
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
         {isSubscribed ? (
@@ -373,6 +391,13 @@ const styles = StyleSheet.create({
   lockedPetSub:    { fontSize: 13, textAlign: 'center', marginBottom: 16, lineHeight: 18 },
   lockedPetCta:    { borderRadius: 10, paddingHorizontal: 20, paddingVertical: 8 },
   lockedPetCtaText: { fontSize: 13, fontWeight: '700' },
+  catchCard:     { borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  catchEmoji:    { fontSize: 30 },
+  catchTextCol:  { flex: 1 },
+  catchTitle:    { fontSize: 16, fontWeight: '800', marginBottom: 2 },
+  catchSub:      { fontSize: 13 },
+  catchCta:      { borderRadius: 12, paddingHorizontal: 18, paddingVertical: 8 },
+  catchCtaText:  { fontSize: 14, fontWeight: '800' },
   statsRow:      { flexDirection: 'row', gap: 10 },
   statCard:      { flex: 1, borderRadius: 12, padding: 14, borderWidth: 1, alignItems: 'center' },
   statEmoji:     { fontSize: 22, marginBottom: 6 },

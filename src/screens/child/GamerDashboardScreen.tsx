@@ -349,6 +349,24 @@ export default function GamerDashboardScreen() {
         )}
       </View>
 
+      {/* BUFF Catch — daily mini-game entry card (full-screen on tap) */}
+      <TouchableOpacity
+        style={styles.catchCard}
+        onPress={() => navigation.navigate('BuffCatch')}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={t('buffCatch.entryTitle')}
+      >
+        <Text style={styles.catchEmoji}>⚡</Text>
+        <View style={styles.catchTextCol}>
+          <Text style={styles.catchTitle}>{t('buffCatch.entryTitle')}</Text>
+          <Text style={styles.catchSub}>{t('buffCatch.entrySubtitle')}</Text>
+        </View>
+        <View style={styles.catchCta}>
+          <Text style={styles.catchCtaText}>{t('buffCatch.entryCta')}</Text>
+        </View>
+      </TouchableOpacity>
+
       {/* Low Power Mode banner — self-conditional (only renders when isLowPower) */}
       <LowPowerBanner palette={GAMER_LP_PALETTES.banner} />
 
@@ -584,4 +602,22 @@ const styles = StyleSheet.create({
   taskTitle:     { flex: 1, color: COLORS.text, fontSize: 14, fontWeight: '500' },
   taskTitleDone: { textDecorationLine: 'line-through', color: COLORS.textMuted },
   taskCredits:   { color: COLORS.lime, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+
+  catchCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 230, 62, 0.20)',
+  },
+  catchEmoji:   { fontSize: 28 },
+  catchTextCol: { flex: 1 },
+  catchTitle:   { color: COLORS.text, fontSize: 15, fontWeight: '800', marginBottom: 2 },
+  catchSub:     { color: COLORS.textMuted, fontSize: 12 },
+  catchCta:     { backgroundColor: COLORS.lime, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 8 },
+  catchCtaText: { color: COLORS.canvas, fontSize: 14, fontWeight: '800' },
 });
