@@ -16,7 +16,7 @@
 8/9 PASS, 1 ⚠️ managed — unchanged from SPEC §5. Confirmed in code: no economy read/write; not task-gated; misses score nothing (no negative/shaming state); daily cap + no streaks (anti-infinite-engagement); best only ever rises.
 
 ## Open follow-ups
-- **Interactive verification on emulator** (Hat 3 via buff-testing skill, or Adi's manual pass): both themes, golden buff, cap behavior, midnight reset, view-as-child stores under the right child.
+- **Interactive verification on emulator — BLOCKED until merge (environmental, not a code defect).** Hat-3 attempt 2026-06-14 found that a worktree under `.claude/worktrees/` can't be bundled: `metro.config.js` blockList ignores any `.claude/` path, including the worktree's own root → entry `index.ts` fails to resolve. Must verify from `main` (Metro rooted at the main repo) **after PR #238 merges**. See `INTEGRATION_LEARNINGS` IN-2026-06-14-03. To verify then: both themes, golden buff, cap behavior, midnight reset, view-as-child stores under the right child.
 - **Server-side telemetry (deferred by design):** §10's "does the game bring kids back?" hypothesis needs a queryable per-child table feeding the admin tester board. Deliberately NOT added here to keep the package schema-free (SPEC §7/§8). Proposed follow-up: `pkg/buff-catch-telemetry-table`.
 - **v2 (out of scope, per SPEC §4):** BUDDY-gift bonus round, cross-device best (profiles column), sound.
 - Push branch + open PR (pending Adi).
