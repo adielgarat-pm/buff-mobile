@@ -33,14 +33,17 @@ export interface AnchorRecoveryPromptModalProps {
    *  Phase 2: logs only. Phase 3: creates a Vibe Check task row. */
   onAddVibe:  (childId: string, childName: string) => void;
   /** Called when parent taps "Add Medication reminder" for a specific kid.
-   *  Phase 2: logs only. Phase 3: creates a standalone meds task row. */
+   *  Phase 3: opens the MedReminderSheet for that child. */
   onAddMeds:  (childId: string, childName: string) => void;
   /** Called when parent dismisses without picking either CTA. */
   onDismiss:  () => void;
+  /** OQ7 — return false to hide the meds CTA for a kid who already has a
+   *  standalone meds task. Defaults to always showing it. */
+  showMedsFor?: (childId: string) => boolean;
 }
 
 export default function AnchorRecoveryPromptModal({
-  visible, prompts, onAddVibe, onAddMeds, onDismiss,
+  visible, prompts, onAddVibe, onAddMeds, onDismiss, showMedsFor,
 }: AnchorRecoveryPromptModalProps) {
   const { t } = useTranslation();
 
@@ -91,16 +94,18 @@ export default function AnchorRecoveryPromptModal({
                 <Text style={styles.ctaPrimaryText}>{t('anchorRecovery.cta.vibe')}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[styles.ctaSecondary, { borderColor: T.accent }]}
-                onPress={() => onAddMeds(p.child_id, p.child_name)}
-                accessibilityRole="button"
-                accessibilityLabel={t('anchorRecovery.cta.meds.a11y', { name: p.child_name })}
-              >
-                <Text style={[styles.ctaSecondaryText, { color: T.accent }]}>
-                  {t('anchorRecovery.cta.meds')}
-                </Text>
-              </TouchableOpacity>
+              {(showMedsFor ? showMedsFor(p.child_id) : true) && (
+                <TouchableOpacity
+                  style={[styles.ctaSecondary, { borderColor: T.accent }]}
+                  onPress={() => onAddMeds(p.child_id, p.child_name)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('anchorRecovery.cta.meds.a11y', { name: p.child_name })}
+                >
+                  <Text style={[styles.ctaSecondaryText, { color: T.accent }]}>
+                    {t('anchorRecovery.cta.meds')}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           ))}
 

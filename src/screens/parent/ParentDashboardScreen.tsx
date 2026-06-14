@@ -34,6 +34,7 @@ import LinkChildModal from '../../components/LinkChildModal';
 import PauseBanner from '../../components/PauseBanner';
 import YesterdayRecapCard from '../../components/YesterdayRecapCard';
 import AnchorRecoveryPromptModal from './AnchorRecoveryPromptModal';
+import MedReminderSheet from './MedReminderSheet';
 import { useAnchorRecoveryPrompts } from '../../hooks/useAnchorRecoveryPrompts';
 import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
@@ -68,6 +69,13 @@ export default function ParentDashboardScreen() {
     loading:    anchorDismissLoading,
   } = useAnchorRecoveryDismiss(familyId ?? null);
   const [anchorModalVisible, setAnchorModalVisible] = useState(false);
+  // Phase 3 — Med reminder sheet, opened over the anchor modal from its meds
+  // CTA. Stacked (anchor modal stays mounted underneath) so cancelling the
+  // sheet returns to the recovery options without a re-open race.
+  const [medSheetTarget, setMedSheetTarget] = useState<{ childId: string; childName: string } | null>(null);
+  // Per-child set of kids who already have a standalone meds task — hides the
+  // meds CTA for them (OQ7). Reconciled heuristic: see the query effect below.
+  const [medsExistingFor, setMedsExistingFor] = useState<Set<string>>(new Set());
   // Yesterday's task completion per child — read-only section below "Today."
   // Beta-driven (Shani 2026-05-21); SPEC at docs/sessions/yesterday-recap/.
   const {
@@ -151,21 +159,58 @@ export default function ParentDashboardScreen() {
     setAnchorModalVisible(true);
   }, [anchorDismissLoading, anchorShownToday, anchorPrompts.length, anchorModalVisible]);
 
-  // Phase 2 wiring: CTAs LOG ONLY. Phase 3 will replace these with actual
-  // task creation (Vibe Check task / standalone meds task). All three
-  // handlers resolve the prompt (mark notifications as read) + mark
-  // shown-today (so it doesn't re-fire) + close the modal.
+  // OQ7 — determine which prompted kids already have a standalone meds task,
+  // so the meds CTA is hidden for them. Locked OQ7 = title contains "תרופה"
+  // AND NOT "ארוחת"/"בוקר"/"ערב". Reconciliation (flagged to Adi): that rule
+  // would mis-classify our OWN two-dose titles ("נטילת תרופת בוקר"/"...ערב")
+  // as non-standalone and re-suggest forever — so any is_system_generated meds
+  // task also counts as standalone. Parent-created bundles still follow OQ7.
+  const promptChildIds = anchorPrompts.map((p) => p.child_id).join(',');
+  useEffect(() => {
+    if (!promptChildIds) { setMedsExistingFor(new Set()); return; }
+    let cancelled = false;
+    (async () => {
+      const ids = promptChildIds.split(',');
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('assigned_to, title, is_system_generated')
+        .in('assigned_to', ids);
+      if (cancelled || error || !data) return;
+      const has = new Set<string>();
+      for (const row of data as { assigned_to: string; title: string | null; is_system_generated: boolean | null }[]) {
+        const tl = (row.title ?? '').toLowerCase();
+        const isMed = tl.includes('תרופה') || tl.includes('medication');
+        if (!isMed) continue;
+        const standalone =
+          !!row.is_system_generated ||
+          (!tl.includes('ארוחת') && !tl.includes('בוקר') && !tl.includes('ערב'));
+        if (standalone) has.add(row.assigned_to);
+      }
+      if (!cancelled) setMedsExistingFor(has);
+    })();
+    return () => { cancelled = true; };
+  }, [promptChildIds]);
+
+  // Vibe CTA — still Phase 2 (log only). Phase 4 wires the Vibe Check task.
   const handleAnchorAddVibe = (childId: string, childName: string) => {
-    if (__DEV__) console.log('[anchor-recovery] Phase 2: vibe CTA tapped', { childId, childName });
+    if (__DEV__) console.log('[anchor-recovery] vibe CTA tapped (Phase 4 pending)', { childId, childName });
     void resolveAnchorPrompts();
     void markAnchorShown();
     setAnchorModalVisible(false);
   };
+  // Meds CTA — Phase 3: open the smart-default sheet over the anchor modal.
+  // Resolution happens only on a successful save (handleMedsSaved), not here,
+  // so a parent who cancels the sheet still sees the recovery options.
   const handleAnchorAddMeds = (childId: string, childName: string) => {
-    if (__DEV__) console.log('[anchor-recovery] Phase 2: meds CTA tapped', { childId, childName });
+    setMedSheetTarget({ childId, childName });
+  };
+  const handleMedsSaved = (childName: string) => {
     void resolveAnchorPrompts();
     void markAnchorShown();
+    void refetch();
+    setMedSheetTarget(null);
     setAnchorModalVisible(false);
+    setInfoModal({ icon: '💊', message: t('medReminder.toast', { name: childName }) });
   };
   const handleAnchorDismiss = () => {
     void resolveAnchorPrompts();
@@ -625,13 +670,24 @@ export default function ParentDashboardScreen() {
 
       <DisclaimerFooter variant="short" />
 
-      {/* ── Anchor Recovery prompt (pkg/anchor-recovery Phase 2) ─────── */}
+      {/* ── Anchor Recovery prompt (pkg/anchor-recovery Phase 2/3) ───── */}
       <AnchorRecoveryPromptModal
         visible={anchorModalVisible}
         prompts={anchorPrompts}
         onAddVibe={handleAnchorAddVibe}
         onAddMeds={handleAnchorAddMeds}
         onDismiss={handleAnchorDismiss}
+        showMedsFor={(childId) => !medsExistingFor.has(childId)}
+      />
+
+      {/* ── Med reminder setup sheet (Phase 3) ───────────────────────── */}
+      <MedReminderSheet
+        visible={!!medSheetTarget}
+        childId={medSheetTarget?.childId ?? null}
+        childName={medSheetTarget?.childName ?? ''}
+        familyId={familyId ?? null}
+        onClose={() => setMedSheetTarget(null)}
+        onSaved={handleMedsSaved}
       />
 
       {/* ── Link child modal ─────────────────────────────────────────── */}
