@@ -5,11 +5,13 @@
  * Option B: "Yes — I'll do it later" → saves hasPhone=true, schedules notification reminder
  * Option C: "No — I'll show them on my device" → saves hasPhone=false
  *
- * NOTE: expo-notifications is not installed; the 24h notification is stubbed out.
- * Install expo-notifications and replace the TODO block to enable it.
+ * Option B schedules a local 24h reminder via expo-notifications (reuses the
+ * 'default' Android channel set up in notificationHandler.ts at app boot).
+ * Best-effort: proceeds even if permission is denied or scheduling fails.
  */
 import { View, Text, TouchableOpacity, Share, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +19,7 @@ import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { BUFF_URLS, buildJoinDeepLink } from '../../../lib/buffConfig';
+import { requestNotificationPermission } from '../../../lib/pushTokens';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep7_Phone'>;
 type Route = RouteProp<RootStackParamList, 'UStep7_Phone'>;
@@ -51,12 +54,28 @@ export default function UStep7_Phone() {
     goNext(true);
   };
 
-  const inviteLater = () => {
-    // TODO: schedule local push notification after 24h using expo-notifications:
-    //   await Notifications.scheduleNotificationAsync({
-    //     content: { title: "BUFF", body: t('onboarding.step7.reminderBody', { name: params.childName }) },
-    //     trigger: { seconds: 24 * 60 * 60 },
-    //   });
+  const inviteLater = async () => {
+    // Schedule a local reminder 24h out so the parent doesn't forget to connect
+    // the child. Best-effort: if permission is denied or scheduling throws, we
+    // still proceed — never trap the parent in onboarding.
+    try {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'BUFF',
+            body: t('onboarding.step7.reminderBody', { name: params.childName }),
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: 24 * 60 * 60,
+            channelId: 'default',
+          },
+        });
+      }
+    } catch (err) {
+      if (__DEV__) console.warn('[UStep7_Phone] reminder scheduling failed:', err);
+    }
     goNext(true);
   };
 
