@@ -6,6 +6,25 @@
 
 ---
 
+## 14 ביוני 2026 — BUDDY success definition + Pause fix
+
+### D-2026-06-14-01: "יום מוצלח" ל-BUDDY שונה מ-70% מכלל המשימות ל-3 משימות שהושלמו
+
+**ההחלטה:** הגדרת `is_successful_day` בפונקציית `compute_buddy_eod_for_child` שונתה מ-`completion_rate >= 0.70` (אחוז מכלל המשימות המוקצות) ל-`tasks_completed >= LEAST(3, tasks_assigned)` (ספירה מוחלטת קטנה, סף 3). בנוסף תוקן באג Pause: הפונקציה מכבדת Pause רק כל עוד `pause_until >= now()` (או NULL), כך שדגל תקוע לא מקפיא יותר את BUDDY; 2 דגלים תקועים נוקו. בוצע recompute של `is_successful_day`, `successful_days_count` ו-`friendship_level` מהנתונים האמיתיים (כולל נרמול שורת-דמו שהוזרקה ידנית ל-L5).
+
+**הסיבה:**
+- נתוני DB חי הראו שכמעט כל הילדים תקועים ב-friendship_level 1. ילדים פעילים נושאים חציון 9 (עד 20) משימות ביום, כך ש-70% ≈ 100% — בלתי-מושג, וזה הקפיא את מנוע ה-BUDDY ואת "always close to a win".
+- `daily_goal` נשקל כסף מתכוונן ונפסל — התברר שהוא יעד-BUFFs (ברירת מחדל 100), לא ספירת-משימות.
+- נפסלו: משימות-ליבה שההורה בוחר (חיכוך, אין ערך); גייט-50% ו"כל משימה=משחק" (פטרן Joon אקסטרינסי, PRD §3.2).
+- שומר על Pillar 1 (אנטי-פרפקציוניזם, ניצחון קרוב) ו-Pillar 2 (מאמץ אמיתי נספר; Pause מכובד נכון).
+
+**מסמכים מושפעים:**
+- `BUFF_VALUES.md` §Pillar 1 — הבהרת "70% = הצלחה" (this commit)
+- `docs/sessions/buddy-success-count/` — SPEC, STATUS, migration.sql (this commit)
+- DB חי (mobile project) — פונקציה + recompute, ללא build
+
+---
+
 ## 2 ביוני 2026 — Play Store branding
 
 ### D-2026-06-02-01: שם המפתח (Developer name) ב-Google Play שונה ל-"BUFF ADHD Studio"
