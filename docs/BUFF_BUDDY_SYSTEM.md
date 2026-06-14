@@ -425,4 +425,10 @@ Stitch בחר את השם. צריך להחליט:
 
 ---
 
+## Anchor Recovery is outside BUDDY (clarification)
+
+The Anchor Recovery flow (`pkg/anchor-recovery`) — inactivity detection → parent prompt → add a Vibe Check / medication anchor — is **parent-mediated, not BUDDY-mediated**. BUDDY has no role in it: it does not express sadness about a child's absence, does not nudge the child to return, and never surfaces the recovery prompt. The intervention lives entirely on the parent surface (ParentDashboard modal + medication-reminder sheet), keeping BUDDY's emotional model free of any loss/guilt mechanic (Pillar 2). _(Added per anchor-recovery SPEC_SYNC, Phase 3, 2026-06-14.)_
+
+---
+
 **סוף מסמך.**
