@@ -1,10 +1,12 @@
-# Release v1.6.0 (versionCode 44) — Manifest
+# Release v1.6.0 (versionCode TBD) — Manifest
 
-**Cut date:** 2026-06-14
+> ⛔ **BUILD BLOCKED (2026-06-15) — EAS Free-plan Android build quota exhausted this month** (resets **Wed Jul 01 2026**). Gate 0/1/2 all GREEN; the failure is account/billing only, not code. EAS incremented the remote versionCode **44 → 45 before** the quota check, so **45 is burned** (44 was already consumed by the 1.5.0 build). The next *successful* build will get **46+**. Awaiting Adi's decision: upgrade EAS plan (build now) vs wait until Jul 1. Folder/tag will be renamed to the real versionCode once the build succeeds.
+
+**Cut date:** 2026-06-14 (build attempted 2026-06-15)
 **Anchor (last promoted build):** 1.4.0 (versionCode 34), Alpha 2026-06-08
-**Branch:** pkg/release-44 (cut from `origin/main @ dc5b76a`)
+**Branch:** pkg/release-1.6.0 (cut from `origin/main @ dc5b76a`)
 **Track:** internal / Alpha
-**versionName:** 1.6.0 (minor bump — feature-heavy train) · **versionCode:** 44 (EAS remote auto-increment from 43)
+**versionName:** 1.6.0 (minor bump — feature-heavy train) · **versionCode:** pending next successful EAS build (44 & 45 burned)
 
 > **Version-history note (unreconciled — flagged to Adi, not resolved here):** `docs/RELEASE_QUEUE.md`
 > (last updated 2026-06-11) tops out at vc42/1.4.4. A separate `pkg/release-43` branch carries a
