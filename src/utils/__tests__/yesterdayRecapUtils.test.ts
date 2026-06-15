@@ -28,20 +28,21 @@ const YESTERDAY_DATE  = '2026-05-19';
 const YESTERDAY_DOW   = 2;  // Tuesday
 const YESTERDAY_END   = '2026-05-20T00:00:00.000Z';  // start of today (exclusive bound)
 
-const CHILD_A: ChildProfileRow = { id: 'child-a', created_at: '2026-05-01T08:00:00Z' };
-const CHILD_B: ChildProfileRow = { id: 'child-b', created_at: '2026-05-01T08:00:00Z' };
+const CHILD_A: ChildProfileRow = { id: 'child-a', created_at: '2026-05-01T08:00:00Z', off_routine_until: null };
+const CHILD_B: ChildProfileRow = { id: 'child-b', created_at: '2026-05-01T08:00:00Z', off_routine_until: null };
 
 function makeTask(overrides: Partial<TaskRow> = {}): TaskRow {
   return {
-    id:            'task-1',
-    family_id:     'fam-1',
-    assigned_to:   CHILD_A.id,
-    title:         'Brush teeth',
-    time:          '07:00',
-    category:      'self-care',
-    icon:          null,
-    schedule_days: [0, 1, 2, 3, 4, 5, 6],
-    created_at:    '2026-05-01T08:00:00Z',
+    id:             'task-1',
+    family_id:      'fam-1',
+    assigned_to:    CHILD_A.id,
+    title:          'Brush teeth',
+    time:           '07:00',
+    category:       'self-care',
+    icon:           null,
+    schedule_days:  [0, 1, 2, 3, 4, 5, 6],
+    created_at:     '2026-05-01T08:00:00Z',
+    is_off_routine: false,
     ...overrides,
   };
 }
@@ -135,6 +136,12 @@ describe('isTaskEligibleForChild', () => {
   test('schedule_days empty array → defaults to all 7 days, included', () => {
     const t = makeTask({ schedule_days: [] });
     expect(isTaskEligibleForChild(t, CHILD_A.id, YESTERDAY_DOW, YESTERDAY_END)).toBe(true);
+  });
+
+  test('off-routine task → excluded (would otherwise show as a phantom ○)', () => {
+    // Same row that would pass every other rule, but flagged off-routine.
+    const t = makeTask({ is_off_routine: true });
+    expect(isTaskEligibleForChild(t, CHILD_A.id, YESTERDAY_DOW, YESTERDAY_END)).toBe(false);
   });
 });
 
@@ -253,6 +260,38 @@ describe('buildChildYesterdayRecap', () => {
     expect(recap).not.toBeNull();
     expect(recap!.totalScheduled).toBe(0);
     expect(recap!.tasks).toEqual([]);
+  });
+
+  test('off-routine tasks never appear in the recap', () => {
+    const tasks = [
+      makeTask({ id: 't1', title: 'Brush teeth' }),
+      makeTask({ id: 'off1', title: 'Off-routine chill', is_off_routine: true }),
+    ];
+
+    const recap = buildChildYesterdayRecap({ ...baseParams, child: CHILD_A, tasks, dailyProgress: [] });
+
+    expect(recap!.totalScheduled).toBe(1);
+    expect(recap!.tasks.map(t => t.taskId)).toEqual(['t1']);
+  });
+
+  test('child CURRENTLY on an off-routine day → null (suppressed, no false signal)', () => {
+    // off_routine_until in the future relative to NOW → active window.
+    const child: ChildProfileRow = { ...CHILD_A, off_routine_until: '2026-05-21T00:00:00Z' };
+    const tasks  = [makeTask({ assigned_to: child.id })];
+
+    const recap = buildChildYesterdayRecap({ ...baseParams, child, tasks, dailyProgress: [], now: NOW });
+
+    expect(recap).toBeNull();
+  });
+
+  test('child with a STALE off-routine window (past) → recap shown normally', () => {
+    const child: ChildProfileRow = { ...CHILD_A, off_routine_until: '2026-05-01T00:00:00Z' };
+    const tasks  = [makeTask({ assigned_to: child.id })];
+
+    const recap = buildChildYesterdayRecap({ ...baseParams, child, tasks, dailyProgress: [], now: NOW });
+
+    expect(recap).not.toBeNull();
+    expect(recap!.totalScheduled).toBe(1);
   });
 });
 

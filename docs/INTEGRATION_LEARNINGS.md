@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-06-15-01: Off-Routine tasks leaked into parent views as phantom incompletes — exit never cleaned them up + 3 read surfaces forgot the filter
+
+- **תאריך:** 2026-06-15
+- **מקור:** CC — בהקשר של `pkg/off-routine-leak-fix` (התיקון הקבוע, אחרי ניקוי הדאטה החד-פעמי ב-`fix/off-routine-orphan-cleanup` / #241)
+- **תיאור:** הסימפטום שדיווח עליו Adi: תצוגת "אתמול" אצל ההורה הראתה 6 משימות off-routine כ-○ (לא-הושלמו) שמעולם לא היו חלק מהשגרה של אותו יום. שני שורשים:
+  1. **יציאה מ-off-routine לא ניקתה כלום** — `OffRoutineCard.apply('off')` רק איפס את `off_routine_until`, והשורות `is_off_routine=true` נשארו חיות לנצח (19 יתומים שנוקו ב-#241). אין job של תפוגה שמנקה אותן.
+  2. **שלושה משטחי-קריאה הוריים שכחו לסנן** — `useChildrenDashboard` + `useChildProgress` (סיכומי "היום") ו-`useYesterdayRecap`/`yesterdayRecapUtils` (העבר) שלפו `tasks` בלי תנאי `is_off_routine`. **אפליקציית הילד דווקא הייתה תקינה** — `useChildData` כבר עושה partition נכון (`isOffRoutineActive` → מציג רק את הקבוצה הרלוונטית).
+  - הערה שהפתיעה: **`src/lib/taskScheduling.ts` שה-brief הניח שקיים — לא קיים.** כל לוגיקת רשימת המשימות יושבת ב-hooks, לא ב-lib נפרד.
+  - התיקון: util משותף `isTaskInActivePlan` (offRoutineUtils) כמקור-אמת יחיד לכל "מה הילד רואה עכשיו", מנותב דרך 3 ה-hooks; ה-recap מחריג off-routine מה-sieve; ו-RPC אטומי `exit_off_routine(p_child_id)` (SECURITY DEFINER + שמירת הורה-באותה-משפחה) שמוחק את שורות ה-off-routine **ומאפס** את הדגל בטרנזקציה אחת. כניסה מחדש זורעת מחדש (idempotent).
+- **השפעה / מגבלה מודעת (Decision A של Adi):** המודל שומר רק `off_routine_until` (סוף החלון), בלי start/היסטוריה → **אי אפשר לשחזר אם *אתמול ספציפית* היה יום off-routine.** בחרנו לחקות את Pause V1: מחריגים off-routine מה-recap תמיד, ובנוסף **מסתירים את כרטיס הילד אם יש לו חלון off-routine *פעיל כרגע*** (`buildChildYesterdayRecap` מחזיר null). מגבלה שנשארת: חלון שהסתיים *בדיוק* בגבול אתמול→היום יציג את משימות השגרה של אתמול כ"לא-בוצעו" (נדיר; שחזור היסטורי מדויק = `off_routine_started_at` עתידי, deferred). אומת חי: ה-RPC כהורה מדומה → `off_routine_tasks_left=0, off_routine_until_is_null=true`; guard כקורא לא-מורשה → `insufficient_privilege`. 43 בדיקות util ירוקות; הסוויטה המלאה 400/401 (כשל יחיד = timeout עומס ב-`EditChildScreen`, עובר בבידוד). נשארו ב-DB **2 חותמות `off_routine_until` ישנות (past, inert)** — לא דליפה (0 משימות off-routine), ינוקו ב-toggle-off הבא.
+- **סטטוס:** `resolved` (מגבלת השחזור ההיסטורי: `deferred`)
+- **קשור ל:** `pkg/off-routine-leak-fix`, `fix/off-routine-orphan-cleanup` (#241), migration `030_off_routine_exit_rpc`, `src/utils/offRoutineUtils.ts`, `src/utils/yesterdayRecapUtils.ts`, `memory/project_editchild_rls_blocks_owndevice.md` (אותה מחלקת RLS שה-SECURITY DEFINER עוקף)
+
 ### IN-2026-06-14-03: A worktree under `.claude/worktrees/` can't be Hat-3 tested directly — `metro.config.js` blockList `/[\\/]\.claude[\\/]/` ignores the worktree's own root, so every bundle fails entry resolution
 
 - **תאריך:** 2026-06-14

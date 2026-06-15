@@ -77,13 +77,13 @@ export function useYesterdayRecap(): UseYesterdayRecapResult {
       const [childrenRes, tasksRes, progressRes] = await Promise.all([
         supabase
           .from('profiles')
-          .select('id, created_at')
+          .select('id, created_at, off_routine_until')
           .eq('family_id', familyId)
           .eq('role', 'child')
           .eq('is_deleted', false),
         supabase
           .from('tasks')
-          .select('id, family_id, assigned_to, title, time, category, icon, schedule_days, created_at')
+          .select('id, family_id, assigned_to, title, time, category, icon, schedule_days, created_at, is_off_routine')
           .eq('family_id', familyId),
         supabase
           .from('daily_progress')
