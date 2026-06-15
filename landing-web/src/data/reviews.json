@@ -1,0 +1,22 @@
+[
+  {
+    "id": "t003",
+    "display_name": "נועה מורג",
+    "display_name_en": "Noa Morag",
+    "rating": 5,
+    "review_text": "🌙 הולכים לישון בקלות, ✅ המשימות הושלמו, 💤 התארגנות רגועה בערב, 🔥 מוטיבציה! — האפליקציה עוזרת מאוד למיקוד ועזרה בביצוע המשימות השונות במשך היום, היא עושה את זה בצורה התורמת לתחושת המסוגלות ומחזקת את תחושת הערך העצמית.\n\nהעובדה שהיא בנויה בצורה המזכירה משחק המאפשר זכיה בבונוסים ופרסים תורמת להצלחה שלו וגורמת לילד לרצות להשתמש באפליקציה.",
+    "detected_lang": "he",
+    "translated_text_en": "🌙 Easy bedtime, ✅ Tasks completed, 💤 Relaxed evening routine, 🔥 Motivation! — The app is very helpful for focus and assisting with completing various tasks throughout the day. It contributes to a sense of capability and strengthens self-esteem.\n\nThe fact that it's designed like a game, allowing for bonuses and rewards, contributes to its success and makes children want to use the app.",
+    "created_at": "2026-03-15"
+  },
+  {
+    "id": "t002",
+    "display_name": "שני",
+    "display_name_en": "Shani",
+    "rating": 5,
+    "review_text": "✅ המשימות הושלמו, 🌙 הולכים לישון בקלות, 💤 התארגנות רגועה בערב, ✍️ למידה בלי ויכוחים",
+    "detected_lang": "he",
+    "translated_text_en": "✅ Tasks completed, 🌙 sleeping easily, 💤 relaxed evening routine, ✍️ learning without arguments",
+    "created_at": "2026-03-16"
+  }
+]
