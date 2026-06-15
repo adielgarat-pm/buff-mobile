@@ -98,6 +98,7 @@ const HEBREW_ALLOWLIST = new Set<string>([
   'types/activities.ts',                                    // bilingual {en,he} weekday labels (#229)
   'lib/packingTemplates/catalog.ts',                        // bilingual {en,he} packing-template seed (#228)
   'hooks/useParentInsights.ts',                             // matches Hebrew task titles (data, not copy)
+  'screens/parent/ParentDashboardScreen.tsx',               // medication-detection keyword match on task titles (data, not copy) — #239 OQ7
   'screens/child/ChildSettingsScreen.tsx',                  // 'עברית' picker label
   'screens/parent/ParentSettingsScreen.tsx',                // 'עברית' picker label
   'screens/parent/EditChildScreen.tsx',                     // 'עברית' picker label
