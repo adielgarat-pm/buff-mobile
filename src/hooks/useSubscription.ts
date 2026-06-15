@@ -44,7 +44,7 @@ export function useSubscription() {
     // iOS Phase 1: RevenueCat is never configured (see initRevenueCat's iOS guard), so
     // calling Purchases.* here would error. iOS users are already entitled via the
     // paywall-hidden branch, so there is nothing to fetch — skip. Remove in Phase 2.
-    if (Platform.OS === 'ios') return;
+    if (Platform.OS === 'ios' || Platform.OS === 'web') return;
     try {
       const [subscribed, founding, info] = await Promise.all([
         getIsSubscribed(),
@@ -96,7 +96,11 @@ export function useSubscription() {
   // iOS tester is treated as entitled — this hides all paywall CTAs and unlocks the
   // premium features for the free beta. REMOVE this branch in Phase 2 when Apple IAP
   // lands (see pkg/ios-testflight plan + purchaseService.initRevenueCat iOS guard).
-  const iosPaywallHidden = Platform.OS === 'ios';
+  // iOS (Phase 1) and Web have no IAP wired, so RevenueCat is never configured on
+  // those platforms (see initRevenueCat). Treat both as entitled — hides paywall
+  // CTAs and unlocks premium for the beta. REMOVE the iOS half in Phase 2 (Apple IAP);
+  // the web half stays until web billing exists.
+  const noIapPaywallHidden = Platform.OS === 'ios' || Platform.OS === 'web';
 
   const isSubscribed =
     isLifetimeAccess ||
@@ -104,7 +108,7 @@ export function useSubscription() {
     isGracePeriod    ||
     rcSubscribed     ||
     rcFounding       ||
-    iosPaywallHidden;
+    noIapPaywallHidden;
 
   const childCount   = children.length;
   const needsUpgrade = !isSubscribed && childCount >= FREE_CHILD_LIMIT;
