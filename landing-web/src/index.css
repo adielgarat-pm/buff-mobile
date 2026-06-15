@@ -1,0 +1,988 @@
+/* BUFF Brand Fonts - Bold modern sans-serif for headings */
+/* Heebo for Hebrew - modern geometric sans-serif */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Heebo:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ========================================
+     BASE THEME (Light Default)
+     Clean and accessible foundation
+     ======================================== */
+  :root {
+    /* Pure White Background - #FFFFFF */
+    --background: 0 0% 100%;
+    --foreground: 220 13% 26%;
+
+    /* Clean White Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 26%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 26%;
+
+    /* Soft Pastel Purple - Primary - #A78BFA */
+    --primary: 258 73% 76%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Light Grey Secondary */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 26%;
+
+    /* Soft Muted */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Soft Mint/Teal - Accent - #6EE7B7 */
+    --accent: 156 64% 67%;
+    --accent-foreground: 220 13% 18%;
+
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Soft Mint - Success states - #6EE7B7 */
+    --success: 156 64% 67%;
+    --success-foreground: 220 13% 18%;
+
+    --warning: 38 70% 60%;
+    --warning-foreground: 220 13% 18%;
+
+    /* Soft Mint for buffs */
+    --buff: 156 64% 67%;
+    --buff-foreground: 220 13% 18%;
+
+    /* Soft Coral for streaks - #FCA5A5 */
+    --streak: 0 91% 82%;
+    --streak-foreground: 220 13% 18%;
+
+    /* Soft Pastel Purple for rewards */
+    --reward: 258 73% 76%;
+    --reward-foreground: 0 0% 100%;
+
+    /* Soft Borders */
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 258 73% 76%;
+
+    --radius: 0.75rem;
+
+    /* Category colors - 5-Category System (Soft Pastels) */
+    --learning: 217 60% 70%;
+    --organization: 25 70% 70%;
+    --self-care: 330 50% 75%;
+    --responsibility: 258 50% 75%;
+    --movement: 156 50% 60%;
+
+    /* Gradients - Very Subtle and Soft */
+    --gradient-primary: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+    --gradient-success: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 60%), hsl(156, 64%, 67%), hsl(156, 70%, 72%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(40, 20%, 98%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.08), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+
+    /* Shadows - Very Soft */
+    --shadow-glow: 0 2px 8px hsl(258, 73%, 76%, 0.12);
+    --shadow-buff-glow: 0 2px 10px hsl(156, 64%, 67%, 0.15);
+    --shadow-buff-glow-intense: 0 4px 16px hsl(156, 64%, 67%, 0.2);
+    --shadow-reward-glow: 0 2px 8px hsl(258, 73%, 76%, 0.15);
+    --shadow-card: 0 1px 3px hsl(220, 13%, 26%, 0.04), 0 2px 8px hsl(220, 13%, 26%, 0.06);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 13% 26%;
+    --sidebar-primary: 258 73% 76%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 13% 26%;
+    --sidebar-border: 220 13% 90%;
+    --sidebar-ring: 258 73% 76%;
+  }
+
+  /* ========================================
+     CHILD PLAYFUL THEME
+     Soft Mint Background with Playful Vibes
+     (No dark mode, no neon - kid-friendly)
+     ======================================== */
+  .theme-child-playful {
+    /* Soft Mint Background - #DCFCE7 */
+    --background: 142 77% 93%;
+    --foreground: 220 13% 20%;
+
+    /* White Cards with slight mint tint */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 20%;
+
+    /* Pastel Purple - Primary - #E9D5FF */
+    --primary: 270 67% 92%;
+    --primary-foreground: 258 50% 40%;
+
+    /* Soft White Secondary */
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 220 13% 26%;
+
+    /* Soft Muted */
+    --muted: 142 40% 90%;
+    --muted-foreground: 220 9% 40%;
+
+    /* Pastel Purple Accent */
+    --accent: 258 73% 76%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Soft Green - Success states */
+    --success: 156 64% 55%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 70% 60%;
+    --warning-foreground: 220 13% 18%;
+
+    /* Pastel Purple for buffs (reward feel) */
+    --buff: 258 73% 76%;
+    --buff-foreground: 0 0% 100%;
+
+    /* Soft Coral for streaks */
+    --streak: 0 80% 75%;
+    --streak-foreground: 0 0% 100%;
+
+    /* Pastel Purple for rewards */
+    --reward: 258 73% 76%;
+    --reward-foreground: 0 0% 100%;
+
+    /* Soft Borders */
+    --border: 142 30% 85%;
+    --input: 142 30% 90%;
+    --ring: 258 73% 76%;
+
+    --radius: 1rem;
+
+    /* Category colors - Playful Pastels */
+    --learning: 217 70% 65%;
+    --organization: 25 80% 65%;
+    --self-care: 330 60% 70%;
+    --responsibility: 258 60% 70%;
+    --movement: 156 60% 50%;
+
+    /* Playful Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270, 67%, 92%), hsl(258, 73%, 76%));
+    --gradient-success: linear-gradient(135deg, hsl(156, 64%, 55%), hsl(156, 55%, 50%));
+    --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 50%), hsl(156, 64%, 55%), hsl(156, 70%, 60%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(142, 40%, 96%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.12), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(270, 67%, 85%));
+    --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+
+    /* Soft Shadows */
+    --shadow-glow: 0 2px 12px hsl(258, 73%, 76%, 0.2);
+    --shadow-buff-glow: 0 4px 16px hsl(258, 73%, 76%, 0.25);
+    --shadow-buff-glow-intense: 0 6px 24px hsl(258, 73%, 76%, 0.3);
+    --shadow-reward-glow: 0 2px 12px hsl(258, 73%, 76%, 0.2);
+    --shadow-card: 0 2px 8px hsl(220, 13%, 26%, 0.06), 0 4px 16px hsl(220, 13%, 26%, 0.04);
+
+    --sidebar-background: 142 77% 93%;
+    --sidebar-foreground: 220 13% 20%;
+    --sidebar-primary: 258 73% 76%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 100%;
+    --sidebar-accent-foreground: 220 13% 26%;
+    --sidebar-border: 142 30% 85%;
+    --sidebar-ring: 258 73% 76%;
+  }
+
+  /* ========================================
+     CHILD GAMER THEME
+     Dark, neon, energetic — for kids who want a gaming feel
+     ======================================== */
+  .theme-child-gamer {
+    /* Deep Dark Background */
+    --background: 230 25% 12%;
+    --foreground: 210 20% 90%;
+
+    /* Dark Cards */
+    --card: 230 20% 16%;
+    --card-foreground: 210 20% 90%;
+
+    --popover: 230 20% 16%;
+    --popover-foreground: 210 20% 90%;
+
+    /* Cyan Neon Primary */
+    --primary: 185 80% 55%;
+    --primary-foreground: 230 25% 10%;
+
+    /* Dark Secondary */
+    --secondary: 230 20% 20%;
+    --secondary-foreground: 210 20% 85%;
+
+    /* Muted Dark */
+    --muted: 230 15% 20%;
+    --muted-foreground: 210 10% 55%;
+
+    /* Violet Accent */
+    --accent: 270 70% 65%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Neon Green Success */
+    --success: 145 80% 50%;
+    --success-foreground: 230 25% 10%;
+
+    --warning: 38 80% 55%;
+    --warning-foreground: 230 25% 10%;
+
+    /* Cyan for buffs */
+    --buff: 185 80% 55%;
+    --buff-foreground: 230 25% 10%;
+
+    /* Orange-Red Streak */
+    --streak: 15 90% 60%;
+    --streak-foreground: 0 0% 100%;
+
+    /* Violet for rewards */
+    --reward: 270 70% 65%;
+    --reward-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 230 15% 22%;
+    --input: 230 15% 22%;
+    --ring: 185 80% 55%;
+
+    --radius: 1rem;
+
+    /* Category colors — Neon */
+    --learning: 217 80% 60%;
+    --organization: 25 90% 60%;
+    --self-care: 330 70% 60%;
+    --responsibility: 270 70% 65%;
+    --movement: 145 70% 50%;
+
+    /* Gamer Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(185, 80%, 55%), hsl(270, 70%, 65%));
+    --gradient-success: linear-gradient(135deg, hsl(145, 80%, 50%), hsl(185, 80%, 55%));
+    --gradient-xp: linear-gradient(90deg, hsl(185, 80%, 40%), hsl(185, 80%, 55%), hsl(145, 80%, 50%));
+    --gradient-card: linear-gradient(180deg, hsl(230, 20%, 16%), hsl(230, 25%, 14%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(185, 80%, 55%, 0.15), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(185, 80%, 55%), hsl(185, 70%, 45%));
+    --gradient-reward: linear-gradient(135deg, hsl(270, 70%, 65%), hsl(270, 60%, 55%));
+
+    /* Neon Shadows */
+    --shadow-glow: 0 2px 16px hsl(185, 80%, 55%, 0.25);
+    --shadow-buff-glow: 0 4px 20px hsl(185, 80%, 55%, 0.3);
+    --shadow-buff-glow-intense: 0 6px 28px hsl(185, 80%, 55%, 0.4);
+    --shadow-reward-glow: 0 2px 16px hsl(270, 70%, 65%, 0.3);
+    --shadow-card: 0 2px 10px hsl(0, 0%, 0%, 0.3), 0 4px 20px hsl(0, 0%, 0%, 0.2);
+
+    --sidebar-background: 230 25% 12%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 185 80% 55%;
+    --sidebar-primary-foreground: 230 25% 10%;
+    --sidebar-accent: 230 20% 20%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 230 15% 22%;
+    --sidebar-ring: 185 80% 55%;
+  }
+
+  /* ========================================
+     PARENT ZEN THEME
+     Pure White with Pastel Purple Accents
+     ======================================== */
+  .theme-parent-zen {
+    /* Pure White Background - #FFFFFF */
+    --background: 0 0% 100%;
+    /* Dark Grey Text (not pure black) - #374151 */
+    --foreground: 220 13% 26%;
+
+    /* Clean White Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 26%;
+
+    /* White Popovers/Modals */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 26%;
+
+    /* Soft Pastel Purple - Primary - #A78BFA */
+    --primary: 258 73% 76%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Very Light Grey Secondary - #F9FAFB */
+    --secondary: 210 20% 98%;
+    --secondary-foreground: 220 13% 26%;
+
+    /* Soft Muted */
+    --muted: 210 20% 98%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Soft Mint/Teal - Accent - #6EE7B7 */
+    --accent: 156 64% 67%;
+    --accent-foreground: 220 13% 18%;
+
+    --destructive: 0 72% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Soft Mint - Success states - #6EE7B7 */
+    --success: 156 64% 67%;
+    --success-foreground: 220 13% 18%;
+
+    --warning: 38 70% 60%;
+    --warning-foreground: 220 13% 18%;
+
+    /* Soft Mint for buffs */
+    --buff: 156 64% 67%;
+    --buff-foreground: 220 13% 18%;
+
+    /* Soft Coral for streaks - #FCA5A5 */
+    --streak: 0 91% 82%;
+    --streak-foreground: 220 13% 18%;
+
+    /* Soft Pastel Purple for rewards */
+    --reward: 258 73% 76%;
+    --reward-foreground: 0 0% 100%;
+
+    /* Soft Borders */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 258 73% 76%;
+
+    --radius: 0.75rem;
+
+    /* Category colors - 5-Category System (Soft Pastels) */
+    --learning: 217 60% 70%;
+    --organization: 25 70% 70%;
+    --self-care: 330 50% 75%;
+    --responsibility: 258 50% 75%;
+    --movement: 156 50% 60%;
+
+    /* ZEN Gradients - Very Subtle and Soft */
+    --gradient-primary: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+    --gradient-success: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-xp: linear-gradient(90deg, hsl(156, 55%, 60%), hsl(156, 64%, 67%), hsl(156, 70%, 72%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(210, 20%, 98%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(258, 73%, 76%, 0.08), transparent 50%);
+    --gradient-buff: linear-gradient(135deg, hsl(156, 64%, 67%), hsl(156, 55%, 60%));
+    --gradient-reward: linear-gradient(135deg, hsl(258, 73%, 76%), hsl(258, 65%, 70%));
+
+    /* ZEN Shadows - Very Soft */
+    --shadow-glow: 0 2px 8px hsl(258, 73%, 76%, 0.12);
+    --shadow-buff-glow: 0 2px 10px hsl(156, 64%, 67%, 0.15);
+    --shadow-buff-glow-intense: 0 4px 16px hsl(156, 64%, 67%, 0.2);
+    --shadow-reward-glow: 0 2px 8px hsl(258, 73%, 76%, 0.15);
+    --shadow-card: 0 1px 3px hsl(220, 13%, 26%, 0.04), 0 2px 8px hsl(220, 13%, 26%, 0.06);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 13% 26%;
+    --sidebar-primary: 258 73% 76%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 20% 98%;
+    --sidebar-accent-foreground: 220 13% 26%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 258 73% 76%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  /* RTL by default for Hebrew */
+  html {
+    direction: rtl;
+    text-align: right;
+    overflow-x: hidden;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Heebo', system-ui, -apple-system, sans-serif;
+    line-height: 1.7;
+    overflow-x: hidden;
+    min-height: 100dvh;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent content from being cut off on mobile */
+  #root {
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* Theme-specific body styles */
+  .theme-child-playful body,
+  .theme-child-playful {
+    color: hsl(220, 13%, 20%);
+    background-color: hsl(142, 77%, 93%);
+  }
+
+  .theme-child-gamer body,
+  .theme-child-gamer {
+    color: hsl(210, 20%, 90%);
+    background-color: hsl(230, 25%, 12%);
+    font-family: 'Orbitron', 'Inter', 'Heebo', system-ui, sans-serif;
+  }
+
+  .theme-parent-zen body,
+  .theme-parent-zen {
+    color: hsl(220, 13%, 26%);
+    background-color: hsl(0, 0%, 100%);
+  }
+
+  /* Gamer theme allows neon glows */
+  .theme-child-gamer .shadow-buff-glow,
+  .theme-child-gamer .shadow-glow {
+    box-shadow: var(--shadow-buff-glow) !important;
+  }
+  .theme-child-gamer .animate-buff-pulse,
+  .theme-child-gamer .buff-active-glow {
+    box-shadow: 0 4px 20px hsl(185, 80%, 55%, 0.35) !important;
+  }
+
+  /* Clean shadow overrides for both themes - NO NEON */
+  .theme-parent-zen .shadow-buff-glow,
+  .theme-parent-zen .shadow-glow,
+  .theme-parent-zen .shadow-reward-glow,
+  .theme-child-playful .shadow-buff-glow,
+  .theme-child-playful .shadow-glow,
+  .theme-child-playful .shadow-reward-glow {
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  .theme-parent-zen .animate-buff-pulse,
+  .theme-parent-zen .animate-cta-glow,
+  .theme-parent-zen .animate-pulse-glow,
+  .theme-parent-zen .buff-active-glow,
+  .theme-child-playful .animate-cta-glow,
+  .theme-child-playful .animate-pulse-glow {
+    animation: none !important;
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  /* Playful but subtle pulse for child view */
+  .theme-child-playful .animate-buff-pulse,
+  .theme-child-playful .buff-active-glow {
+    box-shadow: 0 4px 16px hsl(258, 73%, 76%, 0.25) !important;
+  }
+
+  .theme-parent-zen .cta-buff-button,
+  .theme-child-playful .cta-buff-button {
+    box-shadow: var(--shadow-card) !important;
+  }
+
+  .theme-parent-zen .cta-buff-button:hover,
+  .theme-child-playful .cta-buff-button:hover {
+    box-shadow: 0 6px 20px hsl(0, 0%, 0%, 0.1) !important;
+    transform: translateY(-1px);
+  }
+
+  /* LTR fallback */
+  [dir="ltr"] body {
+    font-family: 'Inter', 'Heebo', system-ui, -apple-system, sans-serif;
+  }
+
+  /* BUFF Heading Styles - Bold for Hebrew */
+  h1, h2, h3, .buff-heading {
+    font-family: 'Heebo', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+  }
+
+  /* English headings use Orbitron */
+  [dir="ltr"] h1, [dir="ltr"] h2, [dir="ltr"] h3, [dir="ltr"] .buff-heading {
+    font-family: 'Orbitron', 'Heebo', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  /* Improved line spacing for ADHD readability */
+  p, .task-description {
+    line-height: 1.8;
+  }
+
+  /* RTL-aware text alignment */
+  .text-start {
+    text-align: right;
+  }
+
+  [dir="ltr"] .text-start {
+    text-align: left;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-primary);
+  }
+
+  .text-gradient-buff {
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gradient-buff);
+  }
+
+  /* Glowing Text - Soft Purple */
+  .text-glow-green {
+    color: hsl(258, 73%, 76%);
+    text-shadow: 
+      0 0 10px hsl(258, 73%, 76%, 0.5),
+      0 0 20px hsl(258, 73%, 76%, 0.3);
+  }
+
+  .bg-gradient-primary {
+    background-image: var(--gradient-primary);
+  }
+
+  .bg-gradient-success {
+    background-image: var(--gradient-success);
+  }
+
+  .bg-gradient-xp {
+    background-image: var(--gradient-xp);
+  }
+
+  .bg-gradient-card {
+    background-image: var(--gradient-card);
+  }
+
+  .bg-gradient-buff {
+    background-image: var(--gradient-buff);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-buff-glow {
+    box-shadow: var(--shadow-buff-glow);
+  }
+
+  .shadow-buff-glow-intense {
+    box-shadow: var(--shadow-buff-glow-intense);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .glow-overlay {
+    position: relative;
+  }
+
+  .glow-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-glow);
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* BUFF Active Glow Effect - Soft Purple (no neon) */
+  .buff-active-glow {
+    box-shadow: 0 4px 16px hsl(258, 73%, 76%, 0.25);
+    border-color: hsl(258, 73%, 76%, 0.5);
+  }
+
+  /* Safe area for all edges on iOS */
+  .safe-area-pb {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+  }
+
+  .safe-area-pt {
+    padding-top: max(env(safe-area-inset-top, 0px), 20px);
+  }
+
+  .safe-area-px {
+    padding-left: max(env(safe-area-inset-left, 0px), 20px);
+    padding-right: max(env(safe-area-inset-right, 0px), 20px);
+  }
+
+  .safe-area-all {
+    padding-top: max(env(safe-area-inset-top, 0px), 20px);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+    padding-left: max(env(safe-area-inset-left, 0px), 20px);
+    padding-right: max(env(safe-area-inset-right, 0px), 20px);
+  }
+
+  /* Reward/Purple gradient utilities */
+  .bg-gradient-reward {
+    background-image: var(--gradient-reward);
+  }
+
+  .shadow-reward-glow {
+    box-shadow: var(--shadow-reward-glow);
+  }
+
+  /* Mobile-first touch-friendly sizing */
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Prevent horizontal overflow */
+  .no-horizontal-scroll {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* Smooth page transitions */
+  .page-transition {
+    animation: fade-slide-in 0.3s ease-out;
+  }
+
+  /* Tab content transitions */
+  .tab-content {
+    animation: fade-up 0.25s ease-out;
+  }
+}
+
+/* Mobile-first animations */
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Improved touch feedback */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+/* Custom scrollbar - Light theme */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(220, 14%, 96%);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(220, 13%, 80%);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(258, 73%, 76%);
+}
+
+/* Hide scrollbar for horizontal scroll areas */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations - Soft Pastel Purple */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(258, 73%, 76%, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(258, 73%, 76%, 0.35);
+  }
+}
+
+/* Subtle pulse animation for CTA buttons - Parent Zen friendly */
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.15);
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2.5s ease-in-out infinite;
+}
+
+@keyframes buff-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px hsl(258, 73%, 76%, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 24px hsl(258, 73%, 76%, 0.4);
+  }
+}
+
+@keyframes cta-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 30px hsl(112, 100%, 54%, 0.6), 0 0 60px hsl(112, 100%, 54%, 0.3), 0 0 90px hsl(112, 100%, 54%, 0.15);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 50px hsl(112, 100%, 54%, 0.8), 0 0 100px hsl(112, 100%, 54%, 0.5), 0 0 150px hsl(112, 100%, 54%, 0.25);
+    transform: scale(1.02);
+  }
+}
+
+@keyframes xp-shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes confetti-burst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+@keyframes check-bounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0%;
+  }
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(300px) rotate(720deg) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes xp-fly {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -150%) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -300%) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes buff-lightning {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px hsl(112, 100%, 54%));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px hsl(112, 100%, 54%));
+    transform: scale(1.1);
+  }
+}
+
+@keyframes quest-complete {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-buff-pulse {
+  animation: buff-pulse 2s ease-in-out infinite;
+}
+
+.animate-cta-glow {
+  animation: cta-glow-pulse 3s ease-in-out infinite;
+}
+
+/* CTA Button Hover Effects */
+.cta-buff-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-buff-glow);
+}
+
+.cta-buff-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.cta-buff-button:hover {
+  box-shadow: var(--shadow-buff-glow-intense);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.cta-buff-button:hover::before {
+  left: 100%;
+}
+
+.cta-buff-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.animate-xp-shimmer {
+  background-size: 200% 100%;
+  animation: xp-shimmer 2s linear infinite;
+}
+
+.animate-check-bounce {
+  animation: check-bounce 0.4s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+.animate-progress-fill {
+  animation: progress-fill 1s ease-out forwards;
+}
+
+.animate-confetti-fall {
+  animation: confetti-fall 1.2s ease-out forwards;
+}
+
+.animate-xp-fly {
+  animation: xp-fly 0.8s ease-out forwards;
+}
+
+.animate-buff-lightning {
+  animation: buff-lightning 1.5s ease-in-out infinite;
+}
+
+.animate-quest-complete {
+  background-size: 200% 200%;
+  animation: quest-complete 2s ease infinite;
+}
+
+/* Quest Card Styles */
+.quest-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.quest-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, hsl(84, 100%, 59%, 0.05) 50%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.quest-card:hover::before {
+  opacity: 1;
+}
+
+/* Buff Button Glow */
+.buff-button-glow {
+  position: relative;
+}
+
+.buff-button-glow::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: hsl(84, 100%, 59%);
+  border-radius: inherit;
+  opacity: 0.3;
+  filter: blur(8px);
+  z-index: -1;
+  animation: buff-pulse 2s ease-in-out infinite;
+}
+
+/* Protocol/Cyberpunk Glow Effect */
+.shadow-protocol-glow {
+  box-shadow: 0 0 20px hsl(180, 100%, 50%, 0.4), 0 0 40px hsl(280, 100%, 60%, 0.2), 0 0 60px hsl(180, 100%, 50%, 0.1);
+}
+
+/* Protocol Sync Animation */
+@keyframes protocol-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px hsl(180, 100%, 50%, 0.4), 0 0 40px hsl(280, 100%, 60%, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 30px hsl(180, 100%, 50%, 0.6), 0 0 60px hsl(280, 100%, 60%, 0.4);
+  }
+}
+
+.animate-protocol-pulse {
+  animation: protocol-pulse 2s ease-in-out infinite;
+}
