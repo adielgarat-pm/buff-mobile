@@ -303,6 +303,8 @@ export default function GamerDashboardScreen() {
             size="dashboard"
             skinId={buddySkinId}
             level={buddyLevel}
+            themeColor={relationship?.current_theme_color ?? null}
+            hasPendingGift={relationship?.has_pending_gift ?? false}
             onPress={() => navigation.navigate('GamerMeAndBuddy')}
             onClose={() => setHideModalVisible(true)}
           />

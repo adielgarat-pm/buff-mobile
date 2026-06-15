@@ -91,6 +91,21 @@ export function levelForSuccessfulDays(days: number): 1 | 2 | 3 | 4 | 5 {
 }
 
 /**
+ * Cosmetic theme color unlocked at each friendship level (pkg/buddy-gift-loop).
+ * Opening a level-up gift sets buddy_relationships.current_theme_color to the
+ * color for the gift's `given_at_level`.
+ *
+ * ⚠️ MUST stay in sync with the `use_buddy_gift` RPC palette (SQL can't import
+ * this) — see docs/sessions/buddy-gift-loop/migration.sql.
+ */
+export const BUDDY_GIFT_LEVEL_COLOR: Record<2 | 3 | 4 | 5, string> = {
+  2: '#A8E63E', // lime — day-0 brand accent
+  3: '#7C5CFF', // violet — deeper friendship
+  4: '#FF9F45', // amber — warm / established
+  5: '#FFD23E', // gold — best friends
+};
+
+/**
  * Days remaining until the next level-up. Returns null at max level.
  */
 export function daysUntilNextLevel(days: number): number | null {

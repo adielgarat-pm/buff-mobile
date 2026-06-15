@@ -33,9 +33,11 @@ const GIFT_ICONS: Record<BuddyGiftType, keyof typeof Ionicons.glyphMap> = {
   skin:            'paw',
 };
 
+// pkg/buddy-gift-loop: every level-up gift is the cosmetic theme_color.
+// Locked cards preview the L4/L5 unlocks the child hasn't reached yet.
 const LOCKED_PLACEHOLDERS: Array<{ gift_type: BuddyGiftType; given_at_level: 4 | 5 }> = [
-  { gift_type: 'skip_token',      given_at_level: 4 },
-  { gift_type: 'reward_discount', given_at_level: 5 },
+  { gift_type: 'theme_color', given_at_level: 4 },
+  { gift_type: 'theme_color', given_at_level: 5 },
 ];
 
 interface Props {
@@ -48,8 +50,10 @@ export const BoostersCarousel: FC<Props> = ({ gifts, currentLevel, onPress }) =>
   const { t } = useTranslation();
 
   const lockedCards = useMemo(() => {
+    // All gifts share gift_type 'theme_color' now, so a level is "still locked"
+    // when the child hasn't yet received the gift for that level.
     return LOCKED_PLACEHOLDERS.filter((p) =>
-      p.given_at_level > currentLevel && !gifts.some((g) => g.gift_type === p.gift_type)
+      p.given_at_level > currentLevel && !gifts.some((g) => g.given_at_level === p.given_at_level)
     );
   }, [gifts, currentLevel]);
 
@@ -68,7 +72,7 @@ export const BoostersCarousel: FC<Props> = ({ gifts, currentLevel, onPress }) =>
 
         {lockedCards.map((placeholder) => (
           <LockedCard
-            key={`locked-${placeholder.gift_type}`}
+            key={`locked-${placeholder.given_at_level}`}
             giftType={placeholder.gift_type}
             level={placeholder.given_at_level}
             t={t}
@@ -95,9 +99,7 @@ function GiftCard({ gift, t, onPress }: GiftCardProps) {
       <View style={[styles.card, styles.cardUsed]}>
         <Ionicons name={iconName} size={28} color={COLORS.faint} />
         <Text style={styles.cardLabel}>{t(labelKey)}</Text>
-        <Text style={styles.cardCaption}>
-          {t('buddy.boosters.usedOnDay', { day: gift.given_at_level })}
-        </Text>
+        <Text style={styles.cardCaption}>{t('buddy.boosters.used')}</Text>
       </View>
     );
   }

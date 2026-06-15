@@ -54,5 +54,49 @@ export function useChildBuddyGifts(childId: string | null) {
     refetch();
   }, [refetch]);
 
-  return { gifts, loading, error, refetch };
+  /**
+   * Open (use) a buddy gift via the `use_buddy_gift` RPC. The RPC validates
+   * family ownership, marks the gift used, applies the cosmetic theme color,
+   * and clears has_pending_gift when no unused gift remains.
+   *
+   * Returns the RPC result object (`{ success, theme_color, pending_remaining }`)
+   * on success, or an error. Caller is responsible for refetching the
+   * relationship (theme color / pending flag live there, not in this hook).
+   */
+  const useGift = useCallback(
+    async (
+      giftId: string,
+    ): Promise<{ error: Error | null; result: UseGiftResult | null }> => {
+      const { data, error: rpcError } = await supabase.rpc('use_buddy_gift', {
+        p_gift_id: giftId,
+      });
+
+      if (rpcError) {
+        console.error('[useChildBuddyGifts] use_buddy_gift error:', rpcError);
+        return { error: rpcError as unknown as Error, result: null };
+      }
+
+      const result = data as UseGiftResult | null;
+      if (!result?.success) {
+        return {
+          error: new Error(result?.reason ?? 'use_buddy_gift_failed'),
+          result,
+        };
+      }
+
+      await refetch();
+      return { error: null, result };
+    },
+    [refetch],
+  );
+
+  return { gifts, loading, error, refetch, useGift };
+}
+
+export interface UseGiftResult {
+  success: boolean;
+  reason?: string;
+  gift_id?: string;
+  theme_color?: string;
+  pending_remaining?: number;
 }

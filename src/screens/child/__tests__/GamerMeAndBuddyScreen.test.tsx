@@ -123,6 +123,7 @@ function setHooks({
   } as any);
   mockedUseGifts.mockReturnValue({
     gifts: [], loading: false, error: null, refetch: jest.fn(),
+    useGift: jest.fn().mockResolvedValue({ error: null, result: { success: true } }),
   } as any);
   mockedUseAppSettings.mockReturnValue({ isPauseActive } as any);
   mockedUsePetState.mockReturnValue({

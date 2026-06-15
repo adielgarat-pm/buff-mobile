@@ -9,10 +9,10 @@
  * Source design: docs/teen-ui-design/me-and-buddy/5a-with-buddy/
  * Behavior contract: docs/sessions/teen-ui-with-buddy-character/SPEC.md §3.4
  */
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator,
-  TouchableOpacity, Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,18 +24,20 @@ import { useAppSettings } from '../../hooks/useAppSettings';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useChildBuddyStats } from '../../hooks/useChildBuddyStats';
 import { useChildBuddyGifts } from '../../hooks/useChildBuddyGifts';
+import { useBuddyGiftReveal } from '../../hooks/useBuddyGiftReveal';
 import { usePetState } from '../../hooks/usePetState';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { LevelPill } from '../../components/buddy/LevelPill';
 import { BoostersCarousel } from '../../components/buddy/BoostersCarousel';
+import { BuddyGiftModal } from '../../components/buddy/BuddyGiftModal';
 import { BuddyHero } from '../../components/buddy/BuddyHero';
 import { getBuddyDefaultName } from '../../components/buddy/buddyAssets';
 import {
   FRIENDSHIP_LEVEL_THRESHOLDS,
   friendshipLevelI18nKey,
 } from '../../types/buddy';
-import type { BuddyGift, BuddyRelationship } from '../../types/buddy';
+import type { BuddyRelationship } from '../../types/buddy';
 import type { RootStackParamList } from '../../navigation/types';
 
 const COLORS = {
@@ -61,12 +63,16 @@ export default function GamerMeAndBuddyScreen() {
   const { relationship, loading: buddyLoading, refetch: refetchBuddy } = useBuddyRelationship(childId);
   useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
   const { stats, loading: statsLoading }        = useChildBuddyStats(childId);
-  const { gifts, loading: giftsLoading }        = useChildBuddyGifts(childId);
+  const { gifts, loading: giftsLoading, refetch: refetchGifts, useGift } = useChildBuddyGifts(childId);
   const { petState, loading: petLoading }       = usePetState('wolf');
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
 
-  const [carouselAlertShown, setCarouselAlertShown] = useState(false);
+  const giftReveal = useBuddyGiftReveal({
+    useGift,
+    refetchGifts,
+    refetchRelationship: refetchBuddy,
+  });
 
   if (buddyLoading || statsLoading || giftsLoading || petLoading) {
     return (
@@ -97,12 +103,8 @@ export default function GamerMeAndBuddyScreen() {
   const story = t(`buddy.story.L${level}`, { buddyName });
 
   const progress = progressToNextLevel(successfulDays, level);
-
-  const handleBoosterPress = (_gift: BuddyGift) => {
-    if (carouselAlertShown) return;
-    setCarouselAlertShown(true);
-    Alert.alert(t('buddy.boosters.giftType.theme_color'), t('buddy.boosters.available'));
-  };
+  const themeColor    = relationship?.current_theme_color ?? null;
+  const hasPendingGift = relationship?.has_pending_gift ?? false;
 
   return (
     <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
@@ -128,7 +130,13 @@ export default function GamerMeAndBuddyScreen() {
       ) : (
         <>
           <View style={styles.heroSection}>
-            <BuddyHero size="screen" skinId={skinId} level={level} />
+            <BuddyHero
+              size="screen"
+              skinId={skinId}
+              level={level}
+              themeColor={themeColor}
+              hasPendingGift={hasPendingGift}
+            />
             <Text style={styles.buddyName}>{buddyName}</Text>
             <View style={styles.friendshipChip}>
               <Text style={styles.friendshipLabel}>{friendshipLabel}</Text>
@@ -171,10 +179,11 @@ export default function GamerMeAndBuddyScreen() {
             <BoostersCarousel
               gifts={gifts}
               currentLevel={level}
-              onPress={handleBoosterPress}
+              onPress={giftReveal.open}
             />
           </View>
 
+          <BuddyGiftModal {...giftReveal.modalProps} buddyName={buddyName} />
           <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
         </>
       )}

@@ -7,10 +7,11 @@ import { supabase } from '../../integrations/supabase/client';
 import type { BuddyGift } from '../../types/buddy';
 
 jest.mock('../../integrations/supabase/client', () => ({
-  supabase: { from: jest.fn() },
+  supabase: { from: jest.fn(), rpc: jest.fn() },
 }));
 
 const mockedFrom = supabase.from as jest.MockedFunction<typeof supabase.from>;
+const mockedRpc  = supabase.rpc  as jest.MockedFunction<typeof supabase.rpc>;
 
 beforeAll(() => { jest.spyOn(console, 'error').mockImplementation(() => {}); });
 afterAll(() => { (console.error as jest.Mock).mockRestore(); });
@@ -81,5 +82,55 @@ describe('useChildBuddyGifts', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.gifts).toEqual([]);
     expect(result.current.error).not.toBeNull();
+  });
+
+  describe('useGift', () => {
+    beforeEach(() => {
+      mockedFrom.mockImplementation(() => mockGiftsChain([sampleGift]) as never);
+      mockedRpc.mockReset();
+    });
+
+    test('calls use_buddy_gift RPC and returns the result on success', async () => {
+      mockedRpc.mockResolvedValue({
+        data: { success: true, theme_color: '#7C5CFF', pending_remaining: 0 },
+        error: null,
+      } as never);
+
+      const { result } = renderHook(() => useChildBuddyGifts('child-1'));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      const res = await result.current.useGift('gift-1');
+
+      expect(mockedRpc).toHaveBeenCalledWith('use_buddy_gift', { p_gift_id: 'gift-1' });
+      expect(res.error).toBeNull();
+      expect(res.result?.theme_color).toBe('#7C5CFF');
+    });
+
+    test('returns an error when the RPC reports failure', async () => {
+      mockedRpc.mockResolvedValue({
+        data: { success: false, reason: 'already_used' },
+        error: null,
+      } as never);
+
+      const { result } = renderHook(() => useChildBuddyGifts('child-1'));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      const res = await result.current.useGift('gift-1');
+
+      expect(res.error).not.toBeNull();
+      expect(res.error?.message).toBe('already_used');
+    });
+
+    test('surfaces a transport error from the RPC', async () => {
+      mockedRpc.mockResolvedValue({ data: null, error: { message: 'network' } } as never);
+
+      const { result } = renderHook(() => useChildBuddyGifts('child-1'));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      const res = await result.current.useGift('gift-1');
+
+      expect(res.error).not.toBeNull();
+      expect(res.result).toBeNull();
+    });
   });
 });
