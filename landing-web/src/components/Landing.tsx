@@ -4,13 +4,12 @@ import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
 // Where "Start Free" / "Get Started" send people. The BUFF web app (Workstream 2) will live here;
 // until it ships, update this single constant to wherever sign-up should go.
 const APP_URL = 'https://app.buffadhd.com';
-// Legal / About pages still served by the current site until they are copied across too.
-const LEGAL_BASE = 'https://buffadhd.com';
 
 // JSON-LD Structured Data for SEO
 const jsonLd = {
@@ -249,16 +248,16 @@ export default function Landing() {
 
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm text-muted-foreground mb-8">
-            <a href={`${LEGAL_BASE}/about`} className="hover:text-foreground transition-colors flex items-center gap-1">
+            <Link to="/about" className="hover:text-foreground transition-colors flex items-center gap-1">
               <Heart className="w-3 h-3" />
               {language === 'he' ? 'אודות' : 'About'}
-            </a>
-            <a href={`${LEGAL_BASE}/privacy`} className="hover:text-foreground transition-colors">
+            </Link>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">
               {language === 'he' ? 'פרטיות' : 'Privacy'}
-            </a>
-            <a href={`${LEGAL_BASE}/terms`} className="hover:text-foreground transition-colors">
+            </Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">
               {language === 'he' ? 'תנאי שימוש' : 'Terms'}
-            </a>
+            </Link>
             <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center gap-1">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
               YouTube
