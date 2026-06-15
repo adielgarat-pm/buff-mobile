@@ -1,5 +1,15 @@
 [
   {
+    "id": "t005",
+    "display_name": "תמר",
+    "display_name_en": "Tamar",
+    "rating": 5,
+    "review_text": "חייבת לשתף אותך. הצגתי היום לאלון את האפליקציה והוא ממש התלהב מאוד הלהיב אותו שזה buffs. הוא עכשיו כיבה את המסך ב-18, כפי שסיכמנו, וסימן הצלחה וישר שיתף בהתלהבות חבר שאצלו 😍 החבר התלהב ושאל איך קוראים לאפליקציה",
+    "detected_lang": "he",
+    "translated_text_en": "I have to share this with you. I showed Alon the app today and he was really excited — what got him excited was the buffs. He just turned off the screen at 18:00, exactly as we agreed, and marked it a success, and immediately shared it enthusiastically with a friend of his 😍 The friend got excited and asked what the app is called.",
+    "created_at": "2026-06-06"
+  },
+  {
     "id": "t003",
     "display_name": "נועה מורג",
     "display_name_en": "Noa Morag",
