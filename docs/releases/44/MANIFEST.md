@@ -53,4 +53,21 @@ Everything merged to `main` after the **1.4.0 (vc34)** cut point. Source: `RELEA
 | jest | ✅ 392/392 (fixed stale i18n allowlist: added ParentDashboardScreen.tsx — #239 meds-detection keywords) |
 | expo-doctor | ✅ 18/18 |
 | i18n parity | ✅ 0 missing either locale |
-| Values Check | see below |
+| Values Check | ✅ inherited from per-package design (all 17 merged through their own Values gates); no new pillar risk. Privacy-sensitive #211 re-checked on device: share is opt-in, "totally your choice", private by default (Pillar 1 ✅). |
+
+## Functional gate (Gate 2) — Hat-3 emulator, 2026-06-15 — **PASS** (no ❌, no beta-blocker)
+
+Scope = critical-path smoke + the 5 "on-device Hat-3 pending" items. Run on emulator-5554, test family ReminderTest / child Maya. uiautomator dump was unreliable this session (returned stale hierarchy) → driven by screenshot + native-coordinate taps; screenshots are the evidence.
+
+| Item | Verdict | Evidence |
+|---|---|---|
+| Boot / auth / parent dashboard off `main` HEAD | ✅ | App loads, authenticates, renders parent dashboard + Gamer child dashboard; navigation works. The 17-change batch integrates without startup/auth breakage. |
+| F5.H1 task completion → atomic BUFF credit | ✅ | "Eat breakfast" completed → Buffs 0→20, ring 0/2→1/2, Focus Fuel 0/3→1/3 |
+| **fix-streak-counter** (Alon's bug) | ✅ | 🔥1 streak badge appeared next to "Maya ⚡" after first completion (was absent at 0) |
+| **streak-per-child** | ✅ | Streak derived for Maya on her completion |
+| **#211 kid shares good mood** | ✅ | Positive vibe (🙂 ≥3) → "Want to share this feeling? … totally your choice" → Share completes cleanly → parent notification bell shows "1" (INFO row landed) |
+| F8.E1 unaffordable reward | ✅ (light) | Maya 20 Buffs; rewards 294/588 → not actionable, no crash |
+| **#209 redemption discovery** | ⏭️ Hat-4 | Couldn't exercise child→parent redeem (Maya 20 Buffs < cheapest 294). Deduction engine shipped+verified in build 34; #209 logic tsc+jest+DB-verified; notification→approve reachability is real-device anyway. |
+| **#216 off-routine i18n** | ⏭️ Hat-4 | Couldn't reach EditChild→Off-Routine via pixel-nav (uiautomator down). Protected by `i18nNoHardcodedCopy` jest guard (✅ Gate 1) + node-verified in-package; runtime View-as-Child language → Hat-4. |
+
+**Gate verdict:** smoke green, no manifest-targeted ❌, no beta-blocker. 3 of 5 pending items fully verified on-device (#211 + both streak fixes); 2 deferred to Hat-4 with jest-guard / shipped-engine coverage. **Cleared to build.**
