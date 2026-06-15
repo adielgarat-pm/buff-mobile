@@ -67,21 +67,32 @@ export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) 
     if (busy || !familyId) return;
     setBusy(true);
     try {
-      let nextUntil: string | null = null;
-      if (mode !== 'off') {
-        // Seed the off-routine tasks once (idempotent) before enabling.
-        const seed = await ensureOffRoutineTasks({ childId, familyId, ageGroup, lang: childLang });
-        if (seed.error) { Alert.alert('', s.err); setBusy(false); return; }
-        if (mode === 'today') {
-          const d = new Date(); d.setHours(23, 59, 59, 999); nextUntil = d.toISOString();
-        } else {
-          // "3 days" = 3 full calendar days (today + 2), ending at local end-of-day —
-          // consistent with the "today" branch above and the Pause calendar-day fix.
-          // Was a rolling now()+72h, which ended mid-day 3 days out.
-          const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(23, 59, 59, 999);
-          nextUntil = d.toISOString();
-        }
+      if (mode === 'off') {
+        // Atomic exit (RPC exit_off_routine): delete THIS child's off-routine
+        // tasks AND clear off_routine_until in one transaction, so toggling off
+        // never leaves orphan rows to leak into task views later.
+        const { error } = await supabase.rpc('exit_off_routine', { p_child_id: childId } as never);
+        if (error) { Alert.alert('', s.err); return; }
+        setUntil(null);
+        return;
       }
+
+      // mode is 'today' | 'days3' here (the 'off' path returned above).
+      // Seed the off-routine tasks once (idempotent) before enabling.
+      const seed = await ensureOffRoutineTasks({ childId, familyId, ageGroup, lang: childLang });
+      if (seed.error) { Alert.alert('', s.err); return; }
+
+      let nextUntil: string;
+      if (mode === 'today') {
+        const d = new Date(); d.setHours(23, 59, 59, 999); nextUntil = d.toISOString();
+      } else {
+        // "3 days" = 3 full calendar days (today + 2), ending at local end-of-day —
+        // consistent with the "today" branch above and the Pause calendar-day fix.
+        // Was a rolling now()+72h, which ended mid-day 3 days out.
+        const d = new Date(); d.setDate(d.getDate() + 2); d.setHours(23, 59, 59, 999);
+        nextUntil = d.toISOString();
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({ off_routine_until: nextUntil } as never)

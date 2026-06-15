@@ -16,3 +16,19 @@ export function isOffRoutineActive(
   if (!offRoutineUntil) return false;
   return new Date(offRoutineUntil) > now;
 }
+
+/**
+ * Partition predicate — does this task belong in the child's CURRENT visible
+ * plan? Single source of truth for every "what does this child see now" surface
+ * (child app + parent today-summaries), so off-routine rows can never leak into
+ * a view as phantom incompletes:
+ *   - off-routine active   → ONLY off-routine tasks
+ *   - off-routine inactive → ONLY routine tasks
+ */
+export function isTaskInActivePlan(
+  isOffRoutine: boolean | null | undefined,
+  offRoutineUntil: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  return (isOffRoutine ?? false) === isOffRoutineActive(offRoutineUntil, now);
+}

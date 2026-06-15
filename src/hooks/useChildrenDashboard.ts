@@ -10,6 +10,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
+import { isTaskInActivePlan } from '../utils/offRoutineUtils';
 
 export interface ChildSummary {
   childId:        string;
@@ -44,7 +45,7 @@ export function useChildrenDashboard() {
 
       const { data: profiles, error: profilesErr } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar, created_at')
+        .select('id, display_name, avatar, created_at, off_routine_until')
         .eq('family_id', familyId)
         .eq('role', 'child')
         .eq('is_deleted', false); // hide children a parent has removed (soft delete)
@@ -68,7 +69,7 @@ export function useChildrenDashboard() {
           ] = await Promise.all([
             supabase
               .from('tasks')
-              .select('id')
+              .select('id, is_off_routine')
               .eq('family_id', familyId)
               .eq('assigned_to', child.id),
             supabase
@@ -88,13 +89,19 @@ export function useChildrenDashboard() {
 
           const completedIds = new Set((progress ?? []).map(p => p.task_id));
 
+          // Off-routine partition (mirrors useChildData) — never count off-routine
+          // rows as phantom incompletes when the child is on a normal day.
+          const visibleTasks = (tasks ?? []).filter(t =>
+            isTaskInActivePlan(t.is_off_routine, child.off_routine_until)
+          );
+
           return {
             childId:        child.id,
             displayName:    child.display_name ?? '—',
             avatar:         child.avatar       ?? '🚀',
             created_at:     child.created_at   ?? null,
-            tasksTotal:     tasks?.length ?? 0,
-            tasksCompleted: (tasks ?? []).filter(t => completedIds.has(t.id)).length,
+            tasksTotal:     visibleTasks.length,
+            tasksCompleted: visibleTasks.filter(t => completedIds.has(t.id)).length,
             totalBalance:   vault?.total_balance ?? 0,
           };
         })

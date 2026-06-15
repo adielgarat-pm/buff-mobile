@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
-import { isOffRoutineActive } from '../utils/offRoutineUtils';
+import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils';
 import { applyTaskCompletionToPet } from './usePetState';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -104,11 +104,18 @@ export function useChildProgress() {
               progressData?.filter(p => p.completed).map(p => p.task_id) || []
             );
 
-            const tasksTotal     = tasksData?.length || 0;
-            const tasksCompleted = tasksData?.filter(t => completedTaskIds.has(t.id)).length || 0;
-            const taskCredits    = tasksData
-              ?.filter(t => completedTaskIds.has(t.id))
-              .reduce((sum, t) => sum + (t.credits || 0), 0) || 0;
+            // Off-routine partition (mirrors useChildData): count only the tasks
+            // the child is actually expected to do right now, so off-routine rows
+            // never inflate tasksTotal as phantom incompletes on a normal day.
+            const visibleTasks = (tasksData ?? []).filter(t =>
+              isTaskInActivePlan(t.is_off_routine, child.off_routine_until)
+            );
+
+            const tasksTotal     = visibleTasks.length;
+            const tasksCompleted = visibleTasks.filter(t => completedTaskIds.has(t.id)).length;
+            const taskCredits    = visibleTasks
+              .filter(t => completedTaskIds.has(t.id))
+              .reduce((sum, t) => sum + (t.credits || 0), 0);
 
             const schoolQuestEnabled = child.school_quest_enabled ?? true;
             const lessonsTotal       = schoolQuestEnabled ? 8 : 0;
@@ -286,9 +293,9 @@ export function useChildData(childId: string | null) {
       // otherwise show ONLY routine tasks. The per-screen scheduleDays/hideOnWeekend
       // filters then run unchanged on the already-partitioned set. Pause supersedes
       // at the screen level (screens short-circuit to PauseEmptyState before the list).
-      const offActive = isOffRoutineActive((offRow as { off_routine_until?: string | null } | null)?.off_routine_until);
-      setOffRoutineActive(offActive);
-      setTasks(mappedTasks.filter(t => (t.isOffRoutine ?? false) === offActive));
+      const until = (offRow as { off_routine_until?: string | null } | null)?.off_routine_until;
+      setOffRoutineActive(isOffRoutineActive(until));
+      setTasks(mappedTasks.filter(t => isTaskInActivePlan(t.isOffRoutine, until)));
       setTotalBalance(vaultData?.total_balance || 0);
       setDailyGoal(childProfile?.daily_goal || 100);
       setSchoolQuestEnabled(childProfile?.school_quest_enabled ?? true);

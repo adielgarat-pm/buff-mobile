@@ -8,6 +8,7 @@
  */
 
 import { isPauseActive, type PauseSnapshot } from './pauseUtils';
+import { isOffRoutineActive } from './offRoutineUtils';
 
 // ─── DB row shapes (snake_case matches Supabase columns) ──────────────────
 
@@ -21,6 +22,7 @@ export interface TaskRow {
   icon:           string | null;
   schedule_days:  number[] | null;
   created_at:     string;
+  is_off_routine: boolean | null;
 }
 
 export interface DailyProgressRow {
@@ -31,8 +33,9 @@ export interface DailyProgressRow {
 }
 
 export interface ChildProfileRow {
-  id:          string;
-  created_at:  string | null;
+  id:                string;
+  created_at:        string | null;
+  off_routine_until: string | null;
 }
 
 // ─── Output shapes (camelCase, consumer-friendly) ─────────────────────────
@@ -89,9 +92,11 @@ export function getYesterdayEndIso(now: Date = new Date()): string {
  * Was this task eligible to appear in the child's yesterday recap?
  *
  * A task qualifies iff ALL of:
- *   1. It is assigned to this child
- *   2. It was created on or before the end of yesterday
- *   3. Yesterday's weekday is in its `schedule_days` (null/empty → all 7 days)
+ *   1. It is not an off-routine task (those carry no routine-completion meaning;
+ *      shown as ○ they are a FALSE failure signal — F off-routine-leak-fix)
+ *   2. It is assigned to this child
+ *   3. It was created on or before the end of yesterday
+ *   4. Yesterday's weekday is in its `schedule_days` (null/empty → all 7 days)
  *
  * The "task still exists in DB" check is implicit — deleted tasks are not
  * present in the input array (Supabase DELETE removes from query results).
@@ -102,13 +107,16 @@ export function isTaskEligibleForChild(
   yesterdayDow:   number,
   yesterdayEndIso: string,
 ): boolean {
-  // 1. assigned to this child
+  // 1. off-routine tasks never belong in the routine recap
+  if (task.is_off_routine) return false;
+
+  // 2. assigned to this child
   if (task.assigned_to !== childId) return false;
 
-  // 2. created in time
+  // 3. created in time
   if (task.created_at > yesterdayEndIso) return false;
 
-  // 3. scheduled for yesterday's weekday
+  // 4. scheduled for yesterday's weekday
   const days = Array.isArray(task.schedule_days) && task.schedule_days.length > 0
     ? task.schedule_days
     : [0, 1, 2, 3, 4, 5, 6];
@@ -121,7 +129,14 @@ export function isTaskEligibleForChild(
  * Build a recap for one child: eligible tasks × yesterday's progress.
  *
  * Returns `null` if the child is too new (child.created_at is after the end
- * of yesterday) — caller should treat this as "no card for this child."
+ * of yesterday), or if the child is CURRENTLY in an off-routine window — in
+ * both cases the caller treats it as "no card for this child."
+ *
+ * Off-routine suppression mirrors Pause V1: we only suppress for an *active*
+ * window (we never reconstruct historical windows, since `off_routine_until`
+ * stores the end only — no start). Routine tasks shown as missed on an
+ * opted-out day would be a false failure signal, so an active off-routine
+ * child gets no card rather than a misleading one.
  */
 export function buildChildYesterdayRecap(params: {
   child:          ChildProfileRow;
@@ -130,11 +145,15 @@ export function buildChildYesterdayRecap(params: {
   yesterdayEndIso: string;
   tasks:          TaskRow[];
   dailyProgress:  DailyProgressRow[];
+  now?:           Date;
 }): ChildYesterdayRecap | null {
-  const { child, yesterdayDow, yesterdayDate, yesterdayEndIso, tasks, dailyProgress } = params;
+  const { child, yesterdayDow, yesterdayDate, yesterdayEndIso, tasks, dailyProgress, now = new Date() } = params;
 
   // Child created after yesterday ended → not in recap
   if (child.created_at && child.created_at > yesterdayEndIso) return null;
+
+  // Child currently on an off-routine day → suppress (no false routine-missed signal)
+  if (isOffRoutineActive(child.off_routine_until, now)) return null;
 
   const eligible = tasks.filter(t =>
     isTaskEligibleForChild(t, child.id, yesterdayDow, yesterdayEndIso),
