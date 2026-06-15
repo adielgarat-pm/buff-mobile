@@ -16,9 +16,9 @@
  * Note: 5B does NOT render a buddy character image — that's 5A's job.
  * 5B is always full-layout regardless of buddy_visible (per SPEC §3.3).
  */
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert,
+  View, Text, ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,12 +29,14 @@ import { useAppSettings } from '../../hooks/useAppSettings';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useChildBuddyStats } from '../../hooks/useChildBuddyStats';
 import { useChildBuddyGifts } from '../../hooks/useChildBuddyGifts';
+import { useBuddyGiftReveal } from '../../hooks/useBuddyGiftReveal';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { LevelPill } from '../../components/buddy/LevelPill';
 import { BoostersCarousel } from '../../components/buddy/BoostersCarousel';
+import { BuddyGiftModal } from '../../components/buddy/BuddyGiftModal';
 import { FRIENDSHIP_LEVEL_THRESHOLDS } from '../../types/buddy';
-import type { BuddyGift, BuddyRelationship } from '../../types/buddy';
+import type { BuddyRelationship } from '../../types/buddy';
 
 // ─── BUFF brand palette (Gamer mode) — matches GamerDashboardScreen ──────────
 const COLORS = {
@@ -56,11 +58,15 @@ export default function GamerMyStatsScreen() {
   const { relationship, loading: buddyLoading, refetch: refetchBuddy } = useBuddyRelationship(childId);
   useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
   const { stats, loading: statsLoading }        = useChildBuddyStats(childId);
-  const { gifts, loading: giftsLoading }        = useChildBuddyGifts(childId);
+  const { gifts, loading: giftsLoading, refetch: refetchGifts, useGift } = useChildBuddyGifts(childId);
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
 
-  const [carouselAlertShown, setCarouselAlertShown] = useState(false);
+  const giftReveal = useBuddyGiftReveal({
+    useGift,
+    refetchGifts,
+    refetchRelationship: refetchBuddy,
+  });
 
   if (buddyLoading || statsLoading || giftsLoading) {
     return (
@@ -88,12 +94,6 @@ export default function GamerMyStatsScreen() {
   const tasksCompleted = stats?.tasksCompleted ?? 0;
 
   const progress = progressToNextLevel(successfulDays, level);
-
-  const handleBoosterPress = (_gift: BuddyGift) => {
-    if (carouselAlertShown) return;
-    setCarouselAlertShown(true);
-    Alert.alert(t('buddy.boosters.giftType.theme_color'), t('buddy.boosters.available'));
-  };
 
   return (
     <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
@@ -134,10 +134,11 @@ export default function GamerMyStatsScreen() {
         <BoostersCarousel
           gifts={gifts}
           currentLevel={level}
-          onPress={handleBoosterPress}
+          onPress={giftReveal.open}
         />
       </View>
 
+      <BuddyGiftModal {...giftReveal.modalProps} />
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
     </ScrollView>
   );

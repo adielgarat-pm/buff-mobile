@@ -33,6 +33,8 @@ const COLORS = {
   border:     'rgba(255,255,255,0.10)',
   closeBg:    'rgba(26,22,54,0.75)',
   closeIcon:  '#A78BFA',
+  canvas:     '#1a1636',
+  lime:       '#A8E63E',
 } as const;
 
 const SIZE_PX: Record<'dashboard' | 'screen', number> = {
@@ -48,11 +50,18 @@ interface Props {
   onPress?: () => void;
   /** When provided, a small × button appears top-right and invokes this. */
   onClose?: () => void;
+  /** Cosmetic theme color unlocked via a buddy gift — tints the hero frame. */
+  themeColor?: string | null;
+  /** Shows a lime "gift waiting" dot when the child has an unopened gift. */
+  hasPendingGift?: boolean;
 }
 
-export const BuddyHero: FC<Props> = ({ size, skinId, level, onPress, onClose }) => {
+export const BuddyHero: FC<Props> = ({
+  size, skinId, level, onPress, onClose, themeColor, hasPendingGift,
+}) => {
   const px = SIZE_PX[size];
   const closeBtnSize = size === 'dashboard' ? 28 : 36;
+  const dotSize = size === 'dashboard' ? 22 : 28;
 
   const character = renderCharacter(skinId, level, px);
 
@@ -61,10 +70,24 @@ export const BuddyHero: FC<Props> = ({ size, skinId, level, onPress, onClose }) 
       style={[
         styles.container,
         { width: px + 16, height: px + 16 },
+        themeColor ? { borderColor: themeColor, borderWidth: 2 } : null,
       ]}
       testID="buddy-hero-container"
     >
       {character}
+
+      {hasPendingGift && (
+        <View
+          style={[
+            styles.giftDot,
+            { width: dotSize, height: dotSize, borderRadius: dotSize / 2 },
+          ]}
+          testID="buddy-hero-gift-dot"
+          accessibilityLabel="gift-waiting"
+        >
+          <Ionicons name="gift" size={size === 'dashboard' ? 12 : 16} color={COLORS.canvas} />
+        </View>
+      )}
 
       {onClose && (
         <TouchableOpacity
@@ -162,6 +185,14 @@ const styles = StyleSheet.create({
     top:             6,
     right:           6,
     backgroundColor: COLORS.closeBg,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  giftDot: {
+    position:        'absolute',
+    top:             6,
+    left:            6,
+    backgroundColor: COLORS.lime,
     alignItems:      'center',
     justifyContent:  'center',
   },

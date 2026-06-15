@@ -46,32 +46,32 @@ describe('BoostersCarousel', () => {
   });
 
   test('renders an Available card with "Available" caption', () => {
-    const { getByText } = render(
+    const { getByText, getAllByText } = render(
       <BoostersCarousel gifts={[availableGift]} currentLevel={3} />
     );
-    expect(getByText('buddy.boosters.giftType.theme_color')).toBeTruthy();
+    // Available gift + locked L4/L5 placeholders all use the theme_color label.
+    expect(getAllByText('buddy.boosters.giftType.theme_color').length).toBeGreaterThan(0);
     expect(getByText('buddy.boosters.available')).toBeTruthy();
   });
 
-  test('renders a Used card with "Used Day X" caption', () => {
+  test('renders a Used card with the "Opened" caption', () => {
     const { getByText } = render(
       <BoostersCarousel gifts={[usedGift]} currentLevel={3} />
     );
     expect(getByText('buddy.boosters.giftType.double_buffs')).toBeTruthy();
-    expect(getByText('buddy.boosters.usedOnDay|day=3')).toBeTruthy();
+    expect(getByText('buddy.boosters.used')).toBeTruthy();
   });
 
-  test('renders Locked placeholders for skip_token + reward_discount when below L4', () => {
+  test('renders cosmetic Locked placeholders (L4 + L5) when below L4', () => {
     const { getByText } = render(
       <BoostersCarousel gifts={[]} currentLevel={3} />
     );
-    expect(getByText('buddy.boosters.giftType.skip_token')).toBeTruthy();
-    expect(getByText('buddy.boosters.giftType.reward_discount')).toBeTruthy();
+    // Both locked cards are theme_color now; distinguished by their unlock level.
     expect(getByText('buddy.boosters.unlockAtLevel|level=4')).toBeTruthy();
     expect(getByText('buddy.boosters.unlockAtLevel|level=5')).toBeTruthy();
   });
 
-  test('does NOT render skip_token placeholder once the child has reached L4', () => {
+  test('does NOT render the L4 placeholder once the child has reached L4', () => {
     const { queryByText } = render(
       <BoostersCarousel gifts={[]} currentLevel={4} />
     );

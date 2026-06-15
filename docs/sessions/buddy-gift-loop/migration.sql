@@ -1,0 +1,17 @@
+-- pkg/buddy-gift-loop — applied to live mobile project (gfrongfnyigxsexuofrg)
+-- 2026-06-15 via Supabase MCP apply_migration (name: buddy_gift_loop).
+--
+-- Phase A — compute_buddy_eod_for_child: add L4 (30 days) + L5 (100 days);
+--   re-map every level-up gift to cosmetic 'theme_color' (decision 2026-06-15).
+--   Based on the verified-live body (post-#235 LEAST(3,assigned) success).
+-- Phase B-1 — use_buddy_gift(p_gift_id): atomic gift-open. Validates family
+--   ownership (parent View-as-Child or own-device child), marks used, applies
+--   the cosmetic theme color, clears has_pending_gift when no unused gift remains.
+--
+-- Palette is mirrored on the client in src/types/buddy.ts (BUDDY_GIFT_LEVEL_COLOR).
+-- The full statement is identical to the apply_migration call; see git history /
+-- the session transcript. Re-running is safe (CREATE OR REPLACE + idempotent GRANT).
+--
+-- Verification at apply time:
+--   * SELECT use_buddy_gift('00000000-...'::uuid) -> {"success":false,"reason":"not_authenticated"}
+--   * no schema change, no data migration (4 existing pending gifts already L2 theme_color).

@@ -5,7 +5,7 @@
  * fresh-child fallback (relationship === null → L1 + zeros), L5 hides
  * progress bar, booster carousel renders gifts.
  */
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import GamerMyStatsScreen from '../GamerMyStatsScreen';
 import type { BuddyRelationship, BuddyGift } from '../../../types/buddy';
@@ -138,6 +138,7 @@ function setHooks({
     loading: loading.gifts,
     error: null,
     refetch: jest.fn(),
+    useGift: jest.fn().mockResolvedValue({ error: null, result: { success: true } }),
   } as any);
   mockedUseAppSettings.mockReturnValue({ isPauseActive } as any);
 }
@@ -218,11 +219,33 @@ describe('GamerMyStatsScreen', () => {
     expect(queryByText('gamerMyStats.progressToNextLevel:6')).toBeNull();
   });
 
-  test('tapping an available booster fires the coming-soon alert', () => {
-    const { getByText } = render(<GamerMyStatsScreen />);
+  test('tapping an available booster opens the gift reveal modal', () => {
+    const { getAllByText, queryByTestId, getByTestId } = render(<GamerMyStatsScreen />);
 
-    fireEvent.press(getByText('buddy.boosters.giftType.theme_color'));
+    // Modal is not mounted/visible until a gift is tapped
+    expect(queryByTestId('buddy-gift-open')).toBeNull();
 
-    expect(Alert.alert).toHaveBeenCalledTimes(1);
+    // The available gift card renders first; locked L4/L5 cards share the label.
+    fireEvent.press(getAllByText('buddy.boosters.giftType.theme_color')[0]);
+
+    // Confirm phase of the reveal modal is now shown
+    expect(getByTestId('buddy-gift-modal')).toBeTruthy();
+    expect(getByTestId('buddy-gift-open')).toBeTruthy();
+  });
+
+  test('confirming the reveal calls useGift with the tapped gift id', async () => {
+    const useGift = jest.fn().mockResolvedValue({
+      error: null,
+      result: { success: true, theme_color: '#A8E63E', pending_remaining: 0 },
+    });
+    mockedUseGifts.mockReturnValue({
+      gifts: [baseGift], loading: false, error: null, refetch: jest.fn(), useGift,
+    } as any);
+
+    const { getAllByText, getByTestId } = render(<GamerMyStatsScreen />);
+    fireEvent.press(getAllByText('buddy.boosters.giftType.theme_color')[0]);
+    fireEvent.press(getByTestId('buddy-gift-open'));
+
+    await waitFor(() => expect(useGift).toHaveBeenCalledWith('gift-1'));
   });
 });
