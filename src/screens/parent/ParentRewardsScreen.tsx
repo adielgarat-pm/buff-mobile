@@ -465,11 +465,18 @@ export default function ParentRewardsScreen() {
                 <Text style={styles.rewardIcon}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: T.text }]}>{pickI18nColumn(reward, i18n.language)}</Text>
-                  <Text style={[styles.rewardDesc, { color: T.textMuted }]}>
-                    {reward.cash_value != null
-                      ? t('parentRewards.cashBadge', { symbol: currencySymbol, amount: reward.cash_value })
-                      : t('parentRewards.rewardGoal', { size: t(`parentRewards.size.${reward.size as RewardSize}`) })}
-                  </Text>
+                  {(() => {
+                    const isValidSize = (['small', 'medium', 'large'] as const).includes(reward.size as RewardSize);
+                    const goalLabel =
+                      reward.cash_value != null
+                        ? t('parentRewards.cashBadge', { symbol: currencySymbol, amount: reward.cash_value })
+                        : isValidSize
+                          ? t('parentRewards.rewardGoal', { size: t(`parentRewards.size.${reward.size as RewardSize}`) })
+                          : null; // legacy/catalog rewards may have no size — omit the goal line rather than show a raw key
+                    return goalLabel ? (
+                      <Text style={[styles.rewardDesc, { color: T.textMuted }]}>{goalLabel}</Text>
+                    ) : null;
+                  })()}
                 </View>
                 <View style={[styles.costBadge, { backgroundColor: '#F3E8FF' }]}>
                   <Text style={[styles.costText, { color: T.accent }]}>

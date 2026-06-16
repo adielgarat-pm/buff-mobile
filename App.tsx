@@ -40,6 +40,12 @@ import RootNavigator                     from './src/navigation/RootNavigator';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { resolveChildLang }              from './src/lib/i18nString';
+import { setupPwa }                      from './src/lib/setupPwa';
+
+// Make the web build installable as a PWA (inject manifest + apple-* meta tags
+// and register the service worker). No-op on native (the native app is the
+// "installed app").
+setupPwa();
 
 // Sentry crash + error monitoring.
 // DSN is only set in production/preview EAS profiles (eas.json env), keeping
