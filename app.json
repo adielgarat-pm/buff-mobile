@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "BUFF",
     "slug": "buff-mobile",
@@ -64,7 +64,8 @@
           "organization": "buffadhd",
           "project": "react-native"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "notification": {
       "icon": "./assets/BUFF_LOGO.png",

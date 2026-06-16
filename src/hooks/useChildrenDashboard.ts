@@ -122,7 +122,10 @@ export function useChildrenDashboard() {
     // Use a unique channel name each time to avoid "cannot add postgres_changes
     // callbacks after subscribe()" — which happens when the old channel isn't
     // fully removed before this effect re-runs (removeChannel is async).
-    const channelName = `children-dashboard-${Date.now()}`;
+    // Date.now() alone can collide on a same-millisecond effect re-run (React dev
+    // double-invoke) → supabase returns the already-subscribed channel → ".on()
+    // after subscribe()" throws. A random suffix makes the topic truly unique.
+    const channelName = `children-dashboard-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase
       .channel(channelName)
       // Re-fetch when a child profile is inserted (e.g. end of onboarding flow)

@@ -37,15 +37,20 @@ import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
 import { LAVENDER_BG }                    from './src/theme/palette';
 import RootNavigator                     from './src/navigation/RootNavigator';
+import { GlobalConfetti }                from './src/components/GlobalConfetti';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { resolveChildLang }              from './src/lib/i18nString';
 import { setupPwa }                      from './src/lib/setupPwa';
+import { loadSfxPref }                   from './src/lib/sfx';
 
 // Make the web build installable as a PWA (inject manifest + apple-* meta tags
 // and register the service worker). No-op on native (the native app is the
 // "installed app").
 setupPwa();
+
+// Load the child's sound on/off preference once at startup (sfx are mute-aware).
+loadSfxPref();
 
 // Sentry crash + error monitoring.
 // DSN is only set in production/preview EAS profiles (eas.json env), keeping
@@ -155,6 +160,7 @@ function AppContent() {
     <>
       <StatusBar style={theme.statusBar} />
       <RootNavigator />
+      <GlobalConfetti />
     </>
   );
 }
