@@ -26,6 +26,9 @@ import { useMode } from '../../contexts/ModeContext';
 import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
+import { useParentRecommendations } from '../../hooks/useParentRecommendations';
+import RecommendationCard from '../../components/parent/RecommendationCard';
+import type { Recommendation } from '../../utils/recommendationEngine';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
 import { useParentNotifications } from '../../hooks/useParentNotifications';
@@ -148,16 +151,16 @@ export default function ParentDashboardScreen() {
     setLinkTarget(child);
   }, [unlinked, linkable, linkChild, refetch]);
 
-  // Anchor Recovery: show modal on first dashboard open of the day if any
-  // kid has an unread anchor_recovery notification (OQ-P2-1 = a). Gate on
-  // dismiss-hook loading so the storage check completes before we decide.
+  // Anchor Recovery modal auto-show is RETIRED (spec-typed-toucan): the lapse
+  // case now surfaces through the calm "Recommended now" card below, not a
+  // full-screen interruption. The modal component stays mounted (visible stays
+  // false) until card parity is verified on device, then it's removed in a
+  // follow-up. The effect is kept (no auto-open) so the dismiss-hook fields
+  // remain wired for that transitional period.
   useEffect(() => {
-    if (anchorDismissLoading) return;
-    if (anchorShownToday) return;
-    if (anchorPrompts.length === 0) return;
-    if (anchorModalVisible) return;
-    setAnchorModalVisible(true);
-  }, [anchorDismissLoading, anchorShownToday, anchorPrompts.length, anchorModalVisible]);
+    if (anchorDismissLoading || anchorShownToday) return;
+    // intentionally no setAnchorModalVisible(true) — the card owns this now.
+  }, [anchorDismissLoading, anchorShownToday]);
 
   // OQ7 — determine which prompted kids already have a standalone meds task,
   // so the meds CTA is hidden for them. Locked OQ7 = title contains "תרופה"
@@ -237,6 +240,52 @@ export default function ParentDashboardScreen() {
     : 0;
   const showLockedInsights = daysSinceChildCreated < 3;
   const insightsLocked = !insightsLoading && (!topInsight || showLockedInsights);
+
+  // ── "Recommended now" card (spec-typed-toucan) ───────────────────────────
+  // The action layer on top of insights: reads the first child's live state
+  // (pause / low-vibe / lapse / streak) and surfaces ONE actionable lever. When
+  // it returns a recommendation it takes the prime slot; otherwise the legacy
+  // insight/locked card renders unchanged. Lapse + standalone-med signals reuse
+  // the anchor-recovery prompt set and the OQ7 meds set computed above.
+  const firstChildLapsed = firstChildId
+    ? anchorPrompts.some(p => p.child_id === firstChildId)
+    : false;
+  const firstChildHasMed = firstChildId ? medsExistingFor.has(firstChildId) : false;
+  const { recommendation } = useParentRecommendations(firstChildId, {
+    childName:        firstChild?.displayName ?? '',
+    isLapsed:         firstChildLapsed,
+    hasStandaloneMed: firstChildHasMed,
+    topInsight:       topInsight ? { severity: topInsight.severity } : null,
+  });
+  const [dismissedRecId, setDismissedRecId] = useState<string | null>(null);
+  const activeRec = recommendation && recommendation.id !== dismissedRecId
+    ? recommendation
+    : null;
+
+  const handleRecCta = (rec: Recommendation) => {
+    switch (rec.ctaType) {
+      case 'send-sticker': openSticker(rec.childId); break;
+      case 'add-med':      setMedSheetTarget({ childId: rec.childId, childName: rec.childName }); break;
+      case 'send-bonus':   openBonus(rec.childId); break;
+      case 'none':         break;
+    }
+    // A comeback engagement resolves the lapse signal so the card stops
+    // re-appearing. add-med is the exception — it resolves on a successful
+    // save (handleMedsSaved), mirroring the old anchor modal, so a cancelled
+    // sheet leaves the recommendation in place.
+    if (rec.trigger === 'comeback' && rec.ctaType !== 'add-med') {
+      void resolveAnchorPrompts();
+      void markAnchorShown();
+    }
+  };
+
+  const handleRecDismiss = (rec: Recommendation) => {
+    setDismissedRecId(rec.id);
+    if (rec.trigger === 'comeback') {
+      void resolveAnchorPrompts();
+      void markAnchorShown();
+    }
+  };
 
   // ── FIX 3: paywall ──────────────────────────────────────────────────────
   const handleAddChild = () => {
@@ -367,8 +416,14 @@ export default function ParentDashboardScreen() {
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
 
-      {/* ── Insight card ───────────────────────────────────────────────── */}
-      {insightsLoading ? (
+      {/* ── Recommended-now card (takes the slot) or legacy insight card ── */}
+      {activeRec ? (
+        <RecommendationCard
+          recommendation={activeRec}
+          onCta={() => handleRecCta(activeRec)}
+          onDismiss={() => handleRecDismiss(activeRec)}
+        />
+      ) : insightsLoading ? (
         <View style={[styles.insightCard, { backgroundColor: T.accent, justifyContent: 'center', alignItems: 'center' }]}>
           <ActivityIndicator color="#fff" />
         </View>
