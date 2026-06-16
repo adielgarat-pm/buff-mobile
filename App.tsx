@@ -37,6 +37,7 @@ import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
 import { LAVENDER_BG }                    from './src/theme/palette';
 import RootNavigator                     from './src/navigation/RootNavigator';
+import { GlobalConfetti }                from './src/components/GlobalConfetti';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { resolveChildLang }              from './src/lib/i18nString';
@@ -159,6 +160,7 @@ function AppContent() {
     <>
       <StatusBar style={theme.statusBar} />
       <RootNavigator />
+      <GlobalConfetti />
     </>
   );
 }
