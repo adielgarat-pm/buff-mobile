@@ -29,8 +29,11 @@ export async function initRevenueCat(userId: string): Promise<void> {
   // Configuring the SDK with the Android key (`goog_…`) on iOS would error, so we
   // skip init entirely. Paired with the iOS branch in useSubscription (paywall hidden,
   // premium unlocked). REMOVE when Apple IAP lands in Phase 2 and an iOS key exists.
-  if (Platform.OS === 'ios') {
-    console.log('[RevenueCat] skipped on iOS (Phase 1 — no IAP yet)');
+  // Web has no react-native-purchases native SDK and our key is the Android key
+  // (`goog_…`), which the RC Web Billing SDK rejects ("Invalid API key"). Skip init
+  // on web too — paired with the web branch in useSubscription (paywall hidden).
+  if (Platform.OS === 'ios' || Platform.OS === 'web') {
+    console.log(`[RevenueCat] skipped on ${Platform.OS} (no IAP on this platform yet)`);
     return;
   }
   Purchases.setLogLevel(LOG_LEVEL.DEBUG);
