@@ -6,7 +6,7 @@
 ## Build coordinates
 - **versionName** 1.6.1 · **versionCode** 48 (EAS remote auto-increment from 47)
 - **Branch:** `pkg/release-48` · **built from** `pkg/release-48 @ 837d11b` (= `origin/main @ 2b47941` + 1 prep commit `837d11b`)
-- **EAS build:** `92e07549-2d0d-4e1a-93eb-ba4ca21a9ba0` (production, store, app-bundle) — queued 2026-06-16
+- **EAS build:** `92e07549-2d0d-4e1a-93eb-ba4ca21a9ba0` (production, store, app-bundle) — **finished** 2026-06-16 (18:07→18:16, ~9.5 min). AAB: `https://expo.dev/artifacts/eas/SwEWPtIV7xy79v-fNicR3DobLqeHkltpf6SW8jcmThw.aab`
 - **Anchor:** last build 1.6.0 (versionCode 47), EAS `ecf981fd`, built from `bc38628` (2026-06-15)
 - **SDK:** 54.0.0 · **profile:** production
 
