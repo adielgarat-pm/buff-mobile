@@ -14,6 +14,34 @@
 
 ## Implementation Notes
 
+### IN-2026-06-16-01: BUFF runs on the web (Expo Web) for iPhone users — 3 workstreams; the "9 native modules crash on import" premise was wrong
+
+- **תאריך:** 2026-06-16
+- **מקור:** CC — סשן "להעלות גרסה לאתר / לאפשר לבעלי אייפון web app כמו ב-Lovable" עם Adi. תוכנית: `C:\Users\adiel\.claude\plans\hazy-frolicking-swan.md`.
+- **תיאור:** iOS חסום על אישור חשבון Apple (TestFlight), אז בעלי אייפון צריכים את האפליקציה בדפדפן. **לא** מפנים ל-`buffadhd.com` (Lovable) — הוא על פרויקט Supabase **נפרד וקפוא** (split families + פיצ'רים ישנים + שני codebase-ים; נגד D-2026-05-14). במקום, מקמפלים את אפליקציית ה-RN הקיימת ל-Web (Expo Web / react-native-web) — codebase אחד, אותו דאטה, אותם פיצ'רים. שלושה זרמים:
+  1. **דף נחיתה** — הועתק 1:1 מ-repo ה-Lovable (`adielgarat-pm/buff`, Vite/React/shadcn) ל-workspace חדש `landing-web/` (Vercel, כמו admin-web); testimonials כ-snapshot סטטי (לא תלוי ב-DB הקפוא). PRs #245/#246/#249 (merged).
+  2. **אפליקציית הווב + PWA** — PR #251 (merged). כל השינויים `Platform.OS==='web'`-gated → **אפס שינוי התנהגות באנדרואיד**.
+  3. **סאונד + קונפטי** ("פער חושי", ראו למטה) — PR #253.
+- **הפתעות / לקחים:**
+  - **ה-bundle לווב עובר נקי.** ההנחה (מ-Explore בתכנון) ש-~9 מודולים native יתרסקו ב-import הייתה **שגויה** — Expo SDK 54 משלב web-stubs (RevenueCat/notifications/date-picker/file-system/Sentry/haptics). שלב הקומפילציה — שנחשב הסיכון הגדול — היה בחינם. **לקח: לבדוק אמפירית (`expo export -p web`) לפני שמניחים crashes.**
+  - **Web OAuth:** `detectSessionInUrl: true` בווב (היה `false`) הכרחי — בלעדיו ה-tokens מ-redirect של Google לא נקלטים → `SIGNED_IN` לא נורה → דשבורד ריק עד reload ידני. + לגדר את `AppState` listener ל-native בלבד.
+  - **RevenueCat בווב:** המפתח שלנו הוא מפתח אנדרואיד (`goog_`) → ה-RC Web SDK זורק `Invalid API key`. מדלגים בווב (כמו ב-iOS Phase-1) ומתייחסים כ-entitled.
+  - **bundling לווב חייב worktree מחוץ ל-`.claude/`** — בדיוק בגלל ה-blockList שמתועד ב-[IN-2026-06-14-03]. ה-worktree של זרם 2/3 הוא sibling: `C:\Users\adiel\buff-expo-web` / `C:\Users\adiel\buff-kid-delight`, עם node_modules משלו, dev server `expo start --web`. (watcher של Windows צולע → `--clear` כשעריכה לא נתפסת.)
+  - **באג realtime שגרם למסך לבן:** `useAppSettings`/`useChildrenDashboard` נתנו שם channel עם `Date.now()` בלבד — re-run של effect באותה מילישנייה (React dev double-invoke) → אותו topic → supabase מחזיר channel שכבר `subscribe()`-ד → `.on()` זורק → קריסה. תוקן עם שם ייחודי-מובטח (counter/random). dev/timing; פרודקשן (בלי StrictMode double-invoke) כמעט ולא נפגע.
+  - **דפוס מיזוג-מוקדם:** Adi ממזגת PRs מהר; commits שנדחפו *אחרי* פתיחת ה-PR פספסו את המיזוג פעמיים (#245 ללא הדפים המשפטיים; #246 ללא תמר המשולבת) → נדרש forward-port (#249). לקח: לוודא שכל ה-commits על הענף לפני שמבקשים merge.
+- **השפעה:** בעלי אייפון יקבלו את האפליקציה המלאה + התקנה למסך הבית, על אותו דאטה כמו אנדרואיד. **נשאר רק deploy** — צעדי Adi אצל הספקים: Vercel (`npx expo export -p web`→`dist` ב-`app.buffadhd.com` + פרויקט נחיתה), Google Cloud web OAuth redirect, Supabase Auth allowlist, Namecheap CNAME.
+- **סטטוס:** `open` (קוד הושלם; deploy ממתין ל-Adi)
+- **קשור ל:** D-2026-05-14 (Web Strategy & Lovable Sunset), F-073 (Web build), F-2026-05-14-01 (web-compat לפני dep), [IN-2026-06-14-03] (metro/.claude), [IN-2026-06-16-02] (פער חושי), PRs #245/#246/#249/#251/#253, `landing-web/`, `pkg/expo-web-app`, `pkg/kid-delight-parity`
+
+### IN-2026-06-16-02: Why a kid kept asking for the old Lovable app — the gap is sensory (mobile had ZERO audio + confetti-stub), not features
+
+- **תאריך:** 2026-06-16
+- **מקור:** CC — diff דו-סוכני של שני ה-codebases (Lovable `adielgarat-pm/buff` מול `buff-mobile/src`) אחרי ש-Adi דיווחה שהבן של שני (ואחרים) ממשיכים לבקש לחזור לאפליקציה הישנה.
+- **תיאור:** הפער **חושי**, לא פיצ'רים. למובייל היה: **אפס audio** (חיפוש קוד: 0 קבצים/imports; `PetDisplay.tsx:15` מודה "Not yet ported"), וקונפטי = stub. ל-Lovable: 3 מנועי Web-Audio (`soundEffects`/`celebrationAudio`/`petSounds` — צ'יים + דינג + מנגינות-חיה + קול בקיעה) + `lottie-react` קונפטי + XP fly-in + Pack-Completion trophy. **המובייל לא נחות בהכול** — הוא מוסיף BUFF Catch + מערכת BUDDY עשירה ש-Lovable חסר. הגירעון ספציפי בשכבת ה-completion החושית (הדופמין המיידי שילד ADHD נתפס אליו). (סייג: הסקה מעושר-קוד, לא מהסיבה המוצהרת של הילד.)
+- **השפעה / פתרון:** זרם 3 (PR #253) — צ'יים (`expo-audio`, WAVs מחוללים) + קונפטי (`Animated` טהור, ללא lottie, אפס deps) על כל השלמת משימה, mute-aware, low-dopamine לפי הפילרים. משפר אנדרואיד מיד + יורש לווב.
+- **סטטוס:** `resolved` (קוד; feel + Hat-3 ממתינים ל-Adi)
+- **קשור ל:** [IN-2026-06-16-01], `pkg/kid-delight-parity`, `scripts/gen-sfx.js`, `src/lib/sfx.ts`, `src/components/ConfettiBurst.tsx`, `memory/project_buff_war_non_return.md` (habit-fragility), `project_buff_anchor_theory.md`
+
 ### IN-2026-06-15-01: Off-Routine tasks leaked into parent views as phantom incompletes — exit never cleaned them up + 3 read surfaces forgot the filter
 
 - **תאריך:** 2026-06-15
