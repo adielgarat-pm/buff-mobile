@@ -54,6 +54,11 @@ export function resolveRouteAction(data: PushNotificationData): RouteAction {
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'parent_engagement':
       return { kind: 'parent_dashboard', childId: data.child_id };
+    case 'anchor_recovery':
+      // spec-typed-toucan — tapping the "child hasn't been active" nudge lands
+      // on the parent dashboard, where the "Recommended now" card surfaces the
+      // comeback action for this child.
+      return { kind: 'parent_dashboard', childId: data.child_id };
     case 'child_vibe_shared':
       // pkg/vibe-share-notification — tap lands on the parent dashboard, scrolled
       // to the child who shared their mood (same destination as parent_sos).

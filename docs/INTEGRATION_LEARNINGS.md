@@ -14,6 +14,17 @@
 
 ## Implementation Notes
 
+### IN-2026-06-16-01: Stale dev-client APK blocks Hat-3 (missing `SplashScreenManager` native) — and the `anchor_recovery` notification already IS the lapse signal (no 30-day re-query needed)
+
+- **תאריך:** 2026-06-16
+- **מקור:** CC — בהקשר של `pkg/recommended-now-card` (כרטיס "מומלץ עכשיו", אימות Hat-3)
+- **תיאור:** שני דברים שהפתיעו תוך כדי הבנייה/אימות:
+  1. **אימות חי נחסם סביבתית.** ה-bundle של Metro נבנה במלואו (17MB, HTTP 200, כולל את `RecommendationCard.tsx` module 2129) אבל ה-dev launcher על האמולטור נכשל ב-"Failed to open app". הסיבה בלוגקאט: `java.lang.ClassNotFoundException: expo.modules.splashscreen.SplashScreenManager` ב-`MainApplication.onCreate` — ה-APK המותקן ישן/לא תואם ל-native deps של הקוד הנוכחי, האפליקציה קורסת *לפני* טעינת ה-JS. כלומר שינוי JS-בלבד לא ניתן לאימות Hat-3 אם ה-dev-client APK מיושן; צריך `npx expo run:android` (rebuild נייטיב). אבחנה זולה: `adb logcat -d | grep -iE "DevLauncher|ClassNotFound"` מגלה את זה מיד; אין טעם ללופ על deep-link מחדש.
+  2. **`anchor_recovery` כבר מקודד את אות הדעיכה.** התוכנית הניחה שצריך להרחיב את `useParentInsights` לחלון 30 יום כדי להבדיל "ילד חדש" מ"ילד שדעך". מיותר — ה-cron כבר מייצר התראת `anchor_recovery` (5+ ימי חוסר-פעילות), ו-`useAnchorRecoveryPrompts` כבר חושף אותה. מיחזרנו אותה כאות ה-lapse → מנוע התובנות לא נגענו בו בכלל (פחות סיכון).
+- **השפעה:** (א) כל session שצריך Hat-3 על שינוי JS חייב לוודא קודם שה-dev-client APK עדכני, אחרת "Failed to open app" יבלבל כאילו הקוד שבור. (ב) פיצ'רים עתידיים שצריכים "האם הילד דעך" יכולים לצרוך את `useAnchorRecoveryPrompts` במקום לחשב חלון תאריכים.
+- **סטטוס:** `open` (חסימת ה-APK הישן — עד rebuild; האימות החי של הכרטיס עצמו `deferred` ל-Hat-4 / real device)
+- **קשור ל:** `pkg/recommended-now-card`, `docs/sessions/recommended-now-card/STATUS.md`, `src/hooks/useAnchorRecoveryPrompts.ts`, buff-testing skill, IN-2026-06-14-03 (סוג אחר של חסימת Hat-3)
+
 ### IN-2026-06-15-01: Off-Routine tasks leaked into parent views as phantom incompletes — exit never cleaned them up + 3 read surfaces forgot the filter
 
 - **תאריך:** 2026-06-15
