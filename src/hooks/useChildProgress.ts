@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
 import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils';
 import { applyTaskCompletionToPet } from './usePetState';
+import { playSfx } from '../lib/sfx';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -360,6 +361,11 @@ export function useChildData(childId: string | null) {
       .eq('date', todayKey).eq('task_id', taskId)
       .maybeSingle();
     const wasComplete = existing?.completed === true;
+
+    // Gentle success chime on a real incomplete→complete transition (covers both
+    // Mint + Gamer, since both go through completeTask). Gated on !wasComplete so
+    // a re-tap of an already-done task stays silent. Mute-aware; best-effort.
+    if (!wasComplete) playSfx('success');
 
     const now = new Date();
     // Optimistic UI update
