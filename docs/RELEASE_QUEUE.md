@@ -18,6 +18,10 @@
 ## 🚉 Queued — riding the next train
 
 _Last released: **1.4.0 (versionCode 34)** — promoted to the **Alpha closed-testing** track 2026-06-08. Drained into `docs/releases/34/MANIFEST.md`. Prior internal release: **1.3.1 (versionCode 31)**, 2026-06-06 (`docs/releases/31/`)._
+>
+> _(Build history since: vc42 → vc43/44 (1.5.0) → **vc47 (1.6.0)**, built from `bc38628` 2026-06-15 — the current EAS anchor. This header line predates those cuts; treat the per-release `docs/releases/<code>/` folders + `eas build:list` as ground truth.)_
+
+> 🚧 **CUT IN PROGRESS — 1.6.1 (versionCode 48):** EAS build `92e07549-2d0d-4e1a-93eb-ba4ca21a9ba0` (production app-bundle) queued 2026-06-16 from `pkg/release-48 @ 837d11b` (= `origin/main @ 2b47941` + prep). Draining into `docs/releases/48/MANIFEST.md`. **Content = the 11 merges since the vc47 cut (`bc38628`):** app-facing → #253 completion confetti+sound · #252 "Recommended now" parent card + `89ab9cc` realtime crash fix · #244 BUDDY gift loop + L4/L5 · #248 reward size-null label fix · #243 off-routine leak fix · #251 expo-web hide native import. Web-landing/docs only (NOT in build) → #245/#246/#249/#247/#250. Gate 1 ✅ (tsc 0 / jest 423/423; fixed a #253 expo-audio jest-mock gap). Gate 2 → Hat-3 emulator + Hat-4 device pending. Rows move to **Shipped (48)** once Adi promotes + "verified, tag it". No new migration; no Edge Function gated to this build.
 
 > ✅ **Cut closed — 1.4.0 (versionCode 34), promoted to Alpha 2026-06-08.** The rows that were riding the train shipped (the fixes via 1.3.1(31); the features stacked on top via 1.4.0(34)) and have moved to **Shipped** below. versionCode **32 and 33 were burned** during the 2026-06-08 cut — 32 consumed remotely, 33 a parallel/superseded build that was never promoted; **34 is the successful, promoted build**. **Next train starts clean: the next production build will be versionCode 35** (EAS `appVersionSource: remote` + `autoIncrement: true` tracks the last code server-side); bump `versionName` at cut time (e.g. 1.4.1 / 1.5.0) to avoid a Play collision with the already-uploaded 1.4.0.
 
