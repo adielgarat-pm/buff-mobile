@@ -519,23 +519,31 @@ export default function TimetableScreen() {
         </Text>
 
         <View style={styles.methodGrid}>
-          <TouchableOpacity
-            onPress={handleExcel}
-            style={[styles.methodCard, { borderColor: T.cardBorder, backgroundColor: T.card }]}
-          >
-            <Ionicons name="document-text-outline" size={36} color={T.accent} />
-            <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodExcel')}</Text>
-            <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodExcelSub')}</Text>
-          </TouchableOpacity>
+          {/* Excel + photo import rely on native file pickers + expo-file-system
+              (no web file-read path yet) — hide them on web so there's no broken
+              button. Web parents use Manual entry below; full web import is a
+              follow-up. */}
+          {Platform.OS !== 'web' && (
+            <>
+              <TouchableOpacity
+                onPress={handleExcel}
+                style={[styles.methodCard, { borderColor: T.cardBorder, backgroundColor: T.card }]}
+              >
+                <Ionicons name="document-text-outline" size={36} color={T.accent} />
+                <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodExcel')}</Text>
+                <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodExcelSub')}</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handleImage}
-            style={[styles.methodCard, { borderColor: T.cardBorder, backgroundColor: T.card }]}
-          >
-            <Ionicons name="camera-outline" size={36} color={T.accent} />
-            <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodPhoto')}</Text>
-            <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodPhotoSub')}</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleImage}
+                style={[styles.methodCard, { borderColor: T.cardBorder, backgroundColor: T.card }]}
+              >
+                <Ionicons name="camera-outline" size={36} color={T.accent} />
+                <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodPhoto')}</Text>
+                <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodPhotoSub')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
           <TouchableOpacity
             onPress={openManual}
