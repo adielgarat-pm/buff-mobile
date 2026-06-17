@@ -4,8 +4,7 @@
  * Plays once on the rising edge of `play` (e.g. a task completion), then calls
  * onDone. Pure React Native Animated + Views (no lottie / svg) so it works
  * identically on native and web. Kept gentle + brief per BUFF's pillars
- * (calm, non-gambling): a short fall, soft fade, no looping, no sound here
- * (sound is handled separately in src/lib/sfx).
+ * (calm, non-gambling): a short fall, soft fade, no looping, no sound.
  */
 import { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet, useWindowDimensions, Easing, Platform } from 'react-native';
