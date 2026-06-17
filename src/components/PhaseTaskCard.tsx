@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { Task, TaskCategory } from '../types/task';
 import { Phase, PhaseConfig } from '../types/phase';
 import { useChildTheme } from '../contexts/ThemeContext';
+import { useCompletionPop } from '../hooks/useCompletionPop';
 import { uiLocale } from '../lib/uiLocale';
 
 // ─── Category config ──────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEn
   const T = useChildTheme();
   const [pressed, setPressed] = useState(false);
   const { t } = useTranslation();
+  const popScale = useCompletionPop(task.completed);
 
   const outOfWindow = task.completed && isOutOfWindow(task.completedAt, phase);
   const categoryLabel = t(CATEGORY_I18N_KEYS[task.category]);
@@ -80,6 +82,7 @@ export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEn
   };
 
   return (
+    <Animated.View style={{ transform: [{ scale: popScale }] }}>
     <TouchableOpacity
       style={[
         styles.card,
@@ -161,6 +164,7 @@ export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEn
         )}
       </View>
     </TouchableOpacity>
+    </Animated.View>
   );
 }
 

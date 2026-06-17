@@ -3,23 +3,24 @@
  *
  * Task completion happens on several child screens (Mint/Gamer dashboards +
  * Quests tabs), all funnelling through useChildProgress.completeTask. Rather
- * than wire a confetti overlay into each screen, completeTask emits a single
- * event here and ONE <GlobalConfetti> mounted at the app root renders the burst.
- * Best-effort; listeners are swallowed on error so a confetti hiccup never
- * affects task completion.
+ * than wire celebration into each screen, completeTask emits a single event here
+ * carrying the BUFFs just earned, and the app root renders the reward moment:
+ * ONE <GlobalConfetti> fires the burst and ONE <GlobalRewardPop> floats the
+ * "+N ⚡". Best-effort; listeners are swallowed on error so a celebration hiccup
+ * never affects task completion.
  */
-type Listener = () => void;
+type Listener = (credits: number) => void;
 
 const listeners = new Set<Listener>();
 
-/** Fire a celebration. Called from completeTask on a real incomplete→complete. */
-export function emitConfetti(): void {
+/** Fire a celebration, passing the BUFFs earned (0 if unknown). */
+export function emitConfetti(credits = 0): void {
   listeners.forEach((l) => {
-    try { l(); } catch { /* never break the caller */ }
+    try { l(credits); } catch { /* never break the caller */ }
   });
 }
 
-/** Subscribe to confetti events. Returns an unsubscribe fn. */
+/** Subscribe to celebration events. Returns an unsubscribe fn. */
 export function subscribeConfetti(listener: Listener): () => void {
   listeners.add(listener);
   return () => { listeners.delete(listener); };

@@ -365,9 +365,9 @@ export function useChildData(childId: string | null) {
     // Celebrate a real incomplete→complete transition (covers both Mint + Gamer
     // and every screen, since all completion funnels through here). Gated on
     // !wasComplete so a re-tap of an already-done task stays silent. Best-effort:
-    // an app-root confetti burst.
+    // an app-root confetti burst + a "+N ⚡" reward float (BUFFs just earned).
     if (!wasComplete) {
-      emitConfetti();
+      emitConfetti(tasks.find(t => t.id === taskId)?.credits ?? 0);
     }
 
     const now = new Date();
