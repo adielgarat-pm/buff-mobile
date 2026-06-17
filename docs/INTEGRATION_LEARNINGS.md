@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-06-17-01: build 48 (1.6.1) הקריס מכשירי אנדרואיד בהפעלה — `expo-audio` נטען ב-import בשורש *לפני* `Sentry.init`, אז הקריסה הייתה בלתי-נראית ב-Sentry
+
+- **תאריך:** 2026-06-17
+- **מקור:** CC — אירוע פרודקשן בוקר; דיווחי טסטרים (טל אליהו; נועה/ליה) "האפליקציה לא נפתחת / מיד נסגרת"
+- **תיאור:** 1.6.1 (versionCode 48) קודם ל-track הטסטרים בערב 16.6. בבוקר 17.6 מכשירים שהתעדכנו נסגרו **מיד בהפעלה — בלי מסך, שורד אתחול, ובלי שום דוח ב-Sentry.** שורש: פיצ'ר צליל-ההשלמה (#253) מייבא את מודול ה-native `expo-audio` ב-`src/lib/sfx.ts`, ו-`App.tsx` קורא `loadSfxPref()` בשורש. ה-import של expo-audio מורכב כחלק מטעינת ה-bundle — **לפני** `Sentry.init` (שבא אחריו ב-App.tsx); אם המודול נכשל באתחול על המכשיר, ה-JS זורק fatal תוך כדי הערכת ה-bundle, לפני ש-Sentry JS עלה → לא נשלח דוח. ה-`try/catch` ב-`playSfx` מגן רק על *הנגינה*, לא על ה-import. **אבחנה דרך הדאטה, לא הקוד:** ליה (own-device) השלימה משימות יומיומית עד 16.6 ואז אפס ב-17.6; הילדים של טל עבדו רק כי המכשירים שלהם עדיין לא קיבלו את עדכון 1.6.1 (rollout מדורג).
+- **השפעה:**
+  1. **import של מודול native בשורש = נקודת-עיוורון של Sentry.** כל קוד שרץ לפני `Sentry.init` (imports בשורש / top-level של `App.tsx`) יכול להקריס את ההפעלה בלי דוח. שמור imports של native מאחורי lazy/guard, או טען אותם אחרי `Sentry.init`.
+  2. **לא לקדם build בלי Gate 2 על מכשיר אמיתי.** 1.6.1 קודם כש-Hat-3/Hat-4 עדיין pending; jest *ממוק* את expo-audio ו-tsc לא רואה טעינת native — Gate 1 ירוק לא מוכיח שהאפליקציה נפתחת. "נפתח על מכשיר" חייב להיות gate חוסם לפני קידום.
+  3. דפוס "feature שאומת רק על web": ה-commit ציין "bundles/loads on web" — אבל web לא טוען מודול native אנדרואיד, אז זה לא מכסה את נתיב הקריסה.
+- **תיקון:** `pkg/hotfix-remove-expo-audio` (commit `6af2ddc`, גרסה 1.6.2) — הסרת expo-audio (dep + plugin + autolinking), `sfx.ts` → no-op ששומר את API ה-toggle, קונפטי (RN טהור, אפס deps) נשאר. Gate 1: tsc 0, jest 423/423.
+- **סטטוס:** `code-complete-pending-device-test` — rollout של 1.6.1 ל-halt; 1.6.2 ממתין למיזוג ל-main + build מ-main + בדיקת-מכשיר לפני קידום.
+- **קשור ל:** `src/lib/sfx.ts`, `App.tsx` (`loadSfxPref` בשורש), #253 (kid-delight sound), `docs/RELEASE_QUEUE.md` (build 48), IN-2026-06-16-01 (גם שם native מקריס *לפני* ה-JS — מחלקה דומה), feedback "build from main / Gate 2 על מכשיר".
+
 ### IN-2026-06-16-01: Stale dev-client APK blocks Hat-3 (missing `SplashScreenManager` native) — and the `anchor_recovery` notification already IS the lapse signal (no 30-day re-query needed)
 
 - **תאריך:** 2026-06-16
