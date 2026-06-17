@@ -1,0 +1,8 @@
+[
+  { "f": "01-parent-dashboard",      "en": "Mornings without the nagging",         "he": "בקרים בלי נדנודים",        "place": "top",    "key": false, "src": "01-parent-dashboard.png" },
+  { "f": "02-child-dashboard-buddy", "en": "A kid who feels capable",              "he": "ילד שמרגיש מסוגל",          "place": "bottom", "key": false, "src": "_tmp/02-cropped.png" },
+  { "f": "03-child-rewards",         "en": "Working toward what they really want", "he": "מתקדמים למה שבאמת רוצים",    "place": "top",    "key": true,  "src": "03-child-rewards.png" },
+  { "f": "04-vibe-check",            "en": "Starts with how they feel",            "he": "מתחילים מאיך שמרגישים",     "place": "bottom", "key": true,  "src": "04-vibe-check.png" },
+  { "f": "05-parent-tasks",          "en": "The whole day, finally calm",          "he": "כל היום, סוף סוף רגוע",     "place": "top",    "key": false, "src": "05-parent-tasks.png" },
+  { "f": "06-manage-children",       "en": "Grows with every kid, every age",      "he": "גדל עם כל ילד, בכל גיל",    "place": "bottom", "key": false, "src": "06-manage-children.png" }
+]
