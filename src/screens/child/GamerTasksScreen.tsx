@@ -28,7 +28,7 @@
  */
 import { useMemo, useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Animated,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,6 +37,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { useCompletionPop } from '../../hooks/useCompletionPop';
+import type { Task } from '../../types/task';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import {
   Phase, PHASES, getSmartPhaseForTime, getCurrentPhase,
@@ -94,6 +96,64 @@ function formatToday(locale: 'en' | 'he'): string {
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
+// One Gamer task row. Its own component so it can run the completion "pop"
+// (useCompletionPop needs a hook per card; a .map callback can't call hooks).
+function GamerTaskCard({ task, isNextUp, onTap, labelDone, labelTodo }: {
+  task: Task;
+  isNextUp: boolean;
+  onTap: (id: string, completed: boolean) => void;
+  labelDone: string;
+  labelTodo: string;
+}) {
+  const popScale = useCompletionPop(task.completed);
+  return (
+    <Animated.View
+      style={[
+        styles.taskCard,
+        task.completed && styles.taskCardDone,
+        isNextUp        && styles.taskCardNextUp,
+        { transform: [{ scale: popScale }] },
+      ]}
+    >
+      {isNextUp && <View style={styles.nextUpBar} />}
+
+      <TouchableOpacity
+        onPress={() => onTap(task.id, task.completed)}
+        style={[
+          styles.checkCircle,
+          {
+            backgroundColor: task.completed ? COLORS.lime : 'transparent',
+            borderColor:     task.completed
+              ? COLORS.lime
+              : (isNextUp ? COLORS.lime : 'rgba(167,139,250,0.5)'),
+          },
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel={task.completed ? labelDone : labelTodo}
+      >
+        {task.completed && (
+          <Ionicons name="checkmark" size={14} color={COLORS.canvas} />
+        )}
+      </TouchableOpacity>
+
+      <Text
+        style={[
+          styles.taskTitle,
+          task.completed && styles.taskTitleDone,
+          isNextUp        && styles.taskTitleNextUp,
+        ]}
+        numberOfLines={1}
+      >
+        {task.title}
+      </Text>
+
+      <Text style={[styles.taskCredits, task.completed && { opacity: 0.55 }]}>
+        +{task.credits}
+      </Text>
+    </Animated.View>
+  );
+}
+
 export default function GamerTasksScreen() {
   const { t, i18n }     = useTranslation();
   const locale          = (i18n.language === 'he' ? 'he' : 'en') as 'en' | 'he';
@@ -291,64 +351,16 @@ export default function GamerTasksScreen() {
                 </View>
               ) : (
                 <View style={styles.taskList}>
-                  {phaseTasks.map(task => {
-                    const isNextUp = task.id === nextUpId;
-                    return (
-                      <View
-                        key={task.id}
-                        style={[
-                          styles.taskCard,
-                          task.completed && styles.taskCardDone,
-                          isNextUp        && styles.taskCardNextUp,
-                        ]}
-                      >
-                        {/* Next-up left bar */}
-                        {isNextUp && <View style={styles.nextUpBar} />}
-
-                        {/* Check circle */}
-                        <TouchableOpacity
-                          onPress={() => onTaskTap(task.id, task.completed)}
-                          style={[
-                            styles.checkCircle,
-                            {
-                              backgroundColor: task.completed ? COLORS.lime : 'transparent',
-                              borderColor:     task.completed
-                                ? COLORS.lime
-                                : (isNextUp ? COLORS.lime : 'rgba(167,139,250,0.5)'),
-                            },
-                          ]}
-                          accessibilityRole="button"
-                          accessibilityLabel={task.completed
-                            ? t('gamerTasks.markIncomplete')
-                            : t('gamerTasks.markComplete')}
-                        >
-                          {task.completed && (
-                            <Ionicons name="checkmark" size={14} color={COLORS.canvas} />
-                          )}
-                        </TouchableOpacity>
-
-                        {/* Title */}
-                        <Text
-                          style={[
-                            styles.taskTitle,
-                            task.completed && styles.taskTitleDone,
-                            isNextUp        && styles.taskTitleNextUp,
-                          ]}
-                          numberOfLines={1}
-                        >
-                          {task.title}
-                        </Text>
-
-                        {/* Credits chip */}
-                        <Text style={[
-                          styles.taskCredits,
-                          task.completed && { opacity: 0.55 },
-                        ]}>
-                          +{task.credits}
-                        </Text>
-                      </View>
-                    );
-                  })}
+                  {phaseTasks.map(task => (
+                    <GamerTaskCard
+                      key={task.id}
+                      task={task}
+                      isNextUp={task.id === nextUpId}
+                      onTap={onTaskTap}
+                      labelDone={t('gamerTasks.markIncomplete')}
+                      labelTodo={t('gamerTasks.markComplete')}
+                    />
+                  ))}
                 </View>
               )}
             </View>
