@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
 import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils';
 import { applyTaskCompletionToPet } from './usePetState';
-import { playSfx } from '../lib/sfx';
 import { emitConfetti } from '../lib/confetti';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -365,10 +364,9 @@ export function useChildData(childId: string | null) {
 
     // Celebrate a real incomplete→complete transition (covers both Mint + Gamer
     // and every screen, since all completion funnels through here). Gated on
-    // !wasComplete so a re-tap of an already-done task stays silent. Both are
-    // best-effort: a gentle success chime (mute-aware) + an app-root confetti burst.
+    // !wasComplete so a re-tap of an already-done task stays silent. Best-effort:
+    // an app-root confetti burst.
     if (!wasComplete) {
-      playSfx('success');
       emitConfetti();
     }
 

@@ -4,9 +4,9 @@
  * Task completion happens on several child screens (Mint/Gamer dashboards +
  * Quests tabs), all funnelling through useChildProgress.completeTask. Rather
  * than wire a confetti overlay into each screen, completeTask emits a single
- * event here and ONE <GlobalConfetti> mounted at the app root renders the burst
- * — same pattern as the completion sound (src/lib/sfx). Best-effort; listeners
- * are swallowed on error so a confetti hiccup never affects task completion.
+ * event here and ONE <GlobalConfetti> mounted at the app root renders the burst.
+ * Best-effort; listeners are swallowed on error so a confetti hiccup never
+ * affects task completion.
  */
 type Listener = () => void;
 

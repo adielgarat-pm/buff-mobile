@@ -1,11 +1,10 @@
 /**
  * Child Settings — Gamer/Mint Mode (Menu)
- * Pet customisation, theme picker, sound, sign-out.
+ * Pet customisation, theme picker, sign-out.
  */
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isSfxEnabled, setSfxEnabled, playSfx } from '../../lib/sfx';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -61,7 +60,6 @@ export default function ChildSettingsScreen() {
   const themeSkins   = getSkinsForTheme(themeName);
 
   const [hapticsOn, setHapticsOn]       = useState(true);
-  const [soundOn,   setSoundOn]         = useState(true);
   const [toggleModalVisible, setToggleModalVisible] = useState(false);
   const [nameModalVisible,   setNameModalVisible]   = useState(false);
   const [langModalOpen,      setLangModalOpen]      = useState(false);
@@ -71,23 +69,16 @@ export default function ChildSettingsScreen() {
   const buddyDefaultName = getBuddyDefaultName(relationship?.current_skin_id ?? null) ?? 'Buddy';
   const buddyDisplayName = relationship?.buddy_name ?? buddyDefaultName;
 
-  // Load persisted haptics + sound preferences on mount
+  // Load persisted haptics preference on mount
   useEffect(() => {
     AsyncStorage.getItem('hapticsOn').then(v => {
       if (v !== null) setHapticsOn(v === 'true');
     });
-    setSoundOn(isSfxEnabled());
   }, []);
 
   const handleHapticsToggle = (value: boolean) => {
     setHapticsOn(value);
     AsyncStorage.setItem('hapticsOn', String(value));
-  };
-
-  const handleSoundToggle = (value: boolean) => {
-    setSoundOn(value);
-    void setSfxEnabled(value);
-    if (value) playSfx('tap'); // tiny confirmation blip when turning sound on
   };
 
   return (
@@ -240,17 +231,6 @@ export default function ChildSettingsScreen() {
         <Switch
           value={hapticsOn}
           onValueChange={handleHapticsToggle}
-          trackColor={{ false: T.border, true: T.primary }}
-          thumbColor={T.card}
-        />
-      </View>
-
-      {/* ── Sound toggle ───────────────────────────────────────────────────── */}
-      <View style={[styles.settingRow, { backgroundColor: T.card, borderColor: T.border, flexDirection: rowDirection }]}>
-        <Text style={[styles.settingLabel, { color: T.foreground }]}>{t('childSettings.sound')}</Text>
-        <Switch
-          value={soundOn}
-          onValueChange={handleSoundToggle}
           trackColor={{ false: T.border, true: T.primary }}
           thumbColor={T.card}
         />
