@@ -23,6 +23,7 @@ import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChil
 import { usePendingRedemptions, type RewardRedemption } from '../../hooks/useRewardRedemptions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 import { HeaderActions } from '../../components/parent/HeaderActions';
+import { DuplicateToChildModal } from '../../components/parent/DuplicateToChildModal';
 import {
   MONEY_CONVERSION_REWARD,
   MONEY_MOTIVATOR_ID,
@@ -75,6 +76,10 @@ export default function ParentRewardsScreen() {
   const [newCredits, setNewCredits]   = useState('100');
   const [newSize, setNewSize]         = useState<RewardSize>('small');
   const [saving, setSaving]           = useState(false);
+  // When editing an existing catalog reward, holds its id (modal becomes an editor).
+  const [editingId, setEditingId]     = useState<string | null>(null);
+  // Reward being copied to another child (opens the duplicate modal).
+  const [dupReward, setDupReward]     = useState<StoreReward | null>(null);
   // When approving a child's suggestion, the add-reward modal is reused as the
   // "Yes" editor; this holds the suggestion id so we can mark it approved.
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -189,8 +194,16 @@ export default function ParentRewardsScreen() {
     setNewCredits(String(DEFAULT_CREDITS[size]));
   };
 
+  const closeModal = () => {
+    setShowModal(false);
+    setEditingId(null);
+    setApprovingId(null);
+    setCashMode(false);
+  };
+
   const openModal = () => {
     setApprovingId(null);
+    setEditingId(null);
     setCashMode(false);
     setNewCash('');
     setNewTitle('');
@@ -200,10 +213,53 @@ export default function ParentRewardsScreen() {
     setShowModal(true);
   };
 
+  // Tap an existing reward card → edit it (emoji / title / size / credits, or
+  // cash amount for a cash reward). The save handler does an UPDATE, not INSERT.
+  const handleEditReward = (r: StoreReward) => {
+    setApprovingId(null);
+    setEditingId(r.id);
+    const isCash = r.cash_value != null;
+    setCashMode(isCash);
+    setNewCash(isCash ? String(r.cash_value) : '');
+    setNewTitle(pickI18nColumn(r, i18n.language));
+    setNewEmoji(r.emoji?.trim() || '🎁');
+    const validSize = (['small', 'medium', 'large'] as const).includes(r.size as RewardSize);
+    setNewSize(validSize ? (r.size as RewardSize) : 'small');
+    setNewCredits(String(r.credits_needed));
+    setShowModal(true);
+  };
+
+  const handleDeleteReward = () => {
+    if (!editingId || !selectedChildId) return;
+    const id = editingId;
+    Alert.alert(
+      t('parentRewards.modal.deleteConfirmTitle'),
+      t('parentRewards.modal.deleteConfirmMsg'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('parentRewards.modal.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            closeModal();
+            const { error } = await supabase.from('store_rewards').delete().eq('id', id);
+            if (error) {
+              console.error('[ParentRewards] delete error:', error.message);
+              Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+              return;
+            }
+            fetchRewards(selectedChildId);
+          },
+        },
+      ],
+    );
+  };
+
   // Cash-conversion suggestion → opens the modal in cash mode. The BUFF cost is
   // pre-set to the deliberately-high 5-day anchor; the parent sets the cash amount.
   const openCashModal = () => {
     setApprovingId(null);
+    setEditingId(null);
     setCashMode(true);
     setNewCash('');
     setNewTitle(pickI18nColumn(
@@ -220,6 +276,7 @@ export default function ParentRewardsScreen() {
   // idea. The parent sets size/credits (keeps the economy in the parent's hands).
   const handleApproveSuggestion = (s: ChildSuggestion) => {
     setApprovingId(s.id);
+    setEditingId(null);
     setCashMode(false);
     setNewCash('');
     setNewTitle(s.title);
@@ -257,6 +314,28 @@ export default function ParentRewardsScreen() {
     await markRedemptionDiscussing(r.id);
   };
 
+  // Copy this reward to one or more other children (one fresh row each).
+  const handleDuplicateReward = async (targetChildIds: string[]) => {
+    if (!familyId || !dupReward) return;
+    const r = dupReward;
+    const rows = targetChildIds.map(cid => ({
+      family_id:      familyId,
+      child_id:       cid,
+      title:          r.title,
+      title_he:       r.title_he ?? null,
+      emoji:          r.emoji,
+      size:           r.size,
+      credits_needed: r.credits_needed,
+      cash_value:     r.cash_value ?? null,
+      is_redeemed:    false,
+    }));
+    const { error } = await supabase.from('store_rewards').insert(rows as never);
+    if (error) {
+      console.error('[ParentRewards] duplicate error:', error.message);
+      Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+    }
+  };
+
   const handleAddReward = async () => {
     if (!familyId || !selectedChildId) return;
     const title = newTitle.trim();
@@ -281,6 +360,32 @@ export default function ParentRewardsScreen() {
     }
 
     setSaving(true);
+
+    // Edit mode — update the existing reward in place (no new row).
+    if (editingId) {
+      const updates: Record<string, unknown> = {
+        emoji:          newEmoji.trim() || '🎁',
+        credits_needed: credits,
+      };
+      if (cashMode) {
+        updates.cash_value = cashValue;
+      } else {
+        updates.title = title;
+        updates.size  = newSize;
+      }
+      const { error: updErr } = await supabase
+        .from('store_rewards').update(updates as never).eq('id', editingId);
+      setSaving(false);
+      if (updErr) {
+        console.error('[ParentRewards] update error:', updErr.message);
+        Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+        return;
+      }
+      closeModal();
+      fetchRewards(selectedChildId);
+      return;
+    }
+
     const { data, error } = await supabase.from('store_rewards').insert({
       family_id:         familyId,
       child_id:          selectedChildId,
@@ -309,9 +414,7 @@ export default function ParentRewardsScreen() {
       return;
     }
 
-    setApprovingId(null);
-    setCashMode(false);
-    setShowModal(false);
+    closeModal();
     fetchRewards(selectedChildId);
   };
 
@@ -461,7 +564,12 @@ export default function ParentRewardsScreen() {
             </View>
           ) : (
             rewards.map((reward) => (
-              <View key={reward.id} style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+              <TouchableOpacity
+                key={reward.id}
+                onPress={() => handleEditReward(reward)}
+                activeOpacity={0.7}
+                style={[styles.rewardCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}
+              >
                 <Text style={styles.rewardIcon}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: T.text }]}>{pickI18nColumn(reward, i18n.language)}</Text>
@@ -483,7 +591,18 @@ export default function ParentRewardsScreen() {
                     {formatNum(reward.credits_needed)} B
                   </Text>
                 </View>
-              </View>
+                {children.length > 1 && (
+                  <TouchableOpacity
+                    onPress={() => setDupReward(reward)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    style={styles.copyBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('duplicate.copyReward')}
+                  >
+                    <Text style={styles.copyIcon}>📋</Text>
+                  </TouchableOpacity>
+                )}
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
@@ -494,16 +613,20 @@ export default function ParentRewardsScreen() {
         visible={showModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={closeModal}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowModal(false)} />
+          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeModal} />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
             <Text style={[styles.sheetTitle, { color: T.text }]}>
-              {cashMode ? t('parentRewards.cashSuggest.title') : t('parentRewards.modal.title')}
+              {editingId
+                ? t('parentRewards.modal.editTitle')
+                : cashMode
+                  ? t('parentRewards.cashSuggest.title')
+                  : t('parentRewards.modal.title')}
             </Text>
             <Text style={[styles.sheetSub, { color: T.textMuted }]}>
               {t('parentRewards.modal.for', { name: selectedChild?.displayName ?? '' })}
@@ -615,9 +738,25 @@ export default function ParentRewardsScreen() {
                 : <Text style={styles.confirmText}>{t('parentRewards.modal.save')}</Text>
               }
             </TouchableOpacity>
+
+            {editingId && (
+              <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteReward}>
+                <Text style={styles.deleteText}>{t('parentRewards.modal.delete')}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <DuplicateToChildModal
+        visible={!!dupReward}
+        onClose={() => setDupReward(null)}
+        children={children}
+        currentChildId={selectedChildId}
+        itemType="reward"
+        itemTitle={dupReward ? pickI18nColumn(dupReward, i18n.language) : ''}
+        onDuplicate={handleDuplicateReward}
+      />
     </View>
   );
 }
@@ -677,4 +816,8 @@ const styles = StyleSheet.create({
   sizeBtnHint:   { fontSize: 11, marginTop: 2 },
   confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
+  deleteBtn:     { paddingVertical: 12, alignItems: 'center', marginTop: 8 },
+  deleteText:    { color: '#DC2626', fontSize: 14, fontWeight: '600' },
+  copyBtn:       { padding: 4 },
+  copyIcon:      { fontSize: 18 },
 });
