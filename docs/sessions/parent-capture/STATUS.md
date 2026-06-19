@@ -7,7 +7,7 @@
 |---|---|---|---|
 | 0 — Foundation & verification | ✅ done (read-only) | 2026-06-05 | See `PHASE0_FINDINGS.md`. No code, no schema changes. |
 | 1 — `parse-capture` Edge Fn | 🧪 **stub built** (real one blocked) | 2026-06-05 | `src/lib/parentCapture/stubParser.ts` stands in for Gemini. 🔒 real fn = Gemini paid-key approval |
-| 2 — Schema + RLS | 📄 **migration file ready, NOT applied** | 2026-06-05 | `migrations/019_parent_capture.sql` (additive). Local AsyncStorage store used until applied. |
+| 2 — Schema + RLS + persistence | ✅ **applied** (2026-06-19) | 2026-06-19 | `019_parent_capture.sql` applied: `parent_items` (+`child_name`,`child_task_id`), `capture_runs`, `grade_level`, parent-only RLS, GRANTs verified. `useParentCapture` store swapped AsyncStorage → Supabase (durable + synced). Additive, 0 impact on existing. |
 | 3 — CaptureScreen + in-app entry | ✅ **built** (stub, flag-off) | 2026-06-05 | `CaptureScreen.tsx`; paste + image (existing deps, zero new dep) |
 | 4 — ConfirmCard | ✅ **built** (stub, flag-off) | 2026-06-05 | `CapturedItemRow.tsx`; owner toggle, confidence, no_match collapse, `category` map in config |
 | 5 — Transfer-to-child | ✅ **built** (2026-06-07) | 2026-06-07 | child task/event items → existing `tasks` loop. One-time `due_date` model added (migration 020 **applied**, additive). `isTaskVisibleOn` helper; Values Check PASS. |
