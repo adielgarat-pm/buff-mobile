@@ -21,6 +21,8 @@ import { HeaderActions } from '../../components/parent/HeaderActions';
 import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
 import { DayScheduleToggles } from '../../components/DayScheduleToggles';
+import { DuplicateToChildModal } from '../../components/parent/DuplicateToChildModal';
+import type { Task } from '../../types/task';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 import { supabase } from '../../integrations/supabase/client';
@@ -87,6 +89,7 @@ export default function ParentTasksScreen() {
   const [approveDays, setApproveDays]        = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [approveSaving, setApproveSaving]   = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [dupTask, setDupTask] = useState<Task | null>(null);
   const { rowDirection } = useRTLStyles();
 
   const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -159,6 +162,33 @@ export default function ParentTasksScreen() {
         },
       ],
     );
+  };
+
+  // Copy this task to one or more other children (one fresh row each, same
+  // schedule/category/credits).
+  const handleDuplicateTask = async (targetChildIds: string[]) => {
+    if (!familyId || !dupTask) return;
+    const tk = dupTask;
+    const rows = targetChildIds.map(cid => ({
+      family_id:         familyId,
+      assigned_to:       cid,
+      title:             tk.title,
+      time:              tk.time,
+      category:          tk.category,
+      credits:           tk.credits,
+      schedule_days:     tk.scheduleDays ?? [0, 1, 2, 3, 4, 5, 6],
+      hide_on_weekend:   tk.hideOnWeekend ?? false,
+      icon:              tk.icon ?? null,
+      description:       tk.description ?? null,
+      proposed_by_child: false,
+    }));
+    const { error } = await supabase.from('tasks').insert(rows as never);
+    if (error) {
+      console.error('[ParentTasks] duplicate error:', error.message);
+      Alert.alert(t('common.error'), t('common.errorGeneric'));
+      return;
+    }
+    await refetch();
   };
 
   const handleConfirmTask = async () => {
@@ -354,6 +384,17 @@ export default function ParentTasksScreen() {
                         {task.time} · {task.credits} Buffs
                       </Text>
                     </View>
+                    {children.length > 1 && (
+                      <TouchableOpacity
+                        onPress={() => setDupTask(task)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={styles.copyBtn}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('duplicate.copyTask')}
+                      >
+                        <Text style={styles.copyIcon}>📋</Text>
+                      </TouchableOpacity>
+                    )}
                     <Text style={[styles.editChevron, { color: T.textMuted }]}>›</Text>
                   </TouchableOpacity>
                 ))}
@@ -461,6 +502,16 @@ export default function ParentTasksScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <DuplicateToChildModal
+        visible={!!dupTask}
+        onClose={() => setDupTask(null)}
+        children={children}
+        currentChildId={selectedChildId}
+        itemType="task"
+        itemTitle={dupTask?.title ?? ''}
+        onDuplicate={handleDuplicateTask}
+      />
     </View>
   );
 }
@@ -470,6 +521,8 @@ const styles = StyleSheet.create({
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 52, paddingBottom: 12 },
   title:         { fontSize: 24, fontWeight: '700' },
   editChevron:   { fontSize: 22, fontWeight: '400', marginLeft: 4 },
+  copyBtn:       { padding: 4, marginLeft: 4 },
+  copyIcon:      { fontSize: 18 },
   childSelector: { paddingHorizontal: 16, marginBottom: 8, maxHeight: 60 },
   childTab:      { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, marginRight: 10, backgroundColor: '#F3F4F6', gap: 6 },
   childTabEmoji: { fontSize: 16 },
