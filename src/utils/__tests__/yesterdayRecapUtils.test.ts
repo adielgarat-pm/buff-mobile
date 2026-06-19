@@ -133,9 +133,9 @@ describe('isTaskEligibleForChild', () => {
     expect(isTaskEligibleForChild(t, CHILD_A.id, YESTERDAY_DOW, YESTERDAY_END)).toBe(true);
   });
 
-  test('schedule_days empty array → defaults to all 7 days, included', () => {
+  test('schedule_days empty array → paused, excluded', () => {
     const t = makeTask({ schedule_days: [] });
-    expect(isTaskEligibleForChild(t, CHILD_A.id, YESTERDAY_DOW, YESTERDAY_END)).toBe(true);
+    expect(isTaskEligibleForChild(t, CHILD_A.id, YESTERDAY_DOW, YESTERDAY_END)).toBe(false);
   });
 
   test('off-routine task → excluded (would otherwise show as a phantom ○)', () => {

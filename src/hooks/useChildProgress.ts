@@ -282,9 +282,11 @@ export function useChildData(childId: string | null) {
         completedAt:  completedAtMap.has(t.id) ? new Date(completedAtMap.get(t.id)!) : undefined,
         assignedTo:   t.assigned_to || undefined,
         strategyId:   t.strategy_id || undefined,
-        scheduleDays: (Array.isArray(t.schedule_days) && t.schedule_days.length > 0)
+        // Preserve an explicit [] (parent paused the task → hidden); only
+        // null/undefined falls back to every-day. Mirrors taskSchedule.ts.
+        scheduleDays: Array.isArray(t.schedule_days)
                         ? t.schedule_days
-                        : [0, 1, 2, 3, 4, 5, 6], // default: every day
+                        : [0, 1, 2, 3, 4, 5, 6],
         hideOnWeekend: t.hide_on_weekend ?? false,
         isOffRoutine:  t.is_off_routine ?? false,
       }));
@@ -459,7 +461,7 @@ export function useChildData(childId: string | null) {
         completed:    false,
         assignedTo:   data.assigned_to || undefined,
         strategyId:   data.strategy_id || undefined,
-        scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
+        scheduleDays: Array.isArray(data.schedule_days) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId, childId]);

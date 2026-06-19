@@ -6,7 +6,7 @@
  *
  * The rule, mirrored from PhaseView + the Lovable web app:
  *   1. A task appears only on the weekdays in `scheduleDays`
- *      (0=Sun … 6=Sat). null/empty → every day.
+ *      (0=Sun … 6=Sat). null/undefined → every day; [] → no day (paused).
  *   2. School-day-only tasks (`hideOnWeekend`) drop out on weekend days.
  *
  * Weekend-ness itself is family-specific (Friday depends on `friday_enabled`),
@@ -22,8 +22,10 @@ export function isScheduledOnDay(
   task: Pick<Task, 'scheduleDays'>,
   dayOfWeek: number,
 ): boolean {
-  const days =
-    task.scheduleDays && task.scheduleDays.length > 0 ? task.scheduleDays : ALL_DAYS;
+  // null/undefined → legacy/unset task, shows every day (safe default so no
+  // existing task ever vanishes). An explicit [] means the parent paused it →
+  // scheduled on NO day (hidden everywhere). This is the single source of truth.
+  const days = task.scheduleDays == null ? ALL_DAYS : task.scheduleDays;
   return days.includes(dayOfWeek);
 }
 

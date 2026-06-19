@@ -14,6 +14,19 @@
 
 ## Implementation Notes
 
+### IN-2026-06-19-01: בורר-הימים (PR #233) היה תקוע מחוץ ל-main — מוזג ל-`release-43` ולא הוחזר; main התקדם 79 commits בלעדיו. + ה-fallback "ריק→כל הימים" שוכפל ב-4 שכבות
+
+- **תאריך:** 2026-06-19
+- **מקור:** CC — בהקשר של אודיט פריוּת Lovable↔mobile (Adi רצתה לוודא שבחירת-ימים קיימת לפני הורדת Lovable)
+- **תיאור:** שתי הפתעות:
+  1. **עבודה תקועה (אותה תבנית כמו 2026-05-04).** הבורר-לפי-יום נבנה ב-PR #233 (`pkg/task-day-toggles`, commit `e024d3b`) ומוזג ל-`pkg/release-43` ב-13.6 — אבל `release-43` **לא הוחזר ל-main**. main התקדם 79 commits (HEAD `67f7450`) בעוד הקוד עדיין מקבע `schedule_days:[0-6]` ב-ParentTasksScreen. כלומר האפליקציה שה-testers מריצים (נבנית מ-main) **מעולם לא קיבלה בחירת-ימים**, למרות שזיכרון רשם את #233 כ"נשלח". תיקון: cherry-pick של `e024d3b` על branch טרי מ-main (`pkg/task-day-toggles-v2`) — נקי יותר ממיזוג סניף-release מסוטה.
+  2. **ה-fallback "scheduleDays ריק → כל הימים" שוכפל ב-4 מקומות** — `taskSchedule.ts` (סינון), `yesterdayRecapUtils.ts` (ספירת אתמול), ו-`useChildProgress.ts` פעמיים (מיפוי-טעינה 286 + echo-יצירה 462). כדי לתמוך ב"`[]` מפורש = מושהה/מוסתר" היה צריך שכולם יסכימו: `null/undefined`→כל הימים (רשת ביטחון), `[]`→שום יום. אם רק אחד היה מתוקן, משימה מושהית הייתה נעלמת במסך אחד ועדיין נספרת באחר (סוג של באג ה-HQ-מול-Today מ-2026-05-31).
+- **השפעה:**
+  1. בכל forward-port, לבדוק `git merge-base --is-ancestor <commit> origin/main` — "מוזג ל-PR" ≠ "ב-main". סניפי release שלא מוחזרים ל-main הם נקודת אובדן-עבודה חוזרת.
+  2. כל לוגיקת ברירת-מחדל של `schedule_days` חייבת לעבור דרך מקור-אמת אחד (`taskSchedule.ts`). חוזקה ב-DB: `schedule_days` עכשיו `DEFAULT '{0,1,2,3,4,5,6}' NOT NULL` — אף insert עתידי לא ייצור null, אז `[]` מגיע רק מהורה שמרוקן ימים ביודעין.
+- **סטטוס:** `code-complete-pending-device-test` — `pkg/task-day-toggles-v2`: Hat 1 ירוק (tsc 0, jest 425/425), מיגרציית DB הוחלה; Hat-3 + בדיקת View-as-Child של Adi pending; PR פתוח ל-main.
+- **קשור ל:** `pkg/task-day-toggles-v2`, PR #233/`pkg/release-43`, `docs/sessions/task-day-toggles-v2/STATUS.md`, `docs/sessions/lovable-parity-audit/MATRIX.md`, IN של 2026-05-04 (אובדן-עבודה), [[feedback_build_from_main_merge_first]].
+
 ### IN-2026-06-17-01: build 48 (1.6.1) הקריס מכשירי אנדרואיד בהפעלה — `expo-audio` נטען ב-import בשורש *לפני* `Sentry.init`, אז הקריסה הייתה בלתי-נראית ב-Sentry
 
 - **תאריך:** 2026-06-17

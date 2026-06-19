@@ -6,10 +6,11 @@ import { PARENT_THEME as T } from '../theme';
  * DayScheduleToggles — a row of 7 weekday chips (Sun…Sat = 0…6) that drive a
  * task's `schedule_days`. Ported from the Lovable web app's polished version.
  *
- * Rules (mirrored from Lovable):
+ * Rules:
  *   - A selected day is highlighted; tapping toggles it.
- *   - The last remaining day can't be deselected (a task always runs on ≥1 day),
- *     otherwise it would silently never appear and read as "broken".
+ *   - Deselecting EVERY day is allowed — an empty set pauses the task (hidden
+ *     from the child until a day is picked again). The parent screen shows a
+ *     "paused" hint next to the row, so it is never a silent disappearance.
  *
  * In Hebrew (RTL) the row flips automatically, so Sunday lands on the right —
  * matching how the days read on screen.
@@ -26,10 +27,9 @@ export function DayScheduleToggles({ selectedDays, onChange }: DayScheduleToggle
 
   const toggleDay = (day: number) => {
     if (selectedDays.includes(day)) {
-      // Don't allow deselecting the last day.
-      if (selectedDays.length > 1) {
-        onChange(selectedDays.filter(d => d !== day));
-      }
+      // Deselecting all days is allowed: an empty set pauses the task (hidden
+      // from the child until a day is picked again). See taskSchedule.ts.
+      onChange(selectedDays.filter(d => d !== day));
     } else {
       onChange([...selectedDays, day].sort((a, b) => a - b));
     }
