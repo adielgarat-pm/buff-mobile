@@ -96,7 +96,7 @@ export function getYesterdayEndIso(now: Date = new Date()): string {
  *      shown as ○ they are a FALSE failure signal — F off-routine-leak-fix)
  *   2. It is assigned to this child
  *   3. It was created on or before the end of yesterday
- *   4. Yesterday's weekday is in its `schedule_days` (null/empty → all 7 days)
+ *   4. Yesterday's weekday is in its `schedule_days` (null → all 7 days; [] → none, paused)
  *
  * The "task still exists in DB" check is implicit — deleted tasks are not
  * present in the input array (Supabase DELETE removes from query results).
@@ -117,7 +117,8 @@ export function isTaskEligibleForChild(
   if (task.created_at > yesterdayEndIso) return false;
 
   // 4. scheduled for yesterday's weekday
-  const days = Array.isArray(task.schedule_days) && task.schedule_days.length > 0
+  // null → legacy, counts on every day. [] → parent paused the task → no day.
+  const days = Array.isArray(task.schedule_days)
     ? task.schedule_days
     : [0, 1, 2, 3, 4, 5, 6];
   if (!days.includes(yesterdayDow)) return false;

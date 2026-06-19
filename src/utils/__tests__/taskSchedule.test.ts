@@ -15,8 +15,12 @@ describe('isScheduledOnDay', () => {
   test('null scheduleDays → every day', () => {
     for (let d = 0; d <= 6; d++) expect(isScheduledOnDay(task(null), d)).toBe(true);
   });
-  test('empty scheduleDays → every day', () => {
-    for (let d = 0; d <= 6; d++) expect(isScheduledOnDay(task([]), d)).toBe(true);
+  test('empty scheduleDays → no day (paused/hidden)', () => {
+    for (let d = 0; d <= 6; d++) expect(isScheduledOnDay(task([]), d)).toBe(false);
+  });
+  test('subset scheduleDays → only those days', () => {
+    expect(isScheduledOnDay(task([1, 3]), 1)).toBe(true);
+    expect(isScheduledOnDay(task([1, 3]), 2)).toBe(false);
   });
 });
 
@@ -36,5 +40,8 @@ describe('isTaskVisibleToday', () => {
   });
   test('null scheduleDays defaults to every day → visible today', () => {
     expect(isTaskVisibleToday(task(null), false, 3)).toBe(true);
+  });
+  test('empty scheduleDays → hidden today (parent paused the task)', () => {
+    for (let d = 0; d <= 6; d++) expect(isTaskVisibleToday(task([]), false, d)).toBe(false);
   });
 });

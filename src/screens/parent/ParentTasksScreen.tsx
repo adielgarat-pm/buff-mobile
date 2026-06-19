@@ -6,7 +6,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
-  Modal, TextInput, Alert, KeyboardAvoidingView,
+  Modal, TextInput, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -20,9 +20,24 @@ import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 import { HeaderActions } from '../../components/parent/HeaderActions';
 import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
+import { DayScheduleToggles } from '../../components/DayScheduleToggles';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { useRTLStyles } from '../../contexts/LanguageContext';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 import type { AgeGroup, Gender } from '../onboarding/unified/onboardingData';
+
+// Native time-picker helpers — mirror MedReminderSheet so an "HH:MM" string
+// round-trips through a Date for the OS time wheel. Stored value stays 24h HH:MM.
+function hhmmToDate(hhmm: string): Date {
+  const [h, m] = hhmm.split(':').map((n) => parseInt(n, 10));
+  const d = new Date();
+  d.setHours(Number.isFinite(h) ? h : 16, Number.isFinite(m) ? m : 0, 0, 0);
+  return d;
+}
+function toHHMM(d: Date): string {
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 
 const STAGE_IDS: Phase[] = ['morning', 'school', 'afternoon', 'evening'];
 
@@ -69,7 +84,12 @@ export default function ParentTasksScreen() {
   const [approveTitle, setApproveTitle]     = useState('');
   const [approveTime, setApproveTime]       = useState('16:00');
   const [approveCredits, setApproveCredits] = useState('10');
+  const [approveDays, setApproveDays]        = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
   const [approveSaving, setApproveSaving]   = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const { rowDirection } = useRTLStyles();
+
+  const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
   // Tasks created via the empty-state CTA land back here while this tab is still
   // mounted — useChildData has no focus/realtime refetch, so re-pull on focus.
@@ -86,6 +106,7 @@ export default function ParentTasksScreen() {
     setApproveTitle('');
     setApproveTime('16:00');
     setApproveCredits('10');
+    setApproveDays(ALL_DAYS);
     setApproveOpen(true);
   };
 
@@ -95,15 +116,17 @@ export default function ParentTasksScreen() {
     setApproveTitle(s.title);
     setApproveTime('16:00');
     setApproveCredits('10');
+    setApproveDays(ALL_DAYS);
     setApproveOpen(true);
   };
 
-  const handleEditTask = (task: { id: string; title: string; time: string; credits: number }) => {
+  const handleEditTask = (task: { id: string; title: string; time: string; credits: number; scheduleDays?: number[] }) => {
     setApprovingId(null);
     setEditingId(task.id);
     setApproveTitle(task.title);
     setApproveTime(task.time);
     setApproveCredits(String(task.credits));
+    setApproveDays(task.scheduleDays && task.scheduleDays.length > 0 ? task.scheduleDays : ALL_DAYS);
     setApproveOpen(true);
   };
 
@@ -148,7 +171,7 @@ export default function ParentTasksScreen() {
 
     // Edit mode — update the existing task in place.
     if (editingId) {
-      await updateTask(editingId, { title, time: approveTime, credits });
+      await updateTask(editingId, { title, time: approveTime, credits, scheduleDays: approveDays });
       await refetch();
       setApproveSaving(false);
       closeTaskModal();
@@ -163,7 +186,7 @@ export default function ParentTasksScreen() {
       time:              approveTime,
       category:          'responsibility',
       credits,
-      schedule_days:     [0, 1, 2, 3, 4, 5, 6],
+      schedule_days:     approveDays,
       proposed_by_child: !!approvingId,
     } as never).select('id').single();
 
@@ -370,14 +393,29 @@ export default function ParentTasksScreen() {
             />
 
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.timeLabel')}</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: T.bg, color: T.text, borderColor: T.cardBorder }]}
-              value={approveTime}
-              onChangeText={setApproveTime}
-              placeholder="16:00"
-              placeholderTextColor={T.textMuted}
-              maxLength={5}
-            />
+            <TouchableOpacity
+              style={[styles.timeRow, { backgroundColor: T.bg, borderColor: T.cardBorder, flexDirection: rowDirection }]}
+              onPress={() => setShowTimePicker(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('childSuggest.approve.timeLabel')}
+            >
+              {/* Clock value always reads LTR ("16:00"), even inside an RTL layout. */}
+              <Text style={[styles.timeValue, { color: T.text }]}>{approveTime}</Text>
+              <Text style={[styles.timeIcon, { color: T.textMuted }]}>🕐</Text>
+            </TouchableOpacity>
+            {showTimePicker && (
+              <DateTimePicker
+                mode="time"
+                is24Hour
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                value={hhmmToDate(approveTime)}
+                onChange={(e: DateTimePickerEvent, sel?: Date) => {
+                  if (Platform.OS === 'android') setShowTimePicker(false);
+                  if (e.type === 'set' && sel) setApproveTime(toHHMM(sel));
+                  if (e.type === 'dismissed') setShowTimePicker(false);
+                }}
+              />
+            )}
 
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.creditsLabel')}</Text>
             <TextInput
@@ -388,6 +426,12 @@ export default function ParentTasksScreen() {
               maxLength={5}
               selectTextOnFocus
             />
+
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentTasks.daysLabel')}</Text>
+            <DayScheduleToggles selectedDays={approveDays} onChange={setApproveDays} />
+            {approveDays.length === 0 && (
+              <Text style={styles.daysPausedHint}>{t('parentTasks.daysPausedHint')}</Text>
+            )}
 
             <TouchableOpacity
               style={[styles.confirmBtn, { backgroundColor: T.accent }, (approveSaving || !approveTitle.trim()) && { opacity: 0.6 }]}
@@ -453,6 +497,10 @@ const styles = StyleSheet.create({
   sheetTitle:    { fontSize: 20, fontWeight: '800', marginBottom: 16 },
   inputLabel:    { fontSize: 12, fontWeight: '600', marginBottom: 6 },
   input:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16 },
+  timeRow:       { alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 16 },
+  timeValue:     { fontSize: 16, fontWeight: '700', writingDirection: 'ltr' },
+  timeIcon:      { fontSize: 18 },
+  daysPausedHint:{ color: '#B45309', fontSize: 12, fontWeight: '600', marginTop: 8, marginBottom: 8 },
   confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
   deleteBtn:     { paddingVertical: 12, alignItems: 'center', marginTop: 8 },
