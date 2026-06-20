@@ -10,6 +10,31 @@
  * (no service worker required). Android/Chrome's install prompt needs the
  * manifest + a registered service worker with a fetch handler — both provided.
  */
+
+// Chrome/Android install prompt event — not yet in lib.dom.d.ts
+export interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+// Captured at module import time (before React hydration) so no gesture is lost.
+let _deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault(); // suppress Chrome's mini-infobar
+    _deferredInstallPrompt = e as BeforeInstallPromptEvent;
+  });
+}
+
+export function getDeferredInstallPrompt(): BeforeInstallPromptEvent | null {
+  return _deferredInstallPrompt;
+}
+
+export function clearDeferredInstallPrompt(): void {
+  _deferredInstallPrompt = null;
+}
+
 export function setupPwa(): void {
   if (typeof document === 'undefined') return;
   const head = document.head;
