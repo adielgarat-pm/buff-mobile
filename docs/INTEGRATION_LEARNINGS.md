@@ -27,6 +27,17 @@
 - **סטטוס:** `code-complete-pending-device-test` — `pkg/task-day-toggles-v2`: Hat 1 ירוק (tsc 0, jest 425/425), מיגרציית DB הוחלה; Hat-3 + בדיקת View-as-Child של Adi pending; PR פתוח ל-main.
 - **קשור ל:** `pkg/task-day-toggles-v2`, PR #233/`pkg/release-43`, `docs/sessions/task-day-toggles-v2/STATUS.md`, `docs/sessions/lovable-parity-audit/MATRIX.md`, IN של 2026-05-04 (אובדן-עבודה), [[feedback_build_from_main_merge_first]].
 
+### IN-2026-06-20-01: pwa-install-nudge — jest-environment jsdom שגיאה מרכזית + deviation from SPEC (nudgeStorage)
+
+- **תאריך:** 2026-06-20
+- **מקור:** CC — pkg/pwa-install-nudge Phase 2
+- **תיאור:** שני לקחים:
+  1. **@jest-environment jsdom directive.** בדיקות ה-web hook (`useInstallPrompt.web.ts`) משתמשות ב-`navigator.userAgent`, `window.matchMedia`, ו-`window.addEventListener`. ה-preset `jest-expo` מריץ ב-RN environment (לא jsdom) כברירת מחדל — `navigator` אינו מוגדר. הפתרון: הוסיפו docblock `/** @jest-environment jsdom */` בראש קובץ הבדיקה (per-file, לא global בjest.config.js — שאר הבדיקות צריכים את ה-RN env).
+  2. **nudgeStorage.web.ts split הוסרה.** SPEC §3.4 תכנן split-file לstorage (AsyncStorage native / localStorage web). בפועל, `@react-native-async-storage/async-storage` כבר שקוף ל-localStorage בווב — אותו pattern שמשתמשים בו `useVibeDismiss` ו-`useAnchorRecoveryDismiss`. split מיותר ומסובך. הפחתנו ל-AsyncStorage ישיר ואין קובץ split.
+- **השפעה:** כל בדיקת hook שמשתמשת ב-DOM APIs (window/navigator/matchMedia) — לפרק לקובץ נפרד עם `@jest-environment jsdom`, לא לשנות את ה-global config.
+- **סטטוס:** resolved — pkg/pwa-install-nudge Phase 5 (2026-06-20)
+- **קשור ל:** `pkg/pwa-install-nudge`, `src/hooks/__tests__/useInstallPrompt.test.ts`
+
 ### IN-2026-06-17-01: build 48 (1.6.1) הקריס מכשירי אנדרואיד בהפעלה — `expo-audio` נטען ב-import בשורש *לפני* `Sentry.init`, אז הקריסה הייתה בלתי-נראית ב-Sentry
 
 - **תאריך:** 2026-06-17
