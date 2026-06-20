@@ -81,10 +81,15 @@ export type RootStackParamList = {
   // ── Parent capture (gated by FEATURE_PARENT_CAPTURE; modals above ParentApp) ──
   ParentCapture:  undefined;
   ParentThisWeek: undefined;
+
+  // ── Parent Insights (BUFF Premium; pushed from the dashboard insight card) ──
+  ParentInsights: { childId?: string } | undefined;
 };
 
 export type ParentTabsParamList = {
-  ParentDashboard: undefined;
+  // openSheet/sheetChildId: the Parent Insights screen routes a CTA back to the
+  // dashboard to reuse its existing sticker/bonus/med sheets (no duplicated logic).
+  ParentDashboard: { openSheet?: 'sticker' | 'bonus' | 'med'; sheetChildId?: string } | undefined;
   ParentTasks:     undefined;
   // childId: deep-link from a reward-redemption notification → pre-select that child.
   ParentRewards:   { childId?: string } | undefined;

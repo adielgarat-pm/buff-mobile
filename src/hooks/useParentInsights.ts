@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Phase, getPhaseForTime, PHASES } from '../types/phase';
+import type { TaskCategory } from '../types/task';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -9,10 +10,18 @@ export interface TaskInsight {
   taskId:         string;
   taskTitle:      string;
   phase:          Phase;
+  /** tasks.category — used by the Insights screen to trigger tips by category
+   *  (language-agnostic) instead of fragile title-keyword matching. */
+  category:       TaskCategory | null;
   completionRate: number;
   totalDays:      number;
   completedDays:  number;
 }
+
+/** Per-category completion, for the Insights screen's targeted tips (Layer C).
+ *  `rate` is the avg completion % across that category's tasks; null when the
+ *  family has no task in that category. */
+export type CategoryStats = Partial<Record<TaskCategory, { rate: number; count: number }>>;
 
 export interface PhaseInsight {
   phase:               Phase;
@@ -80,6 +89,7 @@ export function useParentInsights(childId: string | null) {
   const { familyId } = useAuth();
   const [insights,      setInsights]      = useState<InsightCard[]>([]);
   const [phaseInsights, setPhaseInsights] = useState<PhaseInsight[]>([]);
+  const [categoryStats, setCategoryStats] = useState<CategoryStats>({});
   const [loading,       setLoading]       = useState(true);
 
   const analyzeCompletionPatterns = useCallback(async () => {
@@ -131,11 +141,29 @@ export function useParentInsights(childId: string | null) {
           taskId:         task.id,
           taskTitle:      task.title,
           phase:          getPhaseForTime(task.time),
+          category:       (task.category ?? null) as TaskCategory | null,
           completionRate: totalDays > 0 ? (completedDays / totalDays) * 100 : 0,
           totalDays,
           completedDays,
         };
       });
+
+      // Per-category averages (Layer C targeted tips, by category not keyword).
+      const catStats: CategoryStats = {};
+      const byCategory = new Map<TaskCategory, TaskInsight[]>();
+      for (const ti of taskInsights) {
+        if (!ti.category) continue;
+        const arr = byCategory.get(ti.category) ?? [];
+        arr.push(ti);
+        byCategory.set(ti.category, arr);
+      }
+      byCategory.forEach((arr, cat) => {
+        catStats[cat] = {
+          rate:  arr.reduce((s, t) => s + t.completionRate, 0) / arr.length,
+          count: arr.length,
+        };
+      });
+      setCategoryStats(catStats);
 
       // Group by phase
       const phaseData: PhaseInsight[] = PHASES.map(phase => {
@@ -220,5 +248,5 @@ export function useParentInsights(childId: string | null) {
     analyzeCompletionPatterns();
   }, [analyzeCompletionPatterns]);
 
-  return { insights, phaseInsights, loading, refetch: analyzeCompletionPatterns };
+  return { insights, phaseInsights, categoryStats, loading, refetch: analyzeCompletionPatterns };
 }

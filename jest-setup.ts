@@ -25,16 +25,9 @@ jest.mock('@expo/vector-icons', () => {
   return new Proxy({}, { get: () => stub });
 });
 
-// Mock expo-audio — no real native audio engine in tests. sfx.ts only needs
-// createAudioPlayer to return a player with seekTo/play (both no-ops here),
-// so kid-facing sound never pulls the native module into the test runtime.
-jest.mock('expo-audio', () => ({
-  createAudioPlayer: jest.fn(() => ({
-    seekTo: jest.fn(),
-    play: jest.fn(),
-    remove: jest.fn(),
-  })),
-}));
+// (expo-audio mock removed: the dependency was dropped in the 1.6.2 hotfix —
+// sfx.ts is now soundless and no test pulls the native module. The stale mock
+// made jest fail to resolve a non-existent module and broke the whole suite.)
 
 // Mock RevenueCat purchases — no real native module in tests.
 jest.mock('react-native-purchases', () => ({

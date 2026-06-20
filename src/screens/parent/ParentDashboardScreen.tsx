@@ -18,7 +18,7 @@ import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -43,7 +43,7 @@ import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
 import { STICKER_CATALOG } from '../../lib/stickerCatalog';
 import { formatNum } from '../../lib/uiLocale';
-import type { RootStackParamList } from '../../navigation/types';
+import type { RootStackParamList, ParentTabsParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -51,6 +51,7 @@ const QUICK_AMOUNTS = [10, 20, 50, 100];
 
 export default function ParentDashboardScreen() {
   const navigation                         = useNavigation<Nav>();
+  const route                              = useRoute<RouteProp<ParentTabsParamList, 'ParentDashboard'>>();
   const { t }                              = useTranslation();
   const { profile, user, familyId, familyShortCode } = useAuth();
   const [codeCopied, setCodeCopied]        = useState(false);
@@ -391,6 +392,21 @@ export default function ParentDashboardScreen() {
     }
   };
 
+  // ── Insights-screen CTA bridge ───────────────────────────────────────────
+  // The Parent Insights screen routes a CTA back here (openSheet/sheetChildId)
+  // to reuse the sticker/bonus/med sheets instead of duplicating their logic.
+  useEffect(() => {
+    const { openSheet, sheetChildId } = route.params ?? {};
+    if (!openSheet || !sheetChildId) return;
+    const child = children.find(c => c.childId === sheetChildId);
+    const name  = child?.displayName ?? '';
+    if (openSheet === 'sticker')      openSticker(sheetChildId);
+    else if (openSheet === 'bonus')   openBonus(sheetChildId);
+    else if (openSheet === 'med')     setMedSheetTarget({ childId: sheetChildId, childName: name });
+    // Clear so re-focusing the tab doesn't re-open the sheet.
+    navigation.setParams({ openSheet: undefined, sheetChildId: undefined } as never);
+  }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -416,8 +432,21 @@ export default function ParentDashboardScreen() {
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
 
-      {/* ── Recommended-now card (takes the slot) or legacy insight card ── */}
-      {activeRec ? (
+      {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ── */}
+      {!isSubscribed ? (
+        <TouchableOpacity
+          style={[styles.insightCard, styles.insightCardLocked]}
+          onPress={() => navigation.navigate('Paywall', { childName: children[0]?.displayName ?? undefined })}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.insightLockedIcon}>📊</Text>
+          <Text style={styles.insightLockedTitle}>{t('dashboard.insightsPremiumTitle')}</Text>
+          <Text style={styles.insightLockedHint}>{t('dashboard.insightsPremiumHint')}</Text>
+          <View style={styles.insightUnlockBtn}>
+            <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
+          </View>
+        </TouchableOpacity>
+      ) : activeRec ? (
         <RecommendationCard
           recommendation={activeRec}
           onCta={() => handleRecCta(activeRec)}
@@ -428,26 +457,22 @@ export default function ParentDashboardScreen() {
           <ActivityIndicator color="#fff" />
         </View>
       ) : insightsLocked ? (
-        /* FIX 1 — empty / locked state */
+        /* Subscriber, not enough data yet — still opens the richer Insights screen */
         <TouchableOpacity
           style={[styles.insightCard, styles.insightCardLocked]}
-          onPress={() => !isSubscribed
-            ? navigation.navigate('Paywall', { childName: children[0]?.displayName ?? undefined })
-            : undefined
-          }
-          activeOpacity={isSubscribed ? 1 : 0.8}
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          activeOpacity={0.85}
         >
           <Text style={styles.insightLockedIcon}>📊</Text>
           <Text style={styles.insightLockedTitle}>{t('dashboard.insightsLocked')}</Text>
           <Text style={styles.insightLockedHint}>{t('dashboard.insightsLockedHint')}</Text>
-          {!isSubscribed && (
-            <View style={styles.insightUnlockBtn}>
-              <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
-            </View>
-          )}
         </TouchableOpacity>
       ) : (
-        <View style={[styles.insightCard, { backgroundColor: T.accent }]}>
+        <TouchableOpacity
+          style={[styles.insightCard, { backgroundColor: T.accent }]}
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          activeOpacity={0.85}
+        >
           <Text style={styles.insightTag}>
             {topInsight!.icon} {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
           </Text>
@@ -457,7 +482,7 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightLabel}>{t(`insights.${topInsight!.i18nKey}.title`)}</Text>
           <Text style={styles.insightDesc}>{t(`insights.${topInsight!.i18nKey}.description`)}</Text>
           <Text style={styles.insightTip}>💬 {t(`insights.${topInsight!.i18nKey}.suggestion`)}</Text>
-        </View>
+        </TouchableOpacity>
       )}
 
       {/* ── Unlinked children banner ───────────────────────────────────── */}
