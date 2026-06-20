@@ -50,6 +50,7 @@ import ManageChildrenScreen  from '../screens/parent/ManageChildrenScreen';
 import EditChildScreen       from '../screens/parent/EditChildScreen';
 import CaptureScreen         from '../screens/parent/CaptureScreen';
 import ThisWeekScreen        from '../screens/parent/ThisWeekScreen';
+import ParentInsightsScreen  from '../screens/parent/ParentInsightsScreen';
 import ActivitiesScreen      from '../screens/parent/ActivitiesScreen';
 import ChildAddActivityScreen from '../screens/child/ChildAddActivityScreen';
 
@@ -208,6 +209,11 @@ export default function RootNavigator() {
               name="ParentThisWeek"
               component={ThisWeekScreen}
               options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="ParentInsights"
+              component={ParentInsightsScreen}
+              options={{ headerShown: false }}
             />
             <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
               <Stack.Screen name="UStep1"            component={UStep1_ChildProfile} />

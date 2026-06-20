@@ -18,7 +18,7 @@ import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -43,7 +43,7 @@ import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
 import { STICKER_CATALOG } from '../../lib/stickerCatalog';
 import { formatNum } from '../../lib/uiLocale';
-import type { RootStackParamList } from '../../navigation/types';
+import type { RootStackParamList, ParentTabsParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -51,6 +51,7 @@ const QUICK_AMOUNTS = [10, 20, 50, 100];
 
 export default function ParentDashboardScreen() {
   const navigation                         = useNavigation<Nav>();
+  const route                              = useRoute<RouteProp<ParentTabsParamList, 'ParentDashboard'>>();
   const { t }                              = useTranslation();
   const { profile, user, familyId, familyShortCode } = useAuth();
   const [codeCopied, setCodeCopied]        = useState(false);
@@ -391,6 +392,21 @@ export default function ParentDashboardScreen() {
     }
   };
 
+  // ── Insights-screen CTA bridge ───────────────────────────────────────────
+  // The Parent Insights screen routes a CTA back here (openSheet/sheetChildId)
+  // to reuse the sticker/bonus/med sheets instead of duplicating their logic.
+  useEffect(() => {
+    const { openSheet, sheetChildId } = route.params ?? {};
+    if (!openSheet || !sheetChildId) return;
+    const child = children.find(c => c.childId === sheetChildId);
+    const name  = child?.displayName ?? '';
+    if (openSheet === 'sticker')      openSticker(sheetChildId);
+    else if (openSheet === 'bonus')   openBonus(sheetChildId);
+    else if (openSheet === 'med')     setMedSheetTarget({ childId: sheetChildId, childName: name });
+    // Clear so re-focusing the tab doesn't re-open the sheet.
+    navigation.setParams({ openSheet: undefined, sheetChildId: undefined } as never);
+  }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -416,8 +432,51 @@ export default function ParentDashboardScreen() {
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
 
-      {/* ── Recommended-now card (takes the slot) or legacy insight card ── */}
-      {activeRec ? (
+      {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ── */}
+      {!isSubscribed ? (
+        topInsight && !showLockedInsights ? (
+          /* FREE TEASER — show ONE real insight (value-first); the depth (trends,
+             weekly map, tips, action levers) is gated → tap opens the Paywall.
+             A brand-new free user with no data falls through to the upgrade card. */
+          <TouchableOpacity
+            style={[styles.insightCard, { backgroundColor: T.accent }]}
+            onPress={() => navigation.navigate('Paywall', { childName: firstChild?.displayName ?? undefined })}
+            activeOpacity={0.85}
+          >
+            <View style={styles.teaserTagRow}>
+              <Text style={styles.insightTag}>
+                {topInsight.icon} {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
+              </Text>
+              <View style={styles.premiumPill}>
+                <Text style={styles.premiumPillText}>✨ {t('dashboard.insightsPremiumBadge')}</Text>
+              </View>
+            </View>
+            <Text style={styles.insightStat}>
+              {topInsight.completionRate !== undefined ? `${topInsight.completionRate}%` : '—'}
+            </Text>
+            <Text style={styles.insightLabel}>{t(`insights.${topInsight.i18nKey}.title`)}</Text>
+            <Text style={styles.insightDesc}>{t(`insights.${topInsight.i18nKey}.description`)}</Text>
+            <Text style={styles.insightTip}>💬 {t(`insights.${topInsight.i18nKey}.suggestion`)}</Text>
+            <View style={styles.insightCtaRow}>
+              <Text style={styles.insightCtaText}>{t('dashboard.insightsTeaserCta')}</Text>
+              <Text style={styles.insightCtaChevron}>›</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.insightCard, styles.insightCardLocked]}
+            onPress={() => navigation.navigate('Paywall', { childName: children[0]?.displayName ?? undefined })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.insightLockedIcon}>📊</Text>
+            <Text style={styles.insightLockedTitle}>{t('dashboard.insightsPremiumTitle')}</Text>
+            <Text style={styles.insightLockedHint}>{t('dashboard.insightsPremiumHint')}</Text>
+            <View style={styles.insightUnlockBtn}>
+              <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
+            </View>
+          </TouchableOpacity>
+        )
+      ) : activeRec ? (
         <RecommendationCard
           recommendation={activeRec}
           onCta={() => handleRecCta(activeRec)}
@@ -428,26 +487,23 @@ export default function ParentDashboardScreen() {
           <ActivityIndicator color="#fff" />
         </View>
       ) : insightsLocked ? (
-        /* FIX 1 — empty / locked state */
+        /* Subscriber, not enough data yet — still opens the richer Insights screen */
         <TouchableOpacity
           style={[styles.insightCard, styles.insightCardLocked]}
-          onPress={() => !isSubscribed
-            ? navigation.navigate('Paywall', { childName: children[0]?.displayName ?? undefined })
-            : undefined
-          }
-          activeOpacity={isSubscribed ? 1 : 0.8}
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          activeOpacity={0.85}
         >
           <Text style={styles.insightLockedIcon}>📊</Text>
           <Text style={styles.insightLockedTitle}>{t('dashboard.insightsLocked')}</Text>
           <Text style={styles.insightLockedHint}>{t('dashboard.insightsLockedHint')}</Text>
-          {!isSubscribed && (
-            <View style={styles.insightUnlockBtn}>
-              <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
-            </View>
-          )}
+          <Text style={[styles.insightLockedCta, { color: T.accent }]}>{t('dashboard.insightsCardCta')} ›</Text>
         </TouchableOpacity>
       ) : (
-        <View style={[styles.insightCard, { backgroundColor: T.accent }]}>
+        <TouchableOpacity
+          style={[styles.insightCard, { backgroundColor: T.accent }]}
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          activeOpacity={0.85}
+        >
           <Text style={styles.insightTag}>
             {topInsight!.icon} {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
           </Text>
@@ -457,7 +513,11 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightLabel}>{t(`insights.${topInsight!.i18nKey}.title`)}</Text>
           <Text style={styles.insightDesc}>{t(`insights.${topInsight!.i18nKey}.description`)}</Text>
           <Text style={styles.insightTip}>💬 {t(`insights.${topInsight!.i18nKey}.suggestion`)}</Text>
-        </View>
+          <View style={styles.insightCtaRow}>
+            <Text style={styles.insightCtaText}>{t('dashboard.insightsCardCta')}</Text>
+            <Text style={styles.insightCtaChevron}>›</Text>
+          </View>
+        </TouchableOpacity>
       )}
 
       {/* ── Unlinked children banner ───────────────────────────────────── */}
@@ -960,6 +1020,13 @@ const styles = StyleSheet.create({
   insightLabel:  { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   insightDesc:   { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 10 },
   insightTip:    { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontStyle: 'italic' },
+  insightCtaRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)' },
+  insightCtaText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  insightCtaChevron: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: -2 },
+  insightLockedCta:  { fontSize: 13, fontWeight: '700', marginTop: 10 },
+  teaserTagRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  premiumPill:       { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  premiumPillText:   { color: '#fff', fontSize: 11, fontWeight: '800' },
 
   // Unlinked child banner
   unlinkBanner:     { backgroundColor: '#EDE9FE', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1.5, borderColor: T.accent },
