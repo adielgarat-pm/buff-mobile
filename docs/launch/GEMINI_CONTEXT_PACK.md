@@ -74,7 +74,7 @@ Ask me which **persona** and **channel** the post is for if I didn't say.
 
 ---
 
-# PART C — Current status (as of 2026-06-19)
+# PART C — Current status (as of 2026-06-20)
 
 - **Stage:** MVP on Google Play **internal testing track** (not a public launch yet). Android is the live platform; **iOS** is built and waiting on Apple Developer account approval (TestFlight after).
 - **Latest build:** **v1.6.2**.
@@ -86,7 +86,7 @@ Ask me which **persona** and **channel** the post is for if I didn't say.
 
 # PART D — REAL features (✅ safe to say)
 
-Verified present in the code on 2026-06-19. These are safe to reference in posts (but per Rule 3, keep them as supporting detail, not the headline):
+Verified present in the code on 2026-06-20. These are safe to reference in posts (but per Rule 3, keep them as supporting detail, not the headline):
 
 - **Real-life rewards + The Shop** — the kid earns toward a reward *they chose* (concert ticket, gaming chair, outing); parent approves each redemption. The currency is **BUFFs**.
 - **Two interfaces:** **Pastel/Buddy Mode** (ages ~6–12, mint, with a buddy character) and **Gamer Mode** (teens, dark violet + lime, dashboard, no buddy by default) — co-designed with a teen with ADHD.
