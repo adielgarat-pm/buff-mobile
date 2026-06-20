@@ -147,14 +147,14 @@ describe('selectInsightFraming — Layer C (targeted tips, severity order)', () 
     expect(r.tip?.ctaType).toBe('set-anchor');
   });
 
-  it('C2 — homework low outranks phase + hygiene, carries a sticker CTA', () => {
+  it('C2 — homework low outranks phase + hygiene, nudges a conversation', () => {
     const r = selectInsightFraming({
       ...base,
       tips: { medsLow: false, homeworkLow: true, hygieneLow: true, weakestPhaseKey: 'morning-low' },
     });
     expect(r.tip?.caseId).toBe('C2');
     expect(r.tip?.i18nKey).toBe('insights.homework-low');
-    expect(r.tip?.ctaType).toBe('send-sticker');
+    expect(r.tip?.ctaType).toBe('start-conversation');
   });
 
   it('C3 — weakest phase outranks hygiene', () => {

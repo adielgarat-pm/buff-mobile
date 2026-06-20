@@ -2002,6 +2002,7 @@
   "insights.weekly.cta.sticker": "Send a sticker",
   "insights.weekly.cta.anchor": "Set tomorrow's anchor",
   "insights.weekly.cta.rewards": "Open rewards",
+  "insights.weekly.cta.conversation": "💬 Start a conversation",
   "insights.weekly.strong.headline": "🎉 {{name}} had a strong week",
   "insights.weekly.strong.message": "{{count}} active days! That kind of consistent effort really deserves to be noticed.",
   "insights.weekly.building.headline": "💪 {{name}} is finding a rhythm",
