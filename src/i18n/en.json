@@ -2035,5 +2035,15 @@
   "time.justNow": "just now",
   "time.minutesShort": "{{count}}m",
   "time.hoursShort": "{{count}}h",
-  "time.daysShort": "{{count}}d"
+  "time.daysShort": "{{count}}d",
+  "install.bannerText": "Add BUFF to your home screen — works like an app, always ready",
+  "install.androidButton": "Install",
+  "install.iosSafariHow": "How?",
+  "install.iosGotIt": "Got it",
+  "install.iosOtherText": "Open this page in Safari to add BUFF to your home screen",
+  "install.iosStep1": "1. Tap Share ⬆️ at the bottom of Safari",
+  "install.iosStep2": "2. Choose \"Add to Home Screen\"",
+  "install.iosStep3": "3. Tap \"Add\" — done!",
+  "install.instructionsTitle": "Add to Home Screen",
+  "settings.rowAddToHomeScreen": "Add to Home Screen"
 }

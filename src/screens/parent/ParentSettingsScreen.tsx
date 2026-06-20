@@ -2,7 +2,7 @@
  * Parent Settings — Zen Mode
  * Account, family management, mode switching, preferences.
  */
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert, Modal } from 'react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +22,7 @@ import JoinFamilyCard from '../../components/JoinFamilyCard';
 import LanguagePickerModal from '../../components/LanguagePickerModal';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 
 interface SettingsRow {
   label: string;
@@ -44,6 +45,8 @@ export default function ParentSettingsScreen() {
   const { language } = useLanguage();
   const [langModalOpen, setLangModalOpen] = useState(false);
   const { fridayEnabled, setFridayEnabled } = useAppSettings();
+  const { mode: installMode, promptInstall } = useInstallPrompt();
+  const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
 
   // Real version of the *installed build*, not app.json — so a tester always
   // knows exactly which build they're on (native APIs are null on web/dev,
@@ -156,6 +159,13 @@ export default function ParentSettingsScreen() {
           icon:    'notifications-outline' as const,
           onPress: () => navigation.navigate('NotificationSettings'),
         },
+        ...(installMode !== 'hidden' ? [{
+          label:   t('settings.rowAddToHomeScreen'),
+          icon:    'download-outline' as const,
+          onPress: installMode === 'install'
+            ? () => { void promptInstall(); }
+            : () => setInstallInstructionsOpen(true),
+        }] : []),
       ],
     },
     {
@@ -274,6 +284,43 @@ export default function ParentSettingsScreen() {
         visible={langModalOpen}
         onClose={() => setLangModalOpen(false)}
       />
+
+      {/* iOS install instructions — shown when installMode is ios-safari or ios-other */}
+      <Modal
+        visible={installInstructionsOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInstallInstructionsOpen(false)}
+      >
+        <TouchableOpacity
+          style={installStyles.overlay}
+          activeOpacity={1}
+          onPress={() => setInstallInstructionsOpen(false)}
+        >
+          <View style={[installStyles.card, { backgroundColor: T.card }]}>
+            <Text style={[installStyles.title, { color: T.text }]}>
+              {t('install.instructionsTitle')}
+            </Text>
+            {installMode === 'ios-other' ? (
+              <Text style={[installStyles.body, { color: T.text }]}>
+                {t('install.iosOtherText')}
+              </Text>
+            ) : (
+              <>
+                <Text style={[installStyles.step, { color: T.text }]}>{t('install.iosStep1')}</Text>
+                <Text style={[installStyles.step, { color: T.text }]}>{t('install.iosStep2')}</Text>
+                <Text style={[installStyles.step, { color: T.text }]}>{t('install.iosStep3')}</Text>
+              </>
+            )}
+            <TouchableOpacity
+              style={[installStyles.btn, { backgroundColor: T.accent }]}
+              onPress={() => setInstallInstructionsOpen(false)}
+            >
+              <Text style={installStyles.btnText}>{t('install.iosGotIt')}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
@@ -298,4 +345,14 @@ const styles = StyleSheet.create({
   rowLabel:     { flex: 1, fontSize: 15 },
   rowValue:     { fontSize: 14, maxWidth: 180, textAlign: 'right', marginRight: 6 },
   chevron:      { fontSize: 20 },
+});
+
+const installStyles = StyleSheet.create({
+  overlay:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', padding: 32 },
+  card:     { borderRadius: 20, padding: 24, width: '100%', maxWidth: 320 },
+  title:    { fontSize: 17, fontWeight: '700', marginBottom: 14 },
+  body:     { fontSize: 15, lineHeight: 22, marginBottom: 20 },
+  step:     { fontSize: 14, lineHeight: 22, marginBottom: 6 },
+  btn:      { marginTop: 16, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  btnText:  { color: '#fff', fontSize: 15, fontWeight: '700' },
 });
