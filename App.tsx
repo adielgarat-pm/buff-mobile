@@ -26,7 +26,7 @@ import './src/i18n';
 import * as Sentry from '@sentry/react-native';
 
 import { useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -166,7 +166,11 @@ function AppContent() {
 function App() {
   return (
     <SafeAreaProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.root}>
+        {/* Web only: constrain the mobile-first UI to a centered phone-width
+            column so it doesn't stretch full-bleed on desktop/tablet browsers.
+            On native this is a flex:1 passthrough (no visual change). */}
+        <View style={styles.shell}>
         <LanguageProvider>
         <AuthProvider>
           <RevenueCatInit />
@@ -179,9 +183,24 @@ function App() {
           </ModeProvider>
         </AuthProvider>
         </LanguageProvider>
+        </View>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }
+
+// Phone-width column on wide screens. 480 ≈ the largest phone (iPhone Pro Max is
+// 430pt), so on a phone the cap never bites; on desktop/tablet the app sits as a
+// centered column over a soft letterbox instead of stretching across the window.
+const WEB_MAX_WIDTH = 480;
+
+const styles = StyleSheet.create({
+  root: Platform.OS === 'web'
+    ? { flex: 1, alignItems: 'center', backgroundColor: '#E9E7F2' } // letterbox
+    : { flex: 1 },
+  shell: Platform.OS === 'web'
+    ? { flex: 1, width: '100%', maxWidth: WEB_MAX_WIDTH }
+    : { flex: 1 },
+});
 
 export default Sentry.wrap(App);
