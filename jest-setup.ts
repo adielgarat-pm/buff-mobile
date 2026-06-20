@@ -25,10 +25,6 @@ jest.mock('@expo/vector-icons', () => {
   return new Proxy({}, { get: () => stub });
 });
 
-// (expo-audio mock removed: the dependency was dropped in the 1.6.2 hotfix —
-// sfx.ts is now soundless and no test pulls the native module. The stale mock
-// made jest fail to resolve a non-existent module and broke the whole suite.)
-
 // Mock RevenueCat purchases — no real native module in tests.
 jest.mock('react-native-purchases', () => ({
   configure: jest.fn(),
