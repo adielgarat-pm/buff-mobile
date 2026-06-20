@@ -466,6 +466,7 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightLockedIcon}>📊</Text>
           <Text style={styles.insightLockedTitle}>{t('dashboard.insightsLocked')}</Text>
           <Text style={styles.insightLockedHint}>{t('dashboard.insightsLockedHint')}</Text>
+          <Text style={[styles.insightLockedCta, { color: T.accent }]}>{t('dashboard.insightsCardCta')} ›</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
@@ -482,6 +483,10 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightLabel}>{t(`insights.${topInsight!.i18nKey}.title`)}</Text>
           <Text style={styles.insightDesc}>{t(`insights.${topInsight!.i18nKey}.description`)}</Text>
           <Text style={styles.insightTip}>💬 {t(`insights.${topInsight!.i18nKey}.suggestion`)}</Text>
+          <View style={styles.insightCtaRow}>
+            <Text style={styles.insightCtaText}>{t('dashboard.insightsCardCta')}</Text>
+            <Text style={styles.insightCtaChevron}>›</Text>
+          </View>
         </TouchableOpacity>
       )}
 
@@ -985,6 +990,10 @@ const styles = StyleSheet.create({
   insightLabel:  { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   insightDesc:   { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 10 },
   insightTip:    { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontStyle: 'italic' },
+  insightCtaRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)' },
+  insightCtaText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  insightCtaChevron: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: -2 },
+  insightLockedCta:  { fontSize: 13, fontWeight: '700', marginTop: 10 },
 
   // Unlinked child banner
   unlinkBanner:     { backgroundColor: '#EDE9FE', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1.5, borderColor: T.accent },
