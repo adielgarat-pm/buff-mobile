@@ -29,7 +29,7 @@ import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 import type { CaptureInput, FamilyChild, ParentItem } from '../../types/parentCapture';
 import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCapture';
-import { stubParse } from '../../lib/parentCapture/stubParser';
+import { parseCapture } from '../../lib/parentCapture/parseCapture';
 import { parsedToParentItem } from '../../lib/parentCapture/captureMapping';
 import { CapturedItemRow, type ReviewEntry } from '../../components/parent/CapturedItemRow';
 
@@ -66,13 +66,13 @@ export default function CaptureScreen() {
   }
 
   async function onRead() {
-    if (!canRead) return;
+    if (!canRead || !familyId) return;
     setParsing(true);
     try {
       const input: CaptureInput = file
         ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
         : { kind: 'text', text };
-      const parsed = await stubParse(input);
+      const parsed = await parseCapture(input, familyId);
       const next: ReviewEntry[] = parsed.map((p) => {
         const match = p.childName
           ? children.find((c) => c.displayName === p.childName) ?? null

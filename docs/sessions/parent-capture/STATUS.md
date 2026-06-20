@@ -6,7 +6,7 @@
 | Phase | State | Date | Notes |
 |---|---|---|---|
 | 0 — Foundation & verification | ✅ done (read-only) | 2026-06-05 | See `PHASE0_FINDINGS.md`. No code, no schema changes. |
-| 1 — `parse-capture` Edge Fn | 🧪 **stub built** (real one blocked) | 2026-06-05 | `src/lib/parentCapture/stubParser.ts` stands in for Gemini. 🔒 real fn = Gemini paid-key approval |
+| 1 — `parse-capture` Edge Fn | ✅ **deployed + verified** (2026-06-20) | 2026-06-20 | Real Gemini (`gemini-2.5-flash`, paid key in Supabase secret). End-to-end verified on Hebrew text → structured items (date resolution, recurrence, bring-list, no ghosts). Client wired (`parseCapture` replaces stub in `CaptureScreen`). Privacy: only counts logged to `capture_runs`, no raw input. |
 | 2 — Schema + RLS + persistence | ✅ **applied** (2026-06-19) | 2026-06-19 | `019_parent_capture.sql` applied: `parent_items` (+`child_name`,`child_task_id`), `capture_runs`, `grade_level`, parent-only RLS, GRANTs verified. `useParentCapture` store swapped AsyncStorage → Supabase (durable + synced). Additive, 0 impact on existing. |
 | 3 — CaptureScreen + in-app entry | ✅ **built** (stub, flag-off) | 2026-06-05 | `CaptureScreen.tsx`; paste + image (existing deps, zero new dep) |
 | 4 — ConfirmCard | ✅ **built** (stub, flag-off) | 2026-06-05 | `CapturedItemRow.tsx`; owner toggle, confidence, no_match collapse, `category` map in config |
