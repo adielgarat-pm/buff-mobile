@@ -217,6 +217,8 @@
   "dashboard.insightsLocked": "Insights unlock after 3 days",
   "dashboard.insightsLockedHint": "Keep going — patterns will appear here soon!",
   "dashboard.insightsCardCta": "Full insights",
+  "dashboard.insightsTeaserCta": "Trends, weekly map & more",
+  "dashboard.insightsPremiumBadge": "Premium",
   "dashboard.insightsPremiumTitle": "Insights — a Premium feature",
   "dashboard.insightsPremiumHint": "See what's working and where your child needs a hand.",
   "dashboard.today": "Today",

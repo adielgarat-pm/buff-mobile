@@ -217,6 +217,8 @@
   "dashboard.insightsLocked": "תובנות יפתחו לאחר 3 ימים",
   "dashboard.insightsLockedHint": "המשיכו — הדפוסים יופיעו כאן בקרוב!",
   "dashboard.insightsCardCta": "תובנות מלאות",
+  "dashboard.insightsTeaserCta": "מגמות, מפה שבועית ועוד",
+  "dashboard.insightsPremiumBadge": "פרימיום",
   "dashboard.insightsPremiumTitle": "תובנות — פיצ'ר פרימיום",
   "dashboard.insightsPremiumHint": "ראו מה עובד ואיפה הילד/ה צריך/ה עזרה.",
   "dashboard.today": "היום",

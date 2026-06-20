@@ -434,18 +434,48 @@ export default function ParentDashboardScreen() {
 
       {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ── */}
       {!isSubscribed ? (
-        <TouchableOpacity
-          style={[styles.insightCard, styles.insightCardLocked]}
-          onPress={() => navigation.navigate('Paywall', { childName: children[0]?.displayName ?? undefined })}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.insightLockedIcon}>📊</Text>
-          <Text style={styles.insightLockedTitle}>{t('dashboard.insightsPremiumTitle')}</Text>
-          <Text style={styles.insightLockedHint}>{t('dashboard.insightsPremiumHint')}</Text>
-          <View style={styles.insightUnlockBtn}>
-            <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
-          </View>
-        </TouchableOpacity>
+        topInsight && !showLockedInsights ? (
+          /* FREE TEASER — show ONE real insight (value-first); the depth (trends,
+             weekly map, tips, action levers) is gated → tap opens the Paywall.
+             A brand-new free user with no data falls through to the upgrade card. */
+          <TouchableOpacity
+            style={[styles.insightCard, { backgroundColor: T.accent }]}
+            onPress={() => navigation.navigate('Paywall', { childName: firstChild?.displayName ?? undefined })}
+            activeOpacity={0.85}
+          >
+            <View style={styles.teaserTagRow}>
+              <Text style={styles.insightTag}>
+                {topInsight.icon} {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
+              </Text>
+              <View style={styles.premiumPill}>
+                <Text style={styles.premiumPillText}>✨ {t('dashboard.insightsPremiumBadge')}</Text>
+              </View>
+            </View>
+            <Text style={styles.insightStat}>
+              {topInsight.completionRate !== undefined ? `${topInsight.completionRate}%` : '—'}
+            </Text>
+            <Text style={styles.insightLabel}>{t(`insights.${topInsight.i18nKey}.title`)}</Text>
+            <Text style={styles.insightDesc}>{t(`insights.${topInsight.i18nKey}.description`)}</Text>
+            <Text style={styles.insightTip}>💬 {t(`insights.${topInsight.i18nKey}.suggestion`)}</Text>
+            <View style={styles.insightCtaRow}>
+              <Text style={styles.insightCtaText}>{t('dashboard.insightsTeaserCta')}</Text>
+              <Text style={styles.insightCtaChevron}>›</Text>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.insightCard, styles.insightCardLocked]}
+            onPress={() => navigation.navigate('Paywall', { childName: children[0]?.displayName ?? undefined })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.insightLockedIcon}>📊</Text>
+            <Text style={styles.insightLockedTitle}>{t('dashboard.insightsPremiumTitle')}</Text>
+            <Text style={styles.insightLockedHint}>{t('dashboard.insightsPremiumHint')}</Text>
+            <View style={styles.insightUnlockBtn}>
+              <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
+            </View>
+          </TouchableOpacity>
+        )
       ) : activeRec ? (
         <RecommendationCard
           recommendation={activeRec}
@@ -994,6 +1024,9 @@ const styles = StyleSheet.create({
   insightCtaText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
   insightCtaChevron: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: -2 },
   insightLockedCta:  { fontSize: 13, fontWeight: '700', marginTop: 10 },
+  teaserTagRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  premiumPill:       { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  premiumPillText:   { color: '#fff', fontSize: 11, fontWeight: '800' },
 
   // Unlinked child banner
   unlinkBanner:     { backgroundColor: '#EDE9FE', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1.5, borderColor: T.accent },
