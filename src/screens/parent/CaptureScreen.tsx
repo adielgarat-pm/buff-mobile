@@ -29,9 +29,11 @@ import { PARENT_THEME as T } from '../../theme';
 import type { RootStackParamList } from '../../navigation/types';
 import type { CaptureInput, FamilyChild, ParentItem } from '../../types/parentCapture';
 import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCapture';
+import { useCaptureConsent } from '../../hooks/useCaptureConsent';
 import { parseCapture } from '../../lib/parentCapture/parseCapture';
 import { parsedToParentItem } from '../../lib/parentCapture/captureMapping';
 import { CapturedItemRow, type ReviewEntry } from '../../components/parent/CapturedItemRow';
+import { CaptureConsentGate } from '../../components/parent/CaptureConsentGate';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -41,6 +43,7 @@ export default function CaptureScreen() {
   const { familyId } = useAuth();
   const { children } = useFamilyChildren();
   const { addItems, transferToChild } = useParentCapture();
+  const { consented, grant } = useCaptureConsent();
 
   const [step, setStep] = useState<'input' | 'review'>('input');
   const [text, setText] = useState('');
@@ -128,6 +131,17 @@ export default function CaptureScreen() {
 
   const active = entries.map((e, i) => ({ e, i })).filter(({ e }) => !e.discarded);
   const filtered = entries.map((e, i) => ({ e, i })).filter(({ e }) => e.discarded);
+
+  // Show consent gate until the parent has acknowledged the privacy disclosure.
+  if (!consented) {
+    return (
+      <CaptureConsentGate
+        loading={consented === null}
+        onContinue={grant}
+        onClose={() => navigation.goBack()}
+      />
+    );
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: T.bg }]}>
