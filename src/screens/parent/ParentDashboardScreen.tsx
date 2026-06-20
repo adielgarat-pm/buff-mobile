@@ -43,6 +43,8 @@ import { useAnchorRecoveryDismiss } from '../../hooks/useAnchorRecoveryDismiss';
 import { supabase } from '../../integrations/supabase/client';
 import { STICKER_CATALOG } from '../../lib/stickerCatalog';
 import { formatNum } from '../../lib/uiLocale';
+import { useInstallNudgeRegistration } from '../../components/install/InstallNudge';
+import { useActiveNudge } from '../../lib/nudges/nudgeManager';
 import type { RootStackParamList, ParentTabsParamList } from '../../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -55,7 +57,7 @@ export default function ParentDashboardScreen() {
   const { t }                              = useTranslation();
   const { profile, user, familyId, familyShortCode } = useAuth();
   const [codeCopied, setCodeCopied]        = useState(false);
-  const { enterChildPreview }              = useMode();
+  const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
   const { isSubscribed }                   = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
@@ -73,6 +75,11 @@ export default function ParentDashboardScreen() {
     loading:    anchorDismissLoading,
   } = useAnchorRecoveryDismiss(familyId ?? null);
   const [anchorModalVisible, setAnchorModalVisible] = useState(false);
+  // Passive nudge slot — install banner (pkg/pwa-install-nudge) or rate banner
+  // (pkg/rate-us-port, future). One slot, one winner via the Nudge Manager.
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  useInstallNudgeRegistration(() => setNudgeDismissed(true));
+  const activeNudge = useActiveNudge({ suppressed: isChildPreview || nudgeDismissed });
   // Phase 3 — Med reminder sheet, opened over the anchor modal from its meds
   // CTA. Stacked (anchor modal stays mounted underneath) so cancelling the
   // sheet returns to the recovery options without a re-open race.
@@ -416,6 +423,9 @@ export default function ParentDashboardScreen() {
     >
       {/* ── Pause banner (only renders when paused) ─────────────────────── */}
       <PauseBanner />
+
+      {/* ── Passive nudge slot (install / rate-us) — at most one at a time ── */}
+      {activeNudge?.render() ?? null}
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <View style={styles.header}>

@@ -2035,5 +2035,15 @@
   "time.justNow": "עכשיו",
   "time.minutesShort": "{{count}} ד׳",
   "time.hoursShort": "{{count}} ש׳",
-  "time.daysShort": "{{count}} י׳"
+  "time.daysShort": "{{count}} י׳",
+  "install.bannerText": "הוסיפו את BUFF למסך הבית — עובד כמו אפליקציה, תמיד מוכן",
+  "install.androidButton": "התקינו",
+  "install.iosSafariHow": "איך?",
+  "install.iosGotIt": "הבנתי",
+  "install.iosOtherText": "פתחו עמוד זה בספארי כדי להוסיף למסך הבית",
+  "install.iosStep1": "1. לחצו על שתף ⬆️ בתחתית ספארי",
+  "install.iosStep2": "2. בחרו «הוסף למסך הבית»",
+  "install.iosStep3": "3. לחצו «הוסף» — זהו!",
+  "install.instructionsTitle": "הוסף למסך הבית",
+  "settings.rowAddToHomeScreen": "הוסף למסך הבית"
 }
