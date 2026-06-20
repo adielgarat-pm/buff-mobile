@@ -24,6 +24,7 @@ import { ParentNotificationBell } from '../../components/parent/ParentNotificati
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import ReferralSheet from '../../components/ReferralSheet';
+import RateBuffSheet from '../../components/rate/RateBuffSheet';
 
 interface SettingsRow {
   label: string;
@@ -49,6 +50,7 @@ export default function ParentSettingsScreen() {
   const { mode: installMode, promptInstall } = useInstallPrompt();
   const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
   const [referralSheetOpen, setReferralSheetOpen] = useState(false);
+  const [rateOpen, setRateOpen] = useState(false);
 
   // Real version of the *installed build*, not app.json — so a tester always
   // knows exactly which build they're on (native APIs are null on web/dev,
@@ -184,6 +186,11 @@ export default function ParentSettingsScreen() {
           onPress: () => navigation.navigate('Philosophy'),
         },
         {
+          label:   t('rate.settingsRow'),
+          icon:    'star-outline' as const,
+          onPress: () => setRateOpen(true),
+        },
+        {
           label: t('settings.rowVersion'),
           value: versionLabel,
           icon:  'phone-portrait-outline' as const,
@@ -296,6 +303,8 @@ export default function ParentSettingsScreen() {
         visible={referralSheetOpen}
         onClose={() => setReferralSheetOpen(false)}
       />
+
+      <RateBuffSheet visible={rateOpen} onClose={() => setRateOpen(false)} />
 
       {/* iOS install instructions — shown when installMode is ios-safari or ios-other */}
       <Modal

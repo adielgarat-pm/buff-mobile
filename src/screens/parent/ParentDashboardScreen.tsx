@@ -45,6 +45,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { STICKER_CATALOG } from '../../lib/stickerCatalog';
 import { formatNum } from '../../lib/uiLocale';
 import { useInstallNudgeRegistration } from '../../components/install/InstallNudge';
+import { useRateNudgeRegistration } from '../../components/rate/RateNudge';
 import { useActiveNudge } from '../../lib/nudges/nudgeManager';
 import type { RootStackParamList, ParentTabsParamList } from '../../navigation/types';
 
@@ -77,9 +78,11 @@ export default function ParentDashboardScreen() {
   } = useAnchorRecoveryDismiss(familyId ?? null);
   const [anchorModalVisible, setAnchorModalVisible] = useState(false);
   // Passive nudge slot — install banner (pkg/pwa-install-nudge) or rate banner
-  // (pkg/rate-us-port, future). One slot, one winner via the Nudge Manager.
+  // (pkg/rate-us-port). One slot, one winner via the Nudge Manager: install
+  // (priority 20) beats rate (10), and a 7-day global cooldown stops stacking.
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   useInstallNudgeRegistration(() => setNudgeDismissed(true));
+  useRateNudgeRegistration(() => setNudgeDismissed(true));
   const activeNudge = useActiveNudge({ suppressed: isChildPreview || nudgeDismissed });
   // Phase 3 — Med reminder sheet, opened over the anchor modal from its meds
   // CTA. Stacked (anchor modal stays mounted underneath) so cancelling the
