@@ -38,6 +38,21 @@
 - **סטטוס:** resolved — pkg/pwa-install-nudge Phase 5 (2026-06-20)
 - **קשור ל:** `pkg/pwa-install-nudge`, `src/hooks/__tests__/useInstallPrompt.test.ts`
 
+### F-2026-06-17-01: אזהרת Google Play על `android:screenOrientation="portrait"` במסכים גדולים (Android 16) — `deferred` עד קפיצת targetSdk 36
+
+- **תאריך:** 2026-06-17
+- **מקור:** Adi — אזהרה מ-Google Play Console; CC חקר את הקונפיג בפועל
+- **תיאור:** Google Play סימנה שתי activities עם נעילת orientation שמערכת Android 16 תתעלם ממנה במסכים גדולים (מתקפלים/טאבלטים):
+  1. **`com.buffapp.mobile.MainActivity`** — הנעילה מגיעה משורה אחת אצלנו: `"orientation": "portrait"` ב-`app.json`. זה שלנו, בכוונה (BUFF עוצב portrait-only).
+  2. **`com.google.mlkit.vision.codescanner.internal.GmsBarcodeScanningDelegateActivity`** — **לא קוד שלנו ולא בשימוש.** סורק QR של `expo-dev-client` (כלי פיתוח להתחברות ל-Metro). אמור להיעלם מ-build של `production`; ה-AAB שגוגל סרקה היה כנראה internal-testing/preview שכלל את ה-dev-client, או אגרגציה על פני כל ה-AABs. שווה לאמת מתישהו שהוא **באמת** לא דולף ל-AAB של production (אם כן — בעיה גדולה יותר).
+- **השפעה:**
+  - **לא בעיה פעילה היום.** ההתנהגות החדשה של Android 16 (התעלמות מנעילת orientation במסכים גדולים) חלה רק על אפליקציות שמכוונות ל-`targetSdk 36`. Expo SDK 54 שלנו מכוון ל-`targetSdk 35` (אומת ב-`ExpoRootProjectPlugin.kt` default + `android/app/build.gradle`), אז נעילת ה-portrait עובדת מצוין בכל מכשיר, כולל Android 16. האזהרה **לא חוסמת** העלאות.
+  - התיקון ה"מהיר" (`orientation` → `"default"`) הוא שורה אחת ב-`app.json`, אבל מאפשר מיד landscape גם בטלפונים — וכל מסך ב-BUFF מעוצב portrait, אז ילד שיסובב יקבל layout שבור. הרעת UX בשביל בעיה שלא קיימת עדיין.
+  - Platform parity: Web ממילא ללא נעילת orientation → זה Android-only מטבעו ולא שובר את ה-Web.
+- **תיקון:** **נדחה לפי החלטת Adi (2026-06-17).** העבודה הנכונה = package של `adaptive-layout`: להפוך מסכים ל-adaptive ולבדוק landscape על טאבלט/מתקפל בכל מסך. תזמון: **לפני** קפיצת `targetSdk` ל-36 (תחויב ע"י Google בהמשך). עד אז — להשאיר portrait נעול.
+- **סטטוס:** `deferred`
+- **קשור ל:** `app.json` (`orientation`), `expo-dev-client` (scanner activity), עתידי `pkg/adaptive-layout`, feedback "Android + Web platform parity"
+
 ### IN-2026-06-17-01: build 48 (1.6.1) הקריס מכשירי אנדרואיד בהפעלה — `expo-audio` נטען ב-import בשורש *לפני* `Sentry.init`, אז הקריסה הייתה בלתי-נראית ב-Sentry
 
 - **תאריך:** 2026-06-17
@@ -688,6 +703,22 @@
 ---
 
 ## FLAGs פתוחים
+
+### F-2026-06-17-01: Android 15 edge-to-edge deprecated-API warning (Play Console) — resolves on upstream/SDK bump
+
+- **תאריך:** 2026-06-17
+- **מקור:** Adi — אזהרת Google Play Console ("ממשק API/פרמטר שהוצא משימוש ב-Android 15" לתצוגה מקצה לקצה).
+- **תיאור:** Play Console מסמן שימוש ב-window APIs ש-Android 15 (API 35) הוציא משימוש: `Window.setStatusBarColor` / `getStatusBarColor` / `setNavigationBarColor` / `getNavigationBarColor` ו-`LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES` / `_DEFAULT`. **אזהרה בלבד — לא חוסמת, לא קריסה, האפליקציה עוברת בדיקה ורצה תקין.** כל ה-call sites נמצאים **בתוך ספריות**, אין אף קובץ מקור של BUFF שקורא להם:
+  - React Native core — `com.facebook.react.modules.statusbar.StatusBarModule`, `com.facebook.react.views.view.WindowUtilKt` (`enableEdgeToEdge` / `statusBarHide` / `statusBarShow`)
+  - `react-native-screens` 4.16.0 — `com.swmansion.rnscreens.ScreenWindowTraits`
+  - Google Material — `EdgeToEdgeUtils`, `BottomSheetDialog`, `SheetDialog`
+  - `expo-image-picker` — `expo.modules.imagepicker.ExpoCropImageUtils`
+  - `expo-dev-client` — `DevLauncherExpoActivityConfigurator` (**dev/internal בלבד — לא בקיים ב-production AAB**)
+- **השפעה:** אין. BUFF כבר עומד בדרישת ה-enforcement של Android 15 — edge-to-edge מופעל ב-[app.json:34](../app.json) (`"edgeToEdgeEnabled": true`, ה-config הנכון ל-Expo SDK 54). הספריות עדיין קוראות ל-APIs הישנים (no-op תחת edge-to-edge), ועל זה Google מתריע. אין מה "לתקן" בקוד שלנו בלי לטלאות ספריות upstream.
+- **סטטוס:** `open — no action` — נסגר אוטומטית כש-React Native core / react-native-screens / Material יפסיקו לקרוא ל-APIs האלה upstream, כלומר ב-**שדרוג Expo SDK עתידי**. לא שווה חבילה ייעודית. Web (Expo Web PWA) לא מושפע (Android-only מטבעו).
+- **קשור ל:** `project_in_app_updates_pkg` (אותו SDK 54 / RN 0.81 compat surface), `feedback_android_web_platform_parity`.
+
+---
 
 ### F-2026-05-30-01: In-app "What's New" + update-nudge mechanism (TODO)
 

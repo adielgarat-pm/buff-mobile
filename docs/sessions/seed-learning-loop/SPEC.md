@@ -142,14 +142,20 @@ as text in the rollup — they may contain a child's name). Check whether existi
 - **Parent-curation backbone**; child signals enter only as aggregate funnel rates.
 - **A→B drop is the headline diagnostic**; reward learning includes price calibration.
 - **Soft-delete is the cornerstone** — stop hard-deleting seeded items.
+- **Activation windows:** A counts within **3 days** of setup; B within **7 days**.
+- **Reachable first reward:** the initial reward set must include ≥1 reward a typical child
+  earns within **7 days** — the price-calibration objective for Activation B.
+- **v1 = age-bucket personalization only.** Uses birth date already captured.
+  **No onboarding changes** (onboarding is stable; touching it is a risk Adi declined).
+  Onboarding input enrichment (focusArea/struggles) is explicitly **v2, out of scope.**
+- **Consent:** a **dedicated analytics-consent flag** will be added (NOT reusing
+  `marketing_consent`). Surfaced in **parent Settings** (not onboarding). Opt-in vs opt-out:
+  **PENDING Adi.** Does **not** block Phase 1 (aggregate analysis of existing operational
+  data); gates only the *new* collection (`usage_events`, rollups).
 
 ## Open questions (need Adi before implementation)
-1. **Activation window `N`** — within how many days of setup must the first task completion
-   (A) / first reward redemption (B) count? (rec: A within 3 days, B within 7.)
-2. **"Reachable first reward" target** — within how many days should a typical child earn
-   enough Buffs for their first reward? Sets the price-calibration objective for Activation B.
-3. **v1 = age-only personalization** — accepted, or invest in onboarding input enrichment now?
-4. **Consent gate** — does aggregate product analytics ride on `marketing_consent`, or none?
+1. **Consent model** — opt-out (on by default, clear disclosure + easy off) vs opt-in
+   (cleaner legally, near-zero data volume at ~20 real testers). rec: opt-out. *(Adi's call.)*
 
 ## Values Check
 Deferred to design-time per stage (WORKFLOW.md). Preliminary read: the mechanism observes
