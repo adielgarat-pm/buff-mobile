@@ -1,62 +1,136 @@
 /**
- * webPushRegistration — stub for Expo Web (Phase 9, deferred verification).
+ * webPushRegistration — Web Push subscription via the browser's PushManager API.
  *
- * Source SPEC: docs/sessions/fcm-push-notifications/SPEC.md § Phase 9.
+ * No Firebase SDK needed. Web Push is a W3C standard supported by Chrome/Edge/Firefox
+ * and Safari 16.4+ (PWA installed via "Add to Home Screen" over HTTPS only).
  *
- * When the Expo Web build is enabled (F-073 Phase 2 of the broader roadmap),
- * this module is the entry point for Firebase Web SDK + Service Worker
- * push registration. The Edge Function (Phase 3) does NOT change — it just
- * picks the FCM web payload format when the token_type is 'fcm-web'.
+ * Flow:
+ *   1. Request Notification permission.
+ *   2. Subscribe via SW pushManager with the VAPID public key.
+ *   3. Upsert the subscription (endpoint + p256dh + auth) to push_subscriptions.
  *
- * v1 status: SCAFFOLDING ONLY.
- *   - `firebase` npm package is NOT installed (separate approval needed per OQ-A2)
- *   - This file logs + returns null until the dep is added + a real Firebase
- *     web config is provided
- *   - `web/firebase-messaging-sw.js` Service Worker file is NOT yet written
+ * The VAPID public key lives in app.json extra.vapidPublicKey, exposed at runtime
+ * via expo-constants. The private key is a Supabase secret (VAPID_PRIVATE_KEY)
+ * read only by the push-notification-fanout Edge Function.
  *
- * To activate Phase 9 (when web build ships):
- *   1. `npm install firebase` (separate Adi approval)
- *   2. Add Firebase web config to environment / runtime config
- *   3. Write `web/firebase-messaging-sw.js` per Firebase docs
- *   4. Replace the stub below with the real registration code (use the
- *      same `upsertDeviceToken` from pushTokens.ts; token_type='fcm-web')
+ * Limitation: iOS requires the PWA to be installed from Safari (Add to Home Screen)
+ * and served over HTTPS. Push will silently return 'unsupported' on non-installed
+ * iOS Safari and on localhost.
  */
 
 import { Platform } from 'react-native';
-import { upsertDeviceToken } from './pushTokens';
+import Constants from 'expo-constants';
+import { supabase } from '../integrations/supabase/client';
 
 export interface WebRegistrationResult {
-  status: 'registered' | 'unsupported' | 'permission_denied' | 'not_implemented';
-  token?: string;
+  status: 'registered' | 'unsupported' | 'permission_denied' | 'error' | 'not_implemented';
+  endpoint?: string;
+  error?: string;
+}
+
+/** Convert a base64url string to a Uint8Array (needed by pushManager.subscribe). */
+function base64urlToUint8Array(base64url: string): Uint8Array {
+  const base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(base64);
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
 /**
- * Stub: returns 'not_implemented' until Firebase web SDK is installed.
- * Called from usePushRegistration on web platform.
+ * Register a Web Push subscription for this profile and persist it to
+ * push_subscriptions. Idempotent — calling again on an already-subscribed
+ * browser upserts the same endpoint with a refreshed updated_at.
  */
-export async function registerWebPushToken(
+export async function registerWebPush(
   profileId: string,
 ): Promise<WebRegistrationResult> {
   if (Platform.OS !== 'web') {
     return { status: 'unsupported' };
   }
 
-  // Phase 9 v1.1: implement when firebase web SDK is installed
-  // const messaging = getMessaging(firebaseApp);
-  // const permission = await Notification.requestPermission();
-  // if (permission !== 'granted') return { status: 'permission_denied' };
-  // const token = await getToken(messaging, { vapidKey: '...' });
-  // await upsertDeviceToken(profileId, token, 'fcm-web');
-  // return { status: 'registered', token };
-
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log(
-      '[webPushRegistration] stub — firebase web SDK not installed; deferred to web build activation',
-    );
+  // Service workers and Push API are not available on localhost non-HTTPS
+  // or on non-installed iOS Safari.
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window)
+  ) {
+    return { status: 'unsupported' };
   }
-  // Touch the import so Platform tree-shake doesn't dead-code it
-  void upsertDeviceToken;
-  void profileId;
-  return { status: 'not_implemented' };
+
+  // Request permission
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    return { status: 'permission_denied' };
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+
+    const vapidPublicKey =
+      Constants.expoConfig?.extra?.vapidPublicKey as string | undefined;
+    if (!vapidPublicKey) {
+      console.error('[webPush] vapidPublicKey missing from app.json extra');
+      return { status: 'error', error: 'vapid_key_missing' };
+    }
+
+    const subscription = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: base64urlToUint8Array(vapidPublicKey),
+    });
+
+    const json = subscription.toJSON();
+    const endpoint = json.endpoint ?? '';
+    const p256dh = json.keys?.p256dh ?? '';
+    const auth = json.keys?.auth ?? '';
+
+    if (!endpoint || !p256dh || !auth) {
+      return { status: 'error', error: 'invalid_subscription_keys' };
+    }
+
+    const { error } = await supabase.from('push_subscriptions').upsert(
+      {
+        profile_id: profileId,
+        endpoint,
+        p256dh,
+        auth,
+        user_agent: navigator.userAgent.slice(0, 512),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'profile_id,endpoint' },
+    );
+
+    if (error) {
+      console.error('[webPush] upsert failed:', error.message);
+      return { status: 'error', error: error.message };
+    }
+
+    return { status: 'registered', endpoint };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[webPush] registration failed:', message);
+    return { status: 'error', error: message };
+  }
+}
+
+/**
+ * Remove the push subscription for this browser from push_subscriptions and
+ * unsubscribe from the PushManager. Call on sign-out or notification opt-out.
+ */
+export async function unregisterWebPush(profileId: string): Promise<void> {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await supabase
+        .from('push_subscriptions')
+        .delete()
+        .eq('profile_id', profileId)
+        .eq('endpoint', endpoint);
+      await sub.unsubscribe();
+    }
+  } catch (err) {
+    if (__DEV__) console.warn('[webPush] unregister failed:', err);
+  }
 }

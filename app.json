@@ -74,7 +74,8 @@
     "extra": {
       "eas": {
         "projectId": "8796128b-5e2d-4c0e-9c41-016e87c62ab7"
-      }
+      },
+      "vapidPublicKey": "BKu7_rNEcpXoi94OA1rGQmz3AY8ab1vsjHOhUwlZs-kdaddkRB4TladLo-VpVSs5wqskoQbw1S9-1cQR6mPt4YA"
     }
   }
 }
