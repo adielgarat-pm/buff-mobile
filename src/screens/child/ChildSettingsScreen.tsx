@@ -12,7 +12,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useTheme, useChildTheme, CHILD_THEMES, type ChildThemeName } from '../../contexts/ThemeContext';
 import { useRTLStyles, useLanguage } from '../../contexts/LanguageContext';
-import { useSubscription } from '../../hooks/useSubscription';
 import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { BuddyToggleModal } from '../../components/buddy/BuddyToggleModal';
 import { BuddyNameModal } from '../../components/buddy/BuddyNameModal';
@@ -42,7 +41,6 @@ export default function ChildSettingsScreen() {
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
   const { language } = useLanguage();
-  const { isSubscribed } = useSubscription();
   const { t } = useTranslation();
   const isChildViewer = viewMode === 'child';
 
@@ -155,12 +153,6 @@ export default function ChildSettingsScreen() {
       {/* ── Pet skin ───────────────────────────────────────────────────────── */}
       <View style={styles.sectionHeaderRow}>
         <Text style={[styles.sectionTitle, { color: T.mutedForeground }]}>{t('childSettings.petSkinSection')}</Text>
-        {/* "✨ Premium" badge only shown to parent viewers — children should not
-            be shown subscription CTAs. The locked overlays on the skins stay
-            so children still see what's possible to unlock. */}
-        {!isSubscribed && !isChildViewer && (
-          <Text style={[styles.premiumBadge, { color: T.accent }]}>{t('childSettings.premiumBadge')}</Text>
-        )}
       </View>
       <View style={[styles.skinGrid, { backgroundColor: T.card, borderColor: T.border }]}>
         {themeSkins.map((skin) => {
@@ -175,21 +167,9 @@ export default function ChildSettingsScreen() {
                   backgroundColor: isSelected ? T.muted : 'transparent',
                 },
               ]}
-              onPress={() => {
-                if (!isSubscribed) {
-                  // Child viewer: tap is inert. They see what's locked but
-                  // we don't nudge them toward a payment they can't action.
-                  if (isChildViewer) return;
-                  navigation.navigate('Paywall', {
-                    childName: profile?.display_name ?? undefined,
-                  });
-                  return;
-                }
-                changeSkin(skin.id);
-              }}
+              onPress={() => changeSkin(skin.id)}
             >
-              <Text style={[styles.skinEmoji, !isSubscribed && styles.skinLocked]}>{skin.emoji}</Text>
-              {!isSubscribed && <Text style={styles.lockOverlay}>🔒</Text>}
+              <Text style={styles.skinEmoji}>{skin.emoji}</Text>
             </TouchableOpacity>
           );
         })}

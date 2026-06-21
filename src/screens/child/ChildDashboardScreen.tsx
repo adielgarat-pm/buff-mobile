@@ -16,7 +16,6 @@ import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useChildStreak } from '../../hooks/useChildStreak';
 import { useBuffCatch } from '../../hooks/useBuffCatch';
-import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
@@ -56,10 +55,8 @@ function PastelChildDashboard() {
   const { t }       = useTranslation();
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, previewChildId, previewChildName, viewMode } = useMode();
+  const { isChildPreview, exitChildPreview, previewChildId, previewChildName } = useMode();
   const T = useChildTheme();
-  const { isSubscribed } = useSubscription();
-  const isChildViewer = viewMode === 'child';
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { tasks, totalBalance, dailyGoal, loading, refetch, offRoutineActive } = useChildData(childId);
@@ -81,7 +78,7 @@ function PastelChildDashboard() {
   // under `previewChildId` and `daily_vibe` RLS accepts the parent's
   // auth session for any child in the family.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, shareVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
@@ -142,12 +139,8 @@ function PastelChildDashboard() {
     <LowPowerProvider value={lowPowerValue}>
       <VibeCheckScreen
         visible={shouldPromptVibe}
-        onSelect={(level, type, share) => {
-          // Record first (inserts today's row), then — if the kid opted in —
-          // flip the share flag so migration 025's trigger notifies the parent.
-          void recordVibe(level, type).then(({ error }) => {
-            if (!error && share) void shareVibe();
-          });
+        onSelect={(level, type) => {
+          void recordVibe(level, type);
         }}
         onDismiss={() => { void markVibeDismissed(); }}
       />
@@ -214,8 +207,6 @@ function PastelChildDashboard() {
             totalTasks={totalTasks}
             fuelPct={fuelPct}
             atGoal={atGoal}
-            isSubscribed={isSubscribed}
-            isChildViewer={isChildViewer}
             isChildPreview={isChildPreview}
             profileName={profile?.display_name ?? undefined}
             previewChildName={previewChildName}
@@ -245,8 +236,6 @@ interface DashboardActiveContentProps {
   totalTasks: number;
   fuelPct: number;
   atGoal: boolean;
-  isSubscribed: boolean;
-  isChildViewer: boolean;
   isChildPreview: boolean;
   profileName: string | undefined;
   previewChildName: string | null;
@@ -259,7 +248,7 @@ interface DashboardActiveContentProps {
 }
 
 function DashboardActiveContent({
-  T, t, doneTasks, totalTasks, fuelPct, atGoal, isSubscribed, isChildViewer, isChildPreview,
+  T, t, doneTasks, totalTasks, fuelPct, atGoal, isChildPreview,
   profileName, previewChildName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
   catchBest, catchPlaysLeft,
 }: DashboardActiveContentProps) {
@@ -311,47 +300,15 @@ function DashboardActiveContent({
         </View>
       </TouchableOpacity>
 
-      {/* Virtual pet — Premium gate */}
+      {/* Virtual pet — free for all (core engagement, no longer gated). */}
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
-        {isSubscribed ? (
-          <PetDisplay
-            childName={isChildPreview ? (previewChildName ?? t('childDashboard.previewName')) : profileName}
-            justCompletedTask={justCompletedTask}
-            onTaskCompletionAck={() => setJustCompletedTask(false)}
-            completedToday={doneTasks}
-            totalToday={totalTasks}
-          />
-        ) : isChildViewer ? (
-          // Child viewer (real child OR parent in preview-as-child mode):
-          // no payment CTA — show a calm "ask your parent" message.
-          <View style={styles.lockedPet}>
-            <Text style={styles.lockedPetEmoji}>🥚</Text>
-            <Text style={[styles.lockedPetTitle, { color: T.foreground }]}>
-              {t('childLockedState.buddyTitle')}
-            </Text>
-            <Text style={[styles.lockedPetSub, { color: T.mutedForeground }]}>
-              {t('childLockedState.buddySub')}
-            </Text>
-          </View>
-        ) : (
-          // Parent viewer not subscribed — keep the existing Paywall CTA.
-          <TouchableOpacity
-            style={styles.lockedPet}
-            onPress={() => navigation.navigate('Paywall', {
-              childName: isChildPreview ? undefined : profileName,
-            })}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.lockedPetEmoji}>🥚</Text>
-            <Text style={[styles.lockedPetTitle, { color: T.foreground }]}>{t('parentLockedState.buddyTitle')}</Text>
-            <Text style={[styles.lockedPetSub, { color: T.mutedForeground }]}>
-              {t('parentLockedState.buddySub')}
-            </Text>
-            <View style={[styles.lockedPetCta, { backgroundColor: T.primary }]}>
-              <Text style={[styles.lockedPetCtaText, { color: T.primaryForeground }]}>{t('parentLockedState.unlockCta')}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
+        <PetDisplay
+          childName={isChildPreview ? (previewChildName ?? t('childDashboard.previewName')) : profileName}
+          justCompletedTask={justCompletedTask}
+          onTaskCompletionAck={() => setJustCompletedTask(false)}
+          completedToday={doneTasks}
+          totalToday={totalTasks}
+        />
       </View>
 
       {/* Quick stat tiles */}
