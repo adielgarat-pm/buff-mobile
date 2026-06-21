@@ -5,8 +5,10 @@
  *   'mint'  — light, soft, kid-friendly (theme-child-playful)
  *   'gamer' — dark, cyan neon, energetic (theme-child-gamer)
  *
- * Persisted to AsyncStorage under 'buff_child_theme'.
- * Default: 'mint'.
+ * Persisted to AsyncStorage PER CHILD under 'buff_child_theme:<childId>' so a
+ * theme never leaks between siblings on a shared device. Default: 'mint'.
+ * (Cross-device persistence — storing on the profile — is a follow-up that needs
+ * RLS work for child self-writes; tracked separately.)
  *
  * Set during ChildOnboarding, changeable via ChildCommandCenter (Settings).
  * Parent screens are not affected — they read PARENT_THEME from theme/index.ts.
@@ -21,6 +23,8 @@ import {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from './AuthContext';
+import { useMode } from './ModeContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,21 +179,34 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { profile }        = useAuth();
+  const { previewChildId } = useMode();
   const [themeName, setThemeNameState] = useState<ChildThemeName>('mint');
 
-  // Hydrate from AsyncStorage on mount
+  // The child whose theme is rendered: the previewed child (a parent in
+  // View-as-Child) or the signed-in child themselves. We key the stored theme
+  // PER CHILD (`buff_child_theme:<id>`) so a theme never leaks between siblings
+  // sharing one device — e.g. previewing a Gamer teen then a Mint 9-year-old
+  // used to show the 9-year-old in Gamer + the Gamer default buddy.
+  const activeChildId = previewChildId ?? (profile?.role === 'child' ? profile.id : null);
+
+  // Hydrate the active child's theme; default 'mint' when they have none stored.
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
-      if (stored === 'mint' || stored === 'gamer') {
-        setThemeNameState(stored);
-      }
+    if (!activeChildId) { setThemeNameState('mint'); return; }
+    let cancelled = false;
+    AsyncStorage.getItem(`${STORAGE_KEY}:${activeChildId}`).then((stored) => {
+      if (cancelled) return;
+      setThemeNameState(stored === 'gamer' ? 'gamer' : 'mint');
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [activeChildId]);
 
   const setTheme = useCallback(async (name: ChildThemeName) => {
     setThemeNameState(name);
-    await AsyncStorage.setItem(STORAGE_KEY, name);
-  }, []);
+    if (activeChildId) {
+      await AsyncStorage.setItem(`${STORAGE_KEY}:${activeChildId}`, name);
+    }
+  }, [activeChildId]);
 
   const theme = CHILD_THEMES[themeName];
 

@@ -247,7 +247,8 @@ const styles = StyleSheet.create({
   logoWrap: {
     alignItems:   'center',
     marginBottom: 20,
-    direction:    'ltr',
+    // Native-only (see RoleSelectionScreen): RN Web rejects `direction` and warns.
+    ...(Platform.OS === 'web' ? null : { direction: 'ltr' as const }),
   },
   logoImage:    { width: 64, height: 64 },
   logoWordmark: { color: ACCENT, fontSize: 22, fontWeight: '900', letterSpacing: 7, marginTop: 8 },
