@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import {
   View, Text, Image, TouchableOpacity,
-  StyleSheet, Animated,
+  StyleSheet, Animated, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -90,7 +90,10 @@ const styles = StyleSheet.create({
   logoWrap: {
     alignItems:   'center',
     marginBottom: 36,
-    direction:    'ltr',
+    // Native-only: prevents the RTL pass from mirroring the logo. RN Web rejects
+    // the `direction` style prop (logs a warning) and handles RTL via the DOM, so
+    // we omit it on web.
+    ...(Platform.OS === 'web' ? null : { direction: 'ltr' as const }),
   },
   logoImage:    { width: 72, height: 72 },
   logoWordmark: { color: ACCENT, fontSize: 26, fontWeight: '900', letterSpacing: 8, marginTop: 8 },

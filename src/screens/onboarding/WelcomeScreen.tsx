@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, Image, TouchableOpacity,
-  ScrollView, I18nManager, StyleSheet, Animated,
+  ScrollView, I18nManager, StyleSheet, Animated, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -150,7 +150,8 @@ const styles = StyleSheet.create({
   logoLTRWrap: {
     alignItems:   'center',
     marginBottom: 28,
-    direction:    'ltr', // valid RN style, prevents RTL mirroring
+    // Native-only: prevents RTL mirroring. RN Web rejects `direction` and warns.
+    ...(Platform.OS === 'web' ? null : { direction: 'ltr' as const }),
   },
   logoImage: {
     width:  80,
