@@ -15,6 +15,7 @@ import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { useSubscription, FREE_TASK_LIMIT } from '../../hooks/useSubscription';
 import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
 import { HeaderActions } from '../../components/parent/HeaderActions';
@@ -55,6 +56,7 @@ export default function ParentTasksScreen() {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { familyId } = useAuth();
+  const { isSubscribed } = useSubscription();
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
@@ -104,6 +106,13 @@ export default function ParentTasksScreen() {
 
   const handleOpenAddTask = () => {
     if (!selectedChildId) return;
+    // Freemium gate: free families get up to FREE_TASK_LIMIT tasks per child.
+    // The next task is the universal upgrade moment — every family hits it,
+    // regardless of how many children they have (see monetization-model SPEC).
+    if (!isSubscribed && tasks.length >= FREE_TASK_LIMIT) {
+      navigation.navigate('Paywall', { childName: selectedChildName });
+      return;
+    }
     setApprovingId(null);
     setEditingId(null);
     setApproveTitle('');

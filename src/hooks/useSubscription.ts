@@ -28,7 +28,7 @@ import {
 export const GRACE_PERIOD_END = new Date('2026-05-01T23:59:59');
 
 export const FREE_CHILD_LIMIT = 1;
-export const FREE_TASK_LIMIT  = 5;
+export const FREE_TASK_LIMIT  = 6;
 
 export function useSubscription() {
   const { profile, user, refreshProfile } = useAuth();
