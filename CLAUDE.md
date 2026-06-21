@@ -79,6 +79,16 @@ If a conflict arises between this file and a session's SPEC.md, surface it to Ad
 - The questions are answered in the SPEC at design time AND verified in TESTS at exit.
 - **Failed any question → stop, don't proceed.** Surface to Adi.
 
+### Platform Parity (Android + Web) — Non-negotiable
+
+BUFF ships on **both Android (native) and Web (Expo Web PWA)**. **Every change must be valid for both platforms.** Never design or merge something that works on one side and silently breaks or skips the other.
+
+- Where a platform API differs (updates, storage, notifications, files/camera, deep links), use a **platform-split file** (`x.android.ts` / `x.web.ts` / `x.ios.ts`) behind one logical contract — unify the *signal*, split the *action*.
+- Native-only modules must never be imported into the web bundle (rely on Metro platform resolution / lazy import). This also guards launch-crash blind spots (IN-2026-06-17 / expo-audio).
+- A change is not "done" until verified on **both** sides: Android (emulator/Hat-3) **and** Web (`npm run web` + preview tools).
+- If a change genuinely cannot apply to one platform, state it explicitly and log why — never leave the other side undefined.
+- _(Source: Adi standing rule, 2026-06-17.)_
+
 ### What You Don't Do
 
 - ❌ Push to `main` directly. All work happens on a branch (suggested: `pkg/{slug}` or `eod-{date}` for non-package work).

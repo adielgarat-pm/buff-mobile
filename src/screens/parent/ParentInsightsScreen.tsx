@@ -129,6 +129,7 @@ export default function ParentInsightsScreen() {
       case 'open-rewards':
         navigation.navigate('ParentApp', { screen: 'ParentRewards', params: { childId } });
         break;
+      case 'start-conversation': // soft nudge — the action is the IRL talk; no lever.
       case 'none':
       default:
         break;
@@ -137,11 +138,12 @@ export default function ParentInsightsScreen() {
 
   const ctaLabel = (ctaType: InsightCtaType): string | null => {
     switch (ctaType) {
-      case 'send-bonus':   return t('insights.weekly.cta.bonus');
-      case 'send-sticker': return t('insights.weekly.cta.sticker');
-      case 'set-anchor':   return t('insights.weekly.cta.anchor');
-      case 'open-rewards': return t('insights.weekly.cta.rewards');
-      default:             return null;
+      case 'send-bonus':         return t('insights.weekly.cta.bonus');
+      case 'send-sticker':       return t('insights.weekly.cta.sticker');
+      case 'set-anchor':         return t('insights.weekly.cta.anchor');
+      case 'open-rewards':       return t('insights.weekly.cta.rewards');
+      case 'start-conversation': return t('insights.weekly.cta.conversation');
+      default:                   return null;
     }
   };
 
@@ -339,9 +341,15 @@ export default function ParentInsightsScreen() {
                 : t(`${tip.i18nKey}.suggestion`)}
             </Text>
             {ctaLabel(tip.ctaType) && (
-              <TouchableOpacity style={[styles.tipCta]} onPress={() => runCta(tip.ctaType)}>
-                <Text style={[styles.tipCtaText, { color: T.accent }]}>{ctaLabel(tip.ctaType)} →</Text>
-              </TouchableOpacity>
+              tip.ctaType === 'start-conversation' ? (
+                // Coaching tip — the move is the IRL talk, so this is a soft,
+                // non-tappable nudge rather than an in-app action button.
+                <Text style={[styles.tipConversation, { color: T.textMuted }]}>{ctaLabel(tip.ctaType)}</Text>
+              ) : (
+                <TouchableOpacity style={[styles.tipCta]} onPress={() => runCta(tip.ctaType)}>
+                  <Text style={[styles.tipCtaText, { color: T.accent }]}>{ctaLabel(tip.ctaType)} →</Text>
+                </TouchableOpacity>
+              )
             )}
           </View>
         )}
@@ -418,8 +426,9 @@ const styles = StyleSheet.create({
   tipCard:    { borderRadius: 16, borderWidth: 1, padding: 16, gap: 8 },
   tipHeader:  { fontSize: 13, fontWeight: '700', color: '#6D28D9' },
   tipBody:    { fontSize: 14, lineHeight: 20 },
-  tipCta:     { marginTop: 2 },
-  tipCtaText: { fontSize: 14, fontWeight: '700' },
+  tipCta:          { marginTop: 2 },
+  tipCtaText:      { fontSize: 14, fontWeight: '700' },
+  tipConversation: { fontSize: 13, fontWeight: '600', marginTop: 2 },
 
   mapTitle: { fontSize: 15, fontWeight: '700' },
   mapRow:   { flexDirection: 'row', justifyContent: 'space-between' },

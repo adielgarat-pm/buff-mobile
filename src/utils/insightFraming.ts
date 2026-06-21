@@ -21,10 +21,12 @@
 
 // ── CTA levers (reuse existing dashboard actions) ────────────────────────────
 export type InsightCtaType =
-  | 'send-bonus'    // B1 — recognize a strong week
-  | 'send-sticker'  // B2 / B3 — a warm body-double gesture
-  | 'set-anchor'    // B4 — pick ONE small anchor for tomorrow (meds sheet)
-  | 'open-rewards'  // C0 — open the rewards store / redeem
+  | 'send-bonus'        // B1 — recognize a strong week
+  | 'send-sticker'      // B2 / B3 — a warm body-double gesture
+  | 'set-anchor'        // B4 / C1 meds — pick ONE small anchor (meds sheet)
+  | 'open-rewards'      // C0 — open the rewards store / redeem
+  | 'start-conversation'// C2–C4 — a coaching tip: the action is the IRL talk, so
+                        //   this is a soft, non-navigating nudge (no lever)
   | 'none';
 
 // ── Layer B — weekly framing ─────────────────────────────────────────────────
@@ -144,16 +146,16 @@ function selectRewardLoopTip(r: RewardLoopSignals): InsightTip | null {
 }
 
 // ── Layer C — targeted completion tip (≤1, by category, severity order) ──────
-// Each tip carries a warm, optional CTA so the parent always has a concrete next
-// move. Meds nudge toward a fixed anchor (the med sheet); the rest offer a
-// body-double sticker — encouragement, not a verdict (Pillars 1+2).
+// Each tip carries a next move. Meds nudge toward a fixed anchor (the med sheet
+// is a real lever); the coaching tips suggest a CONVERSATION — the action lives
+// in the IRL talk the tip describes, not in sending a reward (Pillars 1+2).
 function selectTargetedTip(t: TargetedTipSignals): InsightTip | null {
   // Severity: meds > homework > weakest phase > hygiene (DESIGN §3 Layer C).
   if (t.medsLow)      return { layer: 'C', caseId: 'C1', i18nKey: 'insights.medication-low', ctaType: 'set-anchor' };
-  if (t.homeworkLow)  return { layer: 'C', caseId: 'C2', i18nKey: 'insights.homework-low',   ctaType: 'send-sticker' };
+  if (t.homeworkLow)  return { layer: 'C', caseId: 'C2', i18nKey: 'insights.homework-low',   ctaType: 'start-conversation' };
   if (t.weakestPhaseKey)
-                      return { layer: 'C', caseId: 'C3', i18nKey: `insights.${t.weakestPhaseKey}`, ctaType: 'send-sticker' };
-  if (t.hygieneLow)   return { layer: 'C', caseId: 'C4', i18nKey: 'insights.hygiene-low',     ctaType: 'send-sticker' };
+                      return { layer: 'C', caseId: 'C3', i18nKey: `insights.${t.weakestPhaseKey}`, ctaType: 'start-conversation' };
+  if (t.hygieneLow)   return { layer: 'C', caseId: 'C4', i18nKey: 'insights.hygiene-low',     ctaType: 'start-conversation' };
   // C5 — no clear low: skip the tip, don't manufacture a problem.
   return null;
 }
