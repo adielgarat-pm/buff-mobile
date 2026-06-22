@@ -87,6 +87,8 @@ export default function ParentInsightsScreen() {
     setParentContext,
     generating,
     generate: generateSmartInsight,
+    error: smartError,
+    generationsLeft,
   } = useSmartInsights(childId);
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
@@ -334,20 +336,23 @@ export default function ParentInsightsScreen() {
           <View style={styles.highlightsRow}>
             {bestPhase && (
               <View style={[styles.highlight, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-                <Text style={styles.highlightLabel}>🏆 {t('insights.weekly.highlights.strongest')}</Text>
+                <Text style={styles.highlightLabel}>🏆 {i18n.language === 'he' ? 'הכי עקבי' : 'Most consistent'}</Text>
                 <Text style={[styles.highlightValue, { color: T.text }]}>
                   {PHASES.find(p => p.id === bestPhase.phase)?.icon} {t(`phase.${bestPhase.phase}`)}
                 </Text>
                 <Text style={[styles.highlightSub, { color: T.success }]}>
-                  {Math.round(bestPhase.avgCompletionRate)}% {t('insights.weekly.consistency')}
+                  {Math.round(bestPhase.avgCompletionRate)}% {i18n.language === 'he' ? 'השלמה' : 'completion'}
                 </Text>
               </View>
             )}
-            {mostActivePhase && (
+            {mostActivePhase && mostActivePhase !== bestPhase?.phase && (
               <View style={[styles.highlight, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-                <Text style={styles.highlightLabel}>⏰ {t('insights.weekly.highlights.mostActive')}</Text>
+                <Text style={styles.highlightLabel}>⚡ {i18n.language === 'he' ? 'הכי הרבה פעילות' : 'Most activity'}</Text>
                 <Text style={[styles.highlightValue, { color: T.text }]}>
                   {PHASES.find(p => p.id === mostActivePhase)?.icon} {t(`phase.${mostActivePhase}`)}
+                </Text>
+                <Text style={[styles.highlightSub, { color: T.textMuted }]}>
+                  {i18n.language === 'he' ? 'הכי הרבה השלמות ביום' : 'most completions per day'}
                 </Text>
               </View>
             )}
@@ -428,18 +433,42 @@ export default function ParentInsightsScreen() {
               numberOfLines={2}
               textAlignVertical="top"
             />
-            <TouchableOpacity
-              style={[styles.cta, { backgroundColor: generating ? '#9CA3AF' : '#7C3AED', marginTop: 4 }]}
-              onPress={generateSmartInsight}
-              disabled={generating}
-            >
-              {generating
-                ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.ctaText}>
-                    {i18n.language === 'he' ? '✨ צור תובנה חכמה' : '✨ Generate Smart Insight'}
-                  </Text>
-              }
-            </TouchableOpacity>
+            <View style={styles.generateRow}>
+              <TouchableOpacity
+                style={[
+                  styles.cta,
+                  { backgroundColor: (generating || generationsLeft === 0) ? '#9CA3AF' : '#7C3AED', marginTop: 4, flex: 1 },
+                ]}
+                onPress={generateSmartInsight}
+                disabled={generating || generationsLeft === 0}
+              >
+                {generating
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Text style={styles.ctaText}>
+                      {i18n.language === 'he' ? '✨ צור תובנה חכמה' : '✨ Generate Smart Insight'}
+                    </Text>
+                }
+              </TouchableOpacity>
+              <View style={styles.quotaBadge}>
+                <Text style={[styles.quotaText, { color: generationsLeft === 0 ? '#DC2626' : T.textMuted }]}>
+                  {generationsLeft}/3
+                </Text>
+                <Text style={[styles.quotaLabel, { color: T.textMuted }]}>
+                  {i18n.language === 'he' ? 'השבוע' : 'this week'}
+                </Text>
+              </View>
+            </View>
+            {smartError && (
+              <Text style={styles.smartErrorText}>
+                {i18n.language === 'he'
+                  ? smartError === 'premium'    ? 'נדרשת מנוי פרימיום'
+                  : smartError === 'rate-limit' ? 'הגעת למגבלת 3 תובנות השבוע. נתחדש ביום שני'
+                  : 'משהו השתבש, נסי שוב'
+                  : smartError === 'premium'    ? 'Premium required'
+                  : smartError === 'rate-limit' ? 'You\'ve used all 3 insights this week. Resets Monday'
+                  : 'Something went wrong, try again'}
+              </Text>
+            )}
           </View>
         )}
 
@@ -561,4 +590,9 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: 10, padding: 10,
     fontSize: 14, minHeight: 64, marginTop: 4,
   },
+  smartErrorText: { fontSize: 13, color: '#DC2626', textAlign: 'center', marginTop: 4 },
+  generateRow:  { flexDirection: 'row', alignItems: 'flex-end', gap: 10, marginTop: 4 },
+  quotaBadge:   { alignItems: 'center', paddingBottom: 2 },
+  quotaText:    { fontSize: 15, fontWeight: '800' },
+  quotaLabel:   { fontSize: 10, marginTop: -2 },
 });
