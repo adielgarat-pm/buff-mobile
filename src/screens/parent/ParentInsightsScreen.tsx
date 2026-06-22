@@ -18,6 +18,7 @@
 import { useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
+  TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -31,6 +32,9 @@ import { useRewardLoopHealth } from '../../hooks/useRewardLoopHealth';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
+import { useTaskTimeline } from '../../hooks/useTaskTimeline';
+import { TaskTimelineSection } from '../../components/TaskTimelineSection';
+import { useSmartInsights } from '../../hooks/useSmartInsights';
 import {
   selectInsightFraming,
   type InsightCtaType,
@@ -49,7 +53,7 @@ const PHASE_LOW    = 50;
 export default function ParentInsightsScreen() {
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
-  const { t }      = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isSubscribed } = useSubscription();
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
@@ -67,8 +71,23 @@ export default function ParentInsightsScreen() {
   const { signals: rewardSignals }              = useRewardLoopHealth(childId, stats.activeDays > 0);
 
   // Layer A signals (reuse, don't duplicate).
-  const { isPauseActive } = useAppSettings();
-  const { isLowPower }    = useDailyVibe(childId);
+  const { isPauseActive, fridayEnabled } = useAppSettings();
+  const { isLowPower }                   = useDailyVibe(childId);
+
+  const {
+    rows: timelineRows,
+    categorySummaries,
+    hasWeekendPattern,
+    loading: timelineLoading,
+  } = useTaskTimeline(childId, fridayEnabled);
+
+  const {
+    smartInsight,
+    parentContext,
+    setParentContext,
+    generating,
+    generate: generateSmartInsight,
+  } = useSmartInsights(childId);
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
   const sortedPhases = useMemo(
@@ -358,6 +377,72 @@ export default function ParentInsightsScreen() {
           </View>
         )}
 
+        {/* Smart Insight — LLM-generated (Premium), shown when generated */}
+        {smartInsight && (
+          <View style={[styles.smartCard, { backgroundColor: '#F5F3FF', borderColor: '#C4B5FD' }]}>
+            <View style={styles.smartBadgeRow}>
+              <View style={styles.smartBadge}>
+                <Text style={styles.smartBadgeText}>✨ Smart Insight</Text>
+              </View>
+            </View>
+            <Text style={[styles.smartHeadline, { color: '#4C1D95' }]}>{smartInsight.headline}</Text>
+            <Text style={[styles.smartMessage,  { color: T.text   }]}>{smartInsight.message}</Text>
+            <View style={styles.smartActionRow}>
+              <Text style={styles.smartActionIcon}>→</Text>
+              <Text style={[styles.smartAction, { color: '#6D28D9' }]}>{smartInsight.action}</Text>
+            </View>
+            {smartInsight.cta_type && smartInsight.cta_type !== 'none' && ctaLabel(smartInsight.cta_type as any) && (
+              <TouchableOpacity
+                style={[styles.cta, { backgroundColor: '#7C3AED', marginTop: 4 }]}
+                onPress={() => runCta(smartInsight.cta_type as any)}
+              >
+                <Text style={styles.ctaText}>{ctaLabel(smartInsight.cta_type as any)}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Parent context input — "מה כדאי שנדע על השבוע שהיה?" */}
+        {isSubscribed && (
+          <View style={[styles.contextCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+            <Text style={[styles.contextLabel, { color: T.text }]}>
+              {i18n.language === 'he'
+                ? 'מה כדאי שנדע על השבוע שהיה?'
+                : 'Anything we should know about this week?'}
+            </Text>
+            <Text style={[styles.contextHint, { color: T.textMuted }]}>
+              {i18n.language === 'he'
+                ? 'אופציונלי — יעזור לנו לתת תובנה מדויקת יותר'
+                : 'Optional — helps us give a more personalised insight'}
+            </Text>
+            <TextInput
+              style={[styles.contextInput, { color: T.text, borderColor: T.cardBorder }]}
+              value={parentContext}
+              onChangeText={setParentContext}
+              placeholder={i18n.language === 'he'
+                ? 'לדוגמה: היה מבחן, הייתה מסיבה, שינוי בתרופות...'
+                : 'e.g. big test, family event, changed meds...'}
+              placeholderTextColor={T.textMuted}
+              maxLength={140}
+              multiline
+              numberOfLines={2}
+              textAlignVertical="top"
+            />
+            <TouchableOpacity
+              style={[styles.cta, { backgroundColor: generating ? '#9CA3AF' : '#7C3AED', marginTop: 4 }]}
+              onPress={generateSmartInsight}
+              disabled={generating}
+            >
+              {generating
+                ? <ActivityIndicator color="#fff" size="small" />
+                : <Text style={styles.ctaText}>
+                    {i18n.language === 'he' ? '✨ צור תובנה חכמה' : '✨ Generate Smart Insight'}
+                  </Text>
+              }
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Layer D — weekly map */}
         {!weekly.isEmpty && (
           <View style={[styles.card, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
@@ -377,6 +462,16 @@ export default function ParentInsightsScreen() {
               <Text style={[styles.legend, { color: T.textMuted }]}>💤 {t('insights.weekly.restDayLabel')}</Text>
             </View>
           </View>
+        )}
+
+        {/* Task timeline — 14-day per-task grid, grouped by category */}
+        {!timelineLoading && timelineRows.length > 0 && (
+          <TaskTimelineSection
+            rows={timelineRows}
+            categorySummaries={categorySummaries}
+            hasWeekendPattern={hasWeekendPattern}
+            fridayEnabled={fridayEnabled}
+          />
         )}
 
       </ScrollView>
@@ -446,4 +541,24 @@ const styles = StyleSheet.create({
   lockedIcon:  { fontSize: 40 },
   lockedTitle: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   pausedMsg:   { fontSize: 14, textAlign: 'center', lineHeight: 20 },
+
+  // Smart Insight card
+  smartCard:        { borderRadius: 16, borderWidth: 1.5, padding: 16, gap: 10 },
+  smartBadgeRow:    { flexDirection: 'row' },
+  smartBadge:       { backgroundColor: '#7C3AED', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  smartBadgeText:   { color: '#fff', fontSize: 11, fontWeight: '700' },
+  smartHeadline:    { fontSize: 17, fontWeight: '800', lineHeight: 22 },
+  smartMessage:     { fontSize: 14, lineHeight: 21 },
+  smartActionRow:   { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  smartActionIcon:  { fontSize: 14, color: '#7C3AED', fontWeight: '700', marginTop: 1 },
+  smartAction:      { flex: 1, fontSize: 14, fontWeight: '600', lineHeight: 20 },
+
+  // Parent context input card
+  contextCard:      { borderRadius: 16, borderWidth: 1, padding: 16, gap: 8 },
+  contextLabel:     { fontSize: 15, fontWeight: '700' },
+  contextHint:      { fontSize: 12, marginTop: -4 },
+  contextInput:     {
+    borderWidth: 1, borderRadius: 10, padding: 10,
+    fontSize: 14, minHeight: 64, marginTop: 4,
+  },
 });

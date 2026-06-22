@@ -24,7 +24,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -35,6 +35,7 @@ import {
   requestNotificationPermission,
   upsertDeviceToken,
 } from '../lib/pushTokens';
+import { registerWebPush } from '../lib/webPushRegistration';
 
 export type PermissionState = 'unknown' | 'granted' | 'denied' | 'unsupported';
 export type TokenStatus = 'idle' | 'registering' | 'registered' | 'error';
@@ -58,6 +59,17 @@ export function usePushRegistration(): UsePushRegistrationResult {
 
   /** Probe current permission without triggering the dialog. */
   const refreshPermission = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      if (typeof window === 'undefined' || !('Notification' in window)) {
+        setPermission('unsupported');
+        return;
+      }
+      const p = Notification.permission;
+      if (p === 'granted') setPermission('granted');
+      else if (p === 'denied') setPermission('denied');
+      else setPermission('unknown');
+      return;
+    }
     const tokenType = getTokenType();
     if (!tokenType) {
       setPermission('unsupported');
@@ -73,10 +85,31 @@ export function usePushRegistration(): UsePushRegistrationResult {
     }
   }, []);
 
-  /** Register: prompt (if needed) → token → upsert. */
+  /** Register: prompt (if needed) → token/subscription → upsert. */
   const register = useCallback(async (): Promise<boolean> => {
     if (registering.current) return false;
     if (!profileId) return false;
+
+    // Web: use PushManager subscription (VAPID) instead of Expo push token.
+    if (Platform.OS === 'web') {
+      registering.current = true;
+      setTokenStatus('registering');
+      try {
+        const result = await registerWebPush(profileId);
+        if (result.status === 'registered') {
+          setPermission('granted');
+          setTokenStatus('registered');
+          return true;
+        }
+        if (result.status === 'permission_denied') setPermission('denied');
+        else if (result.status === 'unsupported') setPermission('unsupported');
+        setTokenStatus('error');
+        return false;
+      } finally {
+        registering.current = false;
+      }
+    }
+
     const tokenType = getTokenType();
     if (!tokenType) {
       setPermission('unsupported');
@@ -108,12 +141,32 @@ export function usePushRegistration(): UsePushRegistrationResult {
     }
   }, [profileId]);
 
-  /** On profile load: check permission. If already granted → silently refresh token. */
+  /** On profile load: check permission. If already granted → silently refresh token/subscription. */
   useEffect(() => {
     if (!profileId) return;
     let cancelled = false;
     (async () => {
       await refreshPermission();
+
+      if (Platform.OS === 'web') {
+        // On web: auto-register if PushManager is available and not yet denied.
+        // This re-subscribes silently if a subscription already exists (idempotent).
+        if (
+          typeof window !== 'undefined' &&
+          'PushManager' in window &&
+          Notification.permission !== 'denied' &&
+          !cancelled
+        ) {
+          const result = await registerWebPush(profileId);
+          if (!cancelled && result.status === 'registered') {
+            setPermission('granted');
+            setTokenStatus('registered');
+          }
+        }
+        await bumpLastSeenAt(profileId);
+        return;
+      }
+
       // If already granted, refresh token + last_seen on every mount.
       const { status } = await Notifications.getPermissionsAsync();
       if (cancelled) return;
