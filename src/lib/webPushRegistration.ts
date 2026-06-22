@@ -42,6 +42,7 @@ function base64urlToUint8Array(base64url: string): Uint8Array {
  */
 export async function registerWebPush(
   profileId: string,
+  familyId?: string,
 ): Promise<WebRegistrationResult> {
   if (Platform.OS !== 'web') {
     return { status: 'unsupported' };
@@ -81,20 +82,33 @@ export async function registerWebPush(
     const json = subscription.toJSON();
     const endpoint = json.endpoint ?? '';
     const p256dh = json.keys?.p256dh ?? '';
-    const auth = json.keys?.auth ?? '';
+    const authKey = json.keys?.auth ?? '';
 
-    if (!endpoint || !p256dh || !auth) {
+    if (!endpoint || !p256dh || !authKey) {
       return { status: 'error', error: 'invalid_subscription_keys' };
+    }
+
+    // Resolve family_id: use the provided value or look it up from the profile.
+    let resolvedFamilyId = familyId;
+    if (!resolvedFamilyId) {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('family_id')
+        .eq('id', profileId)
+        .maybeSingle();
+      resolvedFamilyId = prof?.family_id ?? undefined;
+    }
+    if (!resolvedFamilyId) {
+      return { status: 'error', error: 'family_id_missing' };
     }
 
     const { error } = await supabase.from('push_subscriptions').upsert(
       {
         profile_id: profileId,
+        family_id: resolvedFamilyId,
         endpoint,
         p256dh,
-        auth,
-        user_agent: navigator.userAgent.slice(0, 512),
-        updated_at: new Date().toISOString(),
+        auth_key: authKey,
       },
       { onConflict: 'profile_id,endpoint' },
     );

@@ -50,6 +50,7 @@ interface UsePushRegistrationResult {
 export function usePushRegistration(): UsePushRegistrationResult {
   const { profile } = useAuth();
   const profileId = profile?.id ?? null;
+  const familyId = (profile as { family_id?: string } | null)?.family_id ?? undefined;
 
   const [permission, setPermission] = useState<PermissionState>('unknown');
   const [tokenStatus, setTokenStatus] = useState<TokenStatus>('idle');
@@ -95,7 +96,7 @@ export function usePushRegistration(): UsePushRegistrationResult {
       registering.current = true;
       setTokenStatus('registering');
       try {
-        const result = await registerWebPush(profileId);
+        const result = await registerWebPush(profileId, familyId);
         if (result.status === 'registered') {
           setPermission('granted');
           setTokenStatus('registered');
@@ -149,15 +150,17 @@ export function usePushRegistration(): UsePushRegistrationResult {
       await refreshPermission();
 
       if (Platform.OS === 'web') {
-        // On web: auto-register if PushManager is available and not yet denied.
-        // This re-subscribes silently if a subscription already exists (idempotent).
+        // On web: silently re-subscribe only if the user has already granted permission.
+        // Do NOT call requestPermission() here — that must happen via the explicit
+        // register() call (triggered by the pre-prompt screen). Otherwise the dialog
+        // appears on every mount before the user has seen the value explanation.
         if (
           typeof window !== 'undefined' &&
           'PushManager' in window &&
-          Notification.permission !== 'denied' &&
+          Notification.permission === 'granted' &&
           !cancelled
         ) {
-          const result = await registerWebPush(profileId);
+          const result = await registerWebPush(profileId, familyId);
           if (!cancelled && result.status === 'registered') {
             setPermission('granted');
             setTokenStatus('registered');
