@@ -31,6 +31,8 @@ import { useRewardLoopHealth } from '../../hooks/useRewardLoopHealth';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
+import { useTaskTimeline } from '../../hooks/useTaskTimeline';
+import { TaskTimelineSection } from '../../components/TaskTimelineSection';
 import {
   selectInsightFraming,
   type InsightCtaType,
@@ -67,8 +69,15 @@ export default function ParentInsightsScreen() {
   const { signals: rewardSignals }              = useRewardLoopHealth(childId, stats.activeDays > 0);
 
   // Layer A signals (reuse, don't duplicate).
-  const { isPauseActive } = useAppSettings();
-  const { isLowPower }    = useDailyVibe(childId);
+  const { isPauseActive, fridayEnabled } = useAppSettings();
+  const { isLowPower }                   = useDailyVibe(childId);
+
+  const {
+    rows: timelineRows,
+    categorySummaries,
+    hasWeekendPattern,
+    loading: timelineLoading,
+  } = useTaskTimeline(childId, fridayEnabled);
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
   const sortedPhases = useMemo(
@@ -377,6 +386,16 @@ export default function ParentInsightsScreen() {
               <Text style={[styles.legend, { color: T.textMuted }]}>💤 {t('insights.weekly.restDayLabel')}</Text>
             </View>
           </View>
+        )}
+
+        {/* Task timeline — 14-day per-task grid, grouped by category */}
+        {!timelineLoading && timelineRows.length > 0 && (
+          <TaskTimelineSection
+            rows={timelineRows}
+            categorySummaries={categorySummaries}
+            hasWeekendPattern={hasWeekendPattern}
+            fridayEnabled={fridayEnabled}
+          />
         )}
 
       </ScrollView>
