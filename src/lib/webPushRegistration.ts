@@ -67,12 +67,13 @@ export async function registerWebPush(
   try {
     const reg = await navigator.serviceWorker.ready;
 
+    // Public key is not secret — hard-coded as fallback for web dev mode where
+    // Constants.expoConfig.extra is not populated by Metro.
+    const VAPID_PUBLIC_KEY_FALLBACK =
+      'BKu7_rNEcpXoi94OA1rGQmz3AY8ab1vsjHOhUwlZs-kdaddkRB4TladLo-VpVSs5wqskoQbw1S9-1cQR6mPt4YA';
     const vapidPublicKey =
-      Constants.expoConfig?.extra?.vapidPublicKey as string | undefined;
-    if (!vapidPublicKey) {
-      console.error('[webPush] vapidPublicKey missing from app.json extra');
-      return { status: 'error', error: 'vapid_key_missing' };
-    }
+      (Constants.expoConfig?.extra?.vapidPublicKey as string | undefined) ??
+      VAPID_PUBLIC_KEY_FALLBACK;
 
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
