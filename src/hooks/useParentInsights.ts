@@ -3,6 +3,7 @@ import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Phase, getPhaseForTime, PHASES } from '../types/phase';
 import type { TaskCategory } from '../types/task';
+import type { InsightFraming } from '../utils/insightFraming';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -87,15 +88,51 @@ const INSIGHT_TEMPLATES: Record<string, Omit<InsightCard, 'id' | 'completionRate
 
 export function useParentInsights(childId: string | null) {
   const { familyId } = useAuth();
-  const [insights,      setInsights]      = useState<InsightCard[]>([]);
-  const [phaseInsights, setPhaseInsights] = useState<PhaseInsight[]>([]);
-  const [categoryStats, setCategoryStats] = useState<CategoryStats>({});
-  const [loading,       setLoading]       = useState(true);
+  const [insights,       setInsights]       = useState<InsightCard[]>([]);
+  const [phaseInsights,  setPhaseInsights]  = useState<PhaseInsight[]>([]);
+  const [categoryStats,  setCategoryStats]  = useState<CategoryStats>({});
+  const [cachedFraming,  setCachedFraming]  = useState<InsightFraming | null>(null);
+  const [loading,        setLoading]        = useState(true);
+
+  // Try to read a pre-computed insight from child_insights (written by pg_cron).
+  // Returns true when a valid cached row was found so the caller can skip the
+  // expensive real-time computation.
+  const fetchCachedInsight = useCallback(async (): Promise<boolean> => {
+    if (!childId) return false;
+    const { data, error } = await supabase
+      .from('child_insights')
+      .select('weekly, tip, window_end, tier')
+      .eq('child_id', childId)
+      .maybeSingle();
+    if (error || !data) return false;
+
+    // Treat the cache as stale if it was computed more than 8 days ago
+    // (handles the case where a child was inactive all week and the cron
+    // still ran but with 0 data — we want a fresh read once they return).
+    const windowEnd = new Date(data.window_end);
+    const ageMs = Date.now() - windowEnd.getTime();
+    if (ageMs > 8 * 24 * 60 * 60 * 1000) return false;
+
+    setCachedFraming({
+      weekly: data.weekly as InsightFraming['weekly'],
+      tip:    data.tip    as InsightFraming['tip'],
+    });
+    return true;
+  }, [childId]);
 
   const analyzeCompletionPatterns = useCallback(async () => {
     if (!familyId || !childId) {
       setLoading(false);
       return;
+    }
+
+    // Cache hit → skip the heavy 3-query real-time computation.
+    // Phase/category breakdowns are still computed live for the detail rows
+    // (highlight cards, weekly map) — only the framing + tip come from cache.
+    const hit = await fetchCachedInsight();
+    if (hit) {
+      // Still need phase/category data for the Highlights + weekly map sections.
+      // Fall through but don't regenerate the framing.
     }
 
     try {
@@ -248,5 +285,5 @@ export function useParentInsights(childId: string | null) {
     analyzeCompletionPatterns();
   }, [analyzeCompletionPatterns]);
 
-  return { insights, phaseInsights, categoryStats, loading, refetch: analyzeCompletionPatterns };
+  return { insights, phaseInsights, categoryStats, cachedFraming, loading, refetch: analyzeCompletionPatterns };
 }

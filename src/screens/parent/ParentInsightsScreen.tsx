@@ -63,7 +63,7 @@ export default function ParentInsightsScreen() {
   const firstName   = childName.split(' ')[0];
 
   const { stats, loading: weeklyLoading }       = useWeeklyStats(childId);
-  const { phaseInsights, categoryStats, loading: insightsLoading } = useParentInsights(childId);
+  const { phaseInsights, categoryStats, cachedFraming, loading: insightsLoading } = useParentInsights(childId);
   const { signals: rewardSignals }              = useRewardLoopHealth(childId, stats.activeDays > 0);
 
   // Layer A signals (reuse, don't duplicate).
@@ -103,7 +103,7 @@ export default function ParentInsightsScreen() {
       : null,
   };
 
-  const framing = useMemo(
+  const liveFraming = useMemo(
     () => selectInsightFraming({
       activeDays:   stats.activeDays,
       daysWithData: stats.daysWithData,
@@ -112,6 +112,10 @@ export default function ParentInsightsScreen() {
     }),
     [stats.activeDays, stats.daysWithData, rewardSignals, tipSignals],
   );
+
+  // Prefer server-computed framing (pg_cron, richer data) over the client
+  // real-time fallback. cachedFraming is null until the DB row loads.
+  const framing = cachedFraming ?? liveFraming;
 
   // ── CTA router — reuse existing levers, no duplicated logic ────────────────
   const runCta = (ctaType: InsightCtaType) => {

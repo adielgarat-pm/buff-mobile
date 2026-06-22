@@ -18,6 +18,7 @@
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient, SupabaseClient } from 'jsr:@supabase/supabase-js@2';
+import webpush from 'npm:web-push@3';
 
 // ─── Types ───────────────────────────────────────────────────────────────
 
@@ -45,6 +46,12 @@ interface WebhookPayload {
 interface DeviceToken {
   token: string;
   token_type: 'fcm-android' | 'fcm-ios' | 'fcm-web';
+}
+
+interface WebPushSubscription {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
 }
 
 interface ProfileMeta {
@@ -189,6 +196,76 @@ function copyForType(
     default:
       return null;
   }
+}
+
+// ─── Web Push dispatch (VAPID) ──────────────────────────────────────────
+
+/**
+ * Send a Web Push notification to all of a recipient's browser subscriptions.
+ * VAPID credentials are read from Supabase secrets at runtime:
+ *   VAPID_PUBLIC_KEY  — base64url-encoded P-256 public key
+ *   VAPID_PRIVATE_KEY — base64url-encoded P-256 private key
+ *   VAPID_EMAIL       — mailto: contact for the push service (e.g. mailto:adi@buffadhd.com)
+ *
+ * Returns the count of successfully sent pushes and removes expired subscriptions.
+ */
+async function sendWebPushNotifications(
+  supabase: SupabaseClient,
+  subscriptions: WebPushSubscription[],
+  payload: PushPayload,
+  recipientProfileId: string,
+): Promise<number> {
+  if (subscriptions.length === 0) return 0;
+
+  const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
+  const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+  const vapidEmail = Deno.env.get('VAPID_EMAIL') ?? 'mailto:adi@buffadhd.com';
+
+  if (!vapidPublicKey || !vapidPrivateKey) {
+    console.error('[webpush] VAPID_PUBLIC_KEY or VAPID_PRIVATE_KEY not set');
+    return 0;
+  }
+
+  webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+
+  const pushPayload = JSON.stringify({
+    title: payload.title,
+    body: payload.body,
+    data: payload.data,
+  });
+
+  const deadEndpoints: string[] = [];
+  let successCount = 0;
+
+  await Promise.all(
+    subscriptions.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          pushPayload,
+        );
+        successCount++;
+      } catch (err: unknown) {
+        const statusCode = (err as { statusCode?: number }).statusCode;
+        if (statusCode === 410 || statusCode === 404) {
+          // Subscription expired or invalid — clean up
+          deadEndpoints.push(sub.endpoint);
+        } else {
+          console.error('[webpush] send failed:', err);
+        }
+      }
+    }),
+  );
+
+  if (deadEndpoints.length > 0) {
+    await supabase
+      .from('push_subscriptions')
+      .delete()
+      .eq('profile_id', recipientProfileId)
+      .in('endpoint', deadEndpoints);
+  }
+
+  return successCount;
 }
 
 // ─── Expo Push dispatch ─────────────────────────────────────────────────
@@ -401,15 +478,12 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ skipped: 'recent_activity' }), { status: 200 });
   }
 
-  // Load device tokens
+  // Load device tokens (Expo/native). A recipient may have only web subscriptions —
+  // so we don't early-exit here; we fall through to the web-push branch.
   const { data: tokens } = await supabase
     .from('device_tokens')
     .select('token, token_type')
     .eq('profile_id', recipientProfileId) as { data: DeviceToken[] | null };
-  if (!tokens || tokens.length === 0) {
-    await recordPush(supabase, row.id, 0, 'no_tokens');
-    return new Response(JSON.stringify({ skipped: 'no_tokens' }), { status: 200 });
-  }
 
   // Format copy
   const lang: Lang = (profile.preferred_language === 'he' ? 'he' : 'en');
@@ -435,32 +509,47 @@ Deno.serve(async (req) => {
     family_id: row.family_id,
   };
 
-  // Keep only valid Expo push tokens; drop any legacy/raw-FCM rows.
-  const expoTokens = tokens.map((t) => t.token).filter(isExpoPushToken);
-  if (expoTokens.length === 0) {
-    await recordPush(supabase, row.id, 0, 'no_expo_tokens');
-    return new Response(JSON.stringify({ skipped: 'no_expo_tokens' }), { status: 200 });
+  // ── Expo push (native Android + iOS) ──────────────────────────────────
+  const expoTokens = (tokens ?? []).map((t) => t.token).filter(isExpoPushToken);
+  let expoSuccess = 0;
+  let expoDeadCount = 0;
+  if (expoTokens.length > 0) {
+    const { successCount, deadTokens } = await sendExpoPush(expoTokens, copy, row.id);
+    expoSuccess = successCount;
+    expoDeadCount = deadTokens.length;
+    if (deadTokens.length > 0) {
+      await supabase.from('device_tokens').delete().in('token', deadTokens);
+    }
   }
 
-  // Dispatch via Expo push service (batch). Expo proxies to FCM/APNs.
-  const { successCount, deadTokens } = await sendExpoPush(expoTokens, copy, row.id);
+  // ── Web Push (PWA — browser subscriptions) ─────────────────────────────
+  const { data: webSubs } = await supabase
+    .from('push_subscriptions')
+    .select('endpoint, p256dh, auth')
+    .eq('profile_id', recipientProfileId) as { data: WebPushSubscription[] | null };
 
-  // Clean up dead tokens
-  if (deadTokens.length > 0) {
-    await supabase.from('device_tokens').delete().in('token', deadTokens);
-  }
+  const webSuccess = await sendWebPushNotifications(
+    supabase,
+    webSubs ?? [],
+    copy,
+    recipientProfileId,
+  );
 
-  // Audit log
-  await recordPush(supabase, row.id, successCount, successCount > 0 ? null : 'all_dead');
+  const totalSuccess = expoSuccess + webSuccess;
+
+  // Audit log (total across channels)
+  await recordPush(supabase, row.id, totalSuccess, totalSuccess > 0 ? null : 'all_dead');
 
   return new Response(
     JSON.stringify({
       notification_id: row.id,
       type: row.type,
       recipient: profile.role,
-      tokens_attempted: expoTokens.length,
-      success: successCount,
-      dead: deadTokens.length,
+      expo_tokens_attempted: expoTokens.length,
+      expo_success: expoSuccess,
+      expo_dead: expoDeadCount,
+      web_subs_attempted: (webSubs ?? []).length,
+      web_success: webSuccess,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } },
   );

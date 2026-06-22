@@ -138,7 +138,7 @@ export default function ParentTasksScreen() {
     setApproveTitle(task.title);
     setApproveTime(task.time);
     setApproveCredits(String(task.credits));
-    setApproveDays(task.scheduleDays && task.scheduleDays.length > 0 ? task.scheduleDays : ALL_DAYS);
+    setApproveDays(Array.isArray(task.scheduleDays) ? task.scheduleDays : ALL_DAYS);
     setApproveOpen(true);
   };
 

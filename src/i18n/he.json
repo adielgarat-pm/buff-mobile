@@ -1921,7 +1921,7 @@
   "notificationFeed.row.parent_sos": "{{name}} רצה/רצתה לשתף — יום של אנרגיה נמוכה",
   "notificationFeed.row.reward_redeemed": "{{name}} בחר/ה פרס: {{reward}}",
   "notificationFeed.row.reward_redemption_requested": "{{name}} רוצה לממש: {{reward}}",
-  "notificationFeed.row.task_completed": "{{name}} השלים/ה משימה",
+  "notificationFeed.row.task_completed": "{{name}} השלים/ה: {{task}}",
   "notificationFeed.row.quest_milestone": "{{name}} הגיע/ה לאבן דרך",
   "notificationFeed.row.parent_engagement": "{{name}} פעיל/ה השבוע — בא לראות?",
   "notificationFeed.row.family_joined": "{{name}} הצטרף/ה למשפחה",
