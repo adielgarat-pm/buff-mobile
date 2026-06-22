@@ -25,6 +25,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
 import { useMode } from './ModeContext';
+import { supabase } from '../integrations/supabase/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -191,22 +192,46 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const activeChildId = previewChildId ?? (profile?.role === 'child' ? profile.id : null);
 
   // Hydrate the active child's theme; default 'mint' when they have none stored.
+  // View-as-Child reads from DB (parent's device has no local cache for the child).
+  // Real child session reads from AsyncStorage first (fast, works offline).
   useEffect(() => {
     if (!activeChildId) { setThemeNameState('mint'); return; }
     let cancelled = false;
-    AsyncStorage.getItem(`${STORAGE_KEY}:${activeChildId}`).then((stored) => {
-      if (cancelled) return;
-      setThemeNameState(stored === 'gamer' ? 'gamer' : 'mint');
-    });
+
+    if (previewChildId) {
+      supabase
+        .from('profiles')
+        .select('pro_settings')
+        .eq('id', previewChildId)
+        .single()
+        .then(({ data }) => {
+          if (cancelled) return;
+          const dbTheme = (data?.pro_settings as Record<string, unknown> | null)?.child_theme;
+          const resolved: ChildThemeName = dbTheme === 'gamer' ? 'gamer' : 'mint';
+          setThemeNameState(resolved);
+          AsyncStorage.setItem(`${STORAGE_KEY}:${previewChildId}`, resolved);
+        });
+    } else {
+      AsyncStorage.getItem(`${STORAGE_KEY}:${activeChildId}`).then((stored) => {
+        if (cancelled) return;
+        setThemeNameState(stored === 'gamer' ? 'gamer' : 'mint');
+      });
+    }
     return () => { cancelled = true; };
-  }, [activeChildId]);
+  }, [activeChildId, previewChildId]);
 
   const setTheme = useCallback(async (name: ChildThemeName) => {
     setThemeNameState(name);
     if (activeChildId) {
       await AsyncStorage.setItem(`${STORAGE_KEY}:${activeChildId}`, name);
     }
-  }, [activeChildId]);
+    // Persist to DB so View-as-Child on the parent's device picks it up.
+    // Only for real child sessions — not when a parent is previewing.
+    if (profile?.role === 'child' && profile?.id) {
+      const merged = { ...(profile.pro_settings as Record<string, unknown> ?? {}), child_theme: name };
+      supabase.from('profiles').update({ pro_settings: merged }).eq('id', profile.id);
+    }
+  }, [activeChildId, profile]);
 
   const theme = CHILD_THEMES[themeName];
 
