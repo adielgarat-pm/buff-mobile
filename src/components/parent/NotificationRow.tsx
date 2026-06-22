@@ -57,7 +57,7 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
     case 'reward_redemption_requested':
       return t('notificationFeed.row.reward_redemption_requested', { name, reward });
     case 'task_completed':
-      return t('notificationFeed.row.task_completed', { name });
+      return t('notificationFeed.row.task_completed', { name, task: reward });
     case 'child_suggestion':
       return t('notificationFeed.row.child_suggestion', { name });
     case 'quest_milestone':

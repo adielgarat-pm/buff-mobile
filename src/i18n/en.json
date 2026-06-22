@@ -1921,7 +1921,7 @@
   "notificationFeed.row.parent_sos": "{{name}} wanted to share — low energy today",
   "notificationFeed.row.reward_redeemed": "{{name}} chose a reward: {{reward}}",
   "notificationFeed.row.reward_redemption_requested": "{{name}} wants to redeem: {{reward}}",
-  "notificationFeed.row.task_completed": "{{name}} completed a task",
+  "notificationFeed.row.task_completed": "{{name}} completed: {{task}}",
   "notificationFeed.row.quest_milestone": "{{name}} reached a milestone",
   "notificationFeed.row.parent_engagement": "{{name}} has been active this week — wanna see?",
   "notificationFeed.row.family_joined": "{{name}} joined the family",
