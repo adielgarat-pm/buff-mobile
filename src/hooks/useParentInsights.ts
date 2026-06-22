@@ -101,7 +101,7 @@ export function useParentInsights(childId: string | null) {
     if (!childId) return false;
     const { data, error } = await supabase
       .from('child_insights')
-      .select('weekly, tip, window_end, tier')
+      .select('weekly, tip, smart_insight, window_end, tier')
       .eq('child_id', childId)
       .maybeSingle();
     if (error || !data) return false;
