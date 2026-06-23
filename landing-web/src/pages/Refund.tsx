@@ -1,29 +1,21 @@
-import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
-/**
- * Refund & Cancellation Policy.
- *
- * Required for Paddle (Merchant of Record) checkout approval. Paddle resells the
- * subscription and handles the payment + buyer terms; this page is BUFF's own
- * policy that supplements Paddle's. DRAFT — Adi to review wording (and confirm
- * the guarantee window) before going live.
- */
 export default function Refund() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Button>
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← Back
+        </button>
 
         <h1 className="text-3xl font-bold text-foreground mb-2">Refund &amp; Cancellation Policy</h1>
         <p className="text-sm text-muted-foreground mb-6">Last updated: June 21, 2026</p>
-        <Separator className="mb-8" />
+        <hr className="mb-8 border-border" />
 
         <div className="prose prose-sm max-w-none space-y-6 text-muted-foreground">
           <section>

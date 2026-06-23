@@ -1,13 +1,6 @@
-import { ArrowLeft, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 
-/**
- * Public pricing page — required for Paddle (Merchant of Record) so plans/prices
- * are transparent before checkout. Prices mirror the in-app plans; DRAFT — Adi to
- * confirm the exact amounts/currency configured in Paddle before going live.
- */
 const PLANS = [
   {
     name: 'Free',
@@ -56,15 +49,18 @@ export default function Pricing() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Button>
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          ← Back
+        </button>
 
         <h1 className="text-3xl font-bold text-foreground mb-2">Pricing</h1>
         <p className="text-sm text-muted-foreground mb-6">
           Simple plans for families. Cancel anytime. Payments are securely handled by Paddle.
         </p>
-        <Separator className="mb-8" />
+        <hr className="mb-8 border-border" />
 
         <div className="grid gap-6 md:grid-cols-3">
           {PLANS.map((plan) => (
