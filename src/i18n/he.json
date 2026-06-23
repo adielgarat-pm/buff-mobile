@@ -2052,5 +2052,17 @@
   "install.iosStep2": "2. בחרו «הוסף למסך הבית»",
   "install.iosStep3": "3. לחצו «הוסף» — זהו!",
   "install.instructionsTitle": "הוסף למסך הבית",
-  "settings.rowAddToHomeScreen": "הוסף למסך הבית"
+  "settings.rowAddToHomeScreen": "הוסף למסך הבית",
+  "settings.rowInviteFriend": "הזמינו חבר",
+  "referral.title": "תנו לחבר שבועיים חינם",
+  "referral.sub": "שתפו את הקישור — שניכם מקבלים 14 יום BUFF Premium, חינם.",
+  "referral.shareWhatsapp": "שתף בוואטסאפ",
+  "referral.copyLink": "העתק קישור",
+  "referral.copied": "הועתק!",
+  "referral.stats": "הפניתם {{count}} משפחות עד כה",
+  "referral.loadError": "לא ניתן לטעון את קישור ההזמנה. נסו שוב.",
+  "referral.whatsappMessage": "מצאתי אפליקציה שעוזרת לילד שלי עם משימות יומיות — ומפסיקה אותי מלנחנח כל הזמן 🙌\nהנה שבועיים חינם: {{url}}",
+  "referral.onboardingLabel": "יש לכם קוד הפניה? (אופציונלי)",
+  "referral.onboardingPlaceholder": "לדוגמה: BF3K9X",
+  "referral.onboardingSuccess": "🎉 שבועיים של BUFF Premium הופעלו בחינם!"
 }

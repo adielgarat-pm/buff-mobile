@@ -2052,5 +2052,17 @@
   "install.iosStep2": "2. Choose \"Add to Home Screen\"",
   "install.iosStep3": "3. Tap \"Add\" — done!",
   "install.instructionsTitle": "Add to Home Screen",
-  "settings.rowAddToHomeScreen": "Add to Home Screen"
+  "settings.rowAddToHomeScreen": "Add to Home Screen",
+  "settings.rowInviteFriend": "Invite a friend",
+  "referral.title": "Give a friend 2 free weeks",
+  "referral.sub": "Share your invite link and you both get 14 days of BUFF Premium — free.",
+  "referral.shareWhatsapp": "Share via WhatsApp",
+  "referral.copyLink": "Copy link",
+  "referral.copied": "Copied!",
+  "referral.stats": "You have referred {{count}} families so far",
+  "referral.loadError": "Could not load your invite link. Try again.",
+  "referral.whatsappMessage": "I found an app that helps my child with daily tasks — and it stops me from nagging all the time 🙌\nHere are 2 free weeks: {{url}}",
+  "referral.onboardingLabel": "Have a referral code? (optional)",
+  "referral.onboardingPlaceholder": "e.g. BF3K9X",
+  "referral.onboardingSuccess": "🎉 2 free weeks of BUFF Premium activated!"
 }

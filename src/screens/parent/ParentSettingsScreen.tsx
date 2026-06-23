@@ -23,6 +23,7 @@ import LanguagePickerModal from '../../components/LanguagePickerModal';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
+import ReferralSheet from '../../components/ReferralSheet';
 
 interface SettingsRow {
   label: string;
@@ -47,6 +48,7 @@ export default function ParentSettingsScreen() {
   const { fridayEnabled, setFridayEnabled } = useAppSettings();
   const { mode: installMode, promptInstall } = useInstallPrompt();
   const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
+  const [referralSheetOpen, setReferralSheetOpen] = useState(false);
 
   // Real version of the *installed build*, not app.json — so a tester always
   // knows exactly which build they're on (native APIs are null on web/dev,
@@ -120,6 +122,11 @@ export default function ParentSettingsScreen() {
         { label: t('settings.rowAddChild'),       onPress: () => navigation.navigate('UStep1') },
         { label: t('settings.rowManageChildren'), onPress: () => navigation.navigate('ManageChildren') },
         { label: t('settings.rowActivities'),     onPress: () => navigation.navigate('Activities') },
+        {
+          label: t('settings.rowInviteFriend'),
+          icon:  'gift-outline' as const,
+          onPress: () => setReferralSheetOpen(true),
+        },
       ],
     },
     ...(children.length > 0
@@ -283,6 +290,11 @@ export default function ParentSettingsScreen() {
       <LanguagePickerModal
         visible={langModalOpen}
         onClose={() => setLangModalOpen(false)}
+      />
+
+      <ReferralSheet
+        visible={referralSheetOpen}
+        onClose={() => setReferralSheetOpen(false)}
       />
 
       {/* iOS install instructions — shown when installMode is ios-safari or ios-other */}
