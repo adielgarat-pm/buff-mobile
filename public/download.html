@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BUFF — Download the App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 24px;
+      padding: 60px 40px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo {
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 40px;
+      display: block;
+      object-fit: contain;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a1636;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+
+    .tagline {
+      font-size: 16px;
+      font-weight: 600;
+      color: #8b5cf6;
+      margin-bottom: 16px;
+      line-height: 1.4;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #666;
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
+
+    .loading {
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 30px;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 480px) {
+      .buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 40px 24px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .btn-play {
+      background: #000;
+      color: white;
+    }
+
+    .btn-play:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      opacity: 0.95;
+    }
+
+    .btn-web {
+      background: #000;
+      color: white;
+    }
+
+    .btn-web:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      opacity: 0.95;
+    }
+
+    .btn-icon {
+      font-size: 18px;
+    }
+
+    .btn-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1.2;
+    }
+
+    .btn-text-small {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .btn-text-large {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .fallback {
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="/BUFF_LOGO.png" alt="BUFF" class="logo">
+
+    <h1>Download BUFF</h1>
+    <p class="tagline">Every day matters — start the change today</p>
+    <p class="subtitle">Get started in seconds. Available for Android, iPhone, iPad, and web.</p>
+
+    <div class="loading" id="loading">Redirecting you...</div>
+
+    <div class="buttons" id="fallback" style="display: none;">
+      <a href="https://play.google.com/store/apps/details?id=com.buffapp.mobile" class="btn btn-play">
+        <span class="btn-icon">▶</span>
+        <span class="btn-text">
+          <span class="btn-text-small">GET IT ON</span>
+          <span class="btn-text-large">Google Play</span>
+        </span>
+      </a>
+      <a href="https://buff.app" class="btn btn-web">
+        <span class="btn-icon">🍎</span>
+        <span class="btn-text">
+          <span class="btn-text-small">Download on the</span>
+          <span class="btn-text-large">App Store</span>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Detect device and redirect
+    function redirect() {
+      const isAndroid = /Android/.test(navigator.userAgent);
+
+      if (isAndroid) {
+        window.location.href = 'https://play.google.com/store/apps/details?id=com.buffapp.mobile';
+      } else {
+        window.location.href = 'https://buff.app';
+      }
+    }
+
+    // Show fallback buttons if redirect takes too long
+    setTimeout(() => {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('fallback').style.display = 'grid';
+    }, 2000);
+
+    // Redirect immediately
+    redirect();
+  </script>
+</body>
+</html>
