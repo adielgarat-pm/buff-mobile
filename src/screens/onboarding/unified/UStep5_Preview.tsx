@@ -11,7 +11,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, Animated, I18nManager, ActivityIndicator, StyleSheet, Alert,
+  View, Text, TouchableOpacity, ScrollView, Animated, ActivityIndicator, StyleSheet, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -30,6 +30,7 @@ import {
 import type { AgeGroup } from './onboardingData';
 import { generateStarterTasks } from './starterTasks';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
 type Route = RouteProp<RootStackParamList, 'UStep5_Preview'>;
@@ -53,7 +54,7 @@ export default function UStep5_Preview() {
   // field is the single source of truth that EditChild and the child's own
   // device later read back via resolveChildLang.
   const childLang = resolveChildLang({ display_name: params.childName }, lang);
-  const isRTL = I18nManager.isRTL;
+  const { isRTL } = useRTLStyles();
 
   const [saveErr,        setSaveErr]        = useState<string | null>(null);
   const [childProfileId, setChildProfileId] = useState<string | null>(null);

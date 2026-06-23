@@ -250,7 +250,7 @@ export default function ParentInsightsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: T.bg }]}>
       {Header}
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
 
         {/* Child selector (only when more than one child) */}
         {children.length > 1 && (
@@ -586,6 +586,7 @@ const styles = StyleSheet.create({
   legendRow:{ flexDirection: 'row', justifyContent: 'center', gap: 18, marginTop: 4 },
   legend:   { fontSize: 12 },
 
+  scrollView:  { flex: 1 },
   lockedIcon:  { fontSize: 40 },
   lockedTitle: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   pausedMsg:   { fontSize: 14, textAlign: 'center', lineHeight: 20 },

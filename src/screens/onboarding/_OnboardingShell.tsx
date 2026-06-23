@@ -2,12 +2,13 @@
  * Shared layout wrapper for all onboarding steps.
  * Provides: step progress bar, back chevron, BUFF branding, Next button.
  */
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../../theme';
+import { useRTLStyles } from '../../contexts/LanguageContext';
 
 interface Props {
   step: number;      // 0-indexed
@@ -25,11 +26,9 @@ export default function OnboardingShell({
 }: Props) {
   const navigation = useNavigation();
   const { t } = useTranslation();
-  const isRTL = I18nManager.isRTL;
+  const { isRTL } = useRTLStyles();
   const progress = (step + 1) / (total + 1);
-  // Fall back to translated "Continue" when no label is explicitly passed
   const displayLabel = nextLabel ?? t('onboarding.continue');
-  // Chevron character must flip manually — forceRTL doesn't affect Unicode glyphs
   const chevron = isRTL ? '›' : '‹';
 
   return (

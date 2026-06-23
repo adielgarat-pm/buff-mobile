@@ -16,7 +16,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, Image, TouchableOpacity,
-  ScrollView, I18nManager, StyleSheet, Animated, Platform,
+  ScrollView, StyleSheet, Animated, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,6 +24,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { useRTLStyles } from '../../contexts/LanguageContext';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Welcome'>;
 
@@ -47,8 +48,7 @@ const CARDS = [
 export default function WelcomeScreen() {
   const navigation   = useNavigation<Nav>();
   const { t }        = useTranslation();
-  const isRTL        = I18nManager.isRTL;
-  const textAlign    = isRTL ? 'right' : 'left';
+  const { textAlign, rowDirection } = useRTLStyles();
 
   const hasNavigated = useRef(false);
   const fadeAnim     = useRef(new Animated.Value(0)).current;
@@ -99,7 +99,7 @@ export default function WelcomeScreen() {
           {/* ── 3. Value cards ───────────────────────────────────────────── */}
           <View style={styles.cardsWrap}>
             {CARDS.map((card) => (
-              <View key={card.titleKey} style={styles.card}>
+              <View key={card.titleKey} style={[styles.card, { flexDirection: rowDirection }]}>
                 <Text style={styles.cardEmoji}>{card.emoji}</Text>
                 <View style={styles.cardText}>
                   <Text style={[styles.cardTitle, { textAlign }]}>
