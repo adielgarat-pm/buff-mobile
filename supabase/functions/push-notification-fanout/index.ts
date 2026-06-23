@@ -51,7 +51,7 @@ interface DeviceToken {
 interface WebPushSubscription {
   endpoint: string;
   p256dh: string;
-  auth: string;
+  auth_key: string;
 }
 
 interface ProfileMeta {
@@ -226,7 +226,12 @@ async function sendWebPushNotifications(
     return 0;
   }
 
-  webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+  try {
+    webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
+  } catch (err) {
+    console.error('[webpush] setVapidDetails failed:', err);
+    return 0;
+  }
 
   const pushPayload = JSON.stringify({
     title: payload.title,
@@ -241,7 +246,7 @@ async function sendWebPushNotifications(
     subscriptions.map(async (sub) => {
       try {
         await webpush.sendNotification(
-          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
           pushPayload,
         );
         successCount++;
@@ -525,15 +530,20 @@ Deno.serve(async (req) => {
   // ── Web Push (PWA — browser subscriptions) ─────────────────────────────
   const { data: webSubs } = await supabase
     .from('push_subscriptions')
-    .select('endpoint, p256dh, auth')
+    .select('endpoint, p256dh, auth_key')
     .eq('profile_id', recipientProfileId) as { data: WebPushSubscription[] | null };
 
-  const webSuccess = await sendWebPushNotifications(
-    supabase,
-    webSubs ?? [],
-    copy,
-    recipientProfileId,
-  );
+  let webSuccess = 0;
+  try {
+    webSuccess = await sendWebPushNotifications(
+      supabase,
+      webSubs ?? [],
+      copy,
+      recipientProfileId,
+    );
+  } catch (err) {
+    console.error('[webpush] sendWebPushNotifications threw:', err);
+  }
 
   const totalSuccess = expoSuccess + webSuccess;
 
