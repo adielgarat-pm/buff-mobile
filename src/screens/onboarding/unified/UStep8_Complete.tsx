@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, ActivityIndicator,
-  ScrollView, Animated, StyleSheet,
+  ScrollView, Animated, StyleSheet, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -22,6 +22,7 @@ import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
+import { captureRefFromUrl, getRefCode, clearRefCode, saveRefCode } from '../../../lib/referralCapture';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep8_Complete'>;
 type Route = RouteProp<RootStackParamList, 'UStep8_Complete'>;
@@ -32,10 +33,20 @@ export default function UStep8_Complete() {
   const { t }                                            = useTranslation();
   const { user, familyShortCode, refreshProfile } = useAuth();
 
-  const [saving,  setSaving]  = useState(false);
-  const [saved,   setSaved]   = useState(false);
-  const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [saving,      setSaving]      = useState(false);
+  const [saved,       setSaved]       = useState(false);
+  const [saveErr,     setSaveErr]     = useState<string | null>(null);
+  const [refCode,     setRefCode]     = useState('');
+  const [refRedeemed, setRefRedeemed] = useState(false);
   const hasSaved = useRef(false);
+
+  // On web: capture ref from URL immediately; on Android: user types manually
+  useEffect(() => {
+    void captureRefFromUrl().then(async () => {
+      const stored = await getRefCode();
+      if (stored) setRefCode(stored);
+    });
+  }, []);
 
   // Animated checkmark — springs in when saved = true
   const checkScale   = useRef(new Animated.Value(0)).current;
@@ -120,6 +131,20 @@ export default function UStep8_Complete() {
       await refreshProfile(user.id);
       console.log('[UStep8_Complete] refreshProfile done');
 
+      // Redeem referral code if one was entered or captured from URL
+      const codeToRedeem = refCode.trim().toUpperCase() || await getRefCode();
+      if (codeToRedeem) {
+        const { data: redeemData } = await supabase.rpc('redeem_referral', { p_code: codeToRedeem });
+        if (redeemData?.success) {
+          setRefRedeemed(true);
+          await clearRefCode();
+          await refreshProfile(user.id); // pick up new premium_until
+        } else {
+          console.log('[UStep8_Complete] referral redeem skipped:', redeemData?.error);
+          await clearRefCode(); // clear invalid/used code
+        }
+      }
+
       setSaved(true);
       // Navigation is handled by the "Go to Dashboard" button below.
     } catch (err) {
@@ -183,6 +208,29 @@ export default function UStep8_Complete() {
           </Text>
         </View>
 
+        {/* Referral code entry */}
+        {!saved && (
+          <View style={styles.refCard}>
+            <Text style={styles.refLabel}>{t('referral.onboardingLabel')}</Text>
+            <TextInput
+              style={styles.refInput}
+              value={refCode}
+              onChangeText={v => { setRefCode(v.toUpperCase()); void saveRefCode(v); }}
+              placeholder={t('referral.onboardingPlaceholder')}
+              placeholderTextColor={T.textMuted}
+              autoCapitalize="characters"
+              maxLength={6}
+            />
+          </View>
+        )}
+
+        {/* Referral success banner */}
+        {refRedeemed && (
+          <View style={styles.refSuccess}>
+            <Text style={styles.refSuccessText}>{t('referral.onboardingSuccess')}</Text>
+          </View>
+        )}
+
         {/* Save error + retry */}
         {saveErr && (
           <View style={styles.errorCard}>
@@ -235,6 +283,17 @@ const styles = StyleSheet.create({
   tipCard:      { width: '100%', backgroundColor: T.card, borderRadius: 14, padding: 18, marginBottom: 24, borderWidth: 1, borderColor: T.cardBorder },
   tipTitle:     { color: T.text, fontWeight: '700', fontSize: 15, marginBottom: 10 },
   tipText:      { color: T.textMuted, fontSize: 14, lineHeight: 21 },
+
+  refCard:         { width: '100%', marginBottom: 16 },
+  refLabel:        { color: T.textMuted, fontSize: 12, marginBottom: 6, textAlign: 'center' },
+  refInput:        {
+    borderWidth: 1, borderColor: T.cardBorder, borderRadius: 10,
+    paddingHorizontal: 14, paddingVertical: 10,
+    color: T.text, fontSize: 18, fontWeight: '700',
+    textAlign: 'center', letterSpacing: 4, backgroundColor: T.card,
+  },
+  refSuccess:      { width: '100%', backgroundColor: '#ECFDF5', borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#6EE7B7', alignItems: 'center' },
+  refSuccessText:  { color: '#065F46', fontWeight: '600', fontSize: 14 },
 
   errorCard:    { width: '100%', backgroundColor: '#FEF2F2', borderRadius: 12, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#FECACA', alignItems: 'center' },
   errorText:    { color: '#DC2626', fontSize: 13, textAlign: 'center', marginBottom: 10 },

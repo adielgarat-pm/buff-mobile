@@ -13,6 +13,7 @@ export interface FamilyMember {
   // inherit the family parent's entitlement (BUFF gates on the family plan).
   isLifetimeAccess: boolean;
   isLifetimeFounding: boolean;
+  premiumUntil: string | null;
 }
 
 export function useFamilyMembers() {
@@ -51,6 +52,7 @@ export function useFamilyMembers() {
           avatar:             p.avatar || '🚀',
           isLifetimeAccess:   p.is_lifetime_access ?? false,
           isLifetimeFounding: p.is_lifetime_founding ?? false,
+          premiumUntil:       p.premium_until ?? null,
         }))
       );
     } catch (err) {

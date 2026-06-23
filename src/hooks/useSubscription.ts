@@ -7,8 +7,11 @@
  *
  * Subscription state (in priority order):
  *   1. is_lifetime_access on profile  → always subscribed, never sees paywall
- *   2. Grace period (< 2026-05-01)    → everyone subscribed during beta
- *   3. RevenueCat "BUFF Premium" entitlement → real subscription
+ *   2. is_lifetime_founding on profile → always subscribed
+ *   3. familyHasEntitlement           → any parent in family has 1 or 2
+ *   4. premium_until on profile       → time-boxed grant (referrals, trials)
+ *   5. Grace period (< 2026-05-01)    → everyone subscribed during beta
+ *   6. RevenueCat "BUFF Premium" entitlement → real subscription
  */
 import { useState, useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
@@ -77,6 +80,11 @@ export function useSubscription() {
   const foundingMemberNumber = profile?.founding_member_number ?? null;
   const isGracePeriod        = new Date() < GRACE_PERIOD_END;
   const isLifetime           = isLifetimeAccess;
+
+  // Time-boxed premium grant (referrals, trials). Checked client-side;
+  // DB cron nullifies expired rows daily at 03:00 UTC.
+  const referralPremiumUntil = profile?.premium_until ? new Date(profile.premium_until) : null;
+  const isReferralPremium    = referralPremiumUntil !== null && referralPremiumUntil > new Date();
   // Founding state is true if either the DB flag OR the RC entitlement says
   // so. The DB flag is set by the webhook (eventually consistent); the RC
   // entitlement is immediate on purchase. Either is sufficient to consider
@@ -90,7 +98,10 @@ export function useSubscription() {
   // whose own DB flags are false) AND a co-parent who joined the family without
   // purchasing themselves. RC entitlements are device-local and not inheritable;
   // the DB flags are the shared family signal.
-  const familyHasEntitlement = parents.some(p => p.isLifetimeAccess || p.isLifetimeFounding);
+  const familyHasEntitlement = parents.some(
+    p => p.isLifetimeAccess || p.isLifetimeFounding ||
+         (p.premiumUntil !== null && new Date(p.premiumUntil) > new Date())
+  );
 
   // iOS TestFlight phase (Phase 1): payments/IAP are not yet wired on iOS, so every
   // iOS tester is treated as entitled — this hides all paywall CTAs and unlocks the
@@ -103,11 +114,12 @@ export function useSubscription() {
   const noIapPaywallHidden = Platform.OS === 'ios' || Platform.OS === 'web';
 
   const isSubscribed =
-    isLifetimeAccess ||
+    isLifetimeAccess     ||
     familyHasEntitlement ||
-    isGracePeriod    ||
-    rcSubscribed     ||
-    rcFounding       ||
+    isReferralPremium    ||
+    isGracePeriod        ||
+    rcSubscribed         ||
+    rcFounding           ||
     noIapPaywallHidden;
 
   const childCount   = children.length;
@@ -153,6 +165,8 @@ export function useSubscription() {
     isFoundingMember,
     foundingMemberNumber,
     isGracePeriod,
+    isReferralPremium,
+    referralPremiumUntil,
     needsUpgrade,
     isLoading: rcLoading,
     customerInfo,

@@ -29,6 +29,7 @@ export interface Profile {
   is_lifetime_founding: boolean;
   founding_member_number: number | null;
   pro_settings: Record<string, unknown>;
+  premium_until: string | null;
 }
 
 // Discriminated result for a profile fetch. Distinguishing "no row exists"
