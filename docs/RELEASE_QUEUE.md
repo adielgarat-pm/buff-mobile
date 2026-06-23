@@ -17,7 +17,7 @@
 
 ## 🚉 Queued — riding the next train
 
-_Last released: **1.7.5 (versionCode 53)** — built 2026-06-23 from commit `9d086e6`, production launch build. Prior: **1.7.1 (versionCode 52)** commit `0454416`. Use `eas build:list` + `app.json` as ground truth — this header is the summary, not the source of truth._
+_Last released: **1.7.6 (versionCode 54)** — built 2026-06-23 from commit `1bb0a0b`, web fixes patch. Prior: **1.7.5 (versionCode 53)** commit `9d086e6`. Use `eas build:list` + `app.json` as ground truth — this header is the summary, not the source of truth._
 
 > ✅ **Shipped — 1.7.1 (versionCode 52), 2026-06-22.** Hotfix: View-as-Child reads child's theme from DB (`e70fa92`). Rows that rode the 1.7.0 train are in Shipped below.
 
