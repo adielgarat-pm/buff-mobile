@@ -1,11 +1,13 @@
-import type { ParentItem } from '../../../types/parentCapture';
+import type { ParentItem, ParsedItem } from '../../../types/parentCapture';
 import {
   addDays,
+  childTaskFieldsFromParsed,
   diffDays,
   eventTypeToCategory,
   groupByBucket,
   isPastDate,
   recencyPartition,
+  recurrenceToScheduleDays,
   timeBucketFor,
 } from '../captureMapping';
 
@@ -87,4 +89,57 @@ describe('eventTypeToCategory', () => {
   test('homework -> learning', () => expect(eventTypeToCategory('homework')).toBe('learning'));
   test('errand -> organization', () => expect(eventTypeToCategory('errand')).toBe('organization'));
   test('performance -> movement', () => expect(eventTypeToCategory('performance')).toBe('movement'));
+});
+
+function parsed(partial: Partial<ParsedItem>): ParsedItem {
+  return {
+    id: 'p',
+    title: 'X',
+    type: 'task',
+    owner: 'child',
+    childName: null,
+    relevance: 'matched',
+    dueDate: null,
+    dueTime: null,
+    recurrence: null,
+    dates: [],
+    dateSource: '',
+    location: null,
+    bring: [],
+    eventType: 'homework',
+    forChildToRemember: true,
+    linkedEvent: null,
+    confidence: 'high',
+    missing: null,
+    ...partial,
+  };
+}
+
+describe('recurrenceToScheduleDays', () => {
+  test('null -> null', () => expect(recurrenceToScheduleDays(null)).toBeNull());
+  test('no day name -> null', () => expect(recurrenceToScheduleDays('sometimes')).toBeNull());
+  test('Hebrew days', () => expect(recurrenceToScheduleDays('כל ראשון וחמישי')).toEqual([0, 4]));
+  test('English days', () => expect(recurrenceToScheduleDays('every Monday and Thursday')).toEqual([1, 4]));
+});
+
+describe('childTaskFieldsFromParsed', () => {
+  test('recurrence wins → recurring, no dueDate', () => {
+    const f = childTaskFieldsFromParsed(parsed({ recurrence: 'כל ראשון וחמישי', dueDate: '2026-06-08' }));
+    expect(f.scheduleDays).toEqual([0, 4]);
+    expect(f.dueDate).toBeNull();
+  });
+  test('one-time (dueDate, no recurrence) → empty scheduleDays + dueDate', () => {
+    const f = childTaskFieldsFromParsed(parsed({ dueDate: '2026-06-08', eventType: 'performance' }));
+    expect(f.scheduleDays).toEqual([]);
+    expect(f.dueDate).toBe('2026-06-08');
+    expect(f.category).toBe('movement');
+  });
+  test('no date, no recurrence → every day', () => {
+    const f = childTaskFieldsFromParsed(parsed({}));
+    expect(f.scheduleDays).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(f.dueDate).toBeNull();
+  });
+  test('time defaults to 14:00 when no dueTime', () => {
+    expect(childTaskFieldsFromParsed(parsed({})).time).toBe('14:00');
+  });
 });

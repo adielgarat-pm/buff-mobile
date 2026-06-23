@@ -20,13 +20,15 @@ CREATE TABLE IF NOT EXISTS public.parent_items (
   type            text NOT NULL CHECK (type IN ('task','event','schedule','reference')),
   owner           text NOT NULL DEFAULT 'parent' CHECK (owner IN ('parent','child')),
   child_id        uuid REFERENCES public.profiles(id),
+  child_name      text,                      -- denormalized for display ("handed to {name}")
+  child_task_id   uuid,                      -- the created tasks row id, when transferred
   due_date        date,
   due_time        time,
   recurrence      text,
   location        text,
   bring           jsonb NOT NULL DEFAULT '[]'::jsonb,
   event_type      text,
-  status          text NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived','done')),
+  status          text NOT NULL DEFAULT 'active' CHECK (status IN ('active','archived','done','transferred')),
   reminder_opt_in boolean NOT NULL DEFAULT false,  -- notifications are OPT-IN
   source          text NOT NULL DEFAULT 'capture',
   confidence      text,
@@ -87,3 +89,8 @@ CREATE POLICY capture_runs_family_parent ON public.capture_runs
       WHERE p.user_id = auth.uid() AND p.role = 'parent'
     )
   );
+
+-- GRANTs — MCP/apply_migration tables do NOT inherit role grants; RLS alone is
+-- not enough (otherwise: "permission denied"). RLS still governs row access.
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.parent_items TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.capture_runs TO authenticated;

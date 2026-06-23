@@ -28,6 +28,11 @@ export interface Task {
    * Fri unless app_settings.friday_enabled. Mirrors Lovable's hideOnWeekend.
    */
   hideOnWeekend?: boolean;
+  /**
+   * One-time task: ISO date 'YYYY-MM-DD'. When set, the task appears ONLY on this
+   * date and ignores scheduleDays/hideOnWeekend. Undefined = recurring.
+   */
+  dueDate?: string;
   assignedTo?: string;
   strategyId?: string;
   /** Off-routine-day task: shown only while the child's off-routine mode is active. */

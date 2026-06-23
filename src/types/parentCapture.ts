@@ -68,9 +68,11 @@ export interface ParentItem {
   location: string | null;
   bring: string[];
   eventType: CaptureEventType;
-  status: 'active' | 'archived' | 'done';
+  status: 'active' | 'archived' | 'done' | 'transferred';
   reminderOptIn: boolean;
   confidence: CaptureConfidence;
+  /** When transferred to a child, the id of the created `tasks` row. */
+  childTaskId?: string | null;
   createdAt: string; // ISO
 }
 

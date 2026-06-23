@@ -61,15 +61,15 @@ The product's defensible core is the **transfer** (capture-in-order-to-graduate-
 |---|---|---|
 | 1 — Intrinsic Motivation | 1 — would the kid want this without virtual reward? | ⚪ **N/A on the parent surface** (parent-only). For **transferred** items: the child receives them through the *existing* task loop, which already passes Values Check. A transferred item must be a plain, inviting action in the child's voice (`feedback_kid_task_copy_simple`), never "your parent assigned you a chore." |
 | 1 | 2 — closer to a real reward the kid chose? | ✅ Transferred items flow into the same real-reward economy the child already opted into. No new virtual currency. |
-| 1 | 3 — feels like "I want to" not "I have to"? | 🟡 **Risk.** Parent→child transfer can feel imposed. Mitigation: transferred item framed as *"something to remember,"* kid voice, **no shame if forgotten** (Pillar 2). Surfaced as OQ-C9. |
+| 1 | 3 — feels like "I want to" not "I have to"? | ✅ **RESOLVED (Phase 5).** Transferred item enters the child loop as a normal task with a **plain kid-voice title** (no "parent assigned", no badge); same neutral treatment as any task, **no shame if not done**. |
 | 2 — Positive Coaching | 1 — any shaming / comparison / failure framing? | ✅ Parent surface is declarative ("This week: …"), no "you missed N." If a transferred item lapses, **no red/alarm, no "your child failed to bring X."** |
 | 2 | 2 — empathy not pressure on failure? | ✅ A forgotten transferred item is neutral; no nag to parent or child. The parent surface never says "your kid dropped this." |
 | 2 | 3 — any BUDDY suffering/loss mechanic? | ✅ None. No buddy face on the parent surface; transferred items don't trigger sad-buddy states. |
 | 3 — Independence-Building | 1 — does it make the child more capable *without* the app? | ✅ **This is the core thesis.** Transfer moves "remembering" from parent to child = executive-function reps. The explicit goal is the child carrying it themselves. |
-| 3 | 2 — does the child have a voice? | 🟡 The child receives transferred items but doesn't originate them. Mitigation: pairs with `pkg/child-suggest` (child as proposer) as the complementary direction; transfer is parent→child, balanced by child-suggest child→parent. Acknowledged, not hidden. |
+| 3 | 2 — does the child have a voice? | ✅ **RESOLVED (Phase 5).** Balanced by `pkg/child-suggest` (child→parent). Parent sees only a muted "handed to {child}" — **no seen/done surveillance receipt** from the child. |
 | 3 | 3 — in 6 months, still needed or did its job? | ✅ Capture is the **parent's** training wheels; success = the parent eventually *doesn't* need to capture because the child owns the routine. The parent surface is low-volume by design (calm pull, not a feed). |
 
-**Values Check Pass:** [ ] yes / [ ] no — **PENDING.** Two ambers (Q1.3, Q3.2) must be resolved in the confirm-card copy + by pairing with child-suggest before code. Not a silent pass.
+**Values Check Pass:** [x] yes — **PASS (2026-06-07, Phase 5).** Both ambers resolved in the transfer design (plain kid-voice task, no shame, no surveillance receipt; child-suggest balances voice). Re-verify against built behavior at package exit.
 
 ---
 
