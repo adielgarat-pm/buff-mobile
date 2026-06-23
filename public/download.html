@@ -179,12 +179,60 @@
           <span class="btn-text-large">Google Play</span>
         </span>
       </a>
-      <a href="https://buff.app" class="btn btn-web">
+      <button id="iosBtn" class="btn btn-web" style="cursor: pointer;">
         <span class="btn-icon">🍎</span>
         <span class="btn-text">
           <span class="btn-text-small">Download on the</span>
           <span class="btn-text-large">App Store</span>
         </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- iOS Installation Modal -->
+  <div id="iosModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 24px; padding: 32px; max-width: 420px; width: 90%; margin: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h2 style="margin: 0; font-size: 22px; font-weight: 700; color: #1a1636;">Install on iPhone</h2>
+        <button id="closeModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #999; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">✕</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+        <div style="display: flex; gap: 12px;">
+          <div style="background: #8b5cf6; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+          <div>
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #1a1636;">Open Safari</p>
+            <p style="margin: 0; font-size: 14px; color: #666;">On your iPhone</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <div style="background: #8b5cf6; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+          <div>
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #1a1636;">Go to buff.app</p>
+            <p style="margin: 0; font-size: 14px; color: #666;">Visit our web app</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <div style="background: #8b5cf6; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+          <div>
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #1a1636;">Tap Share ⬆️</p>
+            <p style="margin: 0; font-size: 14px; color: #666;">The share button at the bottom</p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <div style="background: #8b5cf6; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">4</div>
+          <div>
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #1a1636;">Select "Add to Home Screen"</p>
+            <p style="margin: 0; font-size: 14px; color: #666;">Scroll down to find it</p>
+          </div>
+        </div>
+      </div>
+
+      <a href="https://buff.app" style="display: block; background: #8b5cf6; color: white; padding: 14px 20px; border-radius: 12px; text-decoration: none; text-align: center; font-weight: 600; transition: opacity 0.3s ease;">
+        Open buff.app Now
       </a>
     </div>
   </div>
@@ -193,6 +241,25 @@
     // Show buttons immediately (no auto-redirect)
     document.getElementById('loading').style.display = 'none';
     document.getElementById('fallback').style.display = 'grid';
+
+    // iOS modal
+    const iosBtn = document.getElementById('iosBtn');
+    const iosModal = document.getElementById('iosModal');
+    const closeModal = document.getElementById('closeModal');
+
+    iosBtn.addEventListener('click', () => {
+      iosModal.style.display = 'flex';
+    });
+
+    closeModal.addEventListener('click', () => {
+      iosModal.style.display = 'none';
+    });
+
+    iosModal.addEventListener('click', (e) => {
+      if (e.target === iosModal) {
+        iosModal.style.display = 'none';
+      }
+    });
   </script>
 </body>
 </html>
