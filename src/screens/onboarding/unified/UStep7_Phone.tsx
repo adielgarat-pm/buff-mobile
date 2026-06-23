@@ -79,12 +79,10 @@ export default function UStep7_Phone() {
     goNext(true);
   };
 
-  const noPhone = () => {
-    Alert.alert(
-      t('onboarding.step7.noPhoneTipTitle'),
-      t('onboarding.step7.noPhoneTipBody', { name: params.childName }),
-      [{ text: t('common.ok'), onPress: () => goNext(false) }]
-    );
+  const noPhone = async () => {
+    // On web, Alert.alert() doesn't work reliably, so show a simple console message and proceed
+    if (__DEV__) console.log('[UStep7_Phone] No phone option selected');
+    goNext(false);
   };
 
   return (
