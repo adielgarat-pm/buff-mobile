@@ -190,25 +190,9 @@
   </div>
 
   <script>
-    // Detect device and redirect
-    function redirect() {
-      const isAndroid = /Android/.test(navigator.userAgent);
-
-      if (isAndroid) {
-        window.location.href = 'https://play.google.com/store/apps/details?id=com.buffapp.mobile';
-      } else {
-        window.location.href = 'https://buff.app';
-      }
-    }
-
-    // Show fallback buttons if redirect takes too long
-    setTimeout(() => {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('fallback').style.display = 'grid';
-    }, 2000);
-
-    // Redirect immediately
-    redirect();
+    // Show buttons immediately (no auto-redirect)
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('fallback').style.display = 'grid';
   </script>
 </body>
 </html>
