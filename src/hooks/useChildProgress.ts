@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
@@ -6,7 +6,7 @@ import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils
 import { applyTaskCompletionToPet } from './usePetState';
 import { emitConfetti } from '../lib/confetti';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ג”€ג”€ג”€ Types ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 export interface ChildProgress {
   childId:             string;
@@ -23,11 +23,11 @@ export interface ChildProgress {
   restCardsBalance:    number;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
 
-// ─── useChildProgress — all children's daily summary ──────────────────────────
+// ג”€ג”€ג”€ useChildProgress ג€” all children's daily summary ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 export function useChildProgress() {
   const { familyId } = useAuth();
@@ -80,7 +80,7 @@ export function useChildProgress() {
             if (tasksErr)    console.warn(`tasks query failed for ${child.id}:`, tasksErr.message);
             if (progressErr) console.warn(`daily_progress query failed for ${child.id}:`, progressErr.message);
 
-            // lesson_progress is optional — silently skip if the table is unavailable
+            // lesson_progress is optional ג€” silently skip if the table is unavailable
             let lessonProgressData: { completed: boolean; credits?: number }[] = [];
             try {
               const { data, error } = await supabase
@@ -131,7 +131,7 @@ export function useChildProgress() {
             return {
               childId:           child.id,
               displayName:       child.display_name,
-              avatar:            child.avatar || '🚀',
+              avatar:            child.avatar || 'נ€',
               todayEarned:       taskCredits + lessonCredits,
               dailyGoal:         child.daily_goal || 100,
               tasksCompleted,
@@ -148,7 +148,7 @@ export function useChildProgress() {
             return {
               childId:           child.id,
               displayName:       child.display_name,
-              avatar:            child.avatar || '🚀',
+              avatar:            child.avatar || 'נ€',
               todayEarned: 0, dailyGoal: 100,
               tasksCompleted: 0, tasksTotal: 0,
               lessonsCompleted: 0, lessonsTotal: 0,
@@ -186,7 +186,7 @@ export function useChildProgress() {
   return { childrenProgress, loading, refetch: fetchChildrenProgress };
 }
 
-// ─── useChildData — full task/timetable/rewards data for one child ─────────────
+// ג”€ג”€ג”€ useChildData ג€” full task/timetable/rewards data for one child ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 export function useChildData(childId: string | null) {
   const { familyId } = useAuth();
@@ -252,7 +252,7 @@ export function useChildData(childId: string | null) {
         .eq('id', childId)
         .single();
 
-      // Off-routine flag in its OWN query — decoupled from the combined select
+      // Off-routine flag in its OWN query ג€” decoupled from the combined select
       // above so it stays correct even if that select fails on an optional column.
       const { data: offRow } = await supabase
         .from('profiles')
@@ -282,7 +282,7 @@ export function useChildData(childId: string | null) {
         completedAt:  completedAtMap.has(t.id) ? new Date(completedAtMap.get(t.id)!) : undefined,
         assignedTo:   t.assigned_to || undefined,
         strategyId:   t.strategy_id || undefined,
-        // Preserve an explicit [] (parent paused the task → hidden); only
+        // Preserve an explicit [] (parent paused the task ג†’ hidden); only
         // null/undefined falls back to every-day. Mirrors taskSchedule.ts.
         scheduleDays: Array.isArray(t.schedule_days)
                         ? t.schedule_days
@@ -316,14 +316,14 @@ export function useChildData(childId: string | null) {
     fetchChildData();
   }, [fetchChildData]);
 
-  // ── Vault ─────────────────────────────────────────────────────────────────
+  // ג”€ג”€ Vault ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
   // Atomic balance change via the adjust_credit_vault RPC (migration 021).
   // Replaces the old read-modify-write of total_balance, which raced: two
   // concurrent credits both read the same old value and the second clobbered
   // the first, silently losing BUFFs. The RPC does one server-side UPDATE and
   // returns the authoritative new balance. Deductions floor at 0 server-side.
-  // Write errors are never swallowed — an own-device child whose RLS blocks the
+  // Write errors are never swallowed ג€” an own-device child whose RLS blocks the
   // write must surface it, not silently revert on reload (IN-2026-06-06-01/02).
   const adjustBalance = useCallback(async (delta: number, reason: string) => {
     if (!childId || delta === 0) return;
@@ -346,13 +346,13 @@ export function useChildData(childId: string | null) {
     if (typeof res.new_balance === 'number') setTotalBalance(res.new_balance);
   }, [childId]);
 
-  // ── Task completion ───────────────────────────────────────────────────────
+  // ג”€ג”€ Task completion ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
   const completeTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
 
     // Source of truth is the DB row, not the optimistic React state. Crediting
-    // BUFFs must only happen on a real false→true transition — otherwise a task
+    // BUFFs must only happen on a real falseג†’true transition ג€” otherwise a task
     // that renders as incomplete while its daily_progress row is already
     // completed (e.g. the day-filtering divergence between child screens) lets a
     // kid re-tap the same task and bank credits on every tap. The upsert itself
@@ -365,10 +365,10 @@ export function useChildData(childId: string | null) {
       .maybeSingle();
     const wasComplete = existing?.completed === true;
 
-    // Celebrate a real incomplete→complete transition (covers both Mint + Gamer
+    // Celebrate a real incompleteג†’complete transition (covers both Mint + Gamer
     // and every screen, since all completion funnels through here). Gated on
     // !wasComplete so a re-tap of an already-done task stays silent. Best-effort:
-    // an app-root confetti burst + a "+N ⚡" reward float (BUFFs just earned).
+    // an app-root confetti burst + a "+N ג¡" reward float (BUFFs just earned).
     if (!wasComplete) {
       emitConfetti(tasks.find(t => t.id === taskId)?.credits ?? 0);
     }
@@ -389,7 +389,7 @@ export function useChildData(childId: string | null) {
       if (task) {
         await adjustBalance(task.credits, 'task_complete');
       }
-      // Advance the pet/streak state on a real incomplete→complete transition.
+      // Advance the pet/streak state on a real incompleteג†’complete transition.
       // Idempotent per day (the streak only bumps once a calendar day), so it's
       // safe to call on every completed task; an unknown task still records
       // "did something today" and accrues the minimum XP floor.
@@ -400,7 +400,7 @@ export function useChildData(childId: string | null) {
   const uncompleteTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
 
-    // Symmetric to completeTask: only debit on a real true→false transition, so
+    // Symmetric to completeTask: only debit on a real trueג†’false transition, so
     // repeated taps on an already-incomplete task can never drive the balance
     // negative or double-debit.
     const { data: existing } = await supabase
@@ -429,7 +429,7 @@ export function useChildData(childId: string | null) {
     }
   }, [familyId, childId, todayKey, tasks, adjustBalance]);
 
-  // ── Task CRUD ─────────────────────────────────────────────────────────────
+  // ג”€ג”€ Task CRUD ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
   const addTask = useCallback(async (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => {
     if (!familyId || !childId) return;
@@ -447,7 +447,6 @@ export function useChildData(childId: string | null) {
         icon:          task.icon,
         strategy_id:   task.strategyId || null,
         schedule_days: task.scheduleDays || [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Fri+Sat)
-        schedule_days: task.scheduleDays || [0, 1, 2, 3, 4],
         due_date:      task.dueDate ?? null,
       })
       .select()
@@ -464,7 +463,6 @@ export function useChildData(childId: string | null) {
         completed:    false,
         assignedTo:   data.assigned_to || undefined,
         strategyId:   data.strategy_id || undefined,
-        scheduleDays: Array.isArray(data.schedule_days) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
         scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
         dueDate:      data.due_date ?? undefined,
       }].sort((a, b) => a.time.localeCompare(b.time)));
