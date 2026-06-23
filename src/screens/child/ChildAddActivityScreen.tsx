@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Platform, SafeAreaView, ActivityIndicator,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,6 +38,7 @@ export default function ChildAddActivityScreen() {
   const { profile } = useAuth();
   const { previewChildId } = useMode();
   const T = useChildTheme();
+  const insets = useSafeAreaInsets();
   const lang = i18n.language;
 
   // In View-as-Child (shared device) the auth profile is the PARENT, so the
@@ -235,7 +237,7 @@ export default function ChildAddActivityScreen() {
         </View>
       </ScrollView>
 
-      <View style={[styles.foot, { borderTopColor: T.border }]}>
+      <View style={[styles.foot, { borderTopColor: T.border, paddingBottom: Math.max(12, insets.bottom) }]}>
         <TouchableOpacity
           style={[styles.saveBtn, { backgroundColor: canSave ? T.primary : T.border }]}
           disabled={!canSave || saving}
