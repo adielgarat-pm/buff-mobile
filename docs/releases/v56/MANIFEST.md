@@ -1,4 +1,4 @@
-# Release 1.7.6 (versionCode 54)
+# Release 1.7.6 (versionCode 56)
 
 **Date:** 2026-06-23
 **Base commit:** `1bb0a0b`
