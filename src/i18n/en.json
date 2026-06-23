@@ -2059,10 +2059,18 @@
   "referral.shareWhatsapp": "Share via WhatsApp",
   "referral.copyLink": "Copy link",
   "referral.copied": "Copied!",
-  "referral.stats": "You have referred {{count}} families so far",
+  "referral.stats": "{{count}} families",
+  "referral.statsLabel": "Referred so far",
   "referral.loadError": "Could not load your invite link. Try again.",
   "referral.whatsappMessage": "I found an app that helps my child with daily tasks — and it stops me from nagging all the time 🙌\nHere are 2 free weeks: {{url}}",
-  "referral.onboardingLabel": "Have a referral code? (optional)",
-  "referral.onboardingPlaceholder": "e.g. BF3K9X",
-  "referral.onboardingSuccess": "🎉 2 free weeks of BUFF Premium activated!"
+  "referral.onboardingLabel": "🎁 Have a referral code from a friend?",
+  "referral.onboardingPlaceholder": "XXXXXX",
+  "referral.onboardingCta": "Apply",
+  "referral.onboardingSuccess": "🎉 You got 14 days of BUFF Premium!",
+  "referral.onboardingAlreadyPremium": "You're already on Premium via a referral 🎉",
+  "referral.onboardingErrorInvalid": "Code not found or already used",
+  "referral.onboardingErrorSelf": "You can't use your own code",
+  "referral.onboardingErrorGeneric": "Something went wrong, try again",
+  "referral.sheetBannerTitle": "A friend joined!",
+  "referral.sheetBannerSub": "You both get 14 days of Premium"
 }

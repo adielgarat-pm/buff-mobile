@@ -2059,10 +2059,18 @@
   "referral.shareWhatsapp": "שתף בוואטסאפ",
   "referral.copyLink": "העתק קישור",
   "referral.copied": "הועתק!",
-  "referral.stats": "הפניתם {{count}} משפחות עד כה",
+  "referral.stats": "{{count}} משפחות",
+  "referral.statsLabel": "הפניתם עד כה",
   "referral.loadError": "לא ניתן לטעון את קישור ההזמנה. נסו שוב.",
   "referral.whatsappMessage": "מצאתי אפליקציה שעוזרת לילד שלי עם משימות יומיות — ומפסיקה אותי מלנחנח כל הזמן 🙌\nהנה שבועיים חינם: {{url}}",
-  "referral.onboardingLabel": "יש לכם קוד הפניה? (אופציונלי)",
-  "referral.onboardingPlaceholder": "לדוגמה: BF3K9X",
-  "referral.onboardingSuccess": "🎉 שבועיים של BUFF Premium הופעלו בחינם!"
+  "referral.onboardingLabel": "🎁 יש לך קוד מחבר שהמליץ?",
+  "referral.onboardingPlaceholder": "XXXXXX",
+  "referral.onboardingCta": "החל",
+  "referral.onboardingSuccess": "🎉 קיבלתם 14 ימים BUFF Premium!",
+  "referral.onboardingAlreadyPremium": "כבר מחוברים לתוכנית הפרמיום דרך הפניה 🎉",
+  "referral.onboardingErrorInvalid": "הקוד לא נמצא או שכבר שומש",
+  "referral.onboardingErrorSelf": "לא ניתן להשתמש בקוד שלך",
+  "referral.onboardingErrorGeneric": "שגיאה, נסו שוב",
+  "referral.sheetBannerTitle": "חבר הצטרף!",
+  "referral.sheetBannerSub": "שניכם מקבלים 14 ימים Premium"
 }
