@@ -330,9 +330,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
-  // Google OAuth via Expo AuthSession — opens in-app browser, returns tokens via deep link
+  // Google OAuth — web uses standard browser redirect, native uses in-app browser + deep link
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
     try {
+      if (Platform.OS === 'web') {
+        // On web, let Supabase redirect back to the current origin.
+        // onAuthStateChange picks up the session from the URL hash automatically.
+        const redirectTo = typeof window !== 'undefined'
+          ? `${window.location.origin}/`
+          : undefined;
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo },
+        });
+        return { error };
+      }
+
+      // Native: open in-app browser, extract tokens from deep-link redirect
       // Must include path so the URL matches handleDeepLink's buff://auth/callback check
       const redirectUri = makeRedirectUri({ scheme: 'buff', path: 'auth/callback' });
 
