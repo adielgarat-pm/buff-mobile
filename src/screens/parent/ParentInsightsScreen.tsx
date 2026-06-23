@@ -87,6 +87,10 @@ export default function ParentInsightsScreen() {
     setParentContext,
     generating,
     generate: generateSmartInsight,
+    error: smartError,
+    generationsLeft,
+    userVote,
+    submitVote,
   } = useSmartInsights(childId);
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
@@ -399,6 +403,26 @@ export default function ParentInsightsScreen() {
                 <Text style={styles.ctaText}>{ctaLabel(smartInsight.cta_type as any)}</Text>
               </TouchableOpacity>
             )}
+            {/* 👍 👎 feedback row */}
+            <View style={styles.voteRow}>
+              <Text style={[styles.voteLabel, { color: T.textMuted }]}>
+                {i18n.language === 'he' ? 'האם התובנה הייתה מועילה?' : 'Was this insight helpful?'}
+              </Text>
+              <View style={styles.voteButtons}>
+                <TouchableOpacity
+                  onPress={() => submitVote(1)}
+                  style={[styles.voteBtn, userVote === 1 && styles.voteBtnActive]}
+                >
+                  <Text style={styles.voteEmoji}>👍</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => submitVote(-1)}
+                  style={[styles.voteBtn, userVote === -1 && styles.voteBtnActive]}
+                >
+                  <Text style={styles.voteEmoji}>👎</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
 
@@ -428,18 +452,42 @@ export default function ParentInsightsScreen() {
               numberOfLines={2}
               textAlignVertical="top"
             />
-            <TouchableOpacity
-              style={[styles.cta, { backgroundColor: generating ? '#9CA3AF' : '#7C3AED', marginTop: 4 }]}
-              onPress={generateSmartInsight}
-              disabled={generating}
-            >
-              {generating
-                ? <ActivityIndicator color="#fff" size="small" />
-                : <Text style={styles.ctaText}>
-                    {i18n.language === 'he' ? '✨ צור תובנה חכמה' : '✨ Generate Smart Insight'}
-                  </Text>
-              }
-            </TouchableOpacity>
+            <View style={styles.generateRow}>
+              <TouchableOpacity
+                style={[
+                  styles.cta,
+                  { backgroundColor: (generating || generationsLeft === 0) ? '#9CA3AF' : '#7C3AED', marginTop: 4, flex: 1 },
+                ]}
+                onPress={generateSmartInsight}
+                disabled={generating || generationsLeft === 0}
+              >
+                {generating
+                  ? <ActivityIndicator color="#fff" size="small" />
+                  : <Text style={styles.ctaText}>
+                      {i18n.language === 'he' ? '✨ צור תובנה חכמה' : '✨ Generate Smart Insight'}
+                    </Text>
+                }
+              </TouchableOpacity>
+              <View style={styles.quotaBadge}>
+                <Text style={[styles.quotaText, { color: generationsLeft === 0 ? '#DC2626' : T.textMuted }]}>
+                  {generationsLeft}/3
+                </Text>
+                <Text style={[styles.quotaLabel, { color: T.textMuted }]}>
+                  {i18n.language === 'he' ? 'השבוע' : 'this week'}
+                </Text>
+              </View>
+            </View>
+            {smartError && (
+              <Text style={styles.smartErrorText}>
+                {i18n.language === 'he'
+                  ? smartError === 'premium'    ? 'נדרשת מנוי פרימיום'
+                  : smartError === 'rate-limit' ? 'הגעת למגבלת 3 תובנות השבוע. נתחדש ביום שני'
+                  : 'משהו השתבש, נסי שוב'
+                  : smartError === 'premium'    ? 'Premium required'
+                  : smartError === 'rate-limit' ? "You've used all 3 insights this week. Resets Monday"
+                  : 'Something went wrong, try again'}
+              </Text>
+            )}
           </View>
         )}
 
@@ -553,12 +601,22 @@ const styles = StyleSheet.create({
   smartActionIcon:  { fontSize: 14, color: '#7C3AED', fontWeight: '700', marginTop: 1 },
   smartAction:      { flex: 1, fontSize: 14, fontWeight: '600', lineHeight: 20 },
 
+  // Vote row (👍👎)
+  voteRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#DDD6FE' },
+  voteLabel:    { fontSize: 12 },
+  voteButtons:  { flexDirection: 'row', gap: 8 },
+  voteBtn:      { padding: 6, borderRadius: 8, backgroundColor: 'transparent' },
+  voteBtnActive:{ backgroundColor: '#EDE9FE' },
+  voteEmoji:    { fontSize: 20 },
+
   // Parent context input card
-  contextCard:      { borderRadius: 16, borderWidth: 1, padding: 16, gap: 8 },
-  contextLabel:     { fontSize: 15, fontWeight: '700' },
-  contextHint:      { fontSize: 12, marginTop: -4 },
-  contextInput:     {
-    borderWidth: 1, borderRadius: 10, padding: 10,
-    fontSize: 14, minHeight: 64, marginTop: 4,
-  },
+  contextCard:    { borderRadius: 16, borderWidth: 1, padding: 16, gap: 8 },
+  contextLabel:   { fontSize: 15, fontWeight: '700' },
+  contextHint:    { fontSize: 12, marginTop: -4 },
+  contextInput:   { borderWidth: 1, borderRadius: 10, padding: 10, fontSize: 14, minHeight: 64, marginTop: 4 },
+  generateRow:    { flexDirection: 'row', alignItems: 'flex-end', gap: 10, marginTop: 4 },
+  quotaBadge:     { alignItems: 'center', paddingBottom: 2 },
+  quotaText:      { fontSize: 15, fontWeight: '800' },
+  quotaLabel:     { fontSize: 10, marginTop: -2 },
+  smartErrorText: { fontSize: 13, color: '#DC2626', textAlign: 'center', marginTop: 4 },
 });
