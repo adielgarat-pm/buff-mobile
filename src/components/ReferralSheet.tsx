@@ -72,6 +72,14 @@ export default function ReferralSheet({ visible, onClose }: Props) {
         <Text style={styles.title}>{t('referral.title')}</Text>
         <Text style={styles.sub}>{t('referral.sub')}</Text>
 
+        {/* Success banner — shown on every open when at least one friend joined */}
+        {completedCount > 0 && (
+          <View style={styles.successBanner}>
+            <Text style={styles.successBannerTitle}>{t('referral.sheetBannerTitle')}</Text>
+            <Text style={styles.successBannerSub}>{t('referral.sheetBannerSub')}</Text>
+          </View>
+        )}
+
         {/* Link box */}
         <View style={styles.linkBox}>
           {loading ? (
@@ -106,10 +114,15 @@ export default function ReferralSheet({ visible, onClose }: Props) {
           </Text>
         </TouchableOpacity>
 
-        {/* Stats */}
-        <Text style={styles.stats}>
-          {t('referral.stats', { count: completedCount })}
-        </Text>
+        {/* Stats row — label + pill */}
+        <View style={styles.statsRow}>
+          <Text style={styles.statsLabel}>{t('referral.statsLabel')}</Text>
+          <View style={[styles.statsPill, completedCount > 0 && styles.statsPillActive]}>
+            <Text style={[styles.statsPillText, completedCount > 0 && styles.statsPillTextActive]}>
+              {t('referral.stats', { count: completedCount })}
+            </Text>
+          </View>
+        </View>
       </View>
     </Modal>
   );
@@ -169,7 +182,14 @@ const styles = StyleSheet.create({
   btnDisabled:     { opacity: 0.4 },
   btnPrimaryText:  { color: '#fff', fontWeight: '700', fontSize: 15 },
   btnSecondaryText:{ color: T.accent, fontWeight: '600', fontSize: 15 },
-  stats: {
-    marginTop: 8, color: T.textMuted, fontSize: 13,
-  },
+  successBanner:      { width: '100%', backgroundColor: '#EEEDFE', borderRadius: 10, borderWidth: 1, borderColor: '#AFA9EC', padding: 12, marginBottom: 16, alignItems: 'center' },
+  successBannerTitle: { color: '#3C3489', fontWeight: '700', fontSize: 14, marginBottom: 2 },
+  successBannerSub:   { color: '#534AB7', fontSize: 13 },
+
+  statsRow:            { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 8 },
+  statsLabel:          { color: T.textMuted, fontSize: 13 },
+  statsPill:           { backgroundColor: T.card, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4, borderWidth: 1, borderColor: T.cardBorder },
+  statsPillActive:     { backgroundColor: '#EEEDFE', borderColor: '#AFA9EC' },
+  statsPillText:       { color: T.textMuted, fontSize: 12, fontWeight: '500' },
+  statsPillTextActive: { color: '#534AB7' },
 });
