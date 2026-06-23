@@ -35,6 +35,7 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
+| 2026-06-23 | #278 / `04aadaf` | fix | **Onboarding step 7 "No phone" button now works on web PWA.** React Native `Alert.alert()` doesn't work reliably on Expo Web, causing the 👨‍👩‍👧 button to be unresponsive. Replaced with direct navigation `goNext(false)`, matching user intent. One-line fix, no schema, no deps. Android unaffected. | Train | yes | Onboarding → UStep7 → "No — show on my device" |
 | 2026-06-08 | #198 / `ba5ca8a` | fix | **Pause Mode ends at local midnight (calendar day)** instead of rolling N×24h from tap time. The exact bug רחל + Adi hit live on war-day 2026-06-08 (only their 2 DB rows were hand-fixed; everyone else on build 34 still has the +24h behavior). Code-only, merge-verified, Hat-3 logic verified; Hat-4 device pending | Train | yes | Parent Settings → Pause |
 | 2026-06-08 | #199 / `d449997` | feat | **Off-Routine Day** ("hard-day mode") — per-child third day-state; swaps the weekday plan for a light age-banded anchor bank, app stays active, still earns BUFFs. Pause supersedes off-routine. Hat-3 robustness done; Hat-4 pending | Train | yes | EditChild → Off-Routine card |
 | 2026-06-08 | #201 / `efd5569` | fix | Off-Routine "3 days" ends at local end-of-day (today+2), consistent with the Pause calendar-day fix | Train | yes | EditChild → Off-Routine "3 days" |
