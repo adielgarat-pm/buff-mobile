@@ -28,6 +28,7 @@ type UWithPhone       = UWithPreview    & { hasPhone: boolean };
 
 export type RootStackParamList = {
   // ── Auth ──────────────────────────────────────────────────────────────
+  Landing:       undefined;
   RoleSelection: undefined;
   Login:         undefined;
   Signup:        { initialRole?: 'parent' | 'child' } | undefined;
