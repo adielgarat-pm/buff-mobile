@@ -9,6 +9,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import LanguagePicker from '../../components/LanguagePicker';
 
 type Nav = StackNavigationProp<RootStackParamList, 'RoleSelection'>;
 
@@ -32,6 +33,8 @@ export default function RoleSelectionScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
+      <LanguagePicker />
+
       <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
 
         {/* Logo */}

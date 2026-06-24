@@ -19,6 +19,7 @@ import type { RootStackParamList } from './types';
 import { linking } from './linking';
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
+import LandingScreen       from '../screens/auth/LandingScreen';
 import RoleSelectionScreen from '../screens/auth/RoleSelectionScreen';
 import LoginScreen         from '../screens/auth/LoginScreen';
 import SignupScreen        from '../screens/auth/SignupScreen';
@@ -100,6 +101,7 @@ export default function RootNavigator() {
         {!user ? (
           // ─── 1. UNAUTHENTICATED ──────────────────────────────────────
           <>
+            <Stack.Screen name="Landing"       component={LandingScreen} />
             <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
             <Stack.Screen name="Login"         component={LoginScreen} />
             <Stack.Screen name="Signup"        component={SignupScreen} />
