@@ -1,7 +1,25 @@
 # SPEC — rate-us-port
 
+> **⚠️ DESIGN REVISION — 2026-06-25 (supersedes parts of §4 / §9 below).**
+> After researching how high-engagement apps and both store policies handle ratings, the native path was
+> redesigned (Adi-approved, 2026-06-25):
+> - **Native (Android/iOS):** the **OS in-app review card** (`expo-store-review`) now fires **automatically**
+>   on the parent dashboard once the retention gate passes — **no sentiment gate, no CTA button**. This
+>   supersedes §4.2's "manual Play deep-link behind the gate." Google explicitly forbids any question/CTA in
+>   front of the native API; Apple treats a happy-only funnel as review manipulation. The Settings "Rate BUFF"
+>   row keeps the deep-link (a CTA must not fire the native API).
+> - **Web:** unchanged — banner + `RateBuffSheet` → first-party `reviews` write.
+> - **Private feedback (option A, supersedes §9.1):** **no contact number is shipped.** A personal number
+>   can't be hidden in a client bundle, so feedback is captured in-app → surfaced in the admin FeedbackBoard
+>   → the team follows up. `contactSupport.ts` was deleted; the "Send feedback" Settings row is the un-gated
+>   private channel.
+> - **Copy:** approved 2026-06-25 (engagement-optimised, WHY/WHAT, Pillar-2). `rate.contactButton` /
+>   `rate.contactPrefill` removed; `rate.feedbackRow` added.
+> - The branch was **rebased onto main (a4bfe32)** — keeps main's new bilateral referral row; FeedbackBoard
+>   became a 3rd admin tab.
+
 **Status:** DESIGN (target state). No code until Adi says `approved, proceed`.
-**Last updated:** 2026-06-20
+**Last updated:** 2026-06-25 (design revision; see banner above)
 **Branch (proposed):** `pkg/rate-us-port`
 **Sibling session:** `pkg/pwa-install-nudge` (**PR #267, MERGED to main 2026-06-20**) owns the passive-nudge
 coordination — the "Nudge Manager" single-slot system, now live in `src/lib/nudges/`. This SPEC is a

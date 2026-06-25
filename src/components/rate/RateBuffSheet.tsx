@@ -30,9 +30,8 @@ import { submitReview } from '../../lib/rateBuff/submitReview';
 import { markRated } from '../../lib/rateBuff/rateEligibility';
 import { isHighIntent } from '../../lib/rateBuff/reviewStatus';
 import { getHighIntentCta } from '../../lib/rateBuff/highIntentDestination';
-import { openSupportContact } from '../../lib/rateBuff/contactSupport';
 
-type Phase = 'gate' | 'rate' | 'feedback' | 'store' | 'thanks' | 'contact';
+type Phase = 'gate' | 'rate' | 'feedback' | 'store' | 'thanks' | 'feedbackDone';
 
 interface Props {
   visible: boolean;
@@ -108,21 +107,17 @@ export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPh
   };
 
   const submitFeedback = async () => {
-    // Low-intent: store as a low rating (private), then offer the contact line.
+    // Low-intent: store privately as a low rating + the note. It lands in the
+    // admin FeedbackBoard, where the team reaches out directly — so we never
+    // expose a personal contact number in the client (decision: option A).
     const ok = await persist(2);
     if (!ok) return;
-    setPhase('contact');
+    setPhase('feedbackDone');
   };
 
   const openStore = () => {
     const cta = getHighIntentCta();
     if (cta) void Linking.openURL(cta.url);
-    close();
-  };
-
-  const openContact = () => {
-    const prefill = `${t('rate.contactPrefill')}\n\n${text}`.trim();
-    void openSupportContact(prefill);
     close();
   };
 
@@ -224,15 +219,12 @@ export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPh
             </>
           )}
 
-          {/* ── Contact line (unhappy) ─────────────────────────── */}
-          {phase === 'contact' && (
+          {/* ── Feedback received (private — team follows up) ──── */}
+          {phase === 'feedbackDone' && (
             <>
               <Text style={[styles.title, { color: T.text }]}>{t('rate.feedbackThanks')}</Text>
-              <TouchableOpacity style={[styles.btn, styles.btnWide, { backgroundColor: T.accent }]} onPress={openContact}>
-                <Text style={styles.btnText}>{t('rate.contactButton')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={close} style={styles.skip}>
-                <Text style={[styles.skipText, { color: T.textMuted }]}>{t('rate.done')}</Text>
+              <TouchableOpacity style={[styles.btn, styles.btnWide, { backgroundColor: T.accent }]} onPress={close}>
+                <Text style={styles.btnText}>{t('rate.done')}</Text>
               </TouchableOpacity>
             </>
           )}
