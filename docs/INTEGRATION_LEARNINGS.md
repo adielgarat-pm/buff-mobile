@@ -14,6 +14,20 @@
 
 ## Implementation Notes
 
+### IN-2026-06-25-01: ילדים דוברי-עברית עם שם בכתב לטיני ננעלים על אנגלית במכשיר שלהם — מלכודת `detectLangFromName` + `preferred_language` נפרד
+
+- **תאריך:** 2026-06-25
+- **מקור:** CC — דיווח של הטסטרית שני: "השפה אצלי עברית ואצלו (מתן) אנגלית ואי אפשר לשנות אצלו."
+- **תיאור (שורש, NOT באג RLS/שמירה):** שפת הילד נקבעת ע"י שלושה צירים **מנותקים**:
+  1. **ממשק במכשיר עצמאי של הילד** — `ChildLanguageBinder` ([App.tsx:115](../App.tsx)) מריץ `resolveChildLang(profile)` ([src/lib/i18nString.ts](../src/lib/i18nString.ts)) = `pro_settings.language` → `detectLangFromName(display_name)` → deviceLang, וכופה אותו. בורר-שפה במצב-ילד מוסתר במכוון (per-child-language OQ-2a) — אז הדרך **היחידה** של הורה לשנות היא חשבון-הורה → Edit Child → טוגל שפה ([EditChildScreen.tsx:354](../src/screens/parent/EditChildScreen.tsx)).
+  2. **`preferred_language`** (עמודה top-level **נפרדת**!) — מזינה **פוש** (`push-notification-fanout`) ו**תובנות AI** (`generate-child-insights`). מנותקת מהממשק — אפשר פוש בעברית אבל אפליקציה באנגלית. **לתקן את שני השדות.**
+  3. שפת המשימות (`tasks.title`) — קפואה ב-bake בזמן יצירה.
+- **המלכודת:** `detectLangFromName` ממפה שם בכתב לטיני → `'en'`. ילד דובר-עברית ששמו הוקלד באנגלית ("matan", "Itay", "Ben Balaban") מקבל ממשק אנגלי במכשיר שלו למרות שכל משימותיו בעברית. ה-RLS תקין; השמירה ב-Edit Child עובדת על v19+.
+- **למה name-script ולא device-locale — החלטת Adi 2026-05-29 (IN-2026-05-29-04):** הקוד הישן כתב שפת משימות מ-`i18n.language` (לוקייל ההורה ברגע האונבורדינג) → "לאיתי עברית לאמי אנגלית". Adi החליפה ל-name-script לנכונות per-child. קצה-המקרה (שם לטיני של דובר-עברית → אנגלית) היה **ידוע והתקבל**, עם מיטיגציה רק לשמות לא-ניתנים-לזיהוי (→ ברירת מחדל he). `pkg/per-child-language` (PR #124) הוסיף override להורה אבל ה-**backfill דולג** (לעִתי/אמי/ליה משימות באנגלית בלבד → inference היה קובע en בטעות), אז ילדים קיימים עם שם לטיני נשארו → name-script → en. device-locale שורד רק כ-`resolveChildLang` שלב 3 (שמות ריקים).
+- **השפעה / סריקת טסטרים (תוקן צד-שרת, חי ב-DB, לא צריך build):** 6 ילדים על מכשיר עצמאי עם משימות-עברית שננעלו על אנגלית קיבלו `pro_settings.language='he'` + `preferred_language='he'`: מתן (Shani Yitbark, הדיווח), Ben Balaban (Danielle), Leia Sagy (Noa Morag), Yagel El (שירן אלמליח), Negev (shaypelech), Gal Leshem (מיטל לשם). כל ילד צריך לפתוח-מחדש את האפליקציה + לאשר את ה-restart (מעבר LTR→RTL). המשפחה של Adi (Itay — גם `preferred_language='en'` — ו-Etay west) הושארה כפי שהיא לבקשתה (אולי הגדרה מכוונת לבדיקות).
+- **סטטוס:** `resolved-server-side; systemic-fix-deferred` — תיקוני הדאטה חיים. ה**תיקון המערכתי** (בורר-שפה מפורש באונבורדינג במקום ניחוש מאותיות-השם; לא "להחזיר device-default" כי זה מחזיר את הבעיה ההפוכה הורה-אנגלי+ילד-עברי) פורק ל-FLAG פתוח להחלטת Adi.
+- **קשור ל:** IN-2026-05-29-04 (מקור החלטת name-script), `pkg/per-child-language` SPEC §6.2/§10 (binder + backfill דולג), `src/lib/i18nString.ts` (`resolveChildLang`/`detectLangFromName`), [EditChildScreen.tsx](../src/screens/parent/EditChildScreen.tsx), IN-2026-06-17 (תיקון דומה ל-Emmy — set both fields), project_editchild_rls_blocks_owndevice, project_i18n_three_language_sources.
+
 ### IN-2026-06-19-01: בורר-הימים (PR #233) היה תקוע מחוץ ל-main — מוזג ל-`release-43` ולא הוחזר; main התקדם 79 commits בלעדיו. + ה-fallback "ריק→כל הימים" שוכפל ב-4 שכבות
 
 - **תאריך:** 2026-06-19
