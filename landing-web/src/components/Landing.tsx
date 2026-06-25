@@ -147,7 +147,7 @@ export default function Landing() {
             <img
               src={buffLogoNoBg}
               alt="BUFF - ADHD routine app for kids and teens"
-              className="h-18 w-18 sm:h-24 sm:w-24 object-contain"
+              className="h-14 w-14 sm:h-16 sm:w-16 object-contain"
               loading="eager"
             />
           </div>
