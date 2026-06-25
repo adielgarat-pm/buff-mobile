@@ -25,3 +25,19 @@ export async function callRpc<T>(
   }
   return res.json() as Promise<T>
 }
+
+// Read rows from the REST endpoint (admin RLS lets has_role('admin') SELECT all).
+// Same raw-fetch + explicit token approach as callRpc, for the same lock reason.
+export async function fetchRows<T>(path: string, accessToken: string): Promise<T> {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${path}`
+  const res = await fetch(url, {
+    headers: {
+      apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+  if (!res.ok) {
+    throw new Error(`GET ${path} failed: ${res.status} ${await res.text()}`)
+  }
+  return res.json() as Promise<T>
+}
