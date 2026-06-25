@@ -1,4 +1,4 @@
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet, Image, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -20,13 +20,25 @@ export default function LandingScreen() {
   const navigation = useNavigation<Nav>();
   const { t } = useTranslation();
   const { isRTL, direction } = useLanguage();
+  const { height: windowHeight } = useWindowDimensions();
+
+  // Web-only: React Navigation's screen card grows to content height (min-height:100%,
+  // flex:0 0 auto), so on a page taller than the viewport the ScrollView inherits the full
+  // content height and never becomes a scroller — and Expo's default `body { overflow:hidden }`
+  // clips the overflow, leaving the page unscrollable on mobile web. Pinning the ScrollView to
+  // the current viewport height restores internal scrolling. Native is unaffected (flex chain
+  // is already bounded there).
+  const webScrollFix =
+    Platform.OS === 'web'
+      ? { height: windowHeight, flexGrow: 0, flexShrink: 0, flexBasis: 'auto' as const }
+      : null;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       <LanguagePicker />
 
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, webScrollFix]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
