@@ -82,7 +82,7 @@ export default function ParentDashboardScreen() {
   // (priority 20) beats rate (10), and a 7-day global cooldown stops stacking.
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   useInstallNudgeRegistration(() => setNudgeDismissed(true));
-  useRateNudgeRegistration(() => setNudgeDismissed(true));
+  useRateNudgeRegistration(() => setNudgeDismissed(true), { enabled: !isChildPreview });
   const activeNudge = useActiveNudge({ suppressed: isChildPreview || nudgeDismissed });
   // Phase 3 — Med reminder sheet, opened over the anchor modal from its meds
   // CTA. Stacked (anchor modal stays mounted underneath) so cancelling the
