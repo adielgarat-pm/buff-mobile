@@ -11,7 +11,7 @@
  * forced; unhappy raters get a private channel + a human contact line, and are
  * never blocked from the public store (SPEC §4.2).
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -39,23 +39,40 @@ interface Props {
   onClose: () => void;
   /** Called after a rating/feedback is submitted (nudge marks itself done). */
   onSubmitted?: () => void;
+  /**
+   * Phase to open at. Default 'gate' (the "Rate BUFF" entry, web). The Settings
+   * "Send feedback" row opens at 'feedback' — the un-gated private channel that
+   * is always available, never a sentiment filter in front of the rating.
+   */
+  initialPhase?: Phase;
 }
 
-export default function RateBuffSheet({ visible, onClose, onSubmitted }: Props) {
+export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPhase = 'gate' }: Props) {
   const { t, i18n } = useTranslation();
   const { profile, familyId } = useAuth();
 
-  const [phase, setPhase] = useState<Phase>('gate');
+  const [phase, setPhase] = useState<Phase>(initialPhase);
   const [stars, setStars] = useState(5);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
 
   const reset = () => {
-    setPhase('gate');
+    setPhase(initialPhase);
     setStars(5);
     setText('');
     setBusy(false);
   };
+
+  // The Modal stays mounted (only `visible` toggles), so re-seed the phase on
+  // each open — otherwise the same instance would keep the previous flow's phase.
+  useEffect(() => {
+    if (visible) {
+      setPhase(initialPhase);
+      setStars(5);
+      setText('');
+      setBusy(false);
+    }
+  }, [visible, initialPhase]);
 
   const close = () => {
     reset();

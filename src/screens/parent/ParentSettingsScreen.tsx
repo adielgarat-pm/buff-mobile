@@ -2,7 +2,7 @@
  * Parent Settings — Zen Mode
  * Account, family management, mode switching, preferences.
  */
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert, Modal, Platform, Linking } from 'react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -25,6 +25,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import ReferralSheet from '../../components/ReferralSheet';
 import RateBuffSheet from '../../components/rate/RateBuffSheet';
+import { getHighIntentCta } from '../../lib/rateBuff/highIntentDestination';
 
 interface SettingsRow {
   label: string;
@@ -51,6 +52,30 @@ export default function ParentSettingsScreen() {
   const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
   const [referralSheetOpen, setReferralSheetOpen] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
+  const [rateInitialPhase, setRateInitialPhase] = useState<'gate' | 'feedback'>('gate');
+
+  // "Rate BUFF" row. On native a Settings button must NOT fire the native
+  // In-App Review API (Google: a CTA may hit the opaque quota and show nothing
+  // → broken UX) — it deep-links to the store listing instead. The native auto-
+  // prompt on the dashboard is what actually drives the OS card. Web/iOS (no
+  // Android listing CTA) open the in-app sheet, which writes a first-party review.
+  const handleRatePress = () => {
+    const cta = getHighIntentCta();
+    if (Platform.OS !== 'web' && cta) {
+      void Linking.openURL(cta.url);
+    } else {
+      setRateInitialPhase('gate');
+      setRateOpen(true);
+    }
+  };
+
+  // "Send feedback" row — the always-available private channel (saves to our
+  // reviews table + offers a human contact line). Deliberately NOT a sentiment
+  // filter in front of the public rating; it stands on its own for everyone.
+  const handleFeedbackPress = () => {
+    setRateInitialPhase('feedback');
+    setRateOpen(true);
+  };
 
   // Real version of the *installed build*, not app.json — so a tester always
   // knows exactly which build they're on (native APIs are null on web/dev,
@@ -188,7 +213,12 @@ export default function ParentSettingsScreen() {
         {
           label:   t('rate.settingsRow'),
           icon:    'star-outline' as const,
-          onPress: () => setRateOpen(true),
+          onPress: handleRatePress,
+        },
+        {
+          label:   t('rate.feedbackRow'),
+          icon:    'chatbubble-ellipses-outline' as const,
+          onPress: handleFeedbackPress,
         },
         {
           label: t('settings.rowVersion'),
@@ -304,7 +334,11 @@ export default function ParentSettingsScreen() {
         onClose={() => setReferralSheetOpen(false)}
       />
 
-      <RateBuffSheet visible={rateOpen} onClose={() => setRateOpen(false)} />
+      <RateBuffSheet
+        visible={rateOpen}
+        initialPhase={rateInitialPhase}
+        onClose={() => setRateOpen(false)}
+      />
 
       {/* iOS install instructions — shown when installMode is ios-safari or ios-other */}
       <Modal

@@ -1055,6 +1055,7 @@
   "settings.rowVersion": "Version",
   "settings.sectionAbout": "About",
   "rate.settingsRow": "Rate BUFF",
+  "rate.feedbackRow": "Send feedback",
   "rate.gateTitle": "Enjoying BUFF?",
   "rate.gateYes": "Yes! 💛",
   "rate.gateNo": "Not really",
