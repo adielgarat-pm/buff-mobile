@@ -12,10 +12,12 @@ export interface AdminReview {
   status: string
   detected_lang: string | null
   created_at: string
+  /** Parent's family — links a feedback row to the Tester Board family card. */
+  family_id: string | null
 }
 
 const SELECT =
-  'reviews?select=id,display_name,rating,review_text,status,detected_lang,created_at&order=created_at.desc'
+  'reviews?select=id,display_name,rating,review_text,status,detected_lang,created_at,family_id&order=created_at.desc'
 
 /**
  * All reviews submitted from the app (pkg/rate-us-port). Admins see every row

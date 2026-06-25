@@ -1,5 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useFeedbackReviews, type AdminReview } from '@/hooks/useFeedbackReviews'
+import { useTesterBoard } from '@/hooks/useTesterBoard'
+import { FamilyModal } from './FamilyModal'
+import type { TesterFamily } from '@/lib/types'
 
 function Stars({ n }: { n: number }) {
   return (
@@ -21,7 +24,15 @@ function StatusBadge({ status, rating }: { status: string; rating: number }) {
   return <span className={`rounded px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
 }
 
-function ReviewRow({ r }: { r: AdminReview }) {
+function ReviewRow({
+  r,
+  family,
+  onViewFamily,
+}: {
+  r: AdminReview
+  family: TesterFamily | null
+  onViewFamily: (f: TesterFamily) => void
+}) {
   const date = new Date(r.created_at).toLocaleDateString()
   return (
     <div className="flex flex-col gap-1 border-b py-3 last:border-b-0">
@@ -40,6 +51,32 @@ function ReviewRow({ r }: { r: AdminReview }) {
       ) : (
         <p className="text-sm italic text-gray-400">no text</p>
       )}
+
+      {/* Contact line — reach out to the parent (option A: feedback has no
+          in-app contact number; the team follows up from here). */}
+      <div className="mt-0.5 flex items-center gap-3 text-xs">
+        {family?.parent_email ? (
+          <a
+            href={`mailto:${family.parent_email}`}
+            className="text-blue-600 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            ✉ {family.parent_email}
+          </a>
+        ) : (
+          <span className="italic text-gray-400">no email on file</span>
+        )}
+        {family ? (
+          <button
+            onClick={() => onViewFamily(family)}
+            className="text-primary underline"
+          >
+            View family →
+          </button>
+        ) : r.family_id ? (
+          <span className="italic text-gray-400">family not loaded</span>
+        ) : null}
+      </div>
     </div>
   )
 }
@@ -47,10 +84,20 @@ function ReviewRow({ r }: { r: AdminReview }) {
 /**
  * Feedback board — every rating/feedback submitted from the app, newest first.
  * Low ratings (<4★, stored 'private') are flagged "needs attention" so Adi can
- * reach out. Approve a 4-5★ row in Supabase to publish it as a site testimonial.
+ * reach out. Each row links to the parent's email + Tester Board family card
+ * (the team's follow-up surface — option A ships no in-app contact number).
+ * Approve a 4-5★ row in Supabase to publish it as a site testimonial.
  */
 export function FeedbackBoard() {
   const { data, error, loading } = useFeedbackReviews()
+  const { data: families } = useTesterBoard()
+  const [selected, setSelected] = useState<TesterFamily | null>(null)
+
+  const familiesById = useMemo(() => {
+    const m = new Map<string, TesterFamily>()
+    for (const f of families ?? []) m.set(f.id, f)
+    return m
+  }, [families])
 
   const { lowCount, total } = useMemo(() => {
     const rows = data ?? []
@@ -75,10 +122,17 @@ export function FeedbackBoard() {
       {!loading && !error && (data?.length ?? 0) > 0 && (
         <div>
           {data!.map((r) => (
-            <ReviewRow key={r.id} r={r} />
+            <ReviewRow
+              key={r.id}
+              r={r}
+              family={r.family_id ? familiesById.get(r.family_id) ?? null : null}
+              onViewFamily={setSelected}
+            />
           ))}
         </div>
       )}
+
+      {selected && <FamilyModal family={selected} onClose={() => setSelected(null)} />}
     </section>
   )
 }
