@@ -9,9 +9,10 @@
  * Source SPEC: docs/sessions/co-parent-join/SPEC.md (Phase 2)
  */
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { crossAlert } from '../platform';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { PARENT_THEME as T } from '../theme';
@@ -57,7 +58,7 @@ export default function JoinFamilyCard() {
       // family_id and the parent app shows the joined family's data.
       if (user?.id) await refreshProfile(user.id);
       setCode('');
-      Alert.alert(t('joinFamily.success'));
+      crossAlert(t('joinFamily.success'));
     } catch {
       setError(t('joinFamily.errGeneric'));
     } finally {

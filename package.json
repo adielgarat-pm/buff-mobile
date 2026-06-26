@@ -12,7 +12,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "i18n:check": "node scripts/i18n-key-check.js",
-    "check:i18n-access": "node scripts/check-bilingual-access.js"
+    "check:i18n-access": "node scripts/check-bilingual-access.js",
+    "check:no-raw-alert": "node scripts/check-no-raw-alert.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

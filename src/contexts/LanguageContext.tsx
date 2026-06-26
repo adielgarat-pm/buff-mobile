@@ -33,11 +33,12 @@ import {
   useCallback,
   ReactNode,
 } from 'react';
-import { I18nManager, Alert } from 'react-native';
+import { I18nManager } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Localization from 'expo-localization';
 import * as Updates from 'expo-updates';
 import i18n, { SUPPORTED_LANGUAGES, LANGUAGE_LABELS, type SupportedLanguage } from '../i18n';
+import { crossAlert } from '../platform';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,7 +94,7 @@ function detectDeviceLanguage(): SupportedLanguage {
  * are already applied, so the flip lands on the next manual restart.
  */
 async function reloadApp(): Promise<void> {
-  Alert.alert(
+  crossAlert(
     i18n.t('language.restartTitle'),
     i18n.t('language.restartMessage'),
     [

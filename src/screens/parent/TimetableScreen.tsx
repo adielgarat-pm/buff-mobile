@@ -15,11 +15,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, Alert, StyleSheet, Platform, Modal,
+  ActivityIndicator, StyleSheet, Platform, Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
+import { crossAlert } from '../../platform';
 
 import { PARENT_THEME as T } from '../../theme';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
@@ -154,13 +155,13 @@ export default function TimetableScreen() {
       const { periods, hasAuto, hasErrors, isPivot } = parseExcelBase64(base64);
 
       if (periods.length === 0) {
-        Alert.alert(t('timetable.parseError'), t('timetable.noLessonsFound'));
+        crossAlert(t('timetable.parseError'), t('timetable.noLessonsFound'));
         setMode('choose');
         return;
       }
 
       if (isPivot) {
-        Alert.alert('', t('timetable.pivotDetected'));
+        crossAlert('', t('timetable.pivotDetected'));
       }
 
       openReview(periods, hasAuto, hasErrors);
@@ -170,7 +171,7 @@ export default function TimetableScreen() {
       const msg = err instanceof Error
         ? (err.message.startsWith('timetable.') ? t(err.message) : err.message)
         : t('timetable.parseError');
-      Alert.alert(t('timetable.parseError'), msg);
+      crossAlert(t('timetable.parseError'), msg);
       setMode('choose');
     }
   }, [t, openReview]);
@@ -187,7 +188,7 @@ export default function TimetableScreen() {
 
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('', t('timetable.photoPermission'));
+        crossAlert('', t('timetable.photoPermission'));
         return;
       }
 
@@ -226,7 +227,7 @@ export default function TimetableScreen() {
 
       if (error) throw new Error(error.message);
       if (!data?.tasks?.length) {
-        Alert.alert('', t('timetable.noLessonsFound'));
+        crossAlert('', t('timetable.noLessonsFound'));
         setMode('choose');
         return;
       }
@@ -236,7 +237,7 @@ export default function TimetableScreen() {
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError') return;
       console.error('[TimetableScreen] OCR error:', err);
-      Alert.alert(t('timetable.parseError'), (err instanceof Error ? err.message : ''));
+      crossAlert(t('timetable.parseError'), (err instanceof Error ? err.message : ''));
       setMode('choose');
     }
   }, [t, openReview]);
@@ -259,7 +260,7 @@ export default function TimetableScreen() {
       });
       if (error) throw new Error(error.message);
       if (!data?.tasks?.length) {
-        Alert.alert('', t('timetable.noLessonsFound'));
+        crossAlert('', t('timetable.noLessonsFound'));
         return;
       }
       const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
@@ -268,7 +269,7 @@ export default function TimetableScreen() {
       openReview(periods, hasAuto, hasErrors);
     } catch (err: unknown) {
       console.error('[TimetableScreen] paste error:', err);
-      Alert.alert(t('timetable.parseError'), err instanceof Error ? err.message : '');
+      crossAlert(t('timetable.parseError'), err instanceof Error ? err.message : '');
     } finally {
       setPastePending(false);
     }
@@ -311,7 +312,7 @@ export default function TimetableScreen() {
   const handleConfirmReview = useCallback(async () => {
     const selected = parsedPeriods.filter(p => p.selected);
     if (selected.length === 0) {
-      Alert.alert('', t('timetable.noLessonsManual'));
+      crossAlert('', t('timetable.noLessonsManual'));
       return;
     }
     if (hasReviewErrors) return;
@@ -319,10 +320,10 @@ export default function TimetableScreen() {
     const newTimetable = periodsToTimetable(selected);
     const ok = await saveTimetable(newTimetable);
     if (ok) {
-      Alert.alert('', t('timetable.saveSuccess'));
+      crossAlert('', t('timetable.saveSuccess'));
       setMode('view');
     } else {
-      Alert.alert('', t('timetable.saveError'));
+      crossAlert('', t('timetable.saveError'));
     }
   }, [parsedPeriods, hasReviewErrors, saveTimetable, t]);
 
@@ -335,15 +336,15 @@ export default function TimetableScreen() {
     });
     const total = Object.values(filtered).reduce((s, ps) => s + ps.length, 0);
     if (total === 0) {
-      Alert.alert('', t('timetable.noLessonsManual'));
+      crossAlert('', t('timetable.noLessonsManual'));
       return;
     }
     const ok = await saveTimetable(filtered);
     if (ok) {
-      Alert.alert('', t('timetable.saveSuccess'));
+      crossAlert('', t('timetable.saveSuccess'));
       setMode('view');
     } else {
-      Alert.alert('', t('timetable.saveError'));
+      crossAlert('', t('timetable.saveError'));
     }
   }, [manualTimetable, saveTimetable, t]);
 

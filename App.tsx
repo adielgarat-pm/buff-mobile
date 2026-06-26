@@ -39,6 +39,7 @@ import { LAVENDER_BG }                    from './src/theme/palette';
 import RootNavigator                     from './src/navigation/RootNavigator';
 import { GlobalConfetti }                from './src/components/GlobalConfetti';
 import { GlobalRewardPop }               from './src/components/GlobalRewardPop';
+import { AlertHost }                     from './src/platform';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { resolveChildLang }              from './src/lib/i18nString';
@@ -159,6 +160,8 @@ function AppContent() {
       <RootNavigator />
       <GlobalConfetti />
       <GlobalRewardPop />
+      {/* Web: renders crossAlert() dialogs (RN-Web Alert is a no-op). Native: null. */}
+      <AlertHost />
     </>
   );
 }

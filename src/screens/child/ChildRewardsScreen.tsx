@@ -12,8 +12,9 @@
  * (Intrinsic Motivation) and is not a paid feature per BUFF_PRD.md §5.1.
  */
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { crossAlert } from '../../platform';
 import { useTranslation } from 'react-i18next';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -118,7 +119,7 @@ function PastelChildRewards() {
   const handleClaim = async (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
-      Alert.alert(
+      crossAlert(
         t('childRewards.notEnoughTitle'),
         t('childRewards.notEnoughMsg', { count: reward.credits_needed - totalBalance, title: displayTitle })
       );
@@ -130,10 +131,10 @@ function PastelChildRewards() {
       credits_needed: reward.credits_needed,
     });
     if (error) {
-      Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+      crossAlert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
       return;
     }
-    Alert.alert(
+    crossAlert(
       t('childRewards.requestSentTitle'),
       t('childRewards.requestSentMsg', { title: displayTitle }),
     );

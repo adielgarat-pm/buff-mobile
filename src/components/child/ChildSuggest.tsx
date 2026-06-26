@@ -13,11 +13,12 @@
  */
 import { useState } from 'react';
 import {
-  View, Text, Modal, TextInput, TouchableOpacity, StyleSheet, Alert,
+  View, Text, Modal, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { ChildSuggestion, SuggestionKind } from '../../hooks/useChildSuggestions';
+import { crossAlert } from '../../platform';
 
 export interface SuggestPalette {
   overlay:    string;
@@ -55,12 +56,12 @@ export function SuggestModal({ visible, kind, palette, onClose, onSubmit }: Sugg
     const { error } = await onSubmit({ title, emoji });
     setSaving(false);
     if (error) {
-      Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+      crossAlert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
       return;
     }
     reset();
     onClose();
-    Alert.alert('', t('childSuggest.modal.sent'));
+    crossAlert('', t('childSuggest.modal.sent'));
   };
 
   const heading = kind === 'task'

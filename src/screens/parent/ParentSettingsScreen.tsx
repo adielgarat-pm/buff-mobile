@@ -2,8 +2,9 @@
  * Parent Settings — Zen Mode
  * Account, family management, mode switching, preferences.
  */
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Alert, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal } from 'react-native';
 import { useState } from 'react';
+import { crossAlert } from '../../platform';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -74,7 +75,7 @@ export default function ParentSettingsScreen() {
   // In-app account deletion (Apple Guideline 5.1.1(v)). Two-tap destructive confirm.
   // On success the auth state clears and the navigator returns to the login screen.
   const handleDeleteAccount = () => {
-    Alert.alert(
+    crossAlert(
       t('settings.deleteAccountTitle'),
       t('settings.deleteAccountMessage'),
       [
@@ -85,7 +86,7 @@ export default function ParentSettingsScreen() {
           onPress: async () => {
             const { error } = await deleteAccount();
             if (error) {
-              Alert.alert(
+              crossAlert(
                 t('settings.deleteAccountErrorTitle'),
                 t('settings.deleteAccountErrorMessage'),
               );
