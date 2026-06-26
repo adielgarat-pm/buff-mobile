@@ -29,14 +29,17 @@ export interface AlertOptions {
   onDismiss?: () => void;
 }
 
-/** Signature-compatible with RN's `Alert.alert(title, message?, buttons?, options?)`. */
-export function crossAlert(
-  title: string,
-  message?: string,
-  buttons?: AlertButton[],
-  options?: AlertOptions,
-): void {
-  Alert.alert(title, message, buttons, options);
+/**
+ * Signature-compatible with RN's `Alert.alert(title, message?, buttons?, options?)`.
+ * Forwarded with rest args (not named params) so the call arity to `Alert.alert`
+ * is preserved exactly — `crossAlert('x')` calls `Alert.alert('x')`, not
+ * `Alert.alert('x', undefined, undefined, undefined)`. Keeps the wrapper a
+ * transparent pass-through (and arity-sensitive Alert spies in tests intact).
+ */
+type CrossAlertArgs = [title: string, message?: string, buttons?: AlertButton[], options?: AlertOptions];
+
+export function crossAlert(...args: CrossAlertArgs): void {
+  (Alert.alert as (...a: CrossAlertArgs) => void)(...args);
 }
 
 /**
