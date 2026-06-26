@@ -11,9 +11,10 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, TouchableOpacity, ScrollView, Animated, ActivityIndicator, StyleSheet, Alert,
+  View, Text, TouchableOpacity, ScrollView, Animated, ActivityIndicator, StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { crossAlert } from '../../../platform';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -120,7 +121,7 @@ export default function UStep5_Preview() {
   // them, rather than silently creating a second profile (which also breaks the
   // child's family-code login by making two same-name profiles pickable).
   const promptDuplicate = (existingName: string) => {
-    Alert.alert(
+    crossAlert(
       t('onboarding.step5.duplicateTitle', { name: existingName }),
       t('onboarding.step5.duplicateBody', { name: existingName }),
       [

@@ -13,8 +13,9 @@
  * Self-conditional: renders null when !isLowPower.
  */
 import { useTranslation } from 'react-i18next';
-import { Alert, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useLowPower } from '../contexts/LowPowerContext';
+import { crossAlert } from '../platform';
 
 export interface SosButtonPalette {
   bg:        string;
@@ -37,7 +38,7 @@ export default function SosButton({ palette }: SosButtonProps) {
   const onPress = () => {
     if (sosSent) return;
 
-    Alert.alert(
+    crossAlert(
       t('sosButton.confirmTitle'),
       t('sosButton.confirmBody'),
       [

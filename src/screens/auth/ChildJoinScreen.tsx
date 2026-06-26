@@ -2,9 +2,10 @@ import { useState } from 'react';
 import {
   View, Text, Image, TextInput, TouchableOpacity,
   ActivityIndicator, KeyboardAvoidingView,
-  Platform, Alert, ScrollView, StyleSheet,
+  Platform, ScrollView, StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { crossAlert } from '../../platform';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -54,7 +55,7 @@ export default function ChildJoinScreen() {
   const handleFindFamily = async () => {
     const code = familyCode.trim().toUpperCase();
     if (!code || code.length < 6) {
-      Alert.alert(t('auth.invalidCode'));
+      crossAlert(t('auth.invalidCode'));
       return;
     }
 
@@ -69,11 +70,11 @@ export default function ChildJoinScreen() {
       | null;
 
     if (error || !result?.found) {
-      Alert.alert(t('auth.codeNotFound'));
+      crossAlert(t('auth.codeNotFound'));
       return;
     }
     if (!result.children || result.children.length === 0) {
-      Alert.alert(t('auth.childJoinNoChildren'));
+      crossAlert(t('auth.childJoinNoChildren'));
       return;
     }
 
@@ -125,7 +126,7 @@ export default function ChildJoinScreen() {
       console.error('[ChildEntry] orphan link failed; rolling back session', { profileId: child.id });
       await supabase.auth.signOut();
       setLoading(false);
-      Alert.alert(t('auth.childEntryFailed'));
+      crossAlert(t('auth.childEntryFailed'));
       return;
     }
 
@@ -140,7 +141,7 @@ export default function ChildJoinScreen() {
     }
 
     console.error('[ChildEntry] could not resolve linked child (legacy sign-in failed)', { profileId: child.id });
-    Alert.alert(t('auth.childEntryFailed'));
+    crossAlert(t('auth.childEntryFailed'));
   };
 
   return (

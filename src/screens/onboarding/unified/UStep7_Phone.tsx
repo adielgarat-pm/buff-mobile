@@ -9,7 +9,7 @@
  * 'default' Android channel set up in notificationHandler.ts at app boot).
  * Best-effort: proceeds even if permission is denied or scheduling fails.
  */
-import { View, Text, TouchableOpacity, Share, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Share, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';

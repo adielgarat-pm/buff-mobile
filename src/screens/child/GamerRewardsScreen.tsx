@@ -30,9 +30,10 @@
  */
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { crossAlert } from '../../platform';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -162,7 +163,7 @@ export default function GamerRewardsScreen() {
   const handleClaim = async (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
-      Alert.alert(
+      crossAlert(
         t('childRewards.notEnoughTitle'),
         t('childRewards.notEnoughMsg', {
           count: reward.credits_needed - totalBalance,
@@ -177,10 +178,10 @@ export default function GamerRewardsScreen() {
       credits_needed: reward.credits_needed,
     });
     if (error) {
-      Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+      crossAlert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
       return;
     }
-    Alert.alert(
+    crossAlert(
       t('childRewards.requestSentTitle'),
       t('childRewards.requestSentMsg', { title: displayTitle }),
     );

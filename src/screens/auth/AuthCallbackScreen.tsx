@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { crossAlert } from '../../platform';
 import { supabase } from '../../integrations/supabase/client';
 import { PASTEL_MODE as T } from '../../theme/modes';
 
@@ -38,7 +39,7 @@ export default function AuthCallbackScreen() {
           .single();
 
         if (familyError) {
-          Alert.alert(t('auth.error.createFamily'));
+          crossAlert(t('auth.error.createFamily'));
           return;
         }
         familyId = (newFamily as { id: string }).id;
@@ -52,7 +53,7 @@ export default function AuthCallbackScreen() {
           .eq('user_id', user.id);
         if (error) {
           console.error('[AuthCallback] Error updating profile:', JSON.stringify(error, null, 2));
-          Alert.alert(t('auth.error.updateProfile'));
+          crossAlert(t('auth.error.updateProfile'));
           return;
         }
       } else {
@@ -71,7 +72,7 @@ export default function AuthCallbackScreen() {
           .upsert(insertPayload as never, { onConflict: 'user_id', ignoreDuplicates: true });
         if (error) {
           console.error('[AuthCallback] Error creating profile:', JSON.stringify(error, null, 2));
-          Alert.alert(t('auth.error.createProfile'));
+          crossAlert(t('auth.error.createProfile'));
           return;
         }
       }

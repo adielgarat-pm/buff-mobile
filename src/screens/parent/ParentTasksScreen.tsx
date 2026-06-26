@@ -6,9 +6,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
-  Modal, TextInput, Alert, KeyboardAvoidingView, Platform,
+  Modal, TextInput, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { crossAlert } from '../../platform';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { PARENT_THEME as T } from '../../theme';
@@ -155,7 +156,7 @@ export default function ParentTasksScreen() {
   const handleDeleteTask = () => {
     if (!editingId) return;
     const id = editingId;
-    Alert.alert(
+    crossAlert(
       t('parentTasks.editModal.deleteConfirmTitle'),
       t('parentTasks.editModal.deleteConfirmMsg'),
       [
@@ -194,7 +195,7 @@ export default function ParentTasksScreen() {
     const { error } = await supabase.from('tasks').insert(rows as never);
     if (error) {
       console.error('[ParentTasks] duplicate error:', error.message);
-      Alert.alert(t('common.error'), t('common.errorGeneric'));
+      crossAlert(t('common.error'), t('common.errorGeneric'));
       return;
     }
     await refetch();
@@ -238,7 +239,7 @@ export default function ParentTasksScreen() {
 
     if (error) {
       console.error('[ParentTasks] task insert error:', error.message);
-      Alert.alert(t('common.error'), t('common.errorGeneric'));
+      crossAlert(t('common.error'), t('common.errorGeneric'));
       return;
     }
 
