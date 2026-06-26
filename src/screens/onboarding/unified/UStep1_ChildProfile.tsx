@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Platform, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import LanguagePicker from '../../../components/LanguagePicker';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import BirthdayField from '../../../components/BirthdayField';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -21,11 +21,6 @@ const GENDERS: { value: Gender; labelKey: string }[] = [
   { value: 'girl',  labelKey: 'onboarding.gender.girl'  },
   { value: 'other', labelKey: 'onboarding.gender.other' },
 ];
-
-/** Format a Date for display. Locale follows the app language (en → "19 Oct 1998", he → "19 באוק׳ 1998"). */
-function formatDate(d: Date, locale: string): string {
-  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 /** ISO date string "YYYY-MM-DD" stored in params */
 function toISODate(d: Date): string {
@@ -54,7 +49,6 @@ export default function UStep1_ChildProfile() {
   const [ageGroup,        setAgeGroup]       = useState<AgeGroup | null>(null);
   const [gender,          setGender]         = useState<Gender | null>(null);
   const [birthDate,       setBirthDate]      = useState<Date | null>(null);
-  const [showDatePicker,  setShowDatePicker] = useState(false);
 
   const canProceed =
     !!childName.trim() &&
@@ -88,13 +82,6 @@ export default function UStep1_ChildProfile() {
       birthDate: birthDate ? toISODate(birthDate) : undefined,
       existingChildId,
     });
-  };
-
-  const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
-    // On Android the picker closes itself; on iOS it stays open until dismissed
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    if (event.type === 'set' && selected) setBirthDate(selected);
-    if (event.type === 'dismissed') setShowDatePicker(false);
   };
 
   return (
@@ -173,45 +160,14 @@ export default function UStep1_ChildProfile() {
         ))}
       </View>
 
-      {/* Birthday — native date picker */}
+      {/* Birthday (optional) — native picker on iOS/Android, <input type="date"> on web */}
       <Text style={styles.label}>{t('onboarding.step1.birthdayLabel')}</Text>
-
-      {/* iOS inline picker — always visible once toggled */}
-      {Platform.OS === 'ios' && showDatePicker && (
-        <DateTimePicker
-          mode="date"
-          display="spinner"
-          value={birthDate ?? new Date(2010, 0, 1)}
-          maximumDate={new Date()}
-          onChange={onDateChange}
-          style={styles.iosSpinner}
-        />
-      )}
-
-      {/* Android: show/hide via button press */}
-      {(Platform.OS !== 'ios' || !showDatePicker) && (
-        <TouchableOpacity
-          style={[styles.dateBtn, !!birthDate && styles.dateBtnFilled]}
-          onPress={() => setShowDatePicker(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.dateBtnText, !!birthDate && styles.dateBtnTextFilled]}>
-            {birthDate ? formatDate(birthDate, i18n.language) : t('onboarding.step1.birthdayPlaceholder')}
-          </Text>
-          <Text style={styles.dateBtnIcon}>📅</Text>
-        </TouchableOpacity>
-      )}
-
-      {/* Android: picker appears as modal overlay when showDatePicker=true */}
-      {Platform.OS === 'android' && showDatePicker && (
-        <DateTimePicker
-          mode="date"
-          display="default"
-          value={birthDate ?? new Date(2010, 0, 1)}
-          maximumDate={new Date()}
-          onChange={onDateChange}
-        />
-      )}
+      <BirthdayField
+        value={birthDate}
+        onChange={setBirthDate}
+        placeholder={t('onboarding.step1.birthdayPlaceholder')}
+        locale={i18n.language}
+      />
 
     </OnboardingShell>
   );
@@ -227,11 +183,4 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: T.accent, borderColor: T.accent },
   pillText: { color: T.textMuted, fontWeight: '600', fontSize: 14 },
   pillTextActive: { color: '#fff' },
-  dateBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F9FAFB', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1, borderColor: T.cardBorder, marginBottom: 4 },
-  dateBtnFilled: { borderColor: T.accent, backgroundColor: '#F5F3FF' },
-  dateBtnText: { flex: 1, color: T.textMuted, fontSize: 15 },
-  dateBtnTextFilled: { color: T.text, fontWeight: '500' },
-  dateBtnIcon: { fontSize: 18 },
-  iosSpinner: { width: '100%', marginBottom: 4 },
-  optionalHint: { color: T.textMuted, fontSize: 12, marginBottom: 20, marginTop: 4 },
 });

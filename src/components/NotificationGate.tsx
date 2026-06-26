@@ -20,12 +20,13 @@
  * service account JSON.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { usePushRegistration } from '../hooks/usePushRegistration';
+import { usePushPromptDismiss } from '../hooks/usePushPromptDismiss';
 import { useKidLocalNotifications } from '../hooks/useKidLocalNotifications';
 import { setupNotifications } from '../lib/notificationHandler';
 import { PushPermissionPrePrompt } from '../screens/onboarding/PushPermissionPrePrompt';
@@ -42,12 +43,17 @@ export const NotificationGate: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const { permission, register } = usePushRegistration();
+  // Persistent "don't nag" flag — survives web page reloads (the in-memory
+  // useRef it replaced reset on every refresh, re-popping the pre-prompt) and
+  // re-asks only after a week. Covers accept-that-failed loops too: an accept
+  // that leaves permission 'unknown' (web register() error path) is dismissed
+  // here so the modal can't immediately re-show.
+  const { isDismissed: promptDismissed, markDismissed, loading: dismissLoading } =
+    usePushPromptDismiss(profile?.id ?? null);
   // Kid local notifications — internally no-op when profile.role !== 'child'
   useKidLocalNotifications();
 
   const [promptVisible, setPromptVisible] = useState(false);
-  // Prevent re-showing the pre-prompt after dismiss in the same session
-  const dismissedThisSession = useRef(false);
   // Denial-recovery banner: a 'denied' user can never see the OS dialog again,
   // so without this they stay dark forever. Dismissible per session.
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -62,23 +68,31 @@ export const NotificationGate: React.FC = () => {
   // Decide whether to show the pre-prompt modal
   useEffect(() => {
     if (!profile) return;
-    if (dismissedThisSession.current) return;
+    if (dismissLoading) return;       // wait until the persisted flag is read
+    if (promptDismissed) {
+      setPromptVisible(false);
+      return;
+    }
     if (permission === 'unknown') {
       // Small delay so the dashboard renders first
       const timer = setTimeout(() => setPromptVisible(true), 1200);
       return () => clearTimeout(timer);
     }
     setPromptVisible(false);
-  }, [profile, permission]);
+  }, [profile, permission, promptDismissed, dismissLoading]);
 
   const handleAccept = async () => {
     setPromptVisible(false);
+    // Mark dismissed BEFORE register(): on web a failed register() leaves
+    // permission 'unknown', and without this the effect would re-pop the modal
+    // 1.2s later in a loop. Re-ask is governed by the hook's interval.
+    await markDismissed();
     await register();
   };
 
   const handleDecline = () => {
     setPromptVisible(false);
-    dismissedThisSession.current = true;
+    void markDismissed();
   };
 
   if (!profile) return null;

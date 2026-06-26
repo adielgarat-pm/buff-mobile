@@ -19,6 +19,13 @@
 
 _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb0a0b`, web fixes patch. Prior: **1.7.5 (versionCode 53)** commit `9d086e6`. Use `eas build:list` + `app.json` as ground truth — this header is the summary, not the source of truth._
 
+**Riding the next train (after 1.7.6 / versionCode 56):**
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-06-26 | #285 / `pkg/fix-web-push-prompt-loop` | fix | **Web push permission pre-prompt no longer re-pops in a loop.** Persists the dismissal in AsyncStorage (web localStorage + native — platform parity) with a 7-day re-ask window, replacing a reload-fragile `useRef`; `handleAccept` marks dismissed before `register()` so a failed web accept (permission stays `'unknown'`) can't re-show the modal. Android unchanged; no schema, no deps. | Train | yes (web) | Sign in (web, parent) → dismiss push pre-prompt → reload ×N → does not reappear |
+| 2026-06-26 | #284 / `pkg/rate-us-port` | feat | **In-app Rate BUFF + feedback flow.** Native (Android/iOS): OS in-app review card (`expo-store-review`) fires automatically on the parent dashboard once the retention gate passes — no sentiment question / no CTA button (Play + App Store policy); suppressed in view-as-child. Web: banner + sheet → first-party `reviews` table. Settings: **Rate BUFF** (native → Play deep-link; web → sheet) + **Send feedback** (un-gated private channel) rows; kept the existing referral row. Admin: **Rate Feedback** tab (FeedbackBoard) w/ parent email + family link. **New native dep `expo-store-review` → cannot OTA; ships only on a fresh build.** | Train | yes | **NEW SUITE NEEDED — rate/feedback.** Gate-2 = Hat-4 on a real EAS build: (1) launch safety w/ the new native import, (2) native review card fires on dashboard, (3) Settings Rate → Play listing |
+
 > ✅ **Shipped — 1.7.1 (versionCode 52), 2026-06-22.** Hotfix: View-as-Child reads child's theme from DB (`e70fa92`). Rows that rode the 1.7.0 train are in Shipped below.
 
 > ✅ **Shipped — 1.7.0 (versionCode 51).** Content: #271 web-responsive-shell · #272 web-push-pwa · #273 task-day-selector-empty-reopen · web-push VAPID · AI insights Phase 1-2 · #258 weekday selector forward-port · #260 reward edit/duplicate · #261 dev-client splash fix · #264 Rich Parent Insights · #252 Recommended-now card · #267 PWA install nudge · #276 Smart Capture · #277 referral program. Rows move to Shipped below once confirmed.
