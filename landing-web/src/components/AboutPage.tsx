@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { 
-  ArrowRight, ArrowLeft, Heart, MessageCircle, Users, Sparkles, X,
+import {
+  ArrowRight, ArrowLeft, Heart, MessageCircle, Mail, Users, Sparkles, X,
   Lightbulb, AlertTriangle
 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -18,11 +18,15 @@ interface AboutPageProps {
 
 export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: AboutPageProps) {
   const navigate = useNavigate();
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, language } = useLanguage();
   const BackArrow = isRTL ? ArrowRight : ArrowLeft;
 
+  // Community WhatsApp group — language-aware, matching the footer links on the landing page.
   const handleWhatsAppContact = () => {
-    window.open('https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5?mode=gi_t', '_blank');
+    const url = language === 'he'
+      ? 'https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5'
+      : 'https://chat.whatsapp.com/KM1b9UmQO0cBGgCVI54W7R';
+    window.open(url, '_blank');
   };
 
   const containerClass = isModal 
@@ -98,12 +102,12 @@ export function AboutPage({ onBack, isModal, onClose, onNavigateToPhilosophy }: 
           <div className="flex flex-col gap-3">
             <Button onClick={handleWhatsAppContact} className="w-full h-12 bg-accent hover:bg-accent/90 text-accent-foreground font-semibold rounded-xl shadow-md hover:shadow-lg transition-all">
               <MessageCircle className="w-5 h-5 me-2" />
-              {t('about.whatsappButton')}
+              {t('about.communityButton')}
             </Button>
-            <Button asChild variant="outline" className="w-full h-12 border-destructive/30 text-destructive hover:bg-destructive/10 font-semibold rounded-xl">
-              <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer">
-                <svg className="w-5 h-5 me-2" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                {isRTL ? 'עקבו בערוץ YouTube' : 'Follow on YouTube'}
+            <Button asChild variant="outline" className="w-full h-12 border-primary/30 text-primary hover:bg-primary/10 font-semibold rounded-xl">
+              <a href="mailto:adi@buffadhd.com?subject=BUFF">
+                <Mail className="w-5 h-5 me-2" />
+                {t('about.emailButton')}
               </a>
             </Button>
           </div>
