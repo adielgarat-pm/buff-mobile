@@ -7,9 +7,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
-// Where "Start Free" / "Get Started" send people. The BUFF web app (Workstream 2) will live here;
-// until it ships, update this single constant to wherever sign-up should go.
-const APP_URL = 'https://app.buffadhd.com';
+// Where "Start Free" / "Get Started" send people. Points at the live BUFF web app (Expo web PWA),
+// which is served at the apex buffadhd.com. NOTE: app.buffadhd.com currently 404s — if that
+// subdomain is configured in Vercel later, switch this constant back.
+const APP_URL = 'https://buffadhd.com';
 
 // JSON-LD Structured Data for SEO
 const jsonLd = {
