@@ -11,10 +11,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
 
-// Where "Start Free" / "Get Started" send people. Points at the live BUFF web app (Expo web PWA),
-// which is served at the apex buffadhd.com. NOTE: app.buffadhd.com currently 404s — if that
-// subdomain is configured in Vercel later, switch this constant back.
-const APP_URL = 'https://buffadhd.com';
+// Where "Start Free" / "Get Started" send people: the live BUFF web app (Expo web PWA),
+// deployed at www.buffadhd.com (Vercel project "buff-mobile"). This landing takes the apex
+// buffadhd.com, so APP_URL must NOT point at the apex — that would loop back to this page.
+const APP_URL = 'https://www.buffadhd.com';
 
 // Brand palette (BUFF_BRAND.md). Kept inline as Tailwind arbitrary values, consistent with the
 // existing logo chip (bg-[#DCFCE7]). Primary/accent buttons keep the design-token classes.
