@@ -14,6 +14,35 @@
 
 ## Implementation Notes
 
+### IN-2026-06-27-01: מיקרו-פעולות / "רגע ההתחלה" — ה-friction יושב על מיקרו-שנייה, לא על המשימה. פיצ'ר מועמד: ליווי-בזמן-אמת דרך ה-start
+
+- **תאריך:** 2026-06-27
+- **מקור:** Adi — חשיבה מוצרית (פוסט לקבוצת PM על "מיקרו-פעולות", שהפך לליד) + שיחה עם Claude.
+- **העיקרון:** ה-friction לא מתחלק שווה לאורך מטלה. הוא מתרכז ב**מיקרו-צעד אחד** — ולרוב *לא* זה עם הכי הרבה מאמץ (כביסה רטובה מהמכונה, שטיפת סכו"ם, סגירת הערות פתוחות במסמך). לפעמים דווקא הצעד ה"נעים" לכאורה (סימון-וי על הערות) נושא את ההתנגדות. אצל ילד עם ADHD זה מוקצן: היחידה שמשנה היא לא "המשימה" אלא **רגע ה-initiation** — השנייה הראשונה.
+- **מה כבר קיים בבאף סביב initiation (העיקרון בליבה, לא ממומש כפיצ'ר אקטיבי):**
+  - **F-030** "Single next-task view (not a list)" ([FEATURE_PRIORITIZATION](BUFF_FEATURE_PRIORITIZATION.md)) — מוריד overwhelm, אבל **סטטי**: מציג *מה*, לא מעביר דרך ההתחלה.
+  - **Vibe Check → Low Power Mode** — מקצר את *מספר* רגעי-ההתחלה ביום קשה, לא את ה-friction של כל התחלה בנפרד.
+  - **70% = success** — מוריד את קיר ה-30% האחרונים (ה"סגירת הערות" של הילד).
+  - **PRD §6.1 "Scaffold That Fades"** + "self-initiation emphasis" ([PRD §226](BUFF_PRD.md)) — העיקרון כבר אסטרטגי.
+- **הפער = הפיצ'ר המועמד:** **ליווי בזמן-אמת דרך ה-start** — באדי שמעביר את הילד צעד-צעד דרך השנייה הראשונה (מיקרו-צעדים ברגע הביצוע, לא בתכנון). זה מה ש-Brili עושה למבוגרים ("עכשיו צחצוח, נשארו 3 דק'").
+- **מה לקחת מהאפליקציות למבוגרים (Tiimo/Brili) — ומה לא:**
+  - **לקחת:** (1) ליווי step-by-step בזמן-אמת (Brili) — התשובה הישירה ל-initiation; (2) זמן ויזואלי / time-blindness (Tiimo, ראי [COMPETITORS §Tiimo](BUFF_COMPETITORS.md) "visual timelines, AI task breakdown") — אבל הדמיה **בלי לחץ**: countdown אדום נוגד positive-coaching ואת כלל "no red timers/countdowns" ([MESSAGING §381](BUFF_MESSAGING.md)).
+  - **לא לקחת:** ההנחה שהמשתמש *רוצה* להיות פרודוקטיבי ומניע את עצמו. ילד לא — שם נכנס מודל הפרסים-האמיתיים-שהילד-בוחר. לאמץ **מנגנונים**, לא **framing של self-optimization**.
+- **spec-drift לסימון (לא מוכרע — כלל הפרויקט):** [FAQ §155](BUFF_FAQ.md) כבר מבטיח ש-BUFF "scaffolds the action of starting them — with timing, **breakdown**" — אבל אין breakdown בקוד. או לבנות (הפיצ'ר המועמד למעלה), או לרכך את הקופי. החלטת Adi.
+- **השפעה:** מועמד ל-Phase 2 feature. דורש Values Check + SPEC לפני בנייה.
+- **סטטוס:** `open` — idea capture, לא package. ממתין להחלטת Adi אם להפוך ל-`pkg`.
+- **קשור ל:** IN-2026-06-27-02 (אותה שיחה), F-030, PRD §6.1/§226, [FAQ §155](BUFF_FAQ.md) (spec drift), [MESSAGING §381](BUFF_MESSAGING.md), COMPETITORS §Tiimo, branch `claude/micro-actions-product-fd9y1h`.
+
+### IN-2026-06-27-02: "ADHD חושף עיצוב טוב" (curb-cut effect) — ההסכמה עם הטיעון האוניברסלי מחדדת את הבידול, לא מחלישה אותו
+
+- **תאריך:** 2026-06-27
+- **מקור:** Adi — שיחת ליד בוואטסאפ. הליד (PM): *"חיפשתי לא ל-ADHD אבל כל האפליקציות הכי טובות כאילו נכתבו ל-ADHD... תכלס זה פשוט ליישם עקרונות נכונים לכולם, עוד יותר בקיצוניות."*
+- **התובנה:** עיצוב טוב ל-ADHD = עיצוב טוב לכולם. ADHD הוא המקרה שלא סולח על חיכוך, אז הוא **חושף** עיצוב טוב ומכריח ליישמו בקיצוניות. זה ה-**curb-cut effect** (אבני-שפה תוכננו לכיסאות גלגלים, כולם נהנים; כתוביות, מקלדת חיזוי, OXO).
+- **הזהירות / הבידול:** אם מותחים את הטיעון הוא מוביל ל"אז למה צריך אפליקציית ADHD ייעודית? תשתמש באפליקציות הכלליות הטובות". התשובה: העיקרון האוניברסלי מכסה את ה-**מנגנונים** (פחות חיכוך, דבר אחד בכל פעם, צעד הבא ברור) — אבל **לא** את מה שבאף פותרת: **ילד לא מניע את עצמו.** מבוגר בוחר אפליקציית פרודוקטיביות לעצמו; ילד לא. הדינמיקה הורה-ילד, הפרסים האמיתיים, וה-"לגדול מהאפליקציה" — לא אוניברסליים ולא ניתנים לחיקוי ע"י "אפליקציה כללית טובה". **ההסכמה עם הטיעון פותחת את הבידול במקום להחליש אותו.**
+- **השפעה (שיווק + מסרים):** נכס מסרים. ה-framing "BUFF takes universal good-design principles to the extreme ADHD demands — but the motivation model (parent-child, real rewards, outgrow-it) is the part a general app can't copy" שווה לשקול ל-[BRAND tone](BUFF_BRAND.md) / [MESSAGING](BUFF_MESSAGING.md) / forum replies. מתחבר ל-positioning "Joon is for kids. BUFF is for your family."
+- **סטטוס:** `open` — insight capture. לא הוכנס עדיין למסמכי brand/messaging (אלה מסמכי Adi — דורש אישור).
+- **קשור ל:** IN-2026-06-27-01 (אותה שיחה), [BUFF_BRAND.md §positioning](BUFF_BRAND.md), [BUFF_MESSAGING.md](BUFF_MESSAGING.md), [BUFF_COMPETITORS.md](BUFF_COMPETITORS.md).
+
 ### IN-2026-06-25-01: ילדים דוברי-עברית עם שם בכתב לטיני ננעלים על אנגלית במכשיר שלהם — מלכודת `detectLangFromName` + `preferred_language` נפרד
 
 - **תאריך:** 2026-06-25
