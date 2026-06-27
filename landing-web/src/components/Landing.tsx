@@ -1,8 +1,12 @@
-import { ChevronRight, Mountain, BarChart3, Handshake, Heart, MessageCircle, Brain } from 'lucide-react';
+import { ChevronRight, Mountain, BarChart3, Handshake, Heart, MessageCircle, Brain, Check, Star, Sparkles, Gift, Sprout } from 'lucide-react';
 import { TestimonialsSection } from '@/components/TestimonialsSection';
 import { Button } from '@/components/ui/button';
 import buffLogo from '@/assets/buff-logo.png';
 import buffLogoNoBg from '@/assets/buff-logo-no-bg.png';
+import screenChildBuddy from '@/assets/screens/02-child-dashboard-buddy.png';
+import screenParentDashboard from '@/assets/screens/01-parent-dashboard.png';
+import screenParentTasks from '@/assets/screens/05-parent-tasks.png';
+import screenManageChildren from '@/assets/screens/06-manage-children.png';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -11,6 +15,11 @@ import { useEffect } from 'react';
 // which is served at the apex buffadhd.com. NOTE: app.buffadhd.com currently 404s — if that
 // subdomain is configured in Vercel later, switch this constant back.
 const APP_URL = 'https://buffadhd.com';
+
+// Brand palette (BUFF_BRAND.md). Kept inline as Tailwind arbitrary values, consistent with the
+// existing logo chip (bg-[#DCFCE7]). Primary/accent buttons keep the design-token classes.
+const VIOLET_DEEP = '#2A2150';   // dark canvas (trust bar, final CTA)
+const LIME_BOLT = '#A8E63E';     // dopamine accent (logo bolt, dark-section button)
 
 // JSON-LD Structured Data for SEO
 const jsonLd = {
@@ -30,11 +39,6 @@ const jsonLd = {
     "@type": "Person",
     "name": "Adi Elgart German"
   },
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.8",
-    "ratingCount": "150"
-  },
   "keywords": "ADHD, ADHD kids, ADHD teens, ADHD routine app, executive function app, ADHD children, ADHD task manager, ADHD daily routine, ADHD parenting tool, executive functioning skills"
 };
 
@@ -48,6 +52,19 @@ function BuffLogo() {
   );
 }
 
+// Phone mockup frame — drops a real app screenshot into a soft dark device shell.
+// cropTop pulls the image up (as a % of width) to hide a top band — used on the
+// child screenshot, which carries a "Viewing as parent" preview banner from capture.
+function PhoneFrame({ src, alt, className = '', cropTop = 0 }: { src: string; alt: string; className?: string; cropTop?: number }) {
+  return (
+    <div className={`rounded-[2rem] bg-[#1F1A3C] p-1.5 shadow-2xl shadow-primary/25 ${className}`}>
+      <div className="rounded-[1.6rem] overflow-hidden bg-white" style={{ aspectRatio: '1080 / 2160' }}>
+        <img src={src} alt={alt} className="w-full" style={{ marginTop: `-${cropTop}%` }} loading="lazy" />
+      </div>
+    </div>
+  );
+}
+
 // Benefit card component
 function BenefitCard({ icon: Icon, title, description }: {
   icon: React.ElementType;
@@ -55,7 +72,7 @@ function BenefitCard({ icon: Icon, title, description }: {
   description: string;
 }) {
   return (
-    <div className="bg-card rounded-2xl p-8 border border-border hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-card rounded-2xl p-6 sm:p-7 border border-border hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
       <div className="w-14 h-14 rounded-2xl bg-primary/15 flex items-center justify-center mb-5">
         <Icon className="w-7 h-7 text-primary" />
       </div>
@@ -99,11 +116,30 @@ export default function Landing() {
     };
   }, []);
 
+  // Three product pillars — honest value statements (not fabricated metrics).
+  const pillarPoints = [
+    { icon: Gift, text: t('landing.pillar1') },
+    { icon: Heart, text: t('landing.pillar2') },
+    { icon: Sprout, text: t('landing.pillar3') },
+  ];
+
+  const howSteps = [
+    { title: t('landing.howStep1Title'), desc: t('landing.howStep1Desc') },
+    { title: t('landing.howStep2Title'), desc: t('landing.howStep2Desc') },
+    { title: t('landing.howStep3Title'), desc: t('landing.howStep3Desc') },
+  ];
+
+  const showcase = [
+    { src: screenParentDashboard, cap: t('landing.showcaseCap1') },
+    { src: screenParentTasks, cap: t('landing.showcaseCap2') },
+    { src: screenManageChildren, cap: t('landing.showcaseCap3') },
+  ];
+
   return (
     <div className="min-h-[100dvh] bg-background overflow-x-hidden" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ── Sticky Navigation ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-14 sm:h-16">
             <BuffLogo />
 
@@ -136,77 +172,161 @@ export default function Landing() {
       </nav>
 
       {/* ── Hero Section ── */}
-      <section className="pt-24 sm:pt-28 pb-14 sm:pb-20 px-5 sm:px-4 relative overflow-hidden">
-        {/* Subtle wave background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-primary/8 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/8 rounded-full blur-3xl" />
+      <section className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-5 sm:px-6 relative overflow-hidden bg-[#F7F3FD]">
+        {/* Soft brand glows */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-3xl mx-auto text-center relative z-10">
-          {/* Logo mark */}
-          <div className="flex justify-center mb-6 sm:mb-8">
-            <img
-              src={buffLogoNoBg}
-              alt="BUFF - ADHD routine app for kids and teens"
-              className="h-14 w-14 sm:h-16 sm:w-16 object-contain"
-              loading="eager"
-            />
+        <div className="max-w-6xl mx-auto relative z-10">
+          <div className="grid lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+            {/* Copy column */}
+            <div className="text-center lg:text-start">
+              {/* Research badge */}
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/15 text-[#2E7D5B] px-3.5 py-1.5 text-xs sm:text-sm font-medium mb-5">
+                <Sparkles className="w-3.5 h-3.5" />
+                {t('landing.heroBadge')}
+              </div>
+
+              {/* Logo mark (mobile keeps it visible above headline) */}
+              <div className="flex justify-center lg:hidden mb-5">
+                <img
+                  src={buffLogoNoBg}
+                  alt="BUFF - ADHD routine app for kids and teens"
+                  className="h-12 w-12 object-contain"
+                  loading="eager"
+                />
+              </div>
+
+              {/* Primary headline */}
+              <h1 className="font-display text-[1.85rem] leading-[1.2] sm:text-4xl md:text-5xl font-bold sm:leading-tight mb-4 sm:mb-5">
+                <span className="text-foreground">{t('landing.heroHeadline')}</span>
+                <br />
+                <span className="text-primary">{t('landing.heroHeadline2')}</span>
+              </h1>
+
+              {/* Sub-headline */}
+              <p className="text-base sm:text-xl text-muted-foreground max-w-md mx-auto lg:mx-0 mb-7 sm:mb-8 leading-relaxed [text-wrap:balance]">
+                {t('landing.heroSub')}
+              </p>
+
+              {/* CTA */}
+              <div className="flex flex-col sm:flex-row items-center lg:items-start gap-3 sm:gap-4">
+                <Button
+                  size="lg"
+                  className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all"
+                  onClick={goToApp}
+                >
+                  {t('landing.startFree')}
+                  <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
+                </Button>
+                {/* Social proof */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="flex text-amber-400">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
+                  </span>
+                  <span>{t('landing.heroSocialProof')}</span>
+                </div>
+              </div>
+              {/* Risk reducer */}
+              <p className="text-xs text-muted-foreground/70 mt-3.5">{t('landing.ctaReassure')}</p>
+            </div>
+
+            {/* Phone column */}
+            <div className="relative flex justify-center lg:justify-end">
+              <PhoneFrame
+                src={screenChildBuddy}
+                alt="BUFF child dashboard with BUDDY companion"
+                className="w-[230px] sm:w-[270px]"
+                cropTop={20}
+              />
+              {/* Floating proof chip */}
+              <div className="absolute -bottom-3 left-2 sm:left-6 bg-card rounded-2xl shadow-xl border border-border px-3.5 py-2.5 flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-[#2E9C72]" strokeWidth={3} />
+                </div>
+                <div className="text-start leading-tight">
+                  <div className="text-xs font-bold text-foreground">{t('landing.heroChipTitle')}</div>
+                  <div className="text-[11px] text-muted-foreground">{t('landing.heroChipSub')}</div>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          {/* Primary headline — scaled down on mobile */}
-          <h1 className="font-display text-[1.6rem] leading-[1.25] sm:text-4xl md:text-5xl font-bold sm:leading-tight mb-4 sm:mb-5 px-1">
-            <span className="text-foreground">{t('landing.heroHeadline')}</span>
-            <br />
-            <span className="text-primary">{t('landing.heroHeadline2')}</span>
-          </h1>
-
-          {/* Sub-headline — balanced wrapping */}
-          <p className="text-base sm:text-xl text-muted-foreground max-w-md sm:max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed [text-wrap:balance]">
-            {t('landing.heroSub')}
-          </p>
-
-          {/* SEO-rich subtitle */}
-          <p className="text-xs sm:text-sm text-muted-foreground/50 max-w-sm sm:max-w-md mx-auto mb-8 sm:mb-8 -mt-2 sm:-mt-4 [text-wrap:balance]">
-            An ADHD routine app for kids &amp; teens — built on executive function research.
-          </p>
-
-          {/* CTA — full width on mobile */}
-          <Button
-            size="lg"
-            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all"
-            onClick={goToApp}
-          >
-            {t('landing.startFree')}
-            <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
-          </Button>
+      {/* ── Pillars Bar ── */}
+      <section className="px-5 sm:px-6" style={{ backgroundColor: VIOLET_DEEP }}>
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-3 py-6 sm:py-8">
+          {pillarPoints.map((p, i) => (
+            <div key={i} className="flex items-center justify-center gap-2.5 px-2">
+              <span className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(168,230,62,0.15)' }}>
+                <p.icon className="w-4 h-4" style={{ color: LIME_BOLT }} />
+              </span>
+              <span className="text-sm sm:text-base font-medium text-white [text-wrap:balance]">{p.text}</span>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* ── Benefits Section ── */}
-      <section id="features" className="py-14 sm:py-20 px-5 sm:px-4">
-        <div className="max-w-5xl mx-auto">
+      <section id="features" className="py-16 sm:py-20 px-5 sm:px-6">
+        <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10 sm:mb-14">
-            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide mb-4">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide">
               {t('landing.benefitsTitle')}
             </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-5 sm:gap-6">
-            <BenefitCard
-              icon={Mountain}
-              title={t('landing.benefit1Title')}
-              description={t('landing.benefit1Desc')}
-            />
-            <BenefitCard
-              icon={BarChart3}
-              title={t('landing.benefit2Title')}
-              description={t('landing.benefit2Desc')}
-            />
-            <BenefitCard
-              icon={Handshake}
-              title={t('landing.benefit3Title')}
-              description={t('landing.benefit3Desc')}
-            />
+            <BenefitCard icon={Mountain} title={t('landing.benefit1Title')} description={t('landing.benefit1Desc')} />
+            <BenefitCard icon={BarChart3} title={t('landing.benefit2Title')} description={t('landing.benefit2Desc')} />
+            <BenefitCard icon={Handshake} title={t('landing.benefit3Title')} description={t('landing.benefit3Desc')} />
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ── */}
+      <section className="py-16 sm:py-20 px-5 sm:px-6 bg-[#F7F3FD]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide">
+              {t('landing.howTitle')}
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 md:gap-6">
+            {howSteps.map((step, i) => (
+              <div key={i} className="text-center relative">
+                <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mx-auto mb-5 shadow-lg shadow-primary/30">
+                  {i + 1}
+                </div>
+                <h3 className="font-display text-lg font-bold text-foreground mb-2 tracking-wide">{step.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Showcase (real screenshots) ── */}
+      <section className="py-16 sm:py-20 px-5 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 sm:mb-14">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide mb-3">
+              {t('landing.showcaseTitle')}
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto [text-wrap:balance]">
+              {t('landing.showcaseSub')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 max-w-3xl mx-auto">
+            {showcase.map((shot, i) => (
+              <div key={i} className="flex flex-col items-center">
+                <PhoneFrame src={shot.src} alt={shot.cap} className="w-[210px] sm:w-full max-w-[230px]" />
+                <p className="mt-4 text-sm font-medium text-foreground text-center">{shot.cap}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -215,24 +335,27 @@ export default function Landing() {
       <TestimonialsSection />
 
       {/* ── CTA Section ── */}
-      <section className="py-14 sm:py-20 px-5 sm:px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5" />
+      <section className="py-16 sm:py-24 px-5 sm:px-6 relative overflow-hidden" style={{ backgroundColor: VIOLET_DEEP }}>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'rgba(168,230,62,0.12)' }} />
 
         <div className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide mb-4">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-wide mb-4 text-white">
             {t('landing.ctaTitle')}
           </h2>
-          <p className="text-muted-foreground mb-8 sm:mb-10 leading-relaxed max-w-lg mx-auto [text-wrap:balance]">
+          <p className="text-white/70 mb-8 sm:mb-10 leading-relaxed max-w-lg mx-auto [text-wrap:balance]">
             {t('landing.ctaSubtitle')}
           </p>
           <Button
             size="lg"
-            className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all"
+            className="rounded-full text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all font-bold"
+            style={{ backgroundColor: LIME_BOLT, color: VIOLET_DEEP }}
             onClick={goToApp}
           >
             {t('landing.ctaButton')}
             <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
           </Button>
+          <p className="text-xs text-white/50 mt-5">{t('landing.ctaReassure')}</p>
         </div>
       </section>
 
@@ -240,8 +363,11 @@ export default function Landing() {
       <footer className="py-10 px-5 border-t border-border bg-card/30">
         <div className="max-w-5xl mx-auto">
           {/* Logo + tagline */}
-          <div className="flex flex-col items-center gap-2 mb-8">
+          <div className="flex flex-col items-center gap-1.5 mb-8">
             <BuffLogo />
+            <p className="font-display text-base font-bold text-foreground mt-1">
+              {t('landing.missionTagline')}
+            </p>
             <span className="text-sm text-muted-foreground italic">
               {t('landing.foundedBy')}
             </span>
@@ -265,10 +391,6 @@ export default function Landing() {
             <Link to="/refund" className="hover:text-foreground transition-colors">
               {language === 'he' ? 'החזרים' : 'Refunds'}
             </Link>
-            <a href="https://www.youtube.com/@buff.adhdapp" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center gap-1">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-              YouTube
-            </a>
             <a href={language === 'he' ? 'https://chat.whatsapp.com/JUCsJ7yrNWQC4E25vqNIK5' : 'https://chat.whatsapp.com/KM1b9UmQO0cBGgCVI54W7R'} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors flex items-center gap-1">
               <MessageCircle className="w-4 h-4" />
               {language === 'he' ? 'קהילה' : 'Community'}
