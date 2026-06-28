@@ -13,6 +13,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
+import { clearOnboardingSnapshot } from '../navigation/onboardingPersistence';
 import i18n from '../i18n';
 
 // Required for expo-web-browser OAuth completion
@@ -549,6 +550,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    // Web: drop any persisted onboarding snapshot so a different user on the same
+    // browser never resumes the previous user's flow. No-op on native.
+    void clearOnboardingSnapshot();
     setUser(null);
     setSession(null);
     setProfile(null);
@@ -567,6 +571,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: new Error(result?.reason ?? 'delete_failed') };
     }
     try { await supabase.auth.signOut(); } catch { /* auth user already gone */ }
+    void clearOnboardingSnapshot(); // web: drop persisted onboarding snapshot (no-op native)
     setUser(null);
     setSession(null);
     setProfile(null);
