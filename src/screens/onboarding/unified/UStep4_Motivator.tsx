@@ -63,7 +63,11 @@ export default function UStep4_Motivator() {
         <View style={[styles.barFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.heading}>
           {t('onboarding.step4.title', { name: params.childName })}
         </Text>

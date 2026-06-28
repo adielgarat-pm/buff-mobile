@@ -50,7 +50,13 @@ export default function UStep2_Goal() {
         <View style={[styles.barFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      {/* flex:1 keeps the ScrollView bounded so any future absolute footer stays
+          pinned to the viewport on web (parity with UStep3/4/5) — hardening. */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.heading}>
           {t('onboarding.step2.title', { name: params.childName })}
         </Text>
