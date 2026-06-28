@@ -22,8 +22,24 @@
 - **למה web ולא נייטיב:** קוד-הגורם אגנוסטי לפלטפורמה, אבל בנייטיב ה-stack שורד בזיכרון ואין URL round-trip; ב-web ה-remount = איבוד מוחלט של ההתקדמות.
 - **סייח שווא שתוקן גם הוא (Bug A):** ל-`UStep4_Motivator` (וגם `UStep2_Goal`) חסר `style={{ flex: 1 }}` ב-ScrollView, בניגוד ל-UStep3/UStep5. ב-RN-Web זה דוחף footer מסוג `position:absolute` מתחת ל-viewport. UStep4 קיבל תיקון; UStep2 קיבל hardening (אין לו footer היום).
 - **התיקון:** (Bug B) `useChildrenDashboard` עודכן כך ש-`loading` נדלק רק בטעינה הראשונה (`hasLoaded` ref); refetch מ-realtime מעדכן את `children` בשקט בלי לפרק את הניווט. גם מסיר flicker אצל 7 הצרכנים האחרים. (Bug A) הוספת `flex:1` ל-ScrollView ב-UStep4+UStep2. אושר ע"י Plan-agent (architect).
-- **FLAG פתוח (hardening נדחה — להחלטת Adi):** האונבורדינג ב-web עדיין שביר ל-reload ידני (params לא ב-URL). תיקון אמיתי = persistence ל-nav-state ב-web (מועדף; שקוף) או רישום שלבי UStep ב-`linking` עם סריאליזציה של params (חושף params פנימיים ב-URL). לא חוסם את הבאג הנוכחי.
+- **FLAG (hardening) — ✅ נסגר ב-IN-2026-06-28-02:** הרענון הידני ב-web טופל ע"י persistence ל-snapshot של ה-onboarding (web-only). ראה למטה.
 - **קשור ל:** [RootNavigator.tsx](../src/navigation/RootNavigator.tsx) (השער שורה 83 + ענפי 4/5), [useChildrenDashboard.ts](../src/hooks/useChildrenDashboard.ts), [UStep5_Preview.tsx](../src/screens/onboarding/unified/UStep5_Preview.tsx), [linking.ts](../src/navigation/linking.ts), recent web-parity PRs (#287 date picker, #288 crossAlert).
+
+### IN-2026-06-28-02: רענון ידני של הדפדפן באמצע onboarding איבד את כל ההתקדמות (web) — נפתר ע"י persistence ממוקד-onboarding, web-only, עם native no-op מוחלט
+
+- **תאריך:** 2026-06-28
+- **מקור:** המשך טיפול ב-FLAG מ-IN-2026-06-28-01, בהנחיית Adi ("בוא נמשיך לטפל ברענון הידני" + "שים לב שיש אפליקציית אנדרואיד שבנפרד מהווב").
+- **השורש:** נתוני ה-onboarding מושחלים ממסך למסך דרך `route.params` בלבד (אין store מקביל — אומת על UStep2–UStep8). ב-web רענון בונה את ה-nav-state מאפס → כל ה-params אבדו → חזרה למסך הראשון.
+- **ההחלטה (אושרה ע"י Plan-agent, גישה 7b מתוך 7 חלופות):** **לא** persistence לכל ה-`NavigationContainer` (blast-radius גבוה: modals שנפתחים מחדש, state עמוק של ParentApp, התנגשות ענפים). במקום — snapshot ממוקד `{route, params, t}` של שלב ה-onboarding בלבד.
+- **המימוש (platform-split, נייטיב נפרד מהווב לחלוטין):**
+  - [onboardingRoutes.ts](../src/navigation/onboardingRoutes.ts) — קובץ משותף (לא-split): רשימת ה-onboarding routes + `isOnboardingRoute` + טיפוס `OnboardingSnapshot`. מקור-אמת יחיד שמונע drift בין הספליטים.
+  - [onboardingPersistence.ts](../src/navigation/onboardingPersistence.ts) — נייטיב: כל הפונקציות **no-op**, `ONBOARDING_PERSISTENCE_ENABLED=false`. **לא מייבא AsyncStorage.** מסלול האנדרואיד נשאר byte-for-byte כמו קודם.
+  - [onboardingPersistence.web.ts](../src/navigation/onboardingPersistence.web.ts) — web: כתיבה ל-localStorage (דרך AsyncStorage) עם **TTL 6ש'** (לא לתפוס משתמש חוזר בזרימה ישנה), **debounce 400ms**, וולידציה של ה-route בקריאה.
+  - [RootNavigator.tsx](../src/navigation/RootNavigator.tsx) — `onStateChange` שומר snapshot כש-route הוא onboarding ומנקה כשעוברים ל-ParentApp/ChildApp; `initialState` מיושם **רק** כשהענף המחושב-מחדש הוא ענף ההורה-הלא-onboarded (מונע crash של initialState על route שלא קיים בענף). `navStateReady` קופל לתוך השער היחיד בשורה 83 (אין double-spinner; נייטיב מתחיל ב-`true`).
+  - [AuthContext.tsx](../src/contexts/AuthContext.tsx) — `clearOnboardingSnapshot()` ב-`signOut` וב-`deleteAccount` (אין דליפת PII בין משתמשים בדפדפן משותף).
+- **PII:** `childName`/`birthDate` נשמרים ב-localStorage ב-web בלבד — עקבי עם ה-session של Supabase שכבר שם; ממותן ע"י key ייעודי, TTL, וניקוי ב-signout. Sentry כבר מסנן PII.
+- **קצה ידוע (QA):** רענון *בדיוק* על `UStep5_Preview` יריץ `saveAll` שוב; מוגן ע"י ה-idempotency (existingTaskCount/RewardCount) ו-duplicate-detection ב-RPC `create_child_profile` (יציג דיאלוג "ילד כבר קיים", לא כפילות נתונים).
+- **קשור ל:** IN-2026-06-28-01 (הבאג המקורי + ה-FLAG), `docs/sessions` parity rule (Android+Web), recent web-parity PRs (#287/#288).
 
 ### IN-2026-06-25-01: ילדים דוברי-עברית עם שם בכתב לטיני ננעלים על אנגלית במכשיר שלהם — מלכודת `detectLangFromName` + `preferred_language` נפרד
 
