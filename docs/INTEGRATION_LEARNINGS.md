@@ -14,6 +14,17 @@
 
 ## Implementation Notes
 
+### IN-2026-06-28-01: אונבורדינג ב-web "זרק חזרה לשלב הראשון" אחרי שלב המוטיבטורים — remount של ה-NavigationContainer שנגרם מ-refetch של `useChildrenDashboard` בעקבות INSERT realtime + שני סייחים
+
+- **תאריך:** 2026-06-28
+- **מקור:** CC — דיווח של הטסטרית ענבל: "לא מצליחה לעבור אחרי השלב הזה (Step 4 / What motivates), מחזיר אותי לשלב הראשון." פלטפורמה: **Web (PWA)**, `buffadhd.com`.
+- **תיאור (שורש — באג ניווט, NOT layout):** הזרימה היא `UStep4_Motivator` → `ULoadingScreen` (setTimeout 2.5ש') → `UStep5_Preview`. ב-mount של UStep5 רץ `saveAll` שעושה **INSERT לטבלת `profiles`** ([UStep5_Preview.tsx:193](../src/screens/onboarding/unified/UStep5_Preview.tsx)). ה-instance של `useChildrenDashboard` ב-[RootNavigator.tsx:67](../src/navigation/RootNavigator.tsx) מנוי ב-realtime על `INSERT` בטבלת `profiles` ([useChildrenDashboard.ts:132](../src/hooks/useChildrenDashboard.ts)) ו-`fetch` קרא ל-`setLoading(true)` בכל ריצה. השער ב-[RootNavigator.tsx:83](../src/navigation/RootNavigator.tsx) (`if (loading || (isParent && user && profile && childrenLoading))`) מחזיר ספינר במקום ה-`<NavigationContainer>` → **unmount של כל הניווט באמצע האונבורדינג** → כשה-refetch מסתיים, **remount**. ב-web אין persistence ל-nav-state, שלבי ה-UStep לא ב-`linking.config` ([linking.ts](../src/navigation/linking.ts) ממפה רק `FoundingHundred`/`ChildJoin`), וה-params חיים רק בזיכרון → ה-remount נופל ל-`initialRouteName` = המסך הראשון (Welcome/UStep1).
+- **למה web ולא נייטיב:** קוד-הגורם אגנוסטי לפלטפורמה, אבל בנייטיב ה-stack שורד בזיכרון ואין URL round-trip; ב-web ה-remount = איבוד מוחלט של ההתקדמות.
+- **סייח שווא שתוקן גם הוא (Bug A):** ל-`UStep4_Motivator` (וגם `UStep2_Goal`) חסר `style={{ flex: 1 }}` ב-ScrollView, בניגוד ל-UStep3/UStep5. ב-RN-Web זה דוחף footer מסוג `position:absolute` מתחת ל-viewport. UStep4 קיבל תיקון; UStep2 קיבל hardening (אין לו footer היום).
+- **התיקון:** (Bug B) `useChildrenDashboard` עודכן כך ש-`loading` נדלק רק בטעינה הראשונה (`hasLoaded` ref); refetch מ-realtime מעדכן את `children` בשקט בלי לפרק את הניווט. גם מסיר flicker אצל 7 הצרכנים האחרים. (Bug A) הוספת `flex:1` ל-ScrollView ב-UStep4+UStep2. אושר ע"י Plan-agent (architect).
+- **FLAG פתוח (hardening נדחה — להחלטת Adi):** האונבורדינג ב-web עדיין שביר ל-reload ידני (params לא ב-URL). תיקון אמיתי = persistence ל-nav-state ב-web (מועדף; שקוף) או רישום שלבי UStep ב-`linking` עם סריאליזציה של params (חושף params פנימיים ב-URL). לא חוסם את הבאג הנוכחי.
+- **קשור ל:** [RootNavigator.tsx](../src/navigation/RootNavigator.tsx) (השער שורה 83 + ענפי 4/5), [useChildrenDashboard.ts](../src/hooks/useChildrenDashboard.ts), [UStep5_Preview.tsx](../src/screens/onboarding/unified/UStep5_Preview.tsx), [linking.ts](../src/navigation/linking.ts), recent web-parity PRs (#287 date picker, #288 crossAlert).
+
 ### IN-2026-06-25-01: ילדים דוברי-עברית עם שם בכתב לטיני ננעלים על אנגלית במכשיר שלהם — מלכודת `detectLangFromName` + `preferred_language` נפרד
 
 - **תאריך:** 2026-06-25
