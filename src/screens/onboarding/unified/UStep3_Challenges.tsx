@@ -92,6 +92,9 @@ export default function UStep3_Challenges() {
               style={[styles.card, isRTL && styles.rowReverse, selected && styles.cardActive]}
               onPress={() => toggle(opt.id)}
               activeOpacity={0.8}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selected }}
+              accessibilityLabel={t(opt.labelKey)}
             >
               <Text style={styles.cardEmoji}>{opt.emoji}</Text>
               <Text style={[styles.cardLabel, isRTL && styles.textRight, selected && styles.cardLabelActive]}>

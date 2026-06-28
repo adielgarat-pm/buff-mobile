@@ -70,6 +70,8 @@ export default function UStep2_Goal() {
             style={[styles.card, isRTL && styles.rowReverse]}
             onPress={() => select(opt.id)}
             activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel={t(opt.labelKey)}
           >
             <Text style={styles.cardEmoji}>{opt.emoji}</Text>
             <Text style={[styles.cardLabel, isRTL && styles.textRight]}>{t(opt.labelKey)}</Text>

@@ -209,6 +209,7 @@ export default function UStep8_Complete() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Animated checkmark — visible after save completes */}
         <Animated.View

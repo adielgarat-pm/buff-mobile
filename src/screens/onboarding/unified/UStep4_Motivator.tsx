@@ -98,6 +98,9 @@ export default function UStep4_Motivator() {
               ]}
               onPress={() => toggle(mot.id)}
               activeOpacity={0.75}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+              accessibilityLabel={t(mot.labelKey)}
             >
               <Text style={styles.cardEmoji}>{mot.emoji}</Text>
               <Text style={[styles.cardLabel, isRTL && styles.textRight, isSelected && styles.cardLabelSelected]}>
