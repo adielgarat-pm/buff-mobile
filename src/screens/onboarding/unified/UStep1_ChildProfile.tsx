@@ -128,6 +128,7 @@ export default function UStep1_ChildProfile() {
         autoCorrect={false}
         spellCheck={false}
         returnKeyType="next"
+        maxLength={40}
       />
 
       {/* Age group */}
