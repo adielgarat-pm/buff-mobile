@@ -10,6 +10,7 @@ import OnboardingShell from '../_OnboardingShell';
 import { PARENT_THEME as T } from '../../../theme';
 import type { AgeGroup, Gender } from './onboardingData';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep1'>;
@@ -31,6 +32,7 @@ export default function UStep1_ChildProfile() {
   const navigation = useNavigation<Nav>();
   const { params }  = useRoute<Route>();
   const { t, i18n } = useTranslation();
+  const { isRTL }   = useRTLStyles();
   const { user, profile, refreshProfile } = useAuth();
 
   // Empty-state re-entry: attach the flow to an existing child instead of
@@ -91,13 +93,13 @@ export default function UStep1_ChildProfile() {
       canProceed={canProceed}
       headerRight={<LanguagePicker />}
     >
-      <Text style={styles.heading}>{t('onboarding.step1.title')}</Text>
-      <Text style={styles.sub}>{t('onboarding.step1.sub')}</Text>
+      <Text style={[styles.heading, isRTL && styles.textRight]}>{t('onboarding.step1.title')}</Text>
+      <Text style={[styles.sub, isRTL && styles.textRight]}>{t('onboarding.step1.sub')}</Text>
 
       {/* Parent name — only shown when display_name is missing or looks like an email */}
       {needsParentName && (
         <>
-          <Text style={styles.label}>{t('onboarding.step1.parentNameLabel')}</Text>
+          <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.parentNameLabel')}</Text>
           <TextInput
             style={styles.input}
             placeholder={t('onboarding.step1.parentNamePlaceholder')}
@@ -114,9 +116,9 @@ export default function UStep1_ChildProfile() {
       )}
 
       {/* Child name */}
-      <Text style={styles.label}>{t('onboarding.step1.nameLabel')}</Text>
+      <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.nameLabel')}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, isRTL && styles.textRight]}
         placeholder={t('onboarding.step1.namePlaceholder')}
         placeholderTextColor={T.textMuted}
         value={childName}
@@ -129,8 +131,8 @@ export default function UStep1_ChildProfile() {
       />
 
       {/* Age group */}
-      <Text style={styles.label}>{t('onboarding.step1.ageLabel')}</Text>
-      <View style={styles.pillRow}>
+      <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.ageLabel')}</Text>
+      <View style={[styles.pillRow, isRTL && styles.rowReverse]}>
         {AGE_GROUPS.map((ag) => (
           <TouchableOpacity
             key={ag}
@@ -144,8 +146,8 @@ export default function UStep1_ChildProfile() {
       </View>
 
       {/* Gender (optional) */}
-      <Text style={styles.label}>{t('onboarding.step1.genderLabel')}</Text>
-      <View style={styles.pillRow}>
+      <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.genderLabel')}</Text>
+      <View style={[styles.pillRow, isRTL && styles.rowReverse]}>
         {GENDERS.map((g) => (
           <TouchableOpacity
             key={g.value}
@@ -161,7 +163,7 @@ export default function UStep1_ChildProfile() {
       </View>
 
       {/* Birthday (optional) — native picker on iOS/Android, <input type="date"> on web */}
-      <Text style={styles.label}>{t('onboarding.step1.birthdayLabel')}</Text>
+      <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.birthdayLabel')}</Text>
       <BirthdayField
         value={birthDate}
         onChange={setBirthDate}
@@ -183,4 +185,6 @@ const styles = StyleSheet.create({
   pillActive: { backgroundColor: T.accent, borderColor: T.accent },
   pillText: { color: T.textMuted, fontWeight: '600', fontSize: 14 },
   pillTextActive: { color: '#fff' },
+  rowReverse: { flexDirection: 'row-reverse' },
+  textRight: { textAlign: 'right' },
 });

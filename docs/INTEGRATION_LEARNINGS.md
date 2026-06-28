@@ -14,6 +14,18 @@
 
 ## Implementation Notes
 
+### IN-2026-06-28-03: סריקת onboarding רחבה — RTL חסר ב-UStep1-4/7/8 + כשל INSERT "שקט" של משימות/תגמולים. סיננו ~30 ממצאי-סוכן ל-8 מאומתים
+
+- **תאריך:** 2026-06-28
+- **מקור:** בהנחיית Adi ("סריקת onboarding רחבה"). 4 סוכני Explore (data/save, navigation, platform-parity, UX/i18n) → סינון ביקורתי → אישור Plan-agent → תיקון 2 אשכולות שנבחרו (RTL + שמירה אמינה).
+- **שיעור על אימות ממצאי-סוכן:** הסוכנים החזירו ~30 "באגים", אבל אחרי אימות עצמי רבים נפסלו: ה-"remount→reset" שסומן HIGH **כבר תוקן** (#296); ה-import של `expo-notifications` ב-UStep7 ש"שובר את ה-web bundle" — **שקרי** (כבר מיובא ב-4 מודולים אחרים שב-bundle החי); ו-`Share.share` "no-op בווב" — עובד בפועל ב-mobile web (Web Share API). **תמיד לאמת לפני הצגה.**
+- **באג 1 — RTL חסר:** רק `UStep5_Preview` + `WelcomeScreen` טיפלו ב-RTL; UStep1/2/3/4/7/8 היו עם 0 refs. תוקן ע"י תבנית `isRTL && rowReverse/textRight` + היפוך chevron.
+  - **הנקודה הקריטית (מהארכיטקט):** האפליקציה קוראת `I18nManager.forceRTL` ב-startup, אבל **לא** `swapLeftAndRightInRTL`. בנייטיב physical `left`/`right` מתהפכים אוטומטית אך `flexDirection:'row'` **לא** — לכן `row-reverse` ידני הוא **לא** double-flip (מאומת מול `ParentTasksScreen` שעושה זאת unconditionally). בווב `I18nManager.isRTL` תמיד false, ולכן `useRTLStyles` גוזר `isRTL` מתווית-השפה. אותה תבנית נכונה לשתי הפלטפורמות. **אין** להשתמש ב-`start/end` או ב-`left/right` מותנה.
+  - **בדיקה:** RTL בנייטיב מחייב cold-relaunch (forceRTL נקרא ב-startup); בווב reactive מיד.
+- **באג 2 — כשל INSERT שקט (UStep5_Preview.saveAll):** כשל insert של tasks/rewards היה "non-fatal" → ילד נוצר בלי משימות/תגמולים בלי שגיאה. תוקן: **tasks→fatal** (throw); rewards נשאר non-fatal (parent-editable). פערי retry שתוקנו: (א) ענף `else if (childProfileId)` שמשתמש מחדש ב-id כדי ש-retry לא יקרא שוב ל-RPC (שהיה מחזיר 'duplicate' ומציג דיאלוג מבלבל); (ב) `setSaveErr(null)` בתחילת saveAll אחרת retry מוצלח משאיר כפתורים מנוטרלים (`disabled={!!saveErr}` הוא ה-gate האמיתי כי `childProfileId` כבר truthy); (ג) escape-hatch "continue anyway" אחרי 2 כשלים כדי לא ללכוד הורה בכשל backend מתמשך (RLS).
+- **נדחו ל-FLAG (לא נבחרו לתיקון כעת):** Section B ב-Step 3, פוליש web/UX (UStep8 keyboardShouldPersistTaps, UStep7 ScrollView+Share fallback, maxLength לשם), a11y (accessibilityState, progress bar 3px, hitSlop 12px).
+- **קשור ל:** UStep1-8 + WelcomeScreen, `src/contexts/LanguageContext.tsx` (`useRTLStyles`/forceRTL), IN-2026-06-28-01/02.
+
 ### IN-2026-06-28-01: אונבורדינג ב-web "זרק חזרה לשלב הראשון" אחרי שלב המוטיבטורים — remount של ה-NavigationContainer שנגרם מ-refetch של `useChildrenDashboard` בעקבות INSERT realtime + שני סייחים
 
 - **תאריך:** 2026-06-28
