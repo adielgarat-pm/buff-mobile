@@ -1512,6 +1512,8 @@
   "onboarding.step5.duplicateOpen": "Open {{name}}",
   "onboarding.step5.duplicateAddAnyway": "Add another",
   "onboarding.step5.duplicateCancel": "Cancel",
+  "onboarding.step5.retry": "Tap to retry",
+  "onboarding.step5.continueAnyway": "Continue anyway",
   "onboarding.step6.title": "What's {{name}}'s reward?",
   "onboarding.step6.sub": "Set a reward for completing 10 successful days. Small, achievable, and exciting — that's the Dopamine Bridge.",
   "onboarding.step6.placeholder": "e.g. Movie night on Saturday",

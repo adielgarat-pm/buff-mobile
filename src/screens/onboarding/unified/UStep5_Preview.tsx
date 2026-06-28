@@ -60,6 +60,10 @@ export default function UStep5_Preview() {
   const [saveErr,        setSaveErr]        = useState<string | null>(null);
   const [childProfileId, setChildProfileId] = useState<string | null>(null);
   const hasSaved = useRef(false);
+  // Consecutive save-failure counter. After repeated failures (e.g. a persistent
+  // RLS/network fault on the tasks insert) we surface a "continue anyway" escape
+  // so a backend fault can't permanently trap the parent in onboarding.
+  const failCount = useRef(0);
 
   // Starter-task engine: age + clinical-presentation-aware selection across the
   // child's main + additional challenges. Replaces the old positional logic
@@ -157,6 +161,11 @@ export default function UStep5_Preview() {
       return;
     }
 
+    // Clear any prior error up-front so a SUCCESSFUL retry re-enables the CTA/skip
+    // (both are disabled while saveErr is set — that's the real gate that blocks
+    // proceeding with a taskless child, since childProfileId is already truthy).
+    setSaveErr(null);
+
     try {
       // ── 1. Resolve child profile ─────────────────────────────────────────
       // Empty-state re-entry (params.existingChildId set): attach tasks/rewards
@@ -168,6 +177,15 @@ export default function UStep5_Preview() {
         id = params.existingChildId;
         console.log(`${TAG} [1/3] Reusing existing child profile — childProfileId: ${id} (skipping insert)`);
         setChildProfileId(id);
+      } else if (childProfileId) {
+        // Retry after a post-create failure (e.g. the tasks insert threw): the
+        // profile was already created on the first pass. Reuse its id instead of
+        // calling create_child_profile again — a second call returns 'duplicate'
+        // and would wrongly prompt the parent about their own just-created child.
+        // The task/reward idempotency guards below then re-attempt only the
+        // inserts that didn't land.
+        id = childProfileId;
+        console.log(`${TAG} [1/3] Reusing childProfileId from prior partial save — ${id}`);
       } else {
         console.log(`${TAG} [1/3] Creating child profile for "${params.childName}" (force=${force})...`);
 
@@ -263,10 +281,13 @@ export default function UStep5_Preview() {
           .insert(taskRows as never);
 
         if (tasksErr) {
-          console.warn(`${TAG} [2/3] Tasks insert error (non-fatal):`, tasksErr.message);
-        } else {
-          console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+          // FATAL: the onboarding contract is that every child gets starter tasks.
+          // A child with zero tasks lands on an empty dashboard with nothing to do.
+          // Throw so the parent sees the retry card instead of silently proceeding.
+          console.error(`${TAG} [2/3] Tasks insert FAILED:`, tasksErr.message);
+          throw new Error(tasksErr.message);
         }
+        console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
       }
 
       // ── 3. INSERT store_rewards ──────────────────────────────────────────
@@ -301,16 +322,21 @@ export default function UStep5_Preview() {
           .insert(rewardRows as never);
 
         if (rewardsErr) {
-          console.warn(`${TAG} [3/3] store_rewards insert error (non-fatal — table may not exist yet):`, rewardsErr.message);
+          // Non-fatal (unlike tasks): rewards are parent-editable later via
+          // ParentRewardsScreen and are not the core daily loop, so a rewards
+          // insert failure must not block onboarding.
+          console.warn(`${TAG} [3/3] store_rewards insert error (non-fatal):`, rewardsErr.message);
         } else {
           console.log(`${TAG} [3/3] Rewards insert SUCCESS`);
         }
       }
 
+      failCount.current = 0; // full success — reset the escape-hatch counter
       console.log(`${TAG} saveAll complete ✓`);
 
     } catch (err) {
       console.error(`${TAG} saveAll FATAL error:`, err);
+      failCount.current += 1; // increment BEFORE setSaveErr so the render sees it
       setSaveErr(err instanceof Error ? err.message : 'Save failed. Please try again.');
       hasSaved.current = false; // allow retry
     }
@@ -376,7 +402,18 @@ export default function UStep5_Preview() {
         {saveErr && (
           <TouchableOpacity style={styles.errorCard} onPress={() => saveAll()}>
             <Text style={styles.errorText}>{saveErr}</Text>
-            <Text style={styles.retryText}>Tap to retry</Text>
+            <Text style={styles.retryText}>{t('onboarding.step5.retry', 'Tap to retry')}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Escape hatch: after repeated failures (likely a persistent backend
+            fault) let the parent proceed rather than be trapped. The child
+            profile already exists; tasks/rewards can be added later in-app. */}
+        {saveErr && failCount.current >= 2 && childProfileId && (
+          <TouchableOpacity style={styles.continueAnywayBtn} onPress={goNext} activeOpacity={0.7}>
+            <Text style={styles.continueAnywayText}>
+              {t('onboarding.step5.continueAnyway', 'Continue anyway')}
+            </Text>
           </TouchableOpacity>
         )}
 
@@ -502,6 +539,8 @@ const styles = StyleSheet.create({
   errorCard:      { backgroundColor: '#FEF2F2', borderRadius: 10, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: '#FECACA', alignItems: 'center' },
   errorText:      { color: '#DC2626', fontSize: 13, textAlign: 'center', marginBottom: 4 },
   retryText:      { color: '#DC2626', fontSize: 12, fontWeight: '600' },
+  continueAnywayBtn:  { alignItems: 'center', paddingVertical: 12, marginBottom: 8 },
+  continueAnywayText: { color: T.textMuted, fontSize: 14, fontWeight: '600', textDecorationLine: 'underline' },
 
   // Cards
   card:           { backgroundColor: T.card, borderRadius: 14, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: T.cardBorder },
