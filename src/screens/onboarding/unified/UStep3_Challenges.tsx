@@ -55,6 +55,8 @@ export default function UStep3_Challenges() {
       {/* ── Top bar ───────────────────────────────────────────────────── */}
       <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -89,6 +91,7 @@ export default function UStep3_Challenges() {
           return (
             <TouchableOpacity
               key={opt.id}
+              testID={`onb3-challenge-${opt.id}`}
               style={[styles.card, isRTL && styles.rowReverse, selected && styles.cardActive]}
               onPress={() => toggle(opt.id)}
               activeOpacity={0.8}
@@ -113,6 +116,7 @@ export default function UStep3_Challenges() {
       {/* ── Sticky footer — always enabled (optional step) ────────────── */}
       <View style={styles.footer}>
         <TouchableOpacity
+          testID="onb3-next"
           style={styles.nextBtn}
           onPress={onNext}
           activeOpacity={0.8}

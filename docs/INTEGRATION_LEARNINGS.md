@@ -14,6 +14,21 @@
 
 ## Implementation Notes
 
+### IN-2026-06-29-01: GitHub Actions CI נוסף — חשף 3 כשלים pre-existing שהיו אדומים ב-main (כי לא היה gate). 2 בודדו עם tracking, 1 תוקן
+
+- **תאריך:** 2026-06-29
+- **מקור:** Adi ביקשה CI שמריץ את הבדיקות + E2E. אושר ע"י Plan-agent (architect).
+- **השורש:** לא היה GitHub Actions בריפו, אז `tsc`/`jest` אף פעם לא רצו ב-gate — ו-main צבר כשלים אמיתיים. CI נאיבי היה אדום ביום הראשון.
+- **מה תוקן (בטוח):**
+  - `webPushRegistration.ts:80` — שגיאת tsc (TS 5.7 ממפה Uint8Array ל-`Uint8Array<ArrayBufferLike>` שלא תואם `BufferSource`). cast מכני. ✅
+  - `jest-setup.ts` — דמה `EXPO_PUBLIC_SUPABASE_*` כדי ש-supabase client לא יקרוס ב-module-load (כל הטסטים עושים mock לרשת). ✅
+- **מה בודד (quarantine — pre-existing, לא נגרם מהעבודה הזו, עם tracking בולט):**
+  - **i18nCatalogIntegrity** — 5 קבצים עם עברית hardcoded הוספו ל-`HEBREW_ALLOWLIST` (TaskTimelineSection, useChildProgress, captureMapping, LandingScreen, ParentInsightsScreen). **לטריאז':** או להוציא קופי אמיתי ל-`t()`, או לאשר שזו התאמת-מילות-מפתח (data). הגארד עדיין תופס הפרות **חדשות**.
+  - **ThemeContext "previewed child theme"** — `it.skip`. באג אמיתי אפשרי: ב-View-as-Child התמה מחזירה 'mint' במקום 'gamer' של הילד המוצג. **לא** התנהגות מאושרת — לבדוק ולהסיר את ה-skip בתיקון.
+- **ה-CI (`.github/workflows/ci.yml`):** job `quality` (typecheck + jest + build:web, ללא secrets) — מועמד ל-required check. job `e2e-web` (Playwright) — **advisory + opt-in** (`vars.RUN_E2E=='true'`), continue-on-error, דורש **staging** Supabase + session שמורה (לא prod). seeding של session-טרי per-run = follow-up.
+- **מצב אחרי:** typecheck 0 שגיאות; jest 48/48 suites, 502 passed, 1 skipped, 0 failed; build:web עובר. `@playwright/test` נוסף ל-devDependencies (אושר ע"י Adi).
+- **קשור ל:** `e2e/` (PR #300), `docs/MASTER_TEST_PLAYBOOK.md`, IN-2026-06-28-01/02/03.
+
 ### IN-2026-06-28-03: סריקת onboarding רחבה — RTL חסר ב-UStep1-4/7/8 + כשל INSERT "שקט" של משימות/תגמולים. סיננו ~30 ממצאי-סוכן ל-8 מאומתים
 
 - **תאריך:** 2026-06-28

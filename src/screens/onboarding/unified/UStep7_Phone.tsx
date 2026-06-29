@@ -92,6 +92,8 @@ export default function UStep7_Phone() {
       {/* Top bar */}
       <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -116,7 +118,7 @@ export default function UStep7_Phone() {
         </Text>
         <Text style={styles.sub}>{t('onboarding.step7.sub', { name: params.childName })}</Text>
 
-        <TouchableOpacity style={[styles.option, isRTL && styles.rowReverse, styles.optionPrimary]} onPress={inviteNow} activeOpacity={0.8}>
+        <TouchableOpacity testID="onb7-invite" style={[styles.option, isRTL && styles.rowReverse, styles.optionPrimary]} onPress={inviteNow} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>🚀</Text>
           <View style={{ flex: 1 }}>
             <Text style={[styles.optionTitle, isRTL && styles.textRight]}>{t('onboarding.step7.optA')}</Text>
@@ -125,7 +127,7 @@ export default function UStep7_Phone() {
           <Text style={styles.optionArrow}>{isRTL ? '‹' : '›'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.option, isRTL && styles.rowReverse]} onPress={inviteLater} activeOpacity={0.8}>
+        <TouchableOpacity testID="onb7-later" style={[styles.option, isRTL && styles.rowReverse]} onPress={inviteLater} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>⏰</Text>
           <View style={{ flex: 1 }}>
             <Text style={[styles.optionTitle, isRTL && styles.textRight]}>{t('onboarding.step7.optB')}</Text>
@@ -134,7 +136,7 @@ export default function UStep7_Phone() {
           <Text style={styles.optionArrow}>{isRTL ? '‹' : '›'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.option, isRTL && styles.rowReverse]} onPress={noPhone} activeOpacity={0.8}>
+        <TouchableOpacity testID="onb7-none" style={[styles.option, isRTL && styles.rowReverse]} onPress={noPhone} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>👨‍👩‍👧</Text>
           <View style={{ flex: 1 }}>
             <Text style={[styles.optionTitle, isRTL && styles.textRight]}>{t('onboarding.step7.optC')}</Text>

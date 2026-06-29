@@ -35,6 +35,8 @@ export default function UStep2_Goal() {
       {/* Top bar */}
       <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -67,6 +69,7 @@ export default function UStep2_Goal() {
         {options.map((opt) => (
           <TouchableOpacity
             key={opt.id}
+            testID={`onb2-goal-${opt.id}`}
             style={[styles.card, isRTL && styles.rowReverse]}
             onPress={() => select(opt.id)}
             activeOpacity={0.75}

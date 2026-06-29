@@ -6,6 +6,14 @@
 // client, RC's Purchases, vector-icons, etc.). Per-test mocks should live
 // inside the test file itself.
 
+// Supabase client (src/integrations/supabase/client.ts) calls createClient at
+// module load and throws "supabaseUrl is required" if these are unset. Jest does
+// not load .env, so provide harmless dummy values — every test mocks the actual
+// network/auth, so no real endpoint is ever contacted. Also lets CI run jest
+// without the real (or any) Supabase secrets.
+process.env.EXPO_PUBLIC_SUPABASE_URL ||= 'https://example.supabase.co';
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||= 'dummy.anon.key';
+
 // Mock AsyncStorage with the official in-memory mock from the package.
 jest.mock('@react-native-async-storage/async-storage', () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
