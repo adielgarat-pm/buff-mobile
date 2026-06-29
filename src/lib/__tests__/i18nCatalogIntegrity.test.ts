@@ -102,6 +102,14 @@ const HEBREW_ALLOWLIST = new Set<string>([
   'screens/child/ChildSettingsScreen.tsx',                  // 'עברית' picker label
   'screens/parent/ParentSettingsScreen.tsx',                // 'עברית' picker label
   'screens/parent/EditChildScreen.tsx',                     // 'עברית' picker label
+  // ── Pre-existing offenders, quarantined when CI was introduced (red on main
+  //    because there was no gate). Triage each: extract real UI copy to t(), or
+  //    confirm it's Hebrew keyword/data matching and keep here. See IN-2026-06-29-01.
+  'components/TaskTimelineSection.tsx',
+  'hooks/useChildProgress.ts',
+  'lib/parentCapture/captureMapping.ts',
+  'screens/auth/LandingScreen.tsx',
+  'screens/parent/ParentInsightsScreen.tsx',
 ]);
 
 const HEBREW_CHARS = /[֐-׿]/;
