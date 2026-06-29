@@ -40,3 +40,22 @@ export function buildJoinUrl(code: string): string {
 export function buildJoinDeepLink(code: string): string {
   return `buff://join/${encodeURIComponent(code.toUpperCase())}`;
 }
+
+/**
+ * Parse a `join_CODE` value (Play install referrer or link param) into the 6-char
+ * family code, or null. Pure + platform-neutral so it's unit-testable without the
+ * native referrer module. Liberal about percent-encoding and trailing utm params:
+ * "join_ABC123", "join_ABC123&utm_source=x", and "join%5FABC123" all yield "ABC123";
+ * organic/malformed referrers yield null.
+ */
+export function parseJoinCode(referrer: string | null | undefined): string | null {
+  if (!referrer) return null;
+  let decoded = referrer;
+  try {
+    decoded = decodeURIComponent(referrer);
+  } catch {
+    // keep raw if it isn't valid percent-encoding
+  }
+  const m = decoded.match(/(?:^|[?&])join[_=]([A-Za-z0-9]{6})/);
+  return m ? m[1].toUpperCase() : null;
+}
