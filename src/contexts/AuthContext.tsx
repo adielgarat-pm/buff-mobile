@@ -19,6 +19,17 @@ import i18n from '../i18n';
 // Required for expo-web-browser OAuth completion
 WebBrowser.maybeCompleteAuthSession();
 
+// Web-only: snapshot the OAuth callback URL at module load, BEFORE React
+// Navigation's web linking (or any router) can history.replaceState() the
+// fragment away. The Google implicit-flow redirect returns to
+// https://<host>/#access_token=…&refresh_token=…; supabase's detectSessionInUrl
+// normally consumes this, but on the production web deployment the session was
+// not being established — Google sign-in users were left stranded on a
+// logged-out page (reported 2026-06-29). Capturing here lets us also consume the
+// tokens explicitly (see the web callback effect below). Empty string on native.
+const initialWebAuthUrl =
+  Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.href : '';
+
 export interface Profile {
   id: string;
   user_id: string;
@@ -207,6 +218,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.remove();
   }, [handleDeepLink]);
+
+  // ── Web OAuth callback handler (implicit flow) ────────────────────────────
+  //
+  // Belt-and-braces companion to supabase's detectSessionInUrl. On web the
+  // Google redirect returns tokens in the URL fragment, which handleDeepLink
+  // (buff:// scheme only) does not match. We parse the snapshot captured at
+  // module load and set the session explicitly, then strip the tokens from the
+  // address bar. Idempotent: if detectSessionInUrl already established the
+  // session, setSession with the same tokens just refreshes it. No-op on native.
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !initialWebAuthUrl) return;
+
+    const params = new URLSearchParams(initialWebAuthUrl.split('#')[1] ?? '');
+
+    const oauthError = params.get('error_description') ?? params.get('error');
+    if (oauthError) {
+      console.warn('[Auth][web] OAuth provider returned an error:', oauthError);
+      return;
+    }
+
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    if (!access_token || !refresh_token) return;
+
+    let cancelled = false;
+    (async () => {
+      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+      if (cancelled) return;
+      if (error) {
+        console.error('[Auth][web] setSession from OAuth callback URL failed:', error.message);
+      } else {
+        console.log('[Auth][web] session established from OAuth callback URL');
+      }
+      // Clear the tokens from the address bar regardless of outcome.
+      try {
+        if (typeof window !== 'undefined' && window.history?.replaceState) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      } catch {
+        /* non-fatal */
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
 
   // ── Auth initialization ────────────────────────────────────────────────────
 
