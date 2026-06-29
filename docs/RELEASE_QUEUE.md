@@ -19,7 +19,23 @@
 
 _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb0a0b`, web fixes patch. Prior: **1.7.5 (versionCode 53)** commit `9d086e6`. Use `eas build:list` + `app.json` as ground truth — this header is the summary, not the source of truth._
 
-**Riding the next train (after 1.7.6 / versionCode 56):**
+> 📌 **Ground-truth update (CC sync 2026-06-29, `eas build:list`):** since the note above, **vc57** (`c37cc11`) and **vc59** (`57c2f9a`, base `origin/main @ 6710cbb`) both finished on EAS (vc58 errored — lockfile). **vc59 is the latest successful build** and contains the "after 56" table below (#284 / #290 / #285 / #287 / #288 / #289). Whether vc59 is **promoted to a Play track is not visible via CLI — Play Console (Adi) only.** The section directly below is everything merged to `main` AFTER vc59's base → **not in any build yet.**
+
+**Riding the next train — AFTER vc59 (merged post-`6710cbb`, NOT in any build):**
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-06-27 | #295 / `2abbc02` | fix | **Pin Supabase `storageKey` — recover sessions lost by the `api.buffadhd.com` (#290) switch.** The custom-domain switch derived the storage key from the URL host, mass-logging-out existing users; this pins it to the old value. ⚠️ Intended to ride the SAME build as #290 — but #290 is in **vc59** and #295 merged after → **#295 is NOT in vc59.** | Train | yes | Sign in → kill/relaunch app → session persists (not logged out) |
+| 2026-06-27 | #296 / `e1c1d78` | fix | **Web onboarding no longer resets to step 1** + UStep4 footer reachable on web PWA. | Train | yes (web) | Onboarding (web) → advance → does not snap to step 1 |
+| 2026-06-27 | #297 / `404cee6` | feat | **Web onboarding reload-safe** — web-only nav-state persistence so a reload resumes the same step. | Train | yes (web) | Onboarding (web) → reload → resumes step |
+| 2026-06-28 | #298 / `6cd7087` | fix | **RTL on UStep1-4/7/8** + fail-safe task/reward save in onboarding. | Train | yes | Onboarding (Hebrew/RTL); task + reward save |
+| 2026-06-28 | #299 / `c819108` | fix | **Low-risk a11y + input polish** on UStep1/2/3/4/8. | Train | yes | Onboarding input / a11y |
+| 2026-06-28 | #300 / `c1050b8` | test | **E2E suites (web + Android) + GitHub Actions CI.** Test/CI infra; no app-runtime content. | Train | no | CI only |
+| _open (draft)_ | #301 / `pkg/smart-join-link` | feat | **Device-aware HTTPS child-invite link** (`buffadhd.com/join/CODE`) replacing the dead `buff://` link — Android App Link + Play Install Referrer auto-fill; targets the NOT-STARTED funnel leak. **PR OPEN (draft) — adds on merge.** | Train | yes | Child invite link → device routing → ChildJoin pre-filled (Hat-4: App Link + referrer on a real Play install) |
+
+> 🌐 **Not in the AAB (deploy via Vercel, not a build):** #294 landing redesign (already LIVE on buffadhd.com 2026-06-27) · #292 / #293 download-page + launch docs · `f71d97f` lockfile fix (its content already in vc59).
+
+**Riding the next train (after 1.7.6 / versionCode 56):**  ← _per `eas build:list` this content shipped in vc59; move to Shipped at next cut_
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
