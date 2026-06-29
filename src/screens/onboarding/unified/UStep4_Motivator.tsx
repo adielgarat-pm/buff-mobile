@@ -48,6 +48,8 @@ export default function UStep4_Motivator() {
       {/* Top bar */}
       <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -90,6 +92,7 @@ export default function UStep4_Motivator() {
           return (
             <TouchableOpacity
               key={mot.id}
+              testID={`onb4-motivator-${mot.id}`}
               style={[
                 styles.card,
                 isRTL && styles.rowReverse,
@@ -122,6 +125,7 @@ export default function UStep4_Motivator() {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
+          testID="onb4-continue"
           style={[styles.ctaBtn, !canProceed && styles.ctaBtnDisabled]}
           onPress={onContinue}
           activeOpacity={0.85}

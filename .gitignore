@@ -76,3 +76,9 @@ docs/sessions/pending-lifetime-grants/cohort_emails.csv
 docs/sessions/pending-lifetime-grants/*_cohort.csv
 
 .vercel
+
+# E2E (Playwright) artifacts + captured auth sessions — never commit
+e2e/.auth/
+e2e/.report/
+e2e/android/fail-*.png
+test-results/

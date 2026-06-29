@@ -272,6 +272,7 @@ export default function UStep8_Complete() {
           <>
             <DisclaimerFooter variant="short" />
             <TouchableOpacity
+              testID="onb8-cta"
               style={styles.dashboardBtn}
               onPress={() => navigation.reset({ index: 0, routes: [{ name: 'ParentApp' }] })}
               activeOpacity={0.85}
@@ -301,6 +302,7 @@ export default function UStep8_Complete() {
             <Text style={[styles.refManualLabel, isRTL && styles.textRight]}>{t('referral.onboardingLabel')}</Text>
             <View style={[styles.refManualRow, isRTL && styles.rowReverse]}>
               <TextInput
+                testID="onb8-ref-input"
                 style={styles.refManualInput}
                 value={manualCode}
                 onChangeText={v => setManualCode(v.toUpperCase())}
@@ -311,6 +313,7 @@ export default function UStep8_Complete() {
                 editable={refState !== 'manual_loading'}
               />
               <TouchableOpacity
+                testID="onb8-ref-apply"
                 style={[
                   styles.refManualBtn,
                   (manualCode.length < 6 || refState === 'manual_loading') && styles.refManualBtnDisabled,

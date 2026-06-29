@@ -92,6 +92,7 @@ export default function UStep1_ChildProfile() {
       onNext={onNext}
       canProceed={canProceed}
       headerRight={<LanguagePicker />}
+      nextTestID="onb1-next"
     >
       <Text style={[styles.heading, isRTL && styles.textRight]}>{t('onboarding.step1.title')}</Text>
       <Text style={[styles.sub, isRTL && styles.textRight]}>{t('onboarding.step1.sub')}</Text>
@@ -101,7 +102,8 @@ export default function UStep1_ChildProfile() {
         <>
           <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.parentNameLabel')}</Text>
           <TextInput
-            style={styles.input}
+            testID="onb1-parent-name"
+            style={[styles.input, isRTL && styles.textRight]}
             placeholder={t('onboarding.step1.parentNamePlaceholder')}
             placeholderTextColor={T.textMuted}
             value={parentName}
@@ -111,6 +113,7 @@ export default function UStep1_ChildProfile() {
             autoCorrect={false}
             spellCheck={false}
             returnKeyType="next"
+            maxLength={40}
           />
         </>
       )}
@@ -118,6 +121,7 @@ export default function UStep1_ChildProfile() {
       {/* Child name */}
       <Text style={[styles.label, isRTL && styles.textRight]}>{t('onboarding.step1.nameLabel')}</Text>
       <TextInput
+        testID="onb1-child-name"
         style={[styles.input, isRTL && styles.textRight]}
         placeholder={t('onboarding.step1.namePlaceholder')}
         placeholderTextColor={T.textMuted}
@@ -137,6 +141,7 @@ export default function UStep1_ChildProfile() {
         {AGE_GROUPS.map((ag) => (
           <TouchableOpacity
             key={ag}
+            testID={`onb1-age-${ag}`}
             style={[styles.pill, ageGroup === ag && styles.pillActive]}
             onPress={() => setAgeGroup(ag)}
             activeOpacity={0.8}
@@ -152,6 +157,7 @@ export default function UStep1_ChildProfile() {
         {GENDERS.map((g) => (
           <TouchableOpacity
             key={g.value}
+            testID={`onb1-gender-${g.value}`}
             style={[styles.pill, gender === g.value && styles.pillActive]}
             onPress={() => setGender(gender === g.value ? null : g.value)}
             activeOpacity={0.8}

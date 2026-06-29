@@ -369,6 +369,8 @@ export default function UStep5_Preview() {
       {/* ── Top bar ──────────────────────────────────────────────────────── */}
       <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
@@ -400,7 +402,7 @@ export default function UStep5_Preview() {
         </Text>
 
         {saveErr && (
-          <TouchableOpacity style={styles.errorCard} onPress={() => saveAll()}>
+          <TouchableOpacity testID="onb5-retry" style={styles.errorCard} onPress={() => saveAll()}>
             <Text style={styles.errorText}>{saveErr}</Text>
             <Text style={styles.retryText}>{t('onboarding.step5.retry', 'Tap to retry')}</Text>
           </TouchableOpacity>
@@ -410,7 +412,7 @@ export default function UStep5_Preview() {
             fault) let the parent proceed rather than be trapped. The child
             profile already exists; tasks/rewards can be added later in-app. */}
         {saveErr && failCount.current >= 2 && childProfileId && (
-          <TouchableOpacity style={styles.continueAnywayBtn} onPress={goNext} activeOpacity={0.7}>
+          <TouchableOpacity testID="onb5-continue-anyway" style={styles.continueAnywayBtn} onPress={goNext} activeOpacity={0.7}>
             <Text style={styles.continueAnywayText}>
               {t('onboarding.step5.continueAnyway', 'Continue anyway')}
             </Text>
@@ -489,6 +491,7 @@ export default function UStep5_Preview() {
       {/* ── Footer ───────────────────────────────────────────────────────── */}
       <View style={styles.footer}>
         <TouchableOpacity
+          testID="onb5-continue"
           style={[styles.ctaBtn, !childProfileId && styles.ctaBtnLoading]}
           onPress={goNext}
           activeOpacity={0.85}
@@ -506,7 +509,7 @@ export default function UStep5_Preview() {
           )}
         </TouchableOpacity>
         {!params.existingChildId && (
-          <TouchableOpacity onPress={goNext} activeOpacity={0.7} style={styles.skipBtn} disabled={!!saveErr}>
+          <TouchableOpacity testID="onb5-skip" onPress={goNext} activeOpacity={0.7} style={styles.skipBtn} disabled={!!saveErr}>
             <Text style={styles.skipText}>{t('onboarding.step5.skip')}</Text>
           </TouchableOpacity>
         )}

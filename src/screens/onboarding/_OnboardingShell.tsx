@@ -19,10 +19,13 @@ interface Props {
   nextLabel?: string;    // defaults to translated "Continue"
   headerRight?: ReactNode; // rendered in the right slot of the top bar
   children: ReactNode;
+  nextTestID?: string;   // E2E hook for the Next button (web data-testid / Android resource-id)
+  backTestID?: string;   // E2E hook for the back chevron
 }
 
 export default function OnboardingShell({
   step, total, flowLabel, onNext, canProceed, nextLabel, headerRight, children,
+  nextTestID = 'onb-next', backTestID = 'onb-back',
 }: Props) {
   const navigation = useNavigation();
   const { t } = useTranslation();
@@ -36,6 +39,8 @@ export default function OnboardingShell({
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity
+          testID={backTestID}
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           style={styles.backBtn}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
@@ -73,6 +78,7 @@ export default function OnboardingShell({
       {/* Next button — absolutely pinned to bottom so it never scrolls away */}
       <View style={styles.footer}>
         <TouchableOpacity
+          testID={nextTestID}
           style={[styles.nextBtn, !canProceed && styles.nextBtnDisabled]}
           onPress={onNext}
           disabled={!canProceed}
