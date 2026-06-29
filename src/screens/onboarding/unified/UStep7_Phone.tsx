@@ -19,7 +19,7 @@ import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
-import { BUFF_URLS, buildJoinDeepLink } from '../../../lib/buffConfig';
+import { BUFF_URLS, buildJoinUrl } from '../../../lib/buffConfig';
 import { requestNotificationPermission } from '../../../lib/pushTokens';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep7_Phone'>;
@@ -45,8 +45,8 @@ export default function UStep7_Phone() {
     const message = t('onboarding.step7.inviteMessage', {
       name: params.childName,
       code,
-      installUrl:   BUFF_URLS.playStoreInstall,
-      joinDeepLink: buildJoinDeepLink(code),
+      installUrl: BUFF_URLS.playStoreInstall,
+      joinUrl:    buildJoinUrl(code),
     });
     try {
       await Share.share({ message });

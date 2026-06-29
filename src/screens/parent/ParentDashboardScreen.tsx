@@ -24,7 +24,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { PARENT_THEME as T } from '../../theme';
-import { BUFF_URLS } from '../../lib/buffConfig';
+import { BUFF_URLS, buildJoinUrl } from '../../lib/buffConfig';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
 import { useParentRecommendations } from '../../hooks/useParentRecommendations';
@@ -753,6 +753,7 @@ export default function ParentDashboardScreen() {
                     message: t('inviteCard.shareMessage', {
                       code: familyShortCode,
                       installUrl: BUFF_URLS.playStoreInstall,
+                      joinUrl: buildJoinUrl(familyShortCode),
                     }),
                   });
                 } catch (err) {
