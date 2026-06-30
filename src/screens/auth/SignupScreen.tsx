@@ -20,6 +20,7 @@ import LanguagePicker from '../../components/LanguagePicker';
 import AppleSignInButton from '../../components/AppleSignInButton';
 import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { webAuthColumn } from './authLayout';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'Signup'>;
 type Route = RouteProp<RootStackParamList, 'Signup'>;
@@ -94,7 +95,7 @@ export default function SignupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LanguagePicker />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, webAuthColumn(400)]} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <Text style={styles.logo}>BUFF</Text>
         <Text style={styles.subtitle}>{t('auth.createAccount')}</Text>
