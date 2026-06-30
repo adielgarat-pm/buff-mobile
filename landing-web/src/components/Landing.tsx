@@ -89,8 +89,13 @@ function BenefitCard({ icon: Icon, title, description }: {
 export default function Landing() {
   const { language, setLanguage, t, isRTL } = useLanguage();
 
-  const goToApp = () => {
-    window.location.href = APP_URL;
+  // Deep-link straight into the app, skipping the app's own (retired) landing screen.
+  // Get Started / Start Free → role chooser; Login → login form (no role choice).
+  const goToSignup = () => {
+    window.location.href = `${APP_URL}/RoleSelection`;
+  };
+  const goToLogin = () => {
+    window.location.href = `${APP_URL}/Login`;
   };
 
   // Inject JSON-LD and update meta tags for SEO
@@ -155,13 +160,13 @@ export default function Landing() {
               </Button>
 
               {/* Login - hidden on mobile to reduce clutter */}
-              <Button variant="ghost" className="rounded-full hidden sm:inline-flex" onClick={goToApp}>
+              <Button variant="ghost" className="rounded-full hidden sm:inline-flex" onClick={goToLogin}>
                 {t('nav.login')}
               </Button>
               <Button
                 size="sm"
                 className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4"
-                onClick={goToApp}
+                onClick={goToSignup}
               >
                 {t('nav.getStarted')}
                 <ChevronRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isRTL ? 'mr-0.5 rotate-180' : 'ml-0.5'}`} />
@@ -214,7 +219,7 @@ export default function Landing() {
                 <Button
                   size="lg"
                   className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all"
-                  onClick={goToApp}
+                  onClick={goToSignup}
                 >
                   {t('landing.startFree')}
                   <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />
@@ -350,7 +355,7 @@ export default function Landing() {
             size="lg"
             className="rounded-full text-base sm:text-lg w-full sm:w-auto px-10 py-6 shadow-lg hover:shadow-xl transition-all font-bold"
             style={{ backgroundColor: LIME_BOLT, color: VIOLET_DEEP }}
-            onClick={goToApp}
+            onClick={goToSignup}
           >
             {t('landing.ctaButton')}
             <ChevronRight className={`w-5 h-5 ${isRTL ? 'mr-2 rotate-180' : 'ml-2'}`} />

@@ -14,6 +14,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { stableChildCreds, legacyChildCreds } from '../../utils/childAuth';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { webAuthColumn } from './authLayout';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'ChildJoin'>;
 type Route = RouteProp<RootStackParamList, 'ChildJoin'>;
@@ -160,7 +161,7 @@ export default function ChildJoinScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, webAuthColumn(440)]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

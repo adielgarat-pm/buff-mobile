@@ -21,6 +21,7 @@ import LanguagePicker from '../../components/LanguagePicker';
 import AppleSignInButton from '../../components/AppleSignInButton';
 import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { webAuthColumn } from './authLayout';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -82,7 +83,7 @@ export default function LoginScreen() {
     >
       <LanguagePicker />
 
-      <View style={styles.inner}>
+      <View style={[styles.inner, webAuthColumn(400)]}>
         {/* Logo / Title */}
         <View style={styles.logoBlock}>
           <Text style={styles.logo}>BUFF</Text>
