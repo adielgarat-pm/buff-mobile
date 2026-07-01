@@ -32,6 +32,11 @@ export const linking: LinkingOptions<RootStackParamList> = {
   // /Login, so those paths must resolve deterministically on a cold load.
   config: {
     screens: {
+      // NOTE: www.buffadhd.com/RoleSelection?ref=CODE carries a load-bearing
+      // referral code. It is consumed by captureRefFromUrl() at App.tsx module
+      // load (before this linking layer strips the query param) and stashed in
+      // sessionStorage for redemption at the end of onboarding. Don't move that
+      // capture later than module load or web referral redemption breaks.
       RoleSelection:   'RoleSelection',
       Login:           'Login',
       Signup:          'Signup',
