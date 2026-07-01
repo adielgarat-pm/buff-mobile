@@ -7,4 +7,4 @@
  *
  * Behaviour is identical to the Android variant (manual entry only).
  */
-export { captureRefFromUrl, saveRefCode, getRefCode, clearRefCode } from './referralCapture.android';
+export { captureRefFromUrl, saveRefCode, getRefCode, clearRefCode, sanitizeRefCode } from './referralCapture.android';
