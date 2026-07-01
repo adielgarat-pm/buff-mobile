@@ -44,11 +44,18 @@ import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { resolveChildLang }              from './src/lib/i18nString';
 import { setupPwa }                      from './src/lib/setupPwa';
+import { captureRefFromUrl }             from './src/lib/referralCapture';
 
 // Make the web build installable as a PWA (inject manifest + apple-* meta tags
 // and register the service worker). No-op on native (the native app is the
 // "installed app").
 setupPwa();
+
+// Referral capture (web): read ?ref= from the entry URL into sessionStorage
+// NOW, at module load — before React Navigation rewrites the URL per-screen and
+// the code is lost. UStep8_Complete reads it back to auto-redeem. No-op on
+// native (referralCapture.android — code is entered manually in onboarding).
+void captureRefFromUrl();
 
 // Sentry crash + error monitoring.
 // DSN is only set in production/preview EAS profiles (eas.json env), keeping
