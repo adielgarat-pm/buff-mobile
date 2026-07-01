@@ -14,6 +14,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { OPTIONS_BY_AGE } from './onboardingData';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep3_Challenges'>;
@@ -25,6 +26,7 @@ export default function UStep3_Challenges() {
   const navigation = useNavigation<Nav>();
   const { params }  = useRoute<Route>();
   const { t }       = useTranslation();
+  const { isRTL }   = useRTLStyles();
 
   const [additionalChallenges, setAdditional] = useState<string[]>([]);
 
@@ -51,12 +53,14 @@ export default function UStep3_Challenges() {
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       {/* ── Top bar ───────────────────────────────────────────────────── */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={styles.backChevron}>‹</Text>
+          <Text style={styles.backChevron}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <View style={styles.stepInfo}>
           <Text style={styles.flowLabel}>{t('onboarding.flowLabel')}</Text>
@@ -77,22 +81,26 @@ export default function UStep3_Challenges() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.heading}>
+        <Text style={[styles.heading, isRTL && styles.textRight]}>
           {t('onboarding.step3.title', { name: params.childName })}
         </Text>
-        <Text style={styles.sub}>{t('onboarding.step3.sub')}</Text>
+        <Text style={[styles.sub, isRTL && styles.textRight]}>{t('onboarding.step3.sub')}</Text>
 
         {options.map((opt) => {
           const selected = additionalChallenges.includes(opt.id);
           return (
             <TouchableOpacity
               key={opt.id}
-              style={[styles.card, selected && styles.cardActive]}
+              testID={`onb3-challenge-${opt.id}`}
+              style={[styles.card, isRTL && styles.rowReverse, selected && styles.cardActive]}
               onPress={() => toggle(opt.id)}
               activeOpacity={0.8}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selected }}
+              accessibilityLabel={t(opt.labelKey)}
             >
               <Text style={styles.cardEmoji}>{opt.emoji}</Text>
-              <Text style={[styles.cardLabel, selected && styles.cardLabelActive]}>
+              <Text style={[styles.cardLabel, isRTL && styles.textRight, selected && styles.cardLabelActive]}>
                 {t(opt.labelKey)}
               </Text>
               <View style={[styles.checkbox, selected && styles.checkboxChecked]}>
@@ -108,6 +116,7 @@ export default function UStep3_Challenges() {
       {/* ── Sticky footer — always enabled (optional step) ────────────── */}
       <View style={styles.footer}>
         <TouchableOpacity
+          testID="onb3-next"
           style={styles.nextBtn}
           onPress={onNext}
           activeOpacity={0.8}
@@ -146,4 +155,6 @@ const styles = StyleSheet.create({
   },
   nextBtn:         { backgroundColor: T.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   nextBtnText:     { color: '#fff', fontSize: 16, fontWeight: '700' },
+  rowReverse:      { flexDirection: 'row-reverse' },
+  textRight:       { textAlign: 'right' },
 });

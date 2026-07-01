@@ -11,8 +11,11 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:e2e:web": "playwright test --config e2e/playwright.config.ts",
+    "test:e2e:android": "bash e2e/android/onboarding.android.sh",
     "i18n:check": "node scripts/i18n-key-check.js",
-    "check:i18n-access": "node scripts/check-bilingual-access.js"
+    "check:i18n-access": "node scripts/check-bilingual-access.js",
+    "check:no-raw-alert": "node scripts/check-no-raw-alert.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -40,6 +43,7 @@
     "expo-notifications": "~0.32.17",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
+    "expo-store-review": "~9.0.9",
     "expo-updates": "~29.0.18",
     "expo-web-browser": "~15.0.11",
     "i18next": "^26.0.3",
@@ -57,6 +61,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/react-native": "^12.7.2",
     "@types/jest": "^29.5.13",
     "@types/react": "~19.1.0",

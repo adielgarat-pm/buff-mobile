@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   Modal,
   Pressable,
   StyleSheet,
@@ -17,10 +16,12 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
+import { crossAlert } from '../../platform';
 import LanguagePicker from '../../components/LanguagePicker';
 import AppleSignInButton from '../../components/AppleSignInButton';
 import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { webAuthColumn } from './authLayout';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -42,25 +43,25 @@ export default function LoginScreen() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert(t('auth.fillAllFields'));
+      crossAlert(t('auth.fillAllFields'));
       return;
     }
     setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
-    if (error) Alert.alert(t('auth.invalidCredentials'));
+    if (error) crossAlert(t('auth.invalidCredentials'));
   };
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     const { error } = await signInWithGoogle();
     setGoogleLoading(false);
-    if (error) Alert.alert('Google sign-in failed', error.message);
+    if (error) crossAlert('Google sign-in failed', error.message);
   };
 
   const handleSendReset = async () => {
     if (!resetEmail) {
-      Alert.alert(t('auth.fillAllFields'));
+      crossAlert(t('auth.fillAllFields'));
       return;
     }
     setResetLoading(true);
@@ -82,7 +83,7 @@ export default function LoginScreen() {
     >
       <LanguagePicker />
 
-      <View style={styles.inner}>
+      <View style={[styles.inner, webAuthColumn(400)]}>
         {/* Logo / Title */}
         <View style={styles.logoBlock}>
           <Text style={styles.logo}>BUFF</Text>

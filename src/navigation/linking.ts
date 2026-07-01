@@ -26,10 +26,22 @@ export const linking: LinkingOptions<RootStackParamList> = {
 
   // Path-to-screen mappings. Each key is a screen name from
   // RootStackParamList; each value is the URL path after the scheme prefix.
+  //
+  // The auth-screen paths exist primarily for the web build: the marketing site
+  // (buffadhd.com) deep-links into the app at www.buffadhd.com/RoleSelection and
+  // /Login, so those paths must resolve deterministically on a cold load.
   config: {
     screens: {
-      FoundingHundred: 'founding-100',
+      // NOTE: www.buffadhd.com/RoleSelection?ref=CODE carries a load-bearing
+      // referral code. It is consumed by captureRefFromUrl() at App.tsx module
+      // load (before this linking layer strips the query param) and stashed in
+      // sessionStorage for redemption at the end of onboarding. Don't move that
+      // capture later than module load or web referral redemption breaks.
+      RoleSelection:   'RoleSelection',
+      Login:           'Login',
+      Signup:          'Signup',
       ChildJoin:       'join/:code',
+      FoundingHundred: 'founding-100',
       // Future deep-linkable screens go here, e.g.:
       // Paywall: 'paywall',
     },

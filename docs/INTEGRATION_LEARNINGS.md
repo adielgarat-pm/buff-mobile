@@ -14,6 +14,60 @@
 
 ## Implementation Notes
 
+### IN-2026-06-29-01: GitHub Actions CI נוסף — חשף 3 כשלים pre-existing שהיו אדומים ב-main (כי לא היה gate). 2 בודדו עם tracking, 1 תוקן
+
+- **תאריך:** 2026-06-29
+- **מקור:** Adi ביקשה CI שמריץ את הבדיקות + E2E. אושר ע"י Plan-agent (architect).
+- **השורש:** לא היה GitHub Actions בריפו, אז `tsc`/`jest` אף פעם לא רצו ב-gate — ו-main צבר כשלים אמיתיים. CI נאיבי היה אדום ביום הראשון.
+- **מה תוקן (בטוח):**
+  - `webPushRegistration.ts:80` — שגיאת tsc (TS 5.7 ממפה Uint8Array ל-`Uint8Array<ArrayBufferLike>` שלא תואם `BufferSource`). cast מכני. ✅
+  - `jest-setup.ts` — דמה `EXPO_PUBLIC_SUPABASE_*` כדי ש-supabase client לא יקרוס ב-module-load (כל הטסטים עושים mock לרשת). ✅
+- **מה בודד (quarantine — pre-existing, לא נגרם מהעבודה הזו, עם tracking בולט):**
+  - **i18nCatalogIntegrity** — 5 קבצים עם עברית hardcoded הוספו ל-`HEBREW_ALLOWLIST` (TaskTimelineSection, useChildProgress, captureMapping, LandingScreen, ParentInsightsScreen). **לטריאז':** או להוציא קופי אמיתי ל-`t()`, או לאשר שזו התאמת-מילות-מפתח (data). הגארד עדיין תופס הפרות **חדשות**.
+  - **ThemeContext "previewed child theme"** — `it.skip`. באג אמיתי אפשרי: ב-View-as-Child התמה מחזירה 'mint' במקום 'gamer' של הילד המוצג. **לא** התנהגות מאושרת — לבדוק ולהסיר את ה-skip בתיקון.
+- **ה-CI (`.github/workflows/ci.yml`):** job `quality` (typecheck + jest + build:web, ללא secrets) — מועמד ל-required check. job `e2e-web` (Playwright) — **advisory + opt-in** (`vars.RUN_E2E=='true'`), continue-on-error, דורש **staging** Supabase + session שמורה (לא prod). seeding של session-טרי per-run = follow-up.
+- **מצב אחרי:** typecheck 0 שגיאות; jest 48/48 suites, 502 passed, 1 skipped, 0 failed; build:web עובר. `@playwright/test` נוסף ל-devDependencies (אושר ע"י Adi).
+- **קשור ל:** `e2e/` (PR #300), `docs/MASTER_TEST_PLAYBOOK.md`, IN-2026-06-28-01/02/03.
+
+### IN-2026-06-28-03: סריקת onboarding רחבה — RTL חסר ב-UStep1-4/7/8 + כשל INSERT "שקט" של משימות/תגמולים. סיננו ~30 ממצאי-סוכן ל-8 מאומתים
+
+- **תאריך:** 2026-06-28
+- **מקור:** בהנחיית Adi ("סריקת onboarding רחבה"). 4 סוכני Explore (data/save, navigation, platform-parity, UX/i18n) → סינון ביקורתי → אישור Plan-agent → תיקון 2 אשכולות שנבחרו (RTL + שמירה אמינה).
+- **שיעור על אימות ממצאי-סוכן:** הסוכנים החזירו ~30 "באגים", אבל אחרי אימות עצמי רבים נפסלו: ה-"remount→reset" שסומן HIGH **כבר תוקן** (#296); ה-import של `expo-notifications` ב-UStep7 ש"שובר את ה-web bundle" — **שקרי** (כבר מיובא ב-4 מודולים אחרים שב-bundle החי); ו-`Share.share` "no-op בווב" — עובד בפועל ב-mobile web (Web Share API). **תמיד לאמת לפני הצגה.**
+- **באג 1 — RTL חסר:** רק `UStep5_Preview` + `WelcomeScreen` טיפלו ב-RTL; UStep1/2/3/4/7/8 היו עם 0 refs. תוקן ע"י תבנית `isRTL && rowReverse/textRight` + היפוך chevron.
+  - **הנקודה הקריטית (מהארכיטקט):** האפליקציה קוראת `I18nManager.forceRTL` ב-startup, אבל **לא** `swapLeftAndRightInRTL`. בנייטיב physical `left`/`right` מתהפכים אוטומטית אך `flexDirection:'row'` **לא** — לכן `row-reverse` ידני הוא **לא** double-flip (מאומת מול `ParentTasksScreen` שעושה זאת unconditionally). בווב `I18nManager.isRTL` תמיד false, ולכן `useRTLStyles` גוזר `isRTL` מתווית-השפה. אותה תבנית נכונה לשתי הפלטפורמות. **אין** להשתמש ב-`start/end` או ב-`left/right` מותנה.
+  - **בדיקה:** RTL בנייטיב מחייב cold-relaunch (forceRTL נקרא ב-startup); בווב reactive מיד.
+- **באג 2 — כשל INSERT שקט (UStep5_Preview.saveAll):** כשל insert של tasks/rewards היה "non-fatal" → ילד נוצר בלי משימות/תגמולים בלי שגיאה. תוקן: **tasks→fatal** (throw); rewards נשאר non-fatal (parent-editable). פערי retry שתוקנו: (א) ענף `else if (childProfileId)` שמשתמש מחדש ב-id כדי ש-retry לא יקרא שוב ל-RPC (שהיה מחזיר 'duplicate' ומציג דיאלוג מבלבל); (ב) `setSaveErr(null)` בתחילת saveAll אחרת retry מוצלח משאיר כפתורים מנוטרלים (`disabled={!!saveErr}` הוא ה-gate האמיתי כי `childProfileId` כבר truthy); (ג) escape-hatch "continue anyway" אחרי 2 כשלים כדי לא ללכוד הורה בכשל backend מתמשך (RLS).
+- **נדחו ל-FLAG (לא נבחרו לתיקון כעת):** Section B ב-Step 3, פוליש web/UX (UStep8 keyboardShouldPersistTaps, UStep7 ScrollView+Share fallback, maxLength לשם), a11y (accessibilityState, progress bar 3px, hitSlop 12px).
+- **קשור ל:** UStep1-8 + WelcomeScreen, `src/contexts/LanguageContext.tsx` (`useRTLStyles`/forceRTL), IN-2026-06-28-01/02.
+
+### IN-2026-06-28-01: אונבורדינג ב-web "זרק חזרה לשלב הראשון" אחרי שלב המוטיבטורים — remount של ה-NavigationContainer שנגרם מ-refetch של `useChildrenDashboard` בעקבות INSERT realtime + שני סייחים
+
+- **תאריך:** 2026-06-28
+- **מקור:** CC — דיווח של הטסטרית ענבל: "לא מצליחה לעבור אחרי השלב הזה (Step 4 / What motivates), מחזיר אותי לשלב הראשון." פלטפורמה: **Web (PWA)**, `buffadhd.com`.
+- **תיאור (שורש — באג ניווט, NOT layout):** הזרימה היא `UStep4_Motivator` → `ULoadingScreen` (setTimeout 2.5ש') → `UStep5_Preview`. ב-mount של UStep5 רץ `saveAll` שעושה **INSERT לטבלת `profiles`** ([UStep5_Preview.tsx:193](../src/screens/onboarding/unified/UStep5_Preview.tsx)). ה-instance של `useChildrenDashboard` ב-[RootNavigator.tsx:67](../src/navigation/RootNavigator.tsx) מנוי ב-realtime על `INSERT` בטבלת `profiles` ([useChildrenDashboard.ts:132](../src/hooks/useChildrenDashboard.ts)) ו-`fetch` קרא ל-`setLoading(true)` בכל ריצה. השער ב-[RootNavigator.tsx:83](../src/navigation/RootNavigator.tsx) (`if (loading || (isParent && user && profile && childrenLoading))`) מחזיר ספינר במקום ה-`<NavigationContainer>` → **unmount של כל הניווט באמצע האונבורדינג** → כשה-refetch מסתיים, **remount**. ב-web אין persistence ל-nav-state, שלבי ה-UStep לא ב-`linking.config` ([linking.ts](../src/navigation/linking.ts) ממפה רק `FoundingHundred`/`ChildJoin`), וה-params חיים רק בזיכרון → ה-remount נופל ל-`initialRouteName` = המסך הראשון (Welcome/UStep1).
+- **למה web ולא נייטיב:** קוד-הגורם אגנוסטי לפלטפורמה, אבל בנייטיב ה-stack שורד בזיכרון ואין URL round-trip; ב-web ה-remount = איבוד מוחלט של ההתקדמות.
+- **סייח שווא שתוקן גם הוא (Bug A):** ל-`UStep4_Motivator` (וגם `UStep2_Goal`) חסר `style={{ flex: 1 }}` ב-ScrollView, בניגוד ל-UStep3/UStep5. ב-RN-Web זה דוחף footer מסוג `position:absolute` מתחת ל-viewport. UStep4 קיבל תיקון; UStep2 קיבל hardening (אין לו footer היום).
+- **התיקון:** (Bug B) `useChildrenDashboard` עודכן כך ש-`loading` נדלק רק בטעינה הראשונה (`hasLoaded` ref); refetch מ-realtime מעדכן את `children` בשקט בלי לפרק את הניווט. גם מסיר flicker אצל 7 הצרכנים האחרים. (Bug A) הוספת `flex:1` ל-ScrollView ב-UStep4+UStep2. אושר ע"י Plan-agent (architect).
+- **FLAG (hardening) — ✅ נסגר ב-IN-2026-06-28-02:** הרענון הידני ב-web טופל ע"י persistence ל-snapshot של ה-onboarding (web-only). ראה למטה.
+- **קשור ל:** [RootNavigator.tsx](../src/navigation/RootNavigator.tsx) (השער שורה 83 + ענפי 4/5), [useChildrenDashboard.ts](../src/hooks/useChildrenDashboard.ts), [UStep5_Preview.tsx](../src/screens/onboarding/unified/UStep5_Preview.tsx), [linking.ts](../src/navigation/linking.ts), recent web-parity PRs (#287 date picker, #288 crossAlert).
+
+### IN-2026-06-28-02: רענון ידני של הדפדפן באמצע onboarding איבד את כל ההתקדמות (web) — נפתר ע"י persistence ממוקד-onboarding, web-only, עם native no-op מוחלט
+
+- **תאריך:** 2026-06-28
+- **מקור:** המשך טיפול ב-FLAG מ-IN-2026-06-28-01, בהנחיית Adi ("בוא נמשיך לטפל ברענון הידני" + "שים לב שיש אפליקציית אנדרואיד שבנפרד מהווב").
+- **השורש:** נתוני ה-onboarding מושחלים ממסך למסך דרך `route.params` בלבד (אין store מקביל — אומת על UStep2–UStep8). ב-web רענון בונה את ה-nav-state מאפס → כל ה-params אבדו → חזרה למסך הראשון.
+- **ההחלטה (אושרה ע"י Plan-agent, גישה 7b מתוך 7 חלופות):** **לא** persistence לכל ה-`NavigationContainer` (blast-radius גבוה: modals שנפתחים מחדש, state עמוק של ParentApp, התנגשות ענפים). במקום — snapshot ממוקד `{route, params, t}` של שלב ה-onboarding בלבד.
+- **המימוש (platform-split, נייטיב נפרד מהווב לחלוטין):**
+  - [onboardingRoutes.ts](../src/navigation/onboardingRoutes.ts) — קובץ משותף (לא-split): רשימת ה-onboarding routes + `isOnboardingRoute` + טיפוס `OnboardingSnapshot`. מקור-אמת יחיד שמונע drift בין הספליטים.
+  - [onboardingPersistence.ts](../src/navigation/onboardingPersistence.ts) — נייטיב: כל הפונקציות **no-op**, `ONBOARDING_PERSISTENCE_ENABLED=false`. **לא מייבא AsyncStorage.** מסלול האנדרואיד נשאר byte-for-byte כמו קודם.
+  - [onboardingPersistence.web.ts](../src/navigation/onboardingPersistence.web.ts) — web: כתיבה ל-localStorage (דרך AsyncStorage) עם **TTL 6ש'** (לא לתפוס משתמש חוזר בזרימה ישנה), **debounce 400ms**, וולידציה של ה-route בקריאה.
+  - [RootNavigator.tsx](../src/navigation/RootNavigator.tsx) — `onStateChange` שומר snapshot כש-route הוא onboarding ומנקה כשעוברים ל-ParentApp/ChildApp; `initialState` מיושם **רק** כשהענף המחושב-מחדש הוא ענף ההורה-הלא-onboarded (מונע crash של initialState על route שלא קיים בענף). `navStateReady` קופל לתוך השער היחיד בשורה 83 (אין double-spinner; נייטיב מתחיל ב-`true`).
+  - [AuthContext.tsx](../src/contexts/AuthContext.tsx) — `clearOnboardingSnapshot()` ב-`signOut` וב-`deleteAccount` (אין דליפת PII בין משתמשים בדפדפן משותף).
+- **PII:** `childName`/`birthDate` נשמרים ב-localStorage ב-web בלבד — עקבי עם ה-session של Supabase שכבר שם; ממותן ע"י key ייעודי, TTL, וניקוי ב-signout. Sentry כבר מסנן PII.
+- **קצה ידוע (QA):** רענון *בדיוק* על `UStep5_Preview` יריץ `saveAll` שוב; מוגן ע"י ה-idempotency (existingTaskCount/RewardCount) ו-duplicate-detection ב-RPC `create_child_profile` (יציג דיאלוג "ילד כבר קיים", לא כפילות נתונים).
+- **קשור ל:** IN-2026-06-28-01 (הבאג המקורי + ה-FLAG), `docs/sessions` parity rule (Android+Web), recent web-parity PRs (#287/#288).
+
 ### IN-2026-06-25-01: ילדים דוברי-עברית עם שם בכתב לטיני ננעלים על אנגלית במכשיר שלהם — מלכודת `detectLangFromName` + `preferred_language` נפרד
 
 - **תאריך:** 2026-06-25

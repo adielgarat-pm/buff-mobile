@@ -8,15 +8,22 @@
  *   4. role === 'parent', onboarding_complete + hasChildren → ParentTabs (+ modals)
  *   5. role === 'parent', otherwise → Onboarding stack (Welcome → UStep…)
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, type NavigationState } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../contexts/AuthContext';
 import { useMode } from '../contexts/ModeContext';
 import { useChildrenDashboard } from '../hooks/useChildrenDashboard';
 import type { RootStackParamList } from './types';
 import { linking } from './linking';
+import { isOnboardingRoute, type OnboardingSnapshot } from './onboardingRoutes';
+import {
+  ONBOARDING_PERSISTENCE_ENABLED,
+  loadOnboardingSnapshot,
+  saveOnboardingSnapshot,
+  clearOnboardingSnapshot,
+} from './onboardingPersistence';
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 import LandingScreen       from '../screens/auth/LandingScreen';
@@ -66,6 +73,39 @@ export default function RootNavigator() {
   const isParent = profile?.role === 'parent';
   const { children, loading: childrenLoading, refetch: refetchChildren } = useChildrenDashboard();
 
+  // ── Web-only: reload-safe onboarding ──────────────────────────────────────
+  // The onboarding flow threads its data through route params only, so a manual
+  // browser reload would lose all progress (params live in in-memory nav state).
+  // On web we restore a {route, params} snapshot from storage; native uses the
+  // no-op split, and `navStateReady` starts true there so the gate below is
+  // byte-for-byte identical to before. See onboardingPersistence.web.ts.
+  const [navStateReady, setNavStateReady] = useState(!ONBOARDING_PERSISTENCE_ENABLED);
+  const [restoredSnap,  setRestoredSnap]  = useState<OnboardingSnapshot | null>(null);
+
+  useEffect(() => {
+    if (!ONBOARDING_PERSISTENCE_ENABLED) return;
+    loadOnboardingSnapshot().then((snap) => {
+      setRestoredSnap(snap);
+      setNavStateReady(true);
+    });
+  }, []);
+
+  // Snapshot the focused route as the parent advances through onboarding; drop
+  // the snapshot once they leave the flow for the real app. No-op on native.
+  const onNavStateChange = useCallback((state: NavigationState | undefined) => {
+    if (!ONBOARDING_PERSISTENCE_ENABLED || !state) return;
+    const route = state.routes[state.index];
+    if (route && isOnboardingRoute(route.name)) {
+      saveOnboardingSnapshot({
+        route:  route.name,
+        params: (route.params ?? {}) as OnboardingSnapshot['params'],
+        t:      Date.now(),
+      });
+    } else if (route && (route.name === 'ParentApp' || route.name === 'ChildApp')) {
+      clearOnboardingSnapshot();
+    }
+  }, []);
+
   // Re-fetch children whenever the profile object changes (e.g. after refreshProfile()
   // is called at the end of onboarding — family_id may not have changed but a new
   // child profile was inserted during UStep5_Preview).
@@ -79,8 +119,10 @@ export default function RootNavigator() {
     }
   }, [profile, refetchChildren]);
 
-  // Block render until auth resolves; also wait for children data on parent accounts.
-  if (loading || (isParent && user && profile && childrenLoading)) {
+  // Block render until auth resolves; also wait for children data on parent
+  // accounts and (web only) the onboarding snapshot read. `navStateReady` is
+  // always true on native, so this gate is unchanged there.
+  if (loading || !navStateReady || (isParent && user && profile && childrenLoading)) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8F9FA' }}>
         <ActivityIndicator size="large" color="#6D28D9" />
@@ -94,8 +136,29 @@ export default function RootNavigator() {
 
   console.log('[RootNavigator] role:', profile?.role, 'onboardingComplete:', onboardingComplete, 'hasChildren:', hasChildren);
 
+  // Apply the restored onboarding snapshot ONLY when the recomputed branch is
+  // the not-yet-onboarded parent branch (which actually contains the UStep
+  // screens). Never feed initialState that names routes absent from the active
+  // branch — React Navigation can throw / render blank on an unknown route.
+  // `Welcome` underneath keeps the back gesture sane. Web-only (restoredSnap is
+  // always null on native).
+  const restoredState =
+    restoredSnap && !parentOnboarded && profile?.role === 'parent'
+      ? {
+          index: 1,
+          routes: [
+            { name: 'Welcome' as const },
+            { name: restoredSnap.route, params: restoredSnap.params },
+          ],
+        }
+      : undefined;
+
   return (
-    <NavigationContainer linking={linking}>
+    <NavigationContainer
+      linking={linking}
+      initialState={restoredState}
+      onStateChange={onNavStateChange}
+    >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
 
         {!user ? (

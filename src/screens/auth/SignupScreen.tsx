@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   StyleSheet,
 } from 'react-native';
@@ -16,10 +15,12 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { crossAlert } from '../../platform';
 import LanguagePicker from '../../components/LanguagePicker';
 import AppleSignInButton from '../../components/AppleSignInButton';
 import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { webAuthColumn } from './authLayout';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'Signup'>;
 type Route = RouteProp<RootStackParamList, 'Signup'>;
@@ -46,21 +47,21 @@ export default function SignupScreen() {
   const handleSignUp = async () => {
     if (role === 'child') {
       if (!displayName || !username || !password) {
-        Alert.alert(t('auth.fillAllFields'));
+        crossAlert(t('auth.fillAllFields'));
         return;
       }
       if (!familyCode) {
-        Alert.alert(t('auth.enterFamilyCode'));
+        crossAlert(t('auth.enterFamilyCode'));
         return;
       }
     } else {
       if (!displayName || !email || !password) {
-        Alert.alert(t('auth.fillAllFields'));
+        crossAlert(t('auth.fillAllFields'));
         return;
       }
     }
     if (password.length < 6) {
-      Alert.alert(t('auth.passwordMinLength'));
+      crossAlert(t('auth.passwordMinLength'));
       return;
     }
 
@@ -73,9 +74,9 @@ export default function SignupScreen() {
       const msg = error.message.toLowerCase();
       const isDuplicate = msg.includes('already registered') || msg.includes('already exists');
       if (isDuplicate && role === 'child') {
-        Alert.alert(t('auth.usernameTaken'));
+        crossAlert(t('auth.usernameTaken'));
       } else {
-        Alert.alert(t('auth.error.signupFailedTitle'));
+        crossAlert(t('auth.error.signupFailedTitle'));
       }
     }
     // On success, auth state change triggers navigation automatically via RootNavigator
@@ -85,7 +86,7 @@ export default function SignupScreen() {
     setGoogleLoading(true);
     const { error } = await signInWithGoogle();
     setGoogleLoading(false);
-    if (error) Alert.alert('Google sign-up failed', error.message);
+    if (error) crossAlert('Google sign-up failed', error.message);
   };
 
   return (
@@ -94,7 +95,7 @@ export default function SignupScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LanguagePicker />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, webAuthColumn(400)]} keyboardShouldPersistTaps="handled">
         {/* Header */}
         <Text style={styles.logo}>BUFF</Text>
         <Text style={styles.subtitle}>{t('auth.createAccount')}</Text>

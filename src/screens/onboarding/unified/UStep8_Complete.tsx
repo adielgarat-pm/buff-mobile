@@ -24,6 +24,7 @@ import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
 import { captureRefFromUrl, getRefCode, clearRefCode } from '../../../lib/referralCapture';
@@ -44,6 +45,7 @@ export default function UStep8_Complete() {
   const navigation              = useNavigation<Nav>();
   const { params }              = useRoute<Route>();
   const { t }                   = useTranslation();
+  const { isRTL }               = useRTLStyles();
   const { user, familyShortCode, refreshProfile } = useAuth();
 
   const [saving,      setSaving]      = useState(false);
@@ -207,6 +209,7 @@ export default function UStep8_Complete() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Animated checkmark — visible after save completes */}
         <Animated.View
@@ -269,6 +272,7 @@ export default function UStep8_Complete() {
           <>
             <DisclaimerFooter variant="short" />
             <TouchableOpacity
+              testID="onb8-cta"
               style={styles.dashboardBtn}
               onPress={() => navigation.reset({ index: 0, routes: [{ name: 'ParentApp' }] })}
               activeOpacity={0.85}
@@ -295,9 +299,10 @@ export default function UStep8_Complete() {
         {/* Manual referral input — dashed border, visually distinct from family code card */}
         {showManualInput && (
           <View style={styles.refManualCard}>
-            <Text style={styles.refManualLabel}>{t('referral.onboardingLabel')}</Text>
-            <View style={styles.refManualRow}>
+            <Text style={[styles.refManualLabel, isRTL && styles.textRight]}>{t('referral.onboardingLabel')}</Text>
+            <View style={[styles.refManualRow, isRTL && styles.rowReverse]}>
               <TextInput
+                testID="onb8-ref-input"
                 style={styles.refManualInput}
                 value={manualCode}
                 onChangeText={v => setManualCode(v.toUpperCase())}
@@ -308,6 +313,7 @@ export default function UStep8_Complete() {
                 editable={refState !== 'manual_loading'}
               />
               <TouchableOpacity
+                testID="onb8-ref-apply"
                 style={[
                   styles.refManualBtn,
                   (manualCode.length < 6 || refState === 'manual_loading') && styles.refManualBtnDisabled,
@@ -379,4 +385,6 @@ const styles = StyleSheet.create({
   refManualBtnDisabled: { opacity: 0.4 },
   refManualBtnText:     { color: '#fff', fontWeight: '600', fontSize: 14 },
   refManualError:       { color: '#DC2626', fontSize: 12, marginTop: 6, textAlign: 'center' },
+  rowReverse:           { flexDirection: 'row-reverse' },
+  textRight:            { textAlign: 'right' },
 });

@@ -9,6 +9,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { MOTIVATORS } from './onboardingData';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep4_Motivator'>;
@@ -21,6 +22,7 @@ export default function UStep4_Motivator() {
   const navigation = useNavigation<Nav>();
   const { params }  = useRoute<Route>();
   const { t }       = useTranslation();
+  const { isRTL }   = useRTLStyles();
 
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -44,12 +46,14 @@ export default function UStep4_Motivator() {
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Top bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={styles.backChevron}>‹</Text>
+          <Text style={styles.backChevron}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <View style={styles.stepInfo}>
           <Text style={styles.flowLabel}>{t('onboarding.flowLabel')}</Text>
@@ -63,14 +67,18 @@ export default function UStep4_Motivator() {
         <View style={[styles.barFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.heading, isRTL && styles.textRight]}>
           {t('onboarding.step4.title', { name: params.childName })}
         </Text>
-        <Text style={styles.sub}>{t('onboarding.step4.sub')}</Text>
+        <Text style={[styles.sub, isRTL && styles.textRight]}>{t('onboarding.step4.sub')}</Text>
 
         {/* Pick hint */}
-        <Text style={styles.pickHint}>
+        <Text style={[styles.pickHint, isRTL && styles.textRight]}>
           {selected.length === 0
             ? t('onboarding.step4.pickHint', 'Pick up to 2')
             : selected.length === MAX_PICKS
@@ -84,16 +92,21 @@ export default function UStep4_Motivator() {
           return (
             <TouchableOpacity
               key={mot.id}
+              testID={`onb4-motivator-${mot.id}`}
               style={[
                 styles.card,
+                isRTL && styles.rowReverse,
                 isSelected && styles.cardSelected,
                 isDisabled && styles.cardDisabled,
               ]}
               onPress={() => toggle(mot.id)}
               activeOpacity={0.75}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+              accessibilityLabel={t(mot.labelKey)}
             >
               <Text style={styles.cardEmoji}>{mot.emoji}</Text>
-              <Text style={[styles.cardLabel, isSelected && styles.cardLabelSelected]}>
+              <Text style={[styles.cardLabel, isRTL && styles.textRight, isSelected && styles.cardLabelSelected]}>
                 {t(mot.labelKey)}
               </Text>
               {isSelected ? (
@@ -112,6 +125,7 @@ export default function UStep4_Motivator() {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
+          testID="onb4-continue"
           style={[styles.ctaBtn, !canProceed && styles.ctaBtnDisabled]}
           onPress={onContinue}
           activeOpacity={0.85}
@@ -148,4 +162,6 @@ const styles = StyleSheet.create({
   ctaBtn:            { backgroundColor: T.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   ctaBtnDisabled:    { opacity: 0.4 },
   ctaText:           { color: '#fff', fontSize: 16, fontWeight: '700' },
+  rowReverse:        { flexDirection: 'row-reverse' },
+  textRight:         { textAlign: 'right' },
 });

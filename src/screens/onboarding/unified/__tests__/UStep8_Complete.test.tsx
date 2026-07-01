@@ -35,6 +35,13 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+// RTL hook — the screen only reads isRTL for styling; stub it so importing
+// LanguageContext doesn't pull in the real i18n init (react-i18next is mocked
+// without initReactI18next).
+jest.mock('../../../../contexts/LanguageContext', () => ({
+  useRTLStyles: () => ({ isRTL: false }),
+}));
+
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../../contexts/AuthContext', () => ({
   useAuth: () => ({

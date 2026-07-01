@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Alert, Platform, StyleProp, ViewStyle } from 'react-native';
+import { Platform, StyleProp, ViewStyle } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '../contexts/AuthContext';
+import { crossAlert } from '../platform';
 
 interface Props {
   // SIGN_IN for the login screen, SIGN_UP for the signup screen — Apple
@@ -31,7 +32,7 @@ export default function AppleSignInButton({ mode, style }: Props) {
     setLoading(true);
     const { error } = await signInWithApple();
     setLoading(false);
-    if (error) Alert.alert('Apple sign-in failed', error.message);
+    if (error) crossAlert('Apple sign-in failed', error.message);
   };
 
   return (

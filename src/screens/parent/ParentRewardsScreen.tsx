@@ -7,10 +7,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Modal, TextInput, Alert,
+  ActivityIndicator, Modal, TextInput,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { crossAlert } from '../../platform';
 import { useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { ParentTabsParamList } from '../../navigation/types';
 import { PARENT_THEME as T } from '../../theme';
@@ -232,7 +233,7 @@ export default function ParentRewardsScreen() {
   const handleDeleteReward = () => {
     if (!editingId || !selectedChildId) return;
     const id = editingId;
-    Alert.alert(
+    crossAlert(
       t('parentRewards.modal.deleteConfirmTitle'),
       t('parentRewards.modal.deleteConfirmMsg'),
       [
@@ -245,7 +246,7 @@ export default function ParentRewardsScreen() {
             const { error } = await supabase.from('store_rewards').delete().eq('id', id);
             if (error) {
               console.error('[ParentRewards] delete error:', error.message);
-              Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+              crossAlert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
               return;
             }
             fetchRewards(selectedChildId);
@@ -297,12 +298,12 @@ export default function ParentRewardsScreen() {
     const result = await approveRedemption(r.id);
     if (!result.ok) {
       if (result.error === 'insufficient_funds') {
-        Alert.alert(
+        crossAlert(
           t('parentRewards.redemption.insufficientTitle'),
           t('parentRewards.redemption.insufficientMsg', { name: selectedChild?.displayName ?? '' }),
         );
       } else {
-        Alert.alert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
+        crossAlert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
       }
       return;
     }
@@ -332,7 +333,7 @@ export default function ParentRewardsScreen() {
     const { error } = await supabase.from('store_rewards').insert(rows as never);
     if (error) {
       console.error('[ParentRewards] duplicate error:', error.message);
-      Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+      crossAlert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
     }
   };
 
@@ -340,12 +341,12 @@ export default function ParentRewardsScreen() {
     if (!familyId || !selectedChildId) return;
     const title = newTitle.trim();
     if (!title) {
-      Alert.alert(t('parentRewards.errorMissingTitle'), t('parentRewards.errorMissingTitleMsg'));
+      crossAlert(t('parentRewards.errorMissingTitle'), t('parentRewards.errorMissingTitleMsg'));
       return;
     }
     const credits = parseInt(newCredits, 10);
     if (isNaN(credits) || credits < 1) {
-      Alert.alert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
+      crossAlert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
       return;
     }
 
@@ -353,7 +354,7 @@ export default function ParentRewardsScreen() {
     if (cashMode) {
       const cash = parseFloat(newCash);
       if (isNaN(cash) || cash <= 0) {
-        Alert.alert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
+        crossAlert(t('parentRewards.errorInvalidAmount'), t('parentRewards.errorInvalidAmountMsg'));
         return;
       }
       cashValue = cash;
@@ -378,7 +379,7 @@ export default function ParentRewardsScreen() {
       setSaving(false);
       if (updErr) {
         console.error('[ParentRewards] update error:', updErr.message);
-        Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+        crossAlert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
         return;
       }
       closeModal();
@@ -410,7 +411,7 @@ export default function ParentRewardsScreen() {
 
     if (error) {
       console.error('[ParentRewards] insert error:', error.message);
-      Alert.alert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
+      crossAlert(t('parentRewards.errorSave'), t('parentRewards.errorSaveMsg'));
       return;
     }
 

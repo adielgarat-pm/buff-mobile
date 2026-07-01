@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 import LanguagePicker from '../../components/LanguagePicker';
+import { webAuthColumn } from './authLayout';
 
 type Nav = StackNavigationProp<RootStackParamList, 'RoleSelection'>;
 
@@ -35,7 +36,7 @@ export default function RoleSelectionScreen() {
     <SafeAreaView edges={['top']} style={styles.safe}>
       <LanguagePicker />
 
-      <Animated.View style={[styles.inner, { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.inner, webAuthColumn(440), { opacity: fadeAnim }]}>
 
         {/* Logo */}
         <View style={styles.logoWrap as object}>

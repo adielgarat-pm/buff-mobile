@@ -9,6 +9,7 @@ import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { OPTIONS_BY_AGE } from './onboardingData';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep2_Goal'>;
@@ -20,6 +21,7 @@ export default function UStep2_Goal() {
   const navigation = useNavigation<Nav>();
   const { params }  = useRoute<Route>();
   const { t }       = useTranslation();
+  const { isRTL }   = useRTLStyles();
 
   const options = OPTIONS_BY_AGE[params.ageGroup];
   const progress = (STEP + 1) / (TOTAL + 1);
@@ -31,12 +33,14 @@ export default function UStep2_Goal() {
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Top bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={styles.backChevron}>‹</Text>
+          <Text style={styles.backChevron}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <View style={styles.stepInfo}>
           <Text style={styles.flowLabel}>{t('onboarding.flowLabel')}</Text>
@@ -50,22 +54,31 @@ export default function UStep2_Goal() {
         <View style={[styles.barFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>
+      {/* flex:1 keeps the ScrollView bounded so any future absolute footer stays
+          pinned to the viewport on web (parity with UStep3/4/5) — hardening. */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={[styles.heading, isRTL && styles.textRight]}>
           {t('onboarding.step2.title', { name: params.childName })}
         </Text>
-        <Text style={styles.sub}>{t('onboarding.step2.sub')}</Text>
+        <Text style={[styles.sub, isRTL && styles.textRight]}>{t('onboarding.step2.sub')}</Text>
 
         {options.map((opt) => (
           <TouchableOpacity
             key={opt.id}
-            style={styles.card}
+            testID={`onb2-goal-${opt.id}`}
+            style={[styles.card, isRTL && styles.rowReverse]}
             onPress={() => select(opt.id)}
             activeOpacity={0.75}
+            accessibilityRole="button"
+            accessibilityLabel={t(opt.labelKey)}
           >
             <Text style={styles.cardEmoji}>{opt.emoji}</Text>
-            <Text style={styles.cardLabel}>{t(opt.labelKey)}</Text>
-            <Text style={styles.cardArrow}>›</Text>
+            <Text style={[styles.cardLabel, isRTL && styles.textRight]}>{t(opt.labelKey)}</Text>
+            <Text style={styles.cardArrow}>{isRTL ? '‹' : '›'}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -89,4 +102,6 @@ const styles = StyleSheet.create({
   cardEmoji:    { fontSize: 26, marginRight: 14, width: 34 },
   cardLabel:    { flex: 1, color: T.text, fontSize: 16, fontWeight: '600' },
   cardArrow:    { color: T.textMuted, fontSize: 20 },
+  rowReverse:   { flexDirection: 'row-reverse' },
+  textRight:    { textAlign: 'right' },
 });

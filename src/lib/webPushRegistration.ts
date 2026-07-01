@@ -77,7 +77,10 @@ export async function registerWebPush(
 
     const subscription = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: base64urlToUint8Array(vapidPublicKey),
+      // Cast: TS 5.7 types Uint8Array as Uint8Array<ArrayBufferLike>, which no
+      // longer matches BufferSource directly; the runtime value is a valid
+      // ArrayBufferView. (Fixes the long-standing typecheck error here.)
+      applicationServerKey: base64urlToUint8Array(vapidPublicKey) as BufferSource,
     });
 
     const json = subscription.toJSON();

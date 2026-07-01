@@ -7,9 +7,10 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Platform, Alert,
+  ActivityIndicator, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { crossAlert } from '../../platform';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -115,7 +116,7 @@ export default function EditChildScreen() {
   const save = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      Alert.alert(t('editChild.nameRequired'));
+      crossAlert(t('editChild.nameRequired'));
       return;
     }
 
@@ -185,13 +186,13 @@ export default function EditChildScreen() {
 
     const result = data as { success?: boolean; remaining_children?: number } | null;
     if (error || !result?.success) {
-      Alert.alert(t('editChild.deleteError'));
+      crossAlert(t('editChild.deleteError'));
       return;
     }
 
     if ((result.remaining_children ?? 0) === 0) {
       // That was the only child — offer to delete the whole family account.
-      Alert.alert(
+      crossAlert(
         t('editChild.lastChildTitle'),
         t('editChild.lastChildMessage'),
         [
@@ -201,7 +202,7 @@ export default function EditChildScreen() {
             style: 'destructive',
             onPress: async () => {
               const { error: delErr } = await deleteAccount();
-              if (delErr) Alert.alert(t('editChild.deleteError'));
+              if (delErr) crossAlert(t('editChild.deleteError'));
               // On success the auth state clears and the navigator returns to login.
             },
           },
@@ -213,7 +214,7 @@ export default function EditChildScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
+    crossAlert(
       t('editChild.deleteTitle', { name: name.trim() || t('editChild.thisChild') }),
       t('editChild.deleteMessage'),
       [

@@ -7,7 +7,7 @@
  * Tasks:     tasks WHERE family_id = X AND child_id = <childId>
  * Progress:  daily_progress WHERE family_id = X AND date = today AND child_id = <childId>
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { isTaskInActivePlan } from '../utils/offRoutineUtils';
@@ -28,11 +28,20 @@ export function useChildrenDashboard() {
   const { familyId } = useAuth();
   const [children, setChildren] = useState<ChildSummary[]>([]);
   const [loading,  setLoading]  = useState(true);
+  // `loading` gates a full-screen / full-section spinner in consumers (incl.
+  // RootNavigator line 83, which UNMOUNTS the NavigationContainer while true).
+  // It must only block on the FIRST load. Realtime-triggered refetches (e.g. the
+  // child-profile INSERT during onboarding's UStep5) must update `children`
+  // SILENTLY — otherwise toggling `loading` back to true mid-onboarding remounts
+  // the navigator and, on web (no nav-state persistence, UStep params live only
+  // in memory), resets the flow to the first step. See IN-2026-06-28.
+  const hasLoaded = useRef(false);
 
   const fetch = useCallback(async () => {
-    setLoading(true);
+    if (!hasLoaded.current) setLoading(true);
     if (!familyId) {
       setChildren([]);
+      hasLoaded.current = true;
       setLoading(false);
       return;
     }
@@ -111,11 +120,17 @@ export function useChildrenDashboard() {
     } catch (err) {
       console.error('[Dashboard] fetch error:', err);
     } finally {
+      hasLoaded.current = true;
       setLoading(false);
     }
   }, [familyId]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    // `fetch` identity changes with familyId; reset the first-load gate on an
+    // account switch so the new family gets a fresh blocking load.
+    hasLoaded.current = false;
+    fetch();
+  }, [fetch]);
 
   useEffect(() => {
     if (!familyId) return;

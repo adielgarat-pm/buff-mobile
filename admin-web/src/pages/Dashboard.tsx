@@ -3,12 +3,16 @@ import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { TesterBoard } from '@/components/TesterBoard'
 import { SmartInsightFeedback } from '@/components/SmartInsightFeedback'
+import { FeedbackBoard } from '@/components/FeedbackBoard'
+import { ReferralBoard } from '@/components/ReferralBoard'
 
-type Tab = 'testers' | 'insights'
+type Tab = 'testers' | 'insights' | 'feedback' | 'referrals'
 
 const TABS: { key: Tab; label: string }[] = [
-  { key: 'testers',  label: 'Tester Board' },
-  { key: 'insights', label: '✨ Smart Insights' },
+  { key: 'testers',   label: 'Tester Board' },
+  { key: 'insights',  label: '✨ Smart Insights' },
+  { key: 'feedback',  label: '⭐ Rate Feedback' },
+  { key: 'referrals', label: '🎁 Referrals' },
 ]
 
 export function Dashboard() {
@@ -52,8 +56,10 @@ export function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-6">
-        {tab === 'testers'  && <TesterBoard />}
-        {tab === 'insights' && <SmartInsightFeedback />}
+        {tab === 'testers'   && <TesterBoard />}
+        {tab === 'insights'  && <SmartInsightFeedback />}
+        {tab === 'feedback'  && <FeedbackBoard />}
+        {tab === 'referrals' && <ReferralBoard />}
       </main>
     </div>
   )

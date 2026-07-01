@@ -9,7 +9,7 @@
  * 'default' Android channel set up in notificationHandler.ts at app boot).
  * Best-effort: proceeds even if permission is denied or scheduling fails.
  */
-import { View, Text, TouchableOpacity, Share, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Share, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { BUFF_URLS, buildJoinDeepLink } from '../../../lib/buffConfig';
 import { requestNotificationPermission } from '../../../lib/pushTokens';
 
@@ -30,6 +31,7 @@ export default function UStep7_Phone() {
   const navigation         = useNavigation<Nav>();
   const { params }         = useRoute<Route>();
   const { t }              = useTranslation();
+  const { isRTL }          = useRTLStyles();
   const { familyShortCode } = useAuth();
 
   const progress = (STEP + 1) / (TOTAL + 1);
@@ -88,12 +90,14 @@ export default function UStep7_Phone() {
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       {/* Top bar */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, isRTL && styles.rowReverse]}>
         <TouchableOpacity
+          testID="onb-back"
+          accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={styles.backChevron}>‹</Text>
+          <Text style={styles.backChevron}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <View style={styles.stepInfo}>
           <Text style={styles.flowLabel}>{t('onboarding.flowLabel')}</Text>
@@ -114,31 +118,31 @@ export default function UStep7_Phone() {
         </Text>
         <Text style={styles.sub}>{t('onboarding.step7.sub', { name: params.childName })}</Text>
 
-        <TouchableOpacity style={[styles.option, styles.optionPrimary]} onPress={inviteNow} activeOpacity={0.8}>
+        <TouchableOpacity testID="onb7-invite" style={[styles.option, isRTL && styles.rowReverse, styles.optionPrimary]} onPress={inviteNow} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>🚀</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.optionTitle}>{t('onboarding.step7.optA')}</Text>
-            <Text style={styles.optionSub}>{t('onboarding.step7.optASub')}</Text>
+            <Text style={[styles.optionTitle, isRTL && styles.textRight]}>{t('onboarding.step7.optA')}</Text>
+            <Text style={[styles.optionSub, isRTL && styles.textRight]}>{t('onboarding.step7.optASub')}</Text>
           </View>
-          <Text style={styles.optionArrow}>›</Text>
+          <Text style={styles.optionArrow}>{isRTL ? '‹' : '›'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option} onPress={inviteLater} activeOpacity={0.8}>
+        <TouchableOpacity testID="onb7-later" style={[styles.option, isRTL && styles.rowReverse]} onPress={inviteLater} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>⏰</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.optionTitle}>{t('onboarding.step7.optB')}</Text>
-            <Text style={styles.optionSub}>{t('onboarding.step7.optBSub')}</Text>
+            <Text style={[styles.optionTitle, isRTL && styles.textRight]}>{t('onboarding.step7.optB')}</Text>
+            <Text style={[styles.optionSub, isRTL && styles.textRight]}>{t('onboarding.step7.optBSub')}</Text>
           </View>
-          <Text style={styles.optionArrow}>›</Text>
+          <Text style={styles.optionArrow}>{isRTL ? '‹' : '›'}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.option} onPress={noPhone} activeOpacity={0.8}>
+        <TouchableOpacity testID="onb7-none" style={[styles.option, isRTL && styles.rowReverse]} onPress={noPhone} activeOpacity={0.8}>
           <Text style={styles.optionEmoji}>👨‍👩‍👧</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.optionTitle}>{t('onboarding.step7.optC')}</Text>
-            <Text style={styles.optionSub}>{t('onboarding.step7.optCSub')}</Text>
+            <Text style={[styles.optionTitle, isRTL && styles.textRight]}>{t('onboarding.step7.optC')}</Text>
+            <Text style={[styles.optionSub, isRTL && styles.textRight]}>{t('onboarding.step7.optCSub')}</Text>
           </View>
-          <Text style={styles.optionArrow}>›</Text>
+          <Text style={styles.optionArrow}>{isRTL ? '‹' : '›'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -163,5 +167,7 @@ const styles = StyleSheet.create({
   optionEmoji:   { fontSize: 24, marginRight: 14, width: 32 },
   optionTitle:   { color: T.text, fontSize: 15, fontWeight: '600', marginBottom: 3 },
   optionSub:     { color: T.textMuted, fontSize: 13, lineHeight: 18 },
-  optionArrow:   { color: T.textMuted, fontSize: 20, marginLeft: 8 },
+  optionArrow:   { color: T.textMuted, fontSize: 20, marginHorizontal: 8 },
+  rowReverse:    { flexDirection: 'row-reverse' },
+  textRight:     { textAlign: 'right' },
 });

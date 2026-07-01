@@ -10,9 +10,10 @@
  * parent task customization.
  */
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../integrations/supabase/client';
+import { crossAlert } from '../platform';
 import { useAuth } from '../contexts/AuthContext';
 import { isOffRoutineActive } from '../utils/offRoutineUtils';
 import { ensureOffRoutineTasks } from '../lib/offRoutineSeed';
@@ -72,7 +73,7 @@ export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) 
         // tasks AND clear off_routine_until in one transaction, so toggling off
         // never leaves orphan rows to leak into task views later.
         const { error } = await supabase.rpc('exit_off_routine', { p_child_id: childId } as never);
-        if (error) { Alert.alert('', s.err); return; }
+        if (error) { crossAlert('', s.err); return; }
         setUntil(null);
         return;
       }
@@ -80,7 +81,7 @@ export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) 
       // mode is 'today' | 'days3' here (the 'off' path returned above).
       // Seed the off-routine tasks once (idempotent) before enabling.
       const seed = await ensureOffRoutineTasks({ childId, familyId, ageGroup, lang: childLang });
-      if (seed.error) { Alert.alert('', s.err); return; }
+      if (seed.error) { crossAlert('', s.err); return; }
 
       let nextUntil: string;
       if (mode === 'today') {
@@ -97,7 +98,7 @@ export default function OffRoutineCard({ childId, ageGroup, childLang }: Props) 
         .from('profiles')
         .update({ off_routine_until: nextUntil } as never)
         .eq('id', childId);
-      if (error) { Alert.alert('', s.err); setBusy(false); return; }
+      if (error) { crossAlert('', s.err); setBusy(false); return; }
       setUntil(nextUntil);
     } finally {
       setBusy(false);

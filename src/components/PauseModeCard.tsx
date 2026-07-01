@@ -16,10 +16,11 @@
  *   - Tapping "Resume now" applies immediately (no confirm — low-risk).
  */
 import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSettings, type PauseDuration } from '../hooks/useAppSettings';
+import { crossAlert } from '../platform';
 import { PARENT_THEME as T } from '../theme';
 
 type DurationKey = 'today' | 'threeDays' | 'oneWeek' | 'indefinite';
@@ -63,7 +64,7 @@ export default function PauseModeCard() {
   // ── Action: pause ──────────────────────────────────────────────────────
   const handlePause = () => {
     const durationLabel = t(`pause.duration.${selectedDuration}`);
-    Alert.alert(
+    crossAlert(
       t('pause.confirmTitle'),
       t('pause.confirmMessage', { duration: durationLabel }),
       [
@@ -76,7 +77,7 @@ export default function PauseModeCard() {
             const { error } = await togglePause(durationToPauseDuration(selectedDuration));
             setBusy(false);
             if (error) {
-              Alert.alert(t('common.error'), error.message);
+              crossAlert(t('common.error'), error.message);
             }
           },
         },
@@ -90,7 +91,7 @@ export default function PauseModeCard() {
     const { error } = await resumePause();
     setBusy(false);
     if (error) {
-      Alert.alert(t('common.error'), error.message);
+      crossAlert(t('common.error'), error.message);
     }
   };
 

@@ -1,9 +1,10 @@
 /**
  * ReferralSheet — "Invite a friend" bottom-sheet modal.
  *
- * Share flow:
+ * Share flow (all messaging apps, not WhatsApp-only):
  *   Android → native Share sheet (Share.share from react-native)
- *   Web     → navigator.share if available, else direct wa.me link
+ *   Web     → navigator.share (native sheet on mobile) if available,
+ *             else direct wa.me link as a desktop fallback
  *
  * Grant: both families get 14 days premium (top-up, max 14 days ahead).
  */
@@ -36,12 +37,28 @@ export default function ReferralSheet({ visible, onClose }: Props) {
     ? t('referral.whatsappMessage', { url: referralUrl })
     : '';
 
-  const handleWhatsApp = async () => {
+  const handleShare = async () => {
     if (!referralUrl) return;
     if (Platform.OS === 'web') {
+      // Prefer the native share sheet (all messaging apps) on mobile web.
+      const nav = (typeof navigator !== 'undefined' ? navigator : undefined) as
+        | { share?: (data: { text?: string; url?: string; title?: string }) => Promise<void> }
+        | undefined;
+      if (nav?.share) {
+        try {
+          await nav.share({ text: shareMessage, url: referralUrl });
+          return;
+        } catch (err) {
+          // User dismissed the native sheet — respect that, don't pop wa.me.
+          if (err instanceof Error && err.name === 'AbortError') return;
+          // Genuine share failure → fall through to the wa.me fallback below.
+        }
+      }
+      // Desktop fallback: WhatsApp Web (no navigator.share available there).
       const waUrl = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
       window.open(waUrl, '_blank');
     } else {
+      // Android/iOS: OS share sheet already lists every messaging app.
       await Share.share({ message: shareMessage });
     }
   };
@@ -94,12 +111,12 @@ export default function ReferralSheet({ visible, onClose }: Props) {
         {/* Actions */}
         <TouchableOpacity
           style={[styles.btn, styles.btnPrimary, (!referralUrl || loading) && styles.btnDisabled]}
-          onPress={handleWhatsApp}
+          onPress={handleShare}
           disabled={!referralUrl || loading}
           activeOpacity={0.85}
         >
-          <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-          <Text style={styles.btnPrimaryText}>{t('referral.shareWhatsapp')}</Text>
+          <Ionicons name="share-social" size={20} color="#fff" />
+          <Text style={styles.btnPrimaryText}>{t('referral.shareCta')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -177,7 +194,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, marginBottom: 10,
   },
-  btnPrimary:      { backgroundColor: '#25D366' },
+  btnPrimary:      { backgroundColor: T.accent },
   btnSecondary:    { backgroundColor: T.card, borderWidth: 1, borderColor: T.cardBorder },
   btnDisabled:     { opacity: 0.4 },
   btnPrimaryText:  { color: '#fff', fontWeight: '700', fontSize: 15 },
