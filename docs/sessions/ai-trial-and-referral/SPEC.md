@@ -234,8 +234,11 @@ not the paywall. Countdown/expiry is soft on both platforms (client-evaluated).
   trigger, non-blocking child path). DDL → approval.
 - **Phase C — Referral rewrite** (+7/activated-friend, ledger, monthly cap, advisory lock,
   lifetime ceiling). DDL → approval; flag existing-user impact.
-- **Phase D — Card state machine + microcopy** (LLM insight on card, all states in §7,
-  de-shamed copy, child-mode gating).
+- **Phase D — Card state machine + microcopy** ✅ CORE DONE (2026-07-01, `479d7af`):
+  platform-safe `insightsUnlocked` gate (real entitlement + iOS beta, NOT web) so the
+  card matches the server 402; trial countdown ribbon; invitational "unlock your personal
+  AI coach" strip (no child name). Deferred: warming-up state, surfacing the LLM insight
+  text on the card (needs Phase E auto-generation), most-recently-active multi-child pick.
 - **Phase E — Activation-assist + expiry conversion** (nudges, pre-expiry warning, FCM
   push, task-specific paywall) + instrumentation events (§5).
 - **Phase F — Hat 1 + Hat 3 + doc sync + Values Check** incl. child-safety tests:
