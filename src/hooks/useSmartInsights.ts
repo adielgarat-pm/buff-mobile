@@ -114,9 +114,14 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
       );
 
       if (fnError) {
+        // supabase-js wraps a non-2xx response as FunctionsHttpError whose
+        // .message is generic ("…non-2xx status code") — the status code is NOT
+        // in it. Read the HTTP status off the Response in .context; keep the
+        // string fallback for older/edge shapes.
+        const status = (fnError as { context?: { status?: number } }).context?.status;
         const msg = fnError.message ?? '';
-        if (msg.includes('429') || msg.includes('rate')) { setError('rate-limit'); return; }
-        if (msg.includes('402'))                         { setError('premium');    return; }
+        if (status === 402 || msg.includes('402'))                          { setError('premium');    return; }
+        if (status === 429 || msg.includes('429') || msg.includes('rate'))  { setError('rate-limit'); return; }
         setError('server');
         return;
       }
