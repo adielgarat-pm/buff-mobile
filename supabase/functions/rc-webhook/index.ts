@@ -118,6 +118,22 @@ Deno.serve(async (req: Request) => {
     environment,
   } = event;
 
+  // ── 3.5 Environment gate: only PRODUCTION purchases mutate the DB ───────────
+  // SANDBOX events (license-tester / sandbox test purchases) are acknowledged
+  // with 200 but never grant/revoke. Without this, a sandbox Founding test
+  // purchase would consume a REAL Founding-100 cap slot — and revoked founding
+  // numbers are never reissued, so the real cap would permanently drop below 100.
+  if (environment !== "PRODUCTION") {
+    console.log(
+      `[rc-webhook] non-production event skipped: env=${environment} type=${type} event_id=${eventId}`,
+    );
+    return jsonResponse({
+      skipped: "non-production environment",
+      environment,
+      event_id: eventId,
+    });
+  }
+
   // ── 4. Filter to Founding 100 products only ────────────────────────────────
   if (!productId || !FOUNDING_PRODUCT_IDS.has(productId)) {
     return jsonResponse({
