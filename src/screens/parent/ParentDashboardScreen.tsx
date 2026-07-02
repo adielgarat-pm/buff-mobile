@@ -61,7 +61,7 @@ export default function ParentDashboardScreen() {
   const [codeCopied, setCodeCopied]        = useState(false);
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
-  const { isSubscribed }                   = useSubscription();
+  const { isSubscribed, isTrialActive, trialDaysLeft } = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
   // Today's parent_sos signals per child — surfaces an inline message +
   // soft dot on the child's card. Auto-clears at midnight (filter is
@@ -521,6 +521,13 @@ export default function ParentDashboardScreen() {
           <Text style={styles.insightTag}>
             {topInsight!.icon} {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
           </Text>
+          {isTrialActive && (
+            <Text style={styles.trialRibbon}>
+              {trialDaysLeft <= 3
+                ? t('dashboard.trialRibbonEnding', { days: trialDaysLeft })
+                : t('dashboard.trialRibbonActive')}
+            </Text>
+          )}
           <Text style={styles.insightStat}>
             {topInsight!.completionRate !== undefined ? `${topInsight!.completionRate}%` : '—'}
           </Text>
@@ -1033,6 +1040,7 @@ const styles = StyleSheet.create({
   insightUnlockBtn:    { marginTop: 12, backgroundColor: T.accent, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 7 },
   insightUnlockText:   { color: '#fff', fontSize: 13, fontWeight: '700' },
   insightTag:    { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginBottom: 6 },
+  trialRibbon:   { color: '#fff', fontSize: 12, fontWeight: '700', marginBottom: 6, opacity: 0.95 },
   insightStat:   { color: '#fff', fontSize: 40, fontWeight: '900', lineHeight: 44 },
   insightLabel:  { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   insightDesc:   { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 10 },
