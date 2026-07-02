@@ -225,6 +225,7 @@
   "dashboard.insightsCardCta": "Full insights",
   "dashboard.trialRibbonActive": "✨ AI coaching active",
   "dashboard.trialRibbonEnding": "✨ {{days}} days of AI coaching left",
+  "dashboard.lockedCoach": "🔒 Unlock your personal AI coach",
   "dashboard.insightsTeaserCta": "Trends, weekly map & more",
   "dashboard.insightsPremiumBadge": "Premium",
   "dashboard.insightsPremiumTitle": "Insights — a Premium feature",

@@ -61,7 +61,7 @@ export default function ParentDashboardScreen() {
   const [codeCopied, setCodeCopied]        = useState(false);
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
-  const { isSubscribed, isTrialActive, trialDaysLeft } = useSubscription();
+  const { isSubscribed, insightsUnlocked, isTrialActive, trialDaysLeft } = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
   // Today's parent_sos signals per child — surfaces an inline message +
   // soft dot on the child's card. Auto-clears at midnight (filter is
@@ -446,8 +446,10 @@ export default function ParentDashboardScreen() {
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
 
-      {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ── */}
-      {!isSubscribed ? (
+      {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ──
+           Gate on insightsUnlocked (real entitlement + iOS beta, NOT web) so the card can't
+           diverge from the server 402 gate. isSubscribed still governs the child-limit paywall. */}
+      {!insightsUnlocked ? (
         topInsight && !showLockedInsights ? (
           /* FREE TEASER — show ONE real insight (value-first); the depth (trends,
              weekly map, tips, action levers) is gated → tap opens the Paywall.
@@ -471,6 +473,7 @@ export default function ParentDashboardScreen() {
             <Text style={styles.insightLabel}>{t(`insights.${topInsight.i18nKey}.title`)}</Text>
             <Text style={styles.insightDesc}>{t(`insights.${topInsight.i18nKey}.description`)}</Text>
             <Text style={styles.insightTip}>💬 {t(`insights.${topInsight.i18nKey}.suggestion`)}</Text>
+            <Text style={styles.lockedCoach}>{t('dashboard.lockedCoach')}</Text>
             <View style={styles.insightCtaRow}>
               <Text style={styles.insightCtaText}>{t('dashboard.insightsTeaserCta')}</Text>
               <Text style={styles.insightCtaChevron}>›</Text>
@@ -1041,6 +1044,7 @@ const styles = StyleSheet.create({
   insightUnlockText:   { color: '#fff', fontSize: 13, fontWeight: '700' },
   insightTag:    { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginBottom: 6 },
   trialRibbon:   { color: '#fff', fontSize: 12, fontWeight: '700', marginBottom: 6, opacity: 0.95 },
+  lockedCoach:   { color: '#fff', fontSize: 13, fontWeight: '700', marginTop: 10, opacity: 0.95 },
   insightStat:   { color: '#fff', fontSize: 40, fontWeight: '900', lineHeight: 44 },
   insightLabel:  { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   insightDesc:   { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 10 },

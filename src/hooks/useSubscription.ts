@@ -133,6 +133,13 @@ export function useSubscription() {
   // A live time-boxed grant that isn't a permanent plan = trial (or referral-
   // extended trial) → show a countdown ribbon. Populated by the Phase B activation
   // trigger (premium_until) and Phase C referrals.
+  // The insights-card / LLM gate. Real entitlement OR iOS beta (unlocked, can't pay
+  // yet) — but deliberately NOT web: web free users must see the conversion state,
+  // which is the whole point of the server token gate. Distinct from isSubscribed
+  // (which unlocks web via noIapPaywallHidden) so the card can't diverge from the
+  // server 402.
+  const insightsUnlocked = hasRealEntitlement || Platform.OS === 'ios';
+
   const isTrialActive = isReferralPremium && !isLifetimeAccess && !isFoundingMember && !rcSubscribed;
   const trialDaysLeft = isTrialActive && referralPremiumUntil
     ? Math.max(0, Math.ceil((referralPremiumUntil.getTime() - Date.now()) / 86_400_000))
@@ -184,6 +191,7 @@ export function useSubscription() {
     isReferralPremium,
     referralPremiumUntil,
     hasRealEntitlement,
+    insightsUnlocked,
     isTrialActive,
     trialDaysLeft,
     needsUpgrade,
