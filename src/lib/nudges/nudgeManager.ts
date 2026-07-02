@@ -58,6 +58,16 @@ async function inGlobalCooldown(): Promise<boolean> {
   }
 }
 
+/**
+ * Public read of the shared global nudge cooldown, for install-family CTAs that
+ * live OUTSIDE the single dashboard slot (the entry/post-signup native-install
+ * CTA) so they honour the same 7-day "recently dismissed" window. Additive — the
+ * manager's own behaviour is unchanged.
+ */
+export async function isInGlobalNudgeCooldown(): Promise<boolean> {
+  return inGlobalCooldown();
+}
+
 export interface UseActiveNudgeOptions {
   /**
    * Caller-supplied global suppressor: true when this is a child-owned session

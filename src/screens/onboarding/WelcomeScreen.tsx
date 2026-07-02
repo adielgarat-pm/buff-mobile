@@ -25,6 +25,10 @@ import { useTranslation } from 'react-i18next';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 import { useRTLStyles } from '../../contexts/LanguageContext';
+// Web-only native-install CTA. Metro resolves the native stub (renders null) on
+// Android/iOS, so this import is inert in the native bundle. This screen is only
+// reached by role='parent' onboarding, so no child/View-as-Child session sees it.
+import GetTheAppCta from '../../components/install/GetTheAppCta';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Welcome'>;
 
@@ -95,6 +99,9 @@ export default function WelcomeScreen() {
           <Text style={[styles.headline, { textAlign: 'center' }]}>
             {t('welcome.headline')}
           </Text>
+
+          {/* ── Native-install CTA (web-only; null on native + non-Android) ─ */}
+          <GetTheAppCta placement="post-signup" />
 
           {/* ── 3. Value cards ───────────────────────────────────────────── */}
           <View style={styles.cardsWrap}>
