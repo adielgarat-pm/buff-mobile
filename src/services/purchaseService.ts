@@ -5,7 +5,7 @@
  * never imports the SDK directly (easier to mock in tests).
  */
 import { Platform } from 'react-native';
-import Purchases, { LOG_LEVEL } from 'react-native-purchases';
+import Purchases, { LOG_LEVEL, PRODUCT_CATEGORY } from 'react-native-purchases';
 
 const RC_API_KEY     = 'goog_JXENrpCCcYObBesSjSeFGoKvuaA';
 const ENTITLEMENT_ID = 'BUFF Premium';
@@ -101,7 +101,12 @@ export async function purchaseLifetime(tier: FoundingTier) {
     ? FOUNDING_PRODUCT_IDS.tier_99
     : FOUNDING_PRODUCT_IDS.tier_149;
 
-  const products = await Purchases.getProducts([productId]);
+  // The Founding tiers are ONE-TIME (non-subscription) products. Purchases.getProducts
+  // defaults its `type` to PRODUCT_CATEGORY.SUBSCRIPTION, so querying without the category
+  // makes Google Play look for a *subscription* with this ID and return nothing → "product
+  // not found". Pass NON_SUBSCRIPTION so Play returns the one-time SKU. (Subscriptions are
+  // unaffected: purchaseMonthly/Yearly go through offerings.current packages, not getProducts.)
+  const products = await Purchases.getProducts([productId], PRODUCT_CATEGORY.NON_SUBSCRIPTION);
   const product = products[0];
   if (!product) {
     throw new Error(
