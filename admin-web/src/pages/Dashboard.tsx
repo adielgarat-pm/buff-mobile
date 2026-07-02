@@ -5,14 +5,16 @@ import { TesterBoard } from '@/components/TesterBoard'
 import { SmartInsightFeedback } from '@/components/SmartInsightFeedback'
 import { FeedbackBoard } from '@/components/FeedbackBoard'
 import { ReferralBoard } from '@/components/ReferralBoard'
+import { InstallCtaBoard } from '@/components/InstallCtaBoard'
 
-type Tab = 'testers' | 'insights' | 'feedback' | 'referrals'
+type Tab = 'testers' | 'insights' | 'feedback' | 'referrals' | 'install'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'testers',   label: 'Tester Board' },
   { key: 'insights',  label: '✨ Smart Insights' },
   { key: 'feedback',  label: '⭐ Rate Feedback' },
   { key: 'referrals', label: '🎁 Referrals' },
+  { key: 'install',   label: '📲 Install CTA' },
 ]
 
 export function Dashboard() {
@@ -60,6 +62,7 @@ export function Dashboard() {
         {tab === 'insights'  && <SmartInsightFeedback />}
         {tab === 'feedback'  && <FeedbackBoard />}
         {tab === 'referrals' && <ReferralBoard />}
+        {tab === 'install'   && <InstallCtaBoard />}
       </main>
     </div>
   )
