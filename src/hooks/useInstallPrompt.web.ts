@@ -25,21 +25,21 @@ export interface InstallPromptState {
   promptInstall: () => Promise<void>;
 }
 
-function isIos(): boolean {
+export function isIos(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
-function isIosSafari(): boolean {
+export function isIosSafari(): boolean {
   const ua = navigator.userAgent;
   // CriOS = Chrome iOS, FxiOS = Firefox iOS, OPR/ = Opera
   return isIos() && /safari/i.test(ua) && !/criOS|fxiOS|opr\//i.test(ua);
 }
 
-function isAndroid(): boolean {
+export function isAndroid(): boolean {
   return /android/i.test(navigator.userAgent);
 }
 
-function isStandalone(): boolean {
+export function isStandalone(): boolean {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
     // iOS Safari sets navigator.standalone (non-standard)
