@@ -200,6 +200,30 @@ Deno.serve(async (req: Request) => {
     return new Response('Forbidden', { status: 403, headers: corsHeaders });
   }
 
+  // ── Entitlement gate ────────────────────────────────────────────────────────
+  // No LLM tokens for FREE families. Server-side + platform-independent: the
+  // client's noIapPaywallHidden treats every web user as subscribed, so the UI
+  // gate alone leaks tokens on web. Runs BEFORE the rate-limit increment and the
+  // Anthropic call, so a blocked call costs zero tokens and does not bump the
+  // weekly counter. Trial families pass via premium_until (populated in Phase B).
+  // NOTE (billing): once monthly/yearly RC subscriptions go live, rc-webhook MUST
+  // reflect them into premium_until or those payers will be 402'd here.
+  const { data: entitled, error: entErr } = await svc.rpc('family_is_entitled', {
+    p_family_id: childProfile.family_id,
+  });
+  if (entErr) {
+    // Fail closed on cost, but signal a *server* error (500) not "not premium"
+    // (402) so the client retries rather than showing a paywall to a payer.
+    console.error('entitlement check failed', JSON.stringify(entErr));
+    return new Response('Entitlement check failed', { status: 500, headers: corsHeaders });
+  }
+  if (!entitled) {
+    return new Response(
+      JSON.stringify({ error: 'premium_required' }),
+      { status: 402, headers: { ...corsHeaders, 'content-type': 'application/json' } },
+    );
+  }
+
   // Rate limit check — 3 generations per child per week
   const currentCount = await getWeeklyCount(svc, child_id);
   if (currentCount >= WEEKLY_LIMIT) {
