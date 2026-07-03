@@ -473,11 +473,15 @@ export default function ParentDashboardScreen() {
             <Text style={styles.insightLabel}>{t(`insights.${topInsight.i18nKey}.title`)}</Text>
             <Text style={styles.insightDesc}>{t(`insights.${topInsight.i18nKey}.description`)}</Text>
             <Text style={styles.insightTip}>💬 {t(`insights.${topInsight.i18nKey}.suggestion`)}</Text>
-            <Text style={styles.lockedCoach}>{t('dashboard.lockedCoach')}</Text>
-            <View style={styles.insightCtaRow}>
-              <Text style={styles.insightCtaText}>{t('dashboard.insightsTeaserCta')}</Text>
-              <Text style={styles.insightCtaChevron}>›</Text>
+            {/* Primary conversion CTA — solid white button inverts against the purple card so it
+                reads as THE action; the "Trends…" link below is demoted to a quiet secondary. */}
+            <View style={styles.coachCta}>
+              <Text style={styles.coachCtaText}>{t('dashboard.lockedCoach')}</Text>
+              <Text style={styles.coachCtaChevron}>›</Text>
             </View>
+            {/* Value descriptor (NOT a second CTA) — no chevron, so the white button is the
+                one clear action; this just stacks "what else premium includes". */}
+            <Text style={styles.teaserValueNote}>{t('dashboard.insightsTeaserCta')}</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -1044,13 +1048,19 @@ const styles = StyleSheet.create({
   insightUnlockText:   { color: '#fff', fontSize: 13, fontWeight: '700' },
   insightTag:    { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginBottom: 6 },
   trialRibbon:   { color: '#fff', fontSize: 12, fontWeight: '700', marginBottom: 6, opacity: 0.95 },
-  lockedCoach:   { color: '#fff', fontSize: 13, fontWeight: '700', marginTop: 10, opacity: 0.95 },
+  // Primary "unlock AI coach" CTA — solid white on the purple card. Centered content = RTL-safe.
+  coachCta:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+                     backgroundColor: '#fff', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginTop: 14 },
+  coachCtaText:    { color: T.accent, fontSize: 15, fontWeight: '800', textAlign: 'center' },
+  coachCtaChevron: { color: T.accent, fontSize: 18, fontWeight: '800', marginTop: -2 },
   insightStat:   { color: '#fff', fontSize: 40, fontWeight: '900', lineHeight: 44 },
   insightLabel:  { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4 },
   insightDesc:   { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginBottom: 10 },
   insightTip:    { color: 'rgba(255,255,255,0.9)', fontSize: 13, fontStyle: 'italic' },
   insightCtaRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)' },
   insightCtaText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  // Teaser value descriptor (not a CTA — no chevron; the white button is the one action).
+  teaserValueNote: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 10 },
   insightCtaChevron: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: -2 },
   insightLockedCta:  { fontSize: 13, fontWeight: '700', marginTop: 10 },
   teaserTagRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
