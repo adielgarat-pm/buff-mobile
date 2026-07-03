@@ -21,6 +21,12 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 
 > 📌 **Ground-truth update (CC sync 2026-06-29, `eas build:list`):** since the note above, **vc57** (`c37cc11`) and **vc59** (`57c2f9a`, base `origin/main @ 6710cbb`) both finished on EAS (vc58 errored — lockfile). **vc59 is the latest successful build** and contains the "after 56" table below (#284 / #290 / #285 / #287 / #288 / #289). Whether vc59 is **promoted to a Play track is not visible via CLI — Play Console (Adi) only.** The section directly below is everything merged to `main` AFTER vc59's base → **not in any build yet.**
 
+**Riding the next train — AFTER vc63 (merged post-`80865e7`, NOT in any build):**
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-07-03 | #316 / `bbf84a9` | feat | **Web-to-native install CTA (Phase 1 + 2 + dashboard nudge).** Android mobile-web signups get a "Get it on Google Play" CTA (entry slim strip at RoleSelection + post-signup card at Welcome/AuthCallback + parent-dashboard nudge) routing to the native app — web retains ~0%, native retains + has push. Platform-split (native = inert stubs, `platformSplit` leak-guard); eligibility 7-day global cooldown + cap 3 + once-ever post-signup; AuthCallback duplicate-family guard. Telemetry: migration `038_install_cta_events` + `track-install-cta` edge fn + `039_admin_install_cta_funnel` + admin `InstallCtaBoard` — **all already applied/deployed on prod (verified) → merge is code-only, no DDL runs**. Engagement funnel live; **north-star install→activation metric DEFERRED** (needs `cta_id→family` bridge + `push_token_audit`). Web-only + structurally child-unreachable; recovered from the stranded #309/#313 split onto vc63. Reviewed by architect+QA+PM panel (all GO, Values 9/9). No new deps. | Train | yes (android web) | NEW SUITE — web-to-native: Hat-4 real Android UA → banner renders at all 3 placements; Play button opens store (sync-open, not popup-blocked) w/ `?referrer=`; in-app-webview intent breakout; telemetry rows insert; **never shown to a child** |
+
 **Riding the next train — AFTER vc59 (merged post-`6710cbb`, NOT in any build):**
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
