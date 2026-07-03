@@ -9,7 +9,7 @@
  */
 import type { ReactNode } from 'react';
 
-export type NudgeId = 'install' | 'rate';
+export type NudgeId = 'install' | 'install-native' | 'rate';
 
 export interface PassiveNudge {
   /** Stable id; also the storage namespace for the nudge's own cooldown. */
@@ -29,10 +29,13 @@ export interface PassiveNudge {
 /**
  * Priority order (high → low): care/recovery prompts are NOT in this registry
  * — they win via the `suppressed` flag the dashboard passes to the manager.
- * Among registered passive nudges: install > rate (rate is the politest ask
- * and yields to everything).
+ * Among registered passive nudges: install-native > install (PWA) > rate. On
+ * android-web the native "get the app" nudge outranks the PWA add-to-home one,
+ * so the single slot shows native; iOS/desktop have no native offer, so the PWA
+ * nudge wins there. rate is the politest ask and yields to everything.
  */
 export const NUDGE_PRIORITY: Record<NudgeId, number> = {
+  'install-native': 25,
   install: 20,
   rate: 10,
 };

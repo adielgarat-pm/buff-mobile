@@ -11,6 +11,10 @@ import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 import LanguagePicker from '../../components/LanguagePicker';
 import { webAuthColumn } from './authLayout';
+// Web-only native-install CTA. Metro resolves the native stub (renders null) on
+// Android/iOS, so this import is inert in the native bundle. RoleSelection is
+// pre-auth / role-choice — no child or View-as-Child session reaches it.
+import GetTheAppCta from '../../components/install/GetTheAppCta';
 
 type Nav = StackNavigationProp<RootStackParamList, 'RoleSelection'>;
 
@@ -37,6 +41,10 @@ export default function RoleSelectionScreen() {
       <LanguagePicker />
 
       <Animated.View style={[styles.inner, webAuthColumn(440), { opacity: fadeAnim }]}>
+
+        {/* Native-install strip (web-only; null on native + non-Android) — slim
+            and subordinate, above the logo so it never competes with the choice */}
+        <GetTheAppCta placement="entry" />
 
         {/* Logo */}
         <View style={styles.logoWrap as object}>
