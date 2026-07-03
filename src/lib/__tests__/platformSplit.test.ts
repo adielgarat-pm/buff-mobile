@@ -20,6 +20,8 @@ const WEB_ONLY = [
   'GetTheAppCta.web',
   'installCtaTelemetry.web',
   'installCtaEligibility.web',
+  'InstallNudge.web',
+  'useInstallPrompt.web',
 ];
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -61,6 +63,8 @@ it('the native stubs exist alongside each web module (so extension-less imports 
   const pairs = [
     ['installTarget.ts', 'installTarget.web.ts'],
     ['../components/install/GetTheAppCta.tsx', '../components/install/GetTheAppCta.web.tsx'],
+    ['../components/install/InstallNudge.tsx', '../components/install/InstallNudge.web.tsx'],
+    ['../hooks/useInstallPrompt.ts', '../hooks/useInstallPrompt.web.ts'],
   ];
   for (const [nativeRel, webRel] of pairs) {
     const nativePath = path.join(SRC, 'lib', nativeRel);
