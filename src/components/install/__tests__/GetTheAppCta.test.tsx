@@ -58,6 +58,13 @@ it('android-play + entry renders the slim strip (stripText + Install), no keep-b
   expect(queryByText('install.getApp.keepBrowsing')).toBeNull();
 });
 
+it('dashboard-nudge renders the strip with dashboard copy, bypassing internal eligibility', async () => {
+  mockEligible = false; // manager gates the dashboard nudge, not the internal check
+  const { findByText } = render(<GetTheAppCta placement="dashboard-nudge" />);
+  expect(await findByText('install.getApp.dashboardText')).toBeTruthy();
+  expect(await findByText('install.getApp.installShort')).toBeTruthy();
+});
+
 it('android in-app webview (post-signup card) renders the intent breakout + copy link', async () => {
   mockTarget = 'android-inapp-webview';
   const { findByText, getByText } = render(<GetTheAppCta placement="post-signup" />);

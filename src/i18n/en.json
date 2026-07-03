@@ -2073,6 +2073,7 @@
   "install.getApp.postSignupBody": "Install BUFF from Google Play for reminders that actually reach your kid. Same login, same family — pick up right where you left off.",
   "install.getApp.entryText": "BUFF works best as an app — reminders and one tap from your home screen.",
   "install.getApp.stripText": "BUFF works best as an app",
+  "install.getApp.dashboardText": "Get reminders that actually reach your kid",
   "install.getApp.installShort": "Install",
   "install.getApp.playButton": "Get it on Google Play",
   "install.getApp.openButton": "Open BUFF",

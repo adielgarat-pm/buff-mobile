@@ -68,7 +68,11 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
   const info = useMemo(() => classifyInstallTarget(), []);
   const [target, setTarget] = useState<InstallTarget>(info.target);
   const [dismissed, setDismissed] = useState(false);
-  const [eligible, setEligible] = useState<boolean | null>(null); // null = evaluating
+  // Dashboard is gated by the nudge manager (cooldown + single slot), so it's
+  // eligible on mount; entry/post-signup evaluate their own cooldown/cap below.
+  const [eligible, setEligible] = useState<boolean | null>(
+    placement === 'dashboard-nudge' ? true : null,
+  );
   const [copied, setCopied] = useState(false);
   const ctaId = useMemo(getOrCreateCtaId, []);
   const impressionLogged = useRef(false);
@@ -88,6 +92,7 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
   // Persistent eligibility (global cooldown + impression cap + once-ever
   // post-signup). Fail-open on error is handled inside isInstallCtaEligible.
   useEffect(() => {
+    if (placement === 'dashboard-nudge') return; // manager already gated this one
     let alive = true;
     isInstallCtaEligible(placement)
       .then((e) => alive && setEligible(e))
@@ -108,7 +113,9 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
   useEffect(() => {
     if (visible && !impressionLogged.current) {
       impressionLogged.current = true;
-      void recordInstallCtaImpression(placement); // bumps cap / stamps once-ever
+      // Dashboard cadence is the nudge manager's cooldown, not the entry/
+      // post-signup impression cap — don't cross-contaminate that cap.
+      if (placement !== 'dashboard-nudge') void recordInstallCtaImpression(placement);
       logInstallCtaEvent('impression', placement, target, ctaId);
     }
   }, [visible, placement, target, ctaId]);
@@ -197,13 +204,15 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
     }
   })();
 
-  // Entry (RoleSelection): a slim, subordinate strip — never a card that competes
-  // with the parent/child choice. Post-signup keeps the fuller card below.
-  if (placement === 'entry') {
+  // Entry + dashboard: a slim, subordinate strip — never a card that competes
+  // with the surrounding UI. Post-signup keeps the fuller card below.
+  if (placement === 'entry' || placement === 'dashboard-nudge') {
     return (
       <View style={styles.strip}>
         <Text style={styles.stripText} numberOfLines={2}>
-          {t('install.getApp.stripText')}
+          {placement === 'dashboard-nudge'
+            ? t('install.getApp.dashboardText')
+            : t('install.getApp.stripText')}
         </Text>
         {variant.primaryAction ? (
           <TouchableOpacity

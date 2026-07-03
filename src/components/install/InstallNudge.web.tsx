@@ -21,6 +21,8 @@ import { NUDGE_PRIORITY } from '../../lib/nudges/types';
 import { getDeferredInstallPrompt } from '../../lib/setupPwa.web';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import { PARENT_THEME as T } from '../../theme';
+import { classifyInstallTarget } from '../../lib/installTarget.web';
+import GetTheAppCta from './GetTheAppCta.web';
 
 // ─── Banner component ─────────────────────────────────────────────────────────
 
@@ -93,6 +95,25 @@ export function useInstallNudgeRegistration(onDismiss: () => void): void {
   onDismissRef.current = onDismiss;
 
   useEffect(() => {
+    // Native "get the app" nudge — outranks the PWA one below, so on android-web
+    // the single dashboard slot offers the retaining native app. iOS/desktop have
+    // no native app, so this is not eligible there and the PWA nudge wins.
+    registerNudge({
+      id: 'install-native',
+      priority: NUDGE_PRIORITY['install-native'],
+      eligible: (): boolean => {
+        try {
+          const { target } = classifyInstallTarget();
+          return target === 'android-play' || target === 'native-installed';
+        } catch {
+          return false;
+        }
+      },
+      render: () => (
+        <GetTheAppCta placement="dashboard-nudge" onDismiss={() => onDismissRef.current()} />
+      ),
+    });
+
     registerNudge({
       id: 'install',
       priority: NUDGE_PRIORITY.install,
