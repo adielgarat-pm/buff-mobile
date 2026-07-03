@@ -173,7 +173,7 @@ Deno.serve(async (req: Request) => {
   let body: { child_id: string; parent_context?: string };
   try { body = await req.json(); }
   catch { return new Response('Bad request', { status: 400, headers: corsHeaders }); }
-  const { child_id, parent_context, language: bodyLanguage } = body as { child_id: string; parent_context?: string; language?: string };
+  const { child_id, parent_context, language: bodyLanguage, platform } = body as { child_id: string; parent_context?: string; language?: string; platform?: string };
   if (!child_id) return new Response('child_id required', { status: 400, headers: corsHeaders });
 
   // Fetch child profile
@@ -217,7 +217,13 @@ Deno.serve(async (req: Request) => {
     console.error('entitlement check failed', JSON.stringify(entErr));
     return new Response('Entitlement check failed', { status: 500, headers: corsHeaders });
   }
-  if (!entitled) {
+  // Web is intentionally FREE for the AI coach while the web build matures — no
+  // trial, no 14-day cutoff. The client sends platform:'web'; native (Android/iOS)
+  // keeps the entitlement/trial gate. Bounded by the WEEKLY_LIMIT rate-limit below,
+  // so even a spoofed platform flag can burn at most 3 calls/child/week. Logged as
+  // an intentional platform divergence (BUFF_DECISIONS_LOG; mirrors the client's
+  // insightsUnlocked in useSubscription).
+  if (!entitled && platform !== 'web') {
     return new Response(
       JSON.stringify({ error: 'premium_required' }),
       { status: 402, headers: { ...corsHeaders, 'content-type': 'application/json' } },

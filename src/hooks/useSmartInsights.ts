@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../integrations/supabase/client';
 
@@ -109,6 +110,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
             child_id:       childId,
             parent_context: parentContext.trim() || undefined,
             language:       i18n.language,
+            platform:       Platform.OS,   // 'web' bypasses the server entitlement gate (web is free)
           },
         },
       );
