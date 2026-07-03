@@ -11,7 +11,7 @@
  * nudge-manager coexistence are added at the mount sites (eligibility module).
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../../theme';
 import {
@@ -121,17 +121,35 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
     setDismissed(true);
     onDismiss?.();
   };
+  // Navigate SYNCHRONOUSLY inside the click handler. react-native-web's
+  // Linking.openURL opens the window inside a promise .then(), which loses the
+  // user-activation and gets popup-blocked — so the store never opened. Opening
+  // directly here (with a same-tab fallback if the popup is blocked) is reliable.
+  const openExternal = (url: string) => {
+    try {
+      const w = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!w) window.location.href = url;
+    } catch {
+      try {
+        window.location.href = url;
+      } catch {
+        /* noop */
+      }
+    }
+  };
   const openPlay = () => {
     logInstallCtaEvent('click', placement, target, ctaId);
-    Linking.openURL(buildPlayInstallUrl(ctaId, placement)).catch(() => {});
+    openExternal(buildPlayInstallUrl(ctaId, placement));
   };
   const openInstalled = () => {
     logInstallCtaEvent('open_installed', placement, target, ctaId);
     // v1: verified App Links not shipped yet → the store listing shows "Open".
-    Linking.openURL(BUFF_URLS.playStoreInstall).catch(() => {});
+    openExternal(BUFF_URLS.playStoreInstall);
   };
   const openIntent = () => {
     logInstallCtaEvent('click', placement, target, ctaId);
+    // Intent breakout must be a TOP-LEVEL navigation to trigger Android's intent
+    // resolver from inside an in-app webview; window.open can yield a blank popup.
     try {
       window.location.href = ANDROID_INTENT_URL;
     } catch {
