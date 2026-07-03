@@ -15,7 +15,7 @@
  * dashboard's existing levers (sticker / bonus / med sheets, rewards tab) via
  * navigation params — no duplicated action logic. Premium-gated.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
   TextInput, KeyboardAvoidingView, Platform,
@@ -54,7 +54,7 @@ export default function ParentInsightsScreen() {
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
   const { t, i18n } = useTranslation();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, hasRealEntitlement } = useSubscription();
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
 
@@ -89,9 +89,29 @@ export default function ParentInsightsScreen() {
     generate: generateSmartInsight,
     error: smartError,
     generationsLeft,
+    loadingState: smartLoading,
     userVote,
     submitVote,
   } = useSmartInsights(childId);
+
+  // Lazy auto-generate (Phase E, option א): the first time an ENTITLED/trial parent
+  // opens Insights with no saved coach insight and enough data, generate ONE — so
+  // the trial's "wow" lands without a manual tap, but no tokens are spent on families
+  // who never open this screen. Guarded per-child + once, and gated on real
+  // entitlement so a non-entitled viewer never triggers a 402'd call.
+  const autoGenTried = useRef(false);
+  useEffect(() => { autoGenTried.current = false; }, [childId]);
+  useEffect(() => {
+    if (autoGenTried.current) return;
+    if (!childId || smartLoading || generating) return;   // wait for the saved-insight check
+    if (smartInsight) return;                              // already have one
+    if (!hasRealEntitlement) return;                       // don't spend tokens on non-entitled
+    if (generationsLeft <= 0) return;                      // respect the weekly cap
+    if (stats.activeDays < 2) return;                      // need real data (matches activation bar)
+    autoGenTried.current = true;
+    void generateSmartInsight();
+  }, [childId, smartLoading, generating, smartInsight, hasRealEntitlement,
+      generationsLeft, stats.activeDays, generateSmartInsight]);
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
   const sortedPhases = useMemo(
