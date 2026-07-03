@@ -2,14 +2,22 @@
  * RateBuffSheet — the shared "Rate BUFF" flow (both platforms, both entries:
  * the always-on Settings row and the passive dashboard nudge).
  *
- * Flow (SPEC §3):
- *   gate ──Yes──▶ rate ──submit──▶ (≥4★ & store CTA) store ──▶ done
- *    │                         └──(<4★)──▶ thanks ──▶ done
- *    └──Not really──▶ feedback ──submit──▶ contact (WhatsApp / email) ──▶ done
+ * One unified screen (no sentiment gate):
+ *   rate ──submit──▶ store (Android: offer Google Play to everyone) ──▶ done
+ *                └── thanks (web / no store destination)            ──▶ done
  *
- * The sentiment gate is compliant: happy raters are *offered* the store, never
- * forced; unhappy raters get a private channel + a human contact line, and are
- * never blocked from the public store (SPEC §4.2).
+ * The parent picks a real 1–5★ rating, optionally writes a note, and explicitly
+ * ticks whether we may publish it. Consent → the review enters moderation and can
+ * become a public testimonial; no consent → it stays private and only reaches the
+ * team via the Admin board. Publishing is the parent's choice, not a sentiment
+ * filter, so an unhappy rating is never blocked from the store and a happy one is
+ * never published without permission (SPEC §4.2; autonomy, Pillar 3).
+ *
+ * The Google Play CTA (Android only, via the platform-split highIntentDestination)
+ * is offered to *everyone* after submit — showing the store link universally is
+ * compliant, whereas gating it by star count is the review-gating Google forbids.
+ * The unconditional native OS review card (RateNudge) remains the real public
+ * rating driver; this sheet writes our first-party review.
  */
 import { useState, useEffect } from 'react';
 import {
@@ -28,91 +36,61 @@ import { useAuth } from '../../contexts/AuthContext';
 import { PARENT_THEME as T } from '../../theme';
 import { submitReview } from '../../lib/rateBuff/submitReview';
 import { markRated } from '../../lib/rateBuff/rateEligibility';
-import { isHighIntent } from '../../lib/rateBuff/reviewStatus';
 import { getHighIntentCta } from '../../lib/rateBuff/highIntentDestination';
 
-type Phase = 'gate' | 'rate' | 'feedback' | 'store' | 'thanks' | 'feedbackDone';
+type Phase = 'rate' | 'store' | 'thanks';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  /** Called after a rating/feedback is submitted (nudge marks itself done). */
+  /** Called after a rating is submitted (the nudge marks itself done). */
   onSubmitted?: () => void;
-  /**
-   * Phase to open at. Default 'gate' (the "Rate BUFF" entry, web). The Settings
-   * "Send feedback" row opens at 'feedback' — the un-gated private channel that
-   * is always available, never a sentiment filter in front of the rating.
-   */
-  initialPhase?: Phase;
 }
 
-export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPhase = 'gate' }: Props) {
+export default function RateBuffSheet({ visible, onClose, onSubmitted }: Props) {
   const { t, i18n } = useTranslation();
   const { profile, familyId } = useAuth();
 
-  const [phase, setPhase] = useState<Phase>(initialPhase);
-  const [stars, setStars] = useState(5);
+  const [phase, setPhase] = useState<Phase>('rate');
+  const [stars, setStars] = useState(0); // 0 = nothing picked yet (submit disabled)
   const [text, setText] = useState('');
+  const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const reset = () => {
-    setPhase(initialPhase);
-    setStars(5);
-    setText('');
-    setBusy(false);
-  };
-
-  // The Modal stays mounted (only `visible` toggles), so re-seed the phase on
-  // each open — otherwise the same instance would keep the previous flow's phase.
+  // The Modal stays mounted (only `visible` toggles), so re-seed on each open —
+  // otherwise the same instance would keep the previous flow's state.
   useEffect(() => {
     if (visible) {
-      setPhase(initialPhase);
-      setStars(5);
+      setPhase('rate');
+      setStars(0);
       setText('');
+      setConsent(false);
       setBusy(false);
     }
-  }, [visible, initialPhase]);
+  }, [visible]);
 
   const close = () => {
-    reset();
     onClose();
   };
 
-  const persist = async (rating: number): Promise<boolean> => {
-    if (!profile) return false;
+  const submit = async () => {
+    if (stars < 1 || !profile) return;
     setBusy(true);
     const { error } = await submitReview({
-      rating,
+      rating: stars,
       text,
       displayName: profile.display_name,
       familyId: familyId ?? null,
       userId: profile.user_id,
       lang: i18n.language,
+      consentToPublish: consent,
     });
     setBusy(false);
-    if (!error) {
-      void markRated();
-      onSubmitted?.();
-      return true;
-    }
-    return false;
-  };
-
-  const submitRating = async () => {
-    const ok = await persist(stars);
-    if (!ok) return;
-    // Happy + a store destination exists → offer it; else just thank them.
-    if (isHighIntent(stars) && getHighIntentCta() != null) setPhase('store');
-    else setPhase('thanks');
-  };
-
-  const submitFeedback = async () => {
-    // Low-intent: store privately as a low rating + the note. It lands in the
-    // admin FeedbackBoard, where the team reaches out directly — so we never
-    // expose a personal contact number in the client (decision: option A).
-    const ok = await persist(2);
-    if (!ok) return;
-    setPhase('feedbackDone');
+    if (error) return;
+    void markRated();
+    onSubmitted?.();
+    // Offer the store to everyone where a destination exists (Android); else thank.
+    setPhase(getHighIntentCta() != null ? 'store' : 'thanks');
   };
 
   const openStore = () => {
@@ -122,6 +100,7 @@ export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPh
   };
 
   const cta = getHighIntentCta();
+  const canSubmit = stars >= 1 && !busy;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={close}>
@@ -131,25 +110,10 @@ export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPh
             <Text style={[styles.closeText, { color: T.textMuted }]}>×</Text>
           </TouchableOpacity>
 
-          {/* ── Gate ───────────────────────────────────────────── */}
-          {phase === 'gate' && (
-            <>
-              <Text style={[styles.title, { color: T.text }]}>{t('rate.gateTitle')}</Text>
-              <View style={styles.gateRow}>
-                <TouchableOpacity style={[styles.btn, { backgroundColor: T.accent }]} onPress={() => setPhase('rate')}>
-                  <Text style={styles.btnText}>{t('rate.gateYes')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.btnGhost, { borderColor: T.cardBorder }]} onPress={() => setPhase('feedback')}>
-                  <Text style={[styles.btnGhostText, { color: T.text }]}>{t('rate.gateNo')}</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-
-          {/* ── Happy: stars + optional note ───────────────────── */}
+          {/* ── Rate: stars (required) + note + publish consent ── */}
           {phase === 'rate' && (
             <>
-              <Text style={[styles.title, { color: T.text }]}>{t('rate.happyTitle')}</Text>
+              <Text style={[styles.title, { color: T.text }]}>{t('rate.title')}</Text>
               <View style={styles.stars}>
                 {[1, 2, 3, 4, 5].map((n) => (
                   <TouchableOpacity key={n} onPress={() => setStars(n)} hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}>
@@ -163,39 +127,38 @@ export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPh
                 ))}
               </View>
               <TextInput
-                style={[styles.input, { color: T.text, borderColor: T.cardBorder }]}
-                placeholder={t('rate.happyPlaceholder')}
-                placeholderTextColor={T.textMuted}
-                value={text}
-                onChangeText={setText}
-                multiline
-              />
-              <TouchableOpacity style={[styles.btn, styles.btnWide, { backgroundColor: T.accent }]} onPress={submitRating} disabled={busy}>
-                {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{t('rate.submit')}</Text>}
-              </TouchableOpacity>
-            </>
-          )}
-
-          {/* ── Unhappy: feedback ──────────────────────────────── */}
-          {phase === 'feedback' && (
-            <>
-              <Text style={[styles.title, { color: T.text }]}>{t('rate.feedbackTitle')}</Text>
-              <TextInput
                 style={[styles.input, styles.inputTall, { color: T.text, borderColor: T.cardBorder }]}
-                placeholder={t('rate.feedbackPlaceholder')}
+                placeholder={t('rate.placeholder')}
                 placeholderTextColor={T.textMuted}
                 value={text}
                 onChangeText={setText}
                 multiline
-                autoFocus
               />
-              <TouchableOpacity style={[styles.btn, styles.btnWide, { backgroundColor: T.accent }]} onPress={submitFeedback} disabled={busy}>
+
+              <TouchableOpacity
+                style={styles.consentRow}
+                onPress={() => setConsent((c) => !c)}
+                hitSlop={{ top: 6, right: 6, bottom: 6, left: 6 }}
+              >
+                <Ionicons
+                  name={consent ? 'checkbox' : 'square-outline'}
+                  size={22}
+                  color={consent ? T.accent : T.textMuted}
+                />
+                <Text style={[styles.consentText, { color: T.textMuted }]}>{t('rate.consent')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.btn, styles.btnWide, { backgroundColor: T.accent, opacity: canSubmit ? 1 : 0.5 }]}
+                onPress={submit}
+                disabled={!canSubmit}
+              >
                 {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{t('rate.submit')}</Text>}
               </TouchableOpacity>
             </>
           )}
 
-          {/* ── Store CTA (happy, Android) ─────────────────────── */}
+          {/* ── Store CTA (Android) — offered to everyone after submit ── */}
           {phase === 'store' && (
             <>
               <Text style={[styles.title, { color: T.text }]}>{t('rate.thanksTitle')}</Text>
@@ -209,20 +172,11 @@ export default function RateBuffSheet({ visible, onClose, onSubmitted, initialPh
             </>
           )}
 
-          {/* ── Plain thanks (happy, no store dest e.g. web) ───── */}
+          {/* ── Plain thanks (web / no store destination) ── */}
           {phase === 'thanks' && (
             <>
               <Text style={[styles.title, { color: T.text }]}>{t('rate.thanksTitle')}</Text>
-              <TouchableOpacity style={[styles.btn, styles.btnWide, { backgroundColor: T.accent }]} onPress={close}>
-                <Text style={styles.btnText}>{t('rate.done')}</Text>
-              </TouchableOpacity>
-            </>
-          )}
-
-          {/* ── Feedback received (private — team follows up) ──── */}
-          {phase === 'feedbackDone' && (
-            <>
-              <Text style={[styles.title, { color: T.text }]}>{t('rate.feedbackThanks')}</Text>
+              <Text style={[styles.body, { color: T.textMuted }]}>{t('rate.thanksBody')}</Text>
               <TouchableOpacity style={[styles.btn, styles.btnWide, { backgroundColor: T.accent }]} onPress={close}>
                 <Text style={styles.btnText}>{t('rate.done')}</Text>
               </TouchableOpacity>
@@ -241,16 +195,15 @@ const styles = StyleSheet.create({
   closeText: { fontSize: 26, lineHeight: 26 },
   title: { fontSize: 19, fontWeight: '700', textAlign: 'center', marginBottom: 16 },
   body: { fontSize: 14, lineHeight: 20, textAlign: 'center', marginBottom: 16 },
-  gateRow: { flexDirection: 'row', gap: 10, justifyContent: 'center' },
   stars: { flexDirection: 'row', justifyContent: 'center', marginBottom: 18 },
   star: { marginHorizontal: 4 },
   input: { borderWidth: 1, borderRadius: 10, padding: 12, fontSize: 14, minHeight: 48, marginBottom: 14, textAlignVertical: 'top' },
   inputTall: { minHeight: 96 },
+  consentRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  consentText: { flex: 1, fontSize: 13, lineHeight: 18 },
   btn: { borderRadius: 12, paddingVertical: 11, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center' },
   btnWide: { width: '100%' },
   btnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  btnGhost: { borderRadius: 12, paddingVertical: 11, paddingHorizontal: 20, borderWidth: 1, alignItems: 'center' },
-  btnGhostText: { fontSize: 15, fontWeight: '600' },
   skip: { marginTop: 12, alignItems: 'center' },
   skipText: { fontSize: 13 },
 });

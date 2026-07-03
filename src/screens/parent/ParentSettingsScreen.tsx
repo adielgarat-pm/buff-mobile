@@ -2,7 +2,7 @@
  * Parent Settings — Zen Mode
  * Account, family management, mode switching, preferences.
  */
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal, Platform, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal } from 'react-native';
 import { useState } from 'react';
 import { crossAlert } from '../../platform';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +26,6 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import ReferralSheet from '../../components/ReferralSheet';
 import RateBuffSheet from '../../components/rate/RateBuffSheet';
-import { getHighIntentCta } from '../../lib/rateBuff/highIntentDestination';
 
 interface SettingsRow {
   label: string;
@@ -53,28 +52,13 @@ export default function ParentSettingsScreen() {
   const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
   const [referralSheetOpen, setReferralSheetOpen] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
-  const [rateInitialPhase, setRateInitialPhase] = useState<'gate' | 'feedback'>('gate');
 
-  // "Rate BUFF" row. On native a Settings button must NOT fire the native
-  // In-App Review API (Google: a CTA may hit the opaque quota and show nothing
-  // → broken UX) — it deep-links to the store listing instead. The native auto-
-  // prompt on the dashboard is what actually drives the OS card. Web/iOS (no
-  // Android listing CTA) open the in-app sheet, which writes a first-party review.
+  // "Rating & feedback" row — opens the unified in-app sheet (real 1–5★ + note +
+  // publish consent), which writes a first-party review. On Android the sheet
+  // itself offers the Google Play link after submit; the dashboard's native auto-
+  // prompt is what actually drives the public OS review card, so this button
+  // never fires the native In-App Review API (its opaque quota could show nothing).
   const handleRatePress = () => {
-    const cta = getHighIntentCta();
-    if (Platform.OS !== 'web' && cta) {
-      void Linking.openURL(cta.url);
-    } else {
-      setRateInitialPhase('gate');
-      setRateOpen(true);
-    }
-  };
-
-  // "Send feedback" row — the always-available private channel (saves to our
-  // reviews table + offers a human contact line). Deliberately NOT a sentiment
-  // filter in front of the public rating; it stands on its own for everyone.
-  const handleFeedbackPress = () => {
-    setRateInitialPhase('feedback');
     setRateOpen(true);
   };
 
@@ -217,11 +201,6 @@ export default function ParentSettingsScreen() {
           onPress: handleRatePress,
         },
         {
-          label:   t('rate.feedbackRow'),
-          icon:    'chatbubble-ellipses-outline' as const,
-          onPress: handleFeedbackPress,
-        },
-        {
           label: t('settings.rowVersion'),
           value: versionLabel,
           icon:  'phone-portrait-outline' as const,
@@ -337,7 +316,6 @@ export default function ParentSettingsScreen() {
 
       <RateBuffSheet
         visible={rateOpen}
-        initialPhase={rateInitialPhase}
         onClose={() => setRateOpen(false)}
       />
 

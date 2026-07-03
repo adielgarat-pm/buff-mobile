@@ -122,6 +122,29 @@ export function useSubscription() {
     rcFounding           ||
     noIapPaywallHidden;
 
+  // Real entitlement = the token-spending signal, DELIBERATELY excluding
+  // noIapPaywallHidden (web/iOS beta unlock) and the expired grace period. The
+  // insights card / LLM gate must key off THIS, not isSubscribed, or web shows
+  // "subscribed" while the server 402s. (Card gating rework is a follow-up; this
+  // value is exposed now so it can be consumed safely.)
+  const hasRealEntitlement =
+    isLifetimeAccess || familyHasEntitlement || isReferralPremium || rcSubscribed || rcFounding;
+
+  // A live time-boxed grant that isn't a permanent plan = trial (or referral-
+  // extended trial) → show a countdown ribbon. Populated by the Phase B activation
+  // trigger (premium_until) and Phase C referrals.
+  // The insights-card / LLM gate. Real entitlement OR iOS beta (unlocked, can't pay
+  // yet) — but deliberately NOT web: web free users must see the conversion state,
+  // which is the whole point of the server token gate. Distinct from isSubscribed
+  // (which unlocks web via noIapPaywallHidden) so the card can't diverge from the
+  // server 402.
+  const insightsUnlocked = hasRealEntitlement || Platform.OS === 'ios';
+
+  const isTrialActive = isReferralPremium && !isLifetimeAccess && !isFoundingMember && !rcSubscribed;
+  const trialDaysLeft = isTrialActive && referralPremiumUntil
+    ? Math.max(0, Math.ceil((referralPremiumUntil.getTime() - Date.now()) / 86_400_000))
+    : 0;
+
   const childCount   = children.length;
   const needsUpgrade = !isSubscribed && childCount >= FREE_CHILD_LIMIT;
 
@@ -167,6 +190,10 @@ export function useSubscription() {
     isGracePeriod,
     isReferralPremium,
     referralPremiumUntil,
+    hasRealEntitlement,
+    insightsUnlocked,
+    isTrialActive,
+    trialDaysLeft,
     needsUpgrade,
     isLoading: rcLoading,
     customerInfo,

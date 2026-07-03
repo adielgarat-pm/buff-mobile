@@ -13,6 +13,7 @@ const TEST_PATTERNS = [
   /buffapp/i,
   /demo/i,
   /adi\.elgarat/i,
+  /eli ?elgarat/i,
   /אקדא4/,
   /@example\.com/i,
   /@buff\.app/i,

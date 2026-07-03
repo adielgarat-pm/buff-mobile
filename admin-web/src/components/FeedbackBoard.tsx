@@ -13,15 +13,20 @@ function Stars({ n }: { n: number }) {
   )
 }
 
-function StatusBadge({ status, rating }: { status: string; rating: number }) {
-  const low = rating < 4
-  const cls = low
-    ? 'bg-red-100 text-red-700'
-    : status === 'approved'
-      ? 'bg-green-100 text-green-700'
-      : 'bg-gray-100 text-gray-600'
-  const label = low ? 'needs attention' : status
-  return <span className={`rounded px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>
+/**
+ * Publish status (consent-based, pkg/rate-us-port):
+ *   private  → parent did NOT consent; team-only, never public.
+ *   pending  → parent consented; awaiting Adi's approval to go public.
+ *   approved → published as a site testimonial.
+ */
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { cls: string; label: string }> = {
+    approved: { cls: 'bg-green-100 text-green-700', label: 'published' },
+    pending: { cls: 'bg-blue-100 text-blue-700', label: 'awaiting publish' },
+    private: { cls: 'bg-gray-100 text-gray-600', label: 'private' },
+  }
+  const s = map[status] ?? { cls: 'bg-gray-100 text-gray-600', label: status }
+  return <span className={`rounded px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.label}</span>
 }
 
 function ReviewRow({
@@ -42,7 +47,12 @@ function ReviewRow({
           <Stars n={r.rating} />
         </div>
         <div className="flex items-center gap-2">
-          <StatusBadge status={r.status} rating={r.rating} />
+          {r.rating < 4 && (
+            <span className="rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+              needs attention
+            </span>
+          )}
+          <StatusBadge status={r.status} />
           <span className="text-xs text-muted-foreground">{date}</span>
         </div>
       </div>
@@ -83,10 +93,11 @@ function ReviewRow({
 
 /**
  * Feedback board — every rating/feedback submitted from the app, newest first.
- * Low ratings (<4★, stored 'private') are flagged "needs attention" so Adi can
- * reach out. Each row links to the parent's email + Tester Board family card
- * (the team's follow-up surface — option A ships no in-app contact number).
- * Approve a 4-5★ row in Supabase to publish it as a site testimonial.
+ * Low ratings (<4★) are flagged "needs attention" so Adi can reach out. Each row
+ * links to the parent's email + Tester Board family card (the team's follow-up
+ * surface — option A ships no in-app contact number). Rows the parent consented
+ * to publish show "awaiting publish" (status 'pending'); set status='approved' in
+ * Supabase to publish one as a site testimonial.
  */
 export function FeedbackBoard() {
   const { data, error, loading } = useFeedbackReviews()
