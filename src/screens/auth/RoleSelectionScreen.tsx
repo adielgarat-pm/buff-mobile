@@ -42,6 +42,10 @@ export default function RoleSelectionScreen() {
 
       <Animated.View style={[styles.inner, webAuthColumn(440), { opacity: fadeAnim }]}>
 
+        {/* Native-install strip (web-only; null on native + non-Android) — slim
+            and subordinate, above the logo so it never competes with the choice */}
+        <GetTheAppCta placement="entry" />
+
         {/* Logo */}
         <View style={styles.logoWrap as object}>
           <Image
@@ -53,9 +57,6 @@ export default function RoleSelectionScreen() {
         </View>
 
         <Text style={styles.headline}>{t('roleSelection.headline')}</Text>
-
-        {/* Native-install CTA (web-only; null on native + non-Android) */}
-        <GetTheAppCta placement="entry" />
 
         {/* Parent card */}
         <TouchableOpacity

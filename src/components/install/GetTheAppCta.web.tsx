@@ -197,6 +197,35 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
     }
   })();
 
+  // Entry (RoleSelection): a slim, subordinate strip — never a card that competes
+  // with the parent/child choice. Post-signup keeps the fuller card below.
+  if (placement === 'entry') {
+    return (
+      <View style={styles.strip}>
+        <Text style={styles.stripText} numberOfLines={2}>
+          {t('install.getApp.stripText')}
+        </Text>
+        {variant.primaryAction ? (
+          <TouchableOpacity
+            onPress={variant.primaryAction}
+            accessibilityRole="button"
+            accessibilityLabel={t('install.getApp.installShort')}
+          >
+            <Text style={styles.stripAction}>{t('install.getApp.installShort')}</Text>
+          </TouchableOpacity>
+        ) : null}
+        <TouchableOpacity
+          onPress={dismiss}
+          accessibilityRole="button"
+          accessibilityLabel={t('install.getApp.dismissLabel')}
+          hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+        >
+          <Text style={styles.stripClose}>×</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
       <View style={styles.headerRow}>
@@ -243,6 +272,22 @@ export default function GetTheAppCta({ placement, onDismiss }: GetTheAppCtaProps
 }
 
 const styles = StyleSheet.create({
+  // Entry strip — subordinate, full-width, sits above the role choice.
+  strip: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#EAE4F7',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  stripText: { flex: 1, fontSize: 12.5, lineHeight: 16, color: '#4A3B6B' },
+  stripAction: { fontSize: 12.5, fontWeight: '700', color: T.accent },
+  stripClose: { fontSize: 16, color: '#B4A9CE', paddingHorizontal: 2 },
+
   container: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 12 },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start' },
   title: { flex: 1, fontSize: 15, fontWeight: '700', lineHeight: 20 },

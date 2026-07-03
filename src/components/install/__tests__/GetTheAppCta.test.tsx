@@ -51,15 +51,16 @@ it('android-play + post-signup renders title, body, Play button and keep-browsin
   expect(getByText('install.getApp.keepBrowsing')).toBeTruthy();
 });
 
-it('android-play + entry renders the lighter entry text, no keep-browsing', async () => {
+it('android-play + entry renders the slim strip (stripText + Install), no keep-browsing', async () => {
   const { findByText, queryByText } = render(<GetTheAppCta placement="entry" />);
-  expect(await findByText('install.getApp.entryText')).toBeTruthy();
+  expect(await findByText('install.getApp.stripText')).toBeTruthy();
+  expect(queryByText('install.getApp.installShort')).toBeTruthy();
   expect(queryByText('install.getApp.keepBrowsing')).toBeNull();
 });
 
-it('android in-app webview renders the intent breakout + copy link', async () => {
+it('android in-app webview (post-signup card) renders the intent breakout + copy link', async () => {
   mockTarget = 'android-inapp-webview';
-  const { findByText, getByText } = render(<GetTheAppCta placement="entry" />);
+  const { findByText, getByText } = render(<GetTheAppCta placement="post-signup" />);
   expect(await findByText('install.getApp.inAppTitle')).toBeTruthy();
   expect(getByText('install.getApp.copyLink')).toBeTruthy();
 });
