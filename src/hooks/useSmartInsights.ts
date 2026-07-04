@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../integrations/supabase/client';
 
@@ -50,21 +51,30 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     setParentContextRaw(v.slice(0, MAX_CONTEXT_LENGTH));
   }, []);
 
-  // Load saved insight + parent context + weekly count from DB on mount / child change
+  // Load saved insight + parent context + weekly count from DB on mount / child change.
+  // The Insights child-selector switches childId IN PLACE (the hook does not remount),
+  // so every per-child field must be reset here first — otherwise a child with no
+  // saved insight keeps showing the previously-selected child's insight (leak between
+  // kids, e.g. Itay's insight appearing for Emi).
   useEffect(() => {
     if (!childId) return;
     let cancelled = false;
+    setSmartInsight(null);
+    setParentContextRaw('');
+    setWeeklyCount(0);
+    setError(null);
     setLoadingState(true);
     supabase
       .rpc('get_smart_insight_state', { p_child_id: childId })
       .then(({ data, error: rpcError }) => {
-        if (cancelled || rpcError || !data || data.length === 0) {
+        if (cancelled) return;
+        if (rpcError || !data || data.length === 0) {
           setLoadingState(false);
           return;
         }
         const row = data[0];
-        if (row.smart_insight) setSmartInsight(row.smart_insight as SmartInsight);
-        if (row.parent_context) setParentContextRaw(row.parent_context);
+        setSmartInsight((row.smart_insight as SmartInsight) ?? null);
+        setParentContextRaw(row.parent_context ?? '');
         setWeeklyCount(row.weekly_count ?? 0);
         setLoadingState(false);
       });
@@ -74,6 +84,8 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
   // Load existing vote for this week
   useEffect(() => {
     if (!childId) return;
+    let cancelled = false;
+    setUserVote(null);   // reset so the previous child's vote never lingers
     const today = new Date().toISOString().split('T')[0];
     // Monday of this week
     const d = new Date();
@@ -89,8 +101,9 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
       .limit(1)
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.explicit_vote) setUserVote(data.explicit_vote as 1 | -1);
+        if (!cancelled && data?.explicit_vote) setUserVote(data.explicit_vote as 1 | -1);
       });
+    return () => { cancelled = true; };
   }, [childId]);
 
   const generate = useCallback(async () => {
@@ -109,6 +122,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
             child_id:       childId,
             parent_context: parentContext.trim() || undefined,
             language:       i18n.language,
+            platform:       Platform.OS,   // 'web' bypasses the server entitlement gate (web is free)
           },
         },
       );
