@@ -31,6 +31,7 @@ import {
 import type { AgeGroup } from './onboardingData';
 import { generateStarterTasks } from './starterTasks';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
+import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
@@ -241,6 +242,8 @@ export default function UStep5_Preview() {
         id = res.child_id;
         console.log(`${TAG} [1/3] Profile create SUCCESS — childProfileId: ${id}`);
         setChildProfileId(id);
+        // Funnel: a NEW child profile was created (not on reuse/retry branches).
+        void logOnboardingEvent({ familyId, eventType: 'child_created', childId: id });
       }
 
       // ── 2. INSERT tasks ──────────────────────────────────────────────────
@@ -288,6 +291,8 @@ export default function UStep5_Preview() {
           throw new Error(tasksErr.message);
         }
         console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+        // Funnel: starter tasks generated for this child.
+        void logOnboardingEvent({ familyId, eventType: 'tasks_generated', childId: id });
       }
 
       // ── 3. INSERT store_rewards ──────────────────────────────────────────

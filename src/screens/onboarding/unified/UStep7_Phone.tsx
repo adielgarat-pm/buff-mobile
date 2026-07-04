@@ -9,6 +9,7 @@
  * 'default' Android channel set up in notificationHandler.ts at app boot).
  * Best-effort: proceeds even if permission is denied or scheduling fails.
  */
+import { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
@@ -21,6 +22,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { BUFF_URLS, buildJoinDeepLink } from '../../../lib/buffConfig';
 import { shareInvite } from '../../../lib/shareInvite';
+import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
 import { requestNotificationPermission } from '../../../lib/pushTokens';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep7_Phone'>;
@@ -33,9 +35,21 @@ export default function UStep7_Phone() {
   const { params }         = useRoute<Route>();
   const { t }              = useTranslation();
   const { isRTL }          = useRTLStyles();
-  const { familyShortCode } = useAuth();
+  const { familyShortCode, familyId } = useAuth();
 
   const progress = (STEP + 1) / (TOTAL + 1);
+
+  // Funnel: parent reached the "hand off to the child's device" step. This is
+  // where the web funnel historically died — measure how many get here.
+  useEffect(() => {
+    void logOnboardingEvent({
+      familyId,
+      eventType: 'invite_shown',
+      childId: params.childProfileId,
+    });
+    // Once on mount; familyId/params are stable for this screen instance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const goNext = (hasPhone: boolean) => {
     navigation.navigate('UStep8_Complete', { ...params, hasPhone });
@@ -53,6 +67,12 @@ export default function UStep7_Phone() {
     // On web the old Share.share() was a silent no-op — the child never got
     // the link. shareInvite never throws, so we always proceed.
     await shareInvite(message);
+    void logOnboardingEvent({
+      familyId,
+      eventType: 'invite_sent',
+      method: 'share',
+      childId: params.childProfileId,
+    });
     goNext(true);
   };
 

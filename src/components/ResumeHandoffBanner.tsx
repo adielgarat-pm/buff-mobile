@@ -15,12 +15,14 @@
  * When every child has activated (or there are no children / no family code):
  * renders nothing.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../theme';
 import { BUFF_URLS } from '../lib/buffConfig';
 import { shareInvite } from '../lib/shareInvite';
+import { logOnboardingEvent } from '../lib/onboardingFunnel';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import type { ChildSummary } from '../hooks/useChildrenDashboard';
 
@@ -33,7 +35,9 @@ interface Props {
 
 export default function ResumeHandoffBanner({ familyChildren, familyShortCode }: Props) {
   const { t } = useTranslation();
+  const { familyId } = useAuth();
   const [unactivated, setUnactivated] = useState<ChildSummary[]>([]);
+  const shownForRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +74,16 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
     };
   }, [familyChildren]);
 
+  // Funnel: the resume-handoff nudge became visible for a never-activated child
+  // (once per child). This is the in-app "invite shown" surface outside onboarding.
+  useEffect(() => {
+    const first = unactivated[0];
+    if (first && shownForRef.current !== first.childId) {
+      shownForRef.current = first.childId;
+      void logOnboardingEvent({ familyId, eventType: 'invite_shown', childId: first.childId });
+    }
+  }, [unactivated, familyId]);
+
   // Nothing to nudge, or no code to share yet.
   if (!familyShortCode || unactivated.length === 0) return null;
 
@@ -87,6 +101,12 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
     // Cross-platform share (OS sheet on native, Web Share API / WhatsApp on web).
     // Never throws — the banner stays if the user dismisses, so they can retry.
     await shareInvite(message);
+    void logOnboardingEvent({
+      familyId,
+      eventType: 'invite_sent',
+      method: 'share',
+      childId: child.childId,
+    });
   };
 
   return (
