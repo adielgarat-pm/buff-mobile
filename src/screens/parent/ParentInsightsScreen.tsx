@@ -98,14 +98,15 @@ export default function ParentInsightsScreen() {
   // opens Insights with no saved coach insight and enough data, generate ONE — so
   // the trial's "wow" lands without a manual tap, but no tokens are spent on families
   // who never open this screen. Guarded per-child + once, and gated on real
-  // entitlement so a non-entitled viewer never triggers a 402'd call.
+  // entitlement (except web, which is free for the AI coach — see the server's
+  // platform=web bypass) so a non-entitled native viewer never triggers a 402'd call.
   const autoGenTried = useRef(false);
   useEffect(() => { autoGenTried.current = false; }, [childId]);
   useEffect(() => {
     if (autoGenTried.current) return;
     if (!childId || smartLoading || generating) return;   // wait for the saved-insight check
     if (smartInsight) return;                              // already have one
-    if (!hasRealEntitlement) return;                       // don't spend tokens on non-entitled
+    if (!hasRealEntitlement && Platform.OS !== 'web') return; // free on web; else don't spend tokens on non-entitled
     if (generationsLeft <= 0) return;                      // respect the weekly cap
     if (stats.activeDays < 2) return;                      // need real data (matches activation bar)
     autoGenTried.current = true;

@@ -6,6 +6,25 @@
 
 ---
 
+## 4 ביולי 2026 — מאמן ה-AI חינם ב-Web
+
+### D-2026-07-04-01: מאמן ה-AI (Smart Insights) חינמי ללא תנאי ב-Web; ה-gate נשאר על Android
+
+**ההחלטה:** ה-web עדיין לא בשל למונטיזציה, ולכן מאמן ה-AI (Smart Insights / תובנות מבוססות-LLM) פתוח חינם ב-web ללא תנאי — בלי trial, בלי חלון 14 יום, בלי paywall. Android/iOS שומרים על ה-entitlement/trial gate ללא שינוי. יושם בשני שערים תואמים שנפתחו ל-web בלבד: **קליינט** — `insightsUnlocked` כולל `Platform.OS==='web'`, ה-guard של auto-generate מתיר web, וה-invoke שולח `platform`. **שרת** — `generate-child-insights` (v13, פרוס) מדלג על ה-402 כש-`platform==='web'`. עדיין חסום ב-rate-limit של 3 יצירות/ילד/שבוע. PR #317.
+
+**הסיבה:**
+- חוויית ה-web עדיין לא בוגרת מספיק כדי לתמחר עליה; חסימת trial/paywall על חוויה לא-בשלה פוגעת בהמרה ובאמון. אקטיבציה ב-web ~0% → עלות טוקנים בפועל זניחה.
+- הפרה **מכוונת ומוצהרת** של כלל ה-platform-parity (CLAUDE.md) — מותרת כי מתועדת כאן. חשיפת spoofing מינורית: `platform` מגיע מהקליינט, כך שלקוח אנדרואיד יכול לשלוח `web`; חסום ל-3/שבוע ע"י ה-rate-limit. fix עמיד יחכה ל-`profiles.last_platform`.
+- נדחה: לתת ל-web רק תובנות rule-based בלי LLM (build גדול יותר, פחות ערך מיידי).
+
+**פתוח:** אימות Hat-4 ב-web (הורה מחובר → קואצ' נוצר בלי paywall) + אנדרואיד FREE עדיין נחסם; החלטה עתידית מתי web מבשיל למונטיזציה.
+
+**מסמכים מושפעים:**
+- קוד: `useSubscription.ts`, `ParentInsightsScreen.tsx`, `useSmartInsights.ts`, `supabase/functions/generate-child-insights` (v13 פרוס)
+- `docs/RELEASE_QUEUE.md` — שורת #317
+
+---
+
 ## 19 ביוני 2026 — מודל מונטיזציה להשקה
 
 ### D-2026-06-19-01: Freemium נדיב + גייטינג על ערך אוניברסלי (לא על מספר ילדים)

@@ -133,12 +133,13 @@ export function useSubscription() {
   // A live time-boxed grant that isn't a permanent plan = trial (or referral-
   // extended trial) → show a countdown ribbon. Populated by the Phase B activation
   // trigger (premium_until) and Phase C referrals.
-  // The insights-card / LLM gate. Real entitlement OR iOS beta (unlocked, can't pay
-  // yet) — but deliberately NOT web: web free users must see the conversion state,
-  // which is the whole point of the server token gate. Distinct from isSubscribed
-  // (which unlocks web via noIapPaywallHidden) so the card can't diverge from the
-  // server 402.
-  const insightsUnlocked = hasRealEntitlement || Platform.OS === 'ios';
+  // The insights-card / LLM gate. Real entitlement OR iOS beta OR web. Web is
+  // DELIBERATELY free for the AI coach (no trial, no 14-day cutoff) while the web
+  // build matures — the server mirrors this by skipping the 402 for platform=web
+  // (see generate-child-insights). Android keeps the entitlement/trial gate.
+  // Intentional, logged platform divergence (BUFF_DECISIONS_LOG). Distinct from
+  // isSubscribed so the card matches the server's platform-aware gate.
+  const insightsUnlocked = hasRealEntitlement || Platform.OS === 'ios' || Platform.OS === 'web';
 
   const isTrialActive = isReferralPremium && !isLifetimeAccess && !isFoundingMember && !rcSubscribed;
   const trialDaysLeft = isTrialActive && referralPremiumUntil
