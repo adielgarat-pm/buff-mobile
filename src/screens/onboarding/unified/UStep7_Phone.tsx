@@ -9,7 +9,7 @@
  * 'default' Android channel set up in notificationHandler.ts at app boot).
  * Best-effort: proceeds even if permission is denied or scheduling fails.
  */
-import { View, Text, TouchableOpacity, Share, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -20,6 +20,7 @@ import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { BUFF_URLS, buildJoinDeepLink } from '../../../lib/buffConfig';
+import { shareInvite } from '../../../lib/shareInvite';
 import { requestNotificationPermission } from '../../../lib/pushTokens';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep7_Phone'>;
@@ -48,11 +49,10 @@ export default function UStep7_Phone() {
       installUrl:   BUFF_URLS.playStoreInstall,
       joinDeepLink: buildJoinDeepLink(code),
     });
-    try {
-      await Share.share({ message });
-    } catch {
-      // User dismissed share sheet — still proceed
-    }
+    // Cross-platform: OS sheet on native, Web Share API / WhatsApp on web.
+    // On web the old Share.share() was a silent no-op — the child never got
+    // the link. shareInvite never throws, so we always proceed.
+    await shareInvite(message);
     goNext(true);
   };
 

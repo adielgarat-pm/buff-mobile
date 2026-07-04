@@ -16,10 +16,11 @@
  * renders nothing.
  */
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Share } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../theme';
 import { BUFF_URLS } from '../lib/buffConfig';
+import { shareInvite } from '../lib/shareInvite';
 import { supabase } from '../integrations/supabase/client';
 import type { ChildSummary } from '../hooks/useChildrenDashboard';
 
@@ -83,25 +84,9 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
       code: familyShortCode,
       installUrl: BUFF_URLS.playStoreInstall,
     });
-
-    try {
-      if (Platform.OS === 'web') {
-        const nav = (typeof navigator !== 'undefined' ? navigator : undefined) as
-          | { share?: (data: { text?: string }) => Promise<void> }
-          | undefined;
-        if (nav?.share) {
-          await nav.share({ text: message });
-        } else {
-          // Desktop / no Web Share API → open WhatsApp with the message prefilled.
-          window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-        }
-      } else {
-        await Share.share({ message });
-      }
-    } catch {
-      // User cancelled the share sheet (AbortError) or share is unavailable —
-      // non-fatal, the banner stays so they can try again.
-    }
+    // Cross-platform share (OS sheet on native, Web Share API / WhatsApp on web).
+    // Never throws — the banner stays if the user dismisses, so they can retry.
+    await shareInvite(message);
   };
 
   return (
