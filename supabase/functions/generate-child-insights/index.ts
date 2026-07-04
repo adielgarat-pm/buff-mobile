@@ -66,6 +66,26 @@ function countActiveDays(progress: { date: string; completed: boolean }[]): numb
   return active.size;
 }
 
+// Task categories → clean Hebrew (so no English category keys leak into the
+// Hebrew prompt). Falls back to the raw label for any unmapped category.
+const CATEGORY_HE: Record<string, string> = {
+  'self-care':      'טיפוח עצמי',
+  'learning':       'למידה',
+  'organization':   'סדר וארגון',
+  'responsibility': 'אחריות',
+  'movement':       'תנועה',
+};
+
+// Recent activity as WORDS, never a number (the Hebrew coach output must be
+// number-free — we translate the signal here so the model reasons over it
+// without ever seeing a raw count).
+function activityBandHe(activeDays: number): string {
+  if (activeDays >= 8) return 'רוב הימים';
+  if (activeDays >= 4) return 'חלק מהימים';
+  if (activeDays >= 1) return 'מעט ימים';
+  return 'כמעט ואין עדיין';
+}
+
 function buildPrompt(opts: {
   childName: string;
   age: number | null;
@@ -75,11 +95,71 @@ function buildPrompt(opts: {
   cheapestReward: number | null;
   approvedRedemptions: number;
   parentContext: string | null | undefined;
+  previousAction: string | null;
+  previousVote: number | null;   // 1 | -1 | null (null = no vote / not activated)
   language: string;
 }): string {
-  const { childName, age, categoryStats, activeDays14, balance, cheapestReward, approvedRedemptions, parentContext, language } = opts;
+  const { childName, age, categoryStats, activeDays14, balance, cheapestReward,
+          approvedRedemptions, parentContext, previousAction, previousVote, language } = opts;
   const isHebrew = language === 'he';
 
+  // Bucketed signal shared by both paths (strongest / weakest routine with data).
+  const withData = categoryStats.filter(c => c.count >= 3).sort((a, b) => b.rate - a.rate);
+
+  if (isHebrew) {
+    const heCat = (c: CategoryStat | undefined): string | null =>
+      c ? (CATEGORY_HE[c.category ?? ''] ?? c.category ?? 'שגרה') : null;
+    const strongCat  = heCat(withData[0]);
+    const supportCat = withData.length > 1 ? heCat(withData[withData.length - 1]) : null;
+
+    const prevFeedbackHe = previousAction
+      ? (previousVote === 1 ? '👍 (עזר / עבד טוב)'
+        : previousVote === -1 ? '👎 (לא עזר)'
+        : 'לא הופעל / אין משוב')
+      : 'אין עדיין (זו התובנה הראשונה)';
+
+    return `אתה קוצ'ר מומחה להורות חיובית ומלווה מוסמך באפליקציית "באף" (BUFF). תפקידך לייצר תובנה קצרה, מעצימה וממוקדת להורה על סמך הנתונים של הילד/ה הספציפי/ת והטקסט החופשי שההורה הוסיף.
+
+נתוני הילד/ה:
+- שם: ${childName}
+- מידע נוסף מההורה: ${parentContext?.trim() || '—'}
+- רמת פעילות לאחרונה: ${activityBandHe(activeDays14)}
+- תחום שזורם: ${strongCat ?? '—'}
+- תחום ששווה לתמוך בו: ${supportCat ?? '—'}
+
+היסטוריה ולולאת משוב:
+- הפעולה שהוצעה בפעם הקודמת: ${previousAction ?? '— (אין עדיין)'}
+- משוב ההורה על הפעולה הקודמת: ${prevFeedbackHe}
+
+הפרדה מוחלטת בין ילדים:
+- המערכת פועלת במודל "פר ילד". חל איסור מוחלט להשליך תובנות, היסטוריה או מאפיינים מילד אחר במשפחה. התבסס אך ורק על הנתונים של ${childName} שלמעלה.
+
+מנגנון לולאת משוב:
+- אם הפעולה הקודמת קיבלה 👍: חזק את הכיוון, הסבר בקצרה למה זה עבד מבחינה נוירולוגית, והצע צעד המשך טבעי באותו סגנון.
+- אם הפעולה הקודמת קיבלה 👎, לא הופעלה, או שאין עדיין: אל תחזור עליה ואל תציע וריאציה דומה — שנה כיוון והצע גישה פרקטית/נוירולוגית אחרת.
+
+עקרונות כתיבה וטון:
+- כתוב בעברית חמה, יומיומית, טבעית וזורמת — כמו חבר קרוב שמבין בחינוך, לא כמו דוח רשמי או פסיכולוגי.
+- הימנע לחלוטין מתרגום מילולי מאנגלית; המשפטים חייבים להישמע טבעיים בעברית מדוברת ויפה.
+- לשון פנייה להורה: ניטרלית וללא מגדר ("כדאי לנסות", "אפשר לחשוב על", "השבוע שווה להתמקד ב...").
+- לגבי הילד/ה: השתמש בשם (${childName}). אם המגדר לא ברור מהשם — נסח בצורה ניטרלית.
+- שפה חיובית בלבד. חל איסור מוחלט על המילים: נכשל, פיגר, מתקשה, בעיה, קושי, חלש, ירידה, לא הצליח.
+- הסבר את ההתנהגות דרך המוח ("איך המוח עובד", "מנגנון הקשב צריך הפסקות") — לעולם לא דרך אופי או מאמץ ("עצלן", "לא מתאמץ").
+- גוון את פתיחת המשפטים; אל תפתח תמיד באותו מבנה (כמו "המוח של...").
+- בלי מספרים או אחוזים בכלל (גם אם ההורה כתב מספרים). השתמש ב"ברוב הימים", "פעימות קצרות", "זמן ממוקד".
+- בלי מילים לועזיות (פוקוס, טאסק, רגולציה, ספרינט, מוטיבציה) — מצא חלופות בעברית פשוטה.
+- הפעולה חייבת לבנות עצמאות אצל ${childName} — משהו שההורה עושה יחד איתו/ה, לא במקומו/ה.
+
+החזר אך ורק JSON תקין במבנה הבא, בלי טקסט נוסף:
+{
+  "headline": "כותרת של 2-4 מילים, ממוקדת ומסקרנת",
+  "message": "1-2 משפטים שמסבירים את הדפוס בצורה חיובית ונוירולוגית, בהתחשב במשוב על הפעולה הקודמת",
+  "action": "משפט אחד קונקרטי לשבוע הקרוב שבונה עצמאות יחד עם ${childName}",
+  "cta_type": "בדיוק אחד מ: send-bonus / open-rewards / set-anchor / start-conversation / none"
+}`;
+  }
+
+  // ── English path (unchanged from the original prompt) ────────────────────────
   const catLines = categoryStats
     .filter(c => c.count >= 3)
     .sort((a, b) => a.rate - b.rate)
@@ -93,15 +173,7 @@ function buildPrompt(opts: {
     ? `Balance: ${balance} BUFFs, cheapest reward: ${cheapestReward} BUFFs, redeemed recently: ${approvedRedemptions}`
     : `Balance: ${balance} BUFFs, no rewards defined yet`;
 
-  const parentLine = parentContext
-    ? (isHebrew
-        ? `\nמה ההורה שיתף:\n"${parentContext}"`
-        : `\nParent note:\n"${parentContext}"`)
-    : '';
-
-  const langInstruction = isHebrew
-    ? 'Respond entirely in Hebrew (modern, warm Israeli Hebrew).'
-    : 'Respond entirely in English.';
+  const parentLine = parentContext ? `\nParent note:\n"${parentContext}"` : '';
 
   return `You are a warm, evidence-based ADHD advisor for parents. Give ONE insight and ONE specific action for this week.
 
@@ -114,7 +186,7 @@ ${catLines || '  - (no data yet)'}
 - Rewards: ${rewardLine}${parentLine}
 
 RULES:
-1. ${langInstruction}
+1. Respond entirely in English.
 2. Never say failed/behind/dropped/struggle/problem — always forward-facing.
 3. Mechanism = biological ("the way the brain works"), never behavioral.
 4. Max 2 sentences for message, 1 for action.
@@ -242,7 +314,7 @@ Deno.serve(async (req: Request) => {
   const dates14 = getLast14Days();
   const cutoffDate = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
-  const [{ data: tasks }, { data: progress }, { data: creditVault }, { data: rewards }, { data: redemptions }] = await Promise.all([
+  const [{ data: tasks }, { data: progress }, { data: creditVault }, { data: rewards }, { data: redemptions }, { data: prevInsightRow }, { data: prevVoteRow }] = await Promise.all([
     svc.from('tasks')
       .select('id, category')
       .eq('family_id', childProfile.family_id)
@@ -265,6 +337,18 @@ Deno.serve(async (req: Request) => {
       .select('status')
       .eq('child_id', child_id)
       .gte('requested_at', cutoffDate),
+    // Feedback loop — the previously-suggested action (read BEFORE we overwrite it)
+    // and the parent's latest 👍/👎 on it. Scoped to THIS child_id (per-child).
+    svc.from('child_insights')
+      .select('smart_insight')
+      .eq('child_id', child_id)
+      .maybeSingle(),
+    svc.from('smart_insight_feedback')
+      .select('explicit_vote')
+      .eq('child_id', child_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const categoryStats      = buildCategoryStats(tasks ?? [], progress ?? [], dates14);
@@ -276,6 +360,8 @@ Deno.serve(async (req: Request) => {
   const approvedRedemptions = (redemptions ?? []).filter((r: { status: string }) => r.status === 'approved').length;
   const language           = bodyLanguage ?? childProfile.preferred_language ?? 'he';
   const age                = getAgeFromBirthDate(childProfile.birth_date);
+  const previousAction     = (prevInsightRow?.smart_insight as { action?: string } | null)?.action ?? null;
+  const previousVote       = (prevVoteRow?.explicit_vote as number | null | undefined) ?? null;
 
   const prompt = buildPrompt({
     childName: childProfile.display_name ?? 'הילד',
@@ -286,6 +372,8 @@ Deno.serve(async (req: Request) => {
     cheapestReward,
     approvedRedemptions,
     parentContext: parent_context ?? null,
+    previousAction,
+    previousVote,
     language,
   });
 
