@@ -38,6 +38,15 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 >
 > ⚠️ **versionCode history for this cut (why 63, not 60):** **vc60** (`b6aad996`, `113f3e2`, 1.7.7) was the first clean production build but Play routed it to the **Alpha** track. **vc61** (`93c7babf`, `732be98`, **1.7.6**) was then built **from the stale `pkg/ai-trial-cta-polish` branch** — ~2 weeks behind main, missing #295/#303/#308/#310 and regressive — and reached **Production + Open testing** (rollout halted). Since Play requires a strictly-higher versionCode per track, the fix was a fresh build from `origin/main`: **vc62** (`151ce1c8`) was accidentally started from the wrong branch again and **canceled** (versionCode burned); **vc63** (`c8dc323b`, `80865e7`) is the correct clean build and the one to promote. **Lesson:** build the release **only** from `origin/main`, and verify `HEAD` + `app.json version` **before** every `eas build` — a `git checkout` that aborts silently leaves you on the previous branch.
 
+> 🚉 **NEXT BUILD (vc64) — merged to `main` AFTER vc63's base (`80865e7`), NOT in any build yet.** No urgency: nothing here is a regression, and the AI-coach value is already live server-side/web (see the ✅ line). Cut vc64 from `origin/main` only after vc63 clears Google review — bundle these together.
+>
+> | Date merged | PR / Commit | Type | Change (native-relevant) | Lane | User-facing? | Flow Suite |
+> |---|---|---|---|---|---|---|
+> | 2026-07-03 | #316 / `bbf84a9` | feat | **Android mobile-web install CTA** (web-to-native) — Phase 1+2 + dashboard nudge; convert Android mobile-web signups to the native app. | Train | yes | Android mobile-web → "Get the app" CTA → Play install |
+> | 2026-07-04 | #317 / `ff5efd9` | fix | **Per-child insight reset** — `useSmartInsights` now clears state on child switch, so one child's AI insight can't linger on another (Itay→Emi). Cosmetic, within-family; low severity. **The rest of #317 is NOT a build item:** web-free + `platform` send are web-only / no-op on native; the Hebrew coach prompt **v14** + feedback loop are **server-side and already live**. | Train | yes (paid/trial, multi-child) | Insights → switch child selector to a child with no insight → shows empty/own, never the other kid's |
+>
+> ✅ **Already LIVE without this build (do NOT re-cut for these):** AI coach **Hebrew prompt v14 + feedback loop** (edge fn `generate-child-insights`, live for all platforms) · **web AI-coach free** (Vercel) · **web per-child fix** (Vercel). Only the two rows above actually need vc64.
+
 > 🌐 **Not in the AAB (deploy via Vercel, not a build):** #294 landing redesign (already LIVE on buffadhd.com 2026-06-27) · #292 / #293 download-page + launch docs · `f71d97f` lockfile fix (its content already in vc59).
 
 **Riding the next train (after 1.7.6 / versionCode 56):**  ← _per `eas build:list` this content shipped in vc59; move to Shipped at next cut_
