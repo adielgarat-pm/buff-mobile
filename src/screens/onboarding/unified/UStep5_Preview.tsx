@@ -365,8 +365,8 @@ export default function UStep5_Preview() {
       navigation.navigate('ParentApp', { screen: 'ParentTasks' });
       return;
     }
-    console.log(`${TAG} Navigating to UStep7_Phone with childProfileId=${childProfileId}`);
-    navigation.navigate('UStep7_Phone', { ...params, childProfileId });
+    console.log(`${TAG} Navigating to UStep6_FirstTask with childProfileId=${childProfileId}`);
+    navigation.navigate('UStep6_FirstTask', { ...params, childProfileId });
   };
 
   return (
