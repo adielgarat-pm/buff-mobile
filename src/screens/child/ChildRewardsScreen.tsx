@@ -20,6 +20,8 @@ import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
+import { useAppSettings } from '../../hooks/useAppSettings';
+import PauseEmptyState from '../../components/PauseEmptyState';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { useRewardRedemptions } from '../../hooks/useRewardRedemptions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
@@ -61,6 +63,7 @@ function PastelChildRewards() {
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { totalBalance, refetch: refetchBalance } = useChildData(childId);
+  const { isPauseActive } = useAppSettings();
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
   const {
@@ -168,6 +171,12 @@ function PastelChildRewards() {
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={T.primary} />
         </View>
+      ) : isPauseActive ? (
+        // Pause active: short-circuit the shop (mirrors GamerRewardsScreen).
+        // Header (balance) stays visible to reassure — nothing is lost.
+        <ScrollView contentContainerStyle={styles.content}>
+          <PauseEmptyState />
+        </ScrollView>
       ) : rewards.length === 0 ? (
         <View style={styles.centered}>
           <Text style={{ color: T.mutedForeground, fontSize: 15 }}>{t('childRewards.empty')}</Text>

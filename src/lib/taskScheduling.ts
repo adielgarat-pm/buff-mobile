@@ -38,9 +38,13 @@ export function isTaskVisibleOn(
   if (task.dueDate) {
     return task.dueDate === dateKey; // one-time
   }
-  // recurring — identical to the prior inline filters
+  // recurring — mirrors utils/taskSchedule.ts: null/undefined scheduleDays
+  // means EVERY day (all 7, incl. Saturday — aligned with the PR #233 backfill
+  // and the create-task default in ParentTasksScreen; the old [0..5] default
+  // here silently hid legacy null-days tasks on Saturday). An explicit []
+  // (parent paused the task) is preserved and matches no day.
   const weekday = new Date(dateKey + 'T00:00:00').getDay();
-  const scheduleDays = task.scheduleDays ?? [0, 1, 2, 3, 4, 5];
+  const scheduleDays = task.scheduleDays ?? [0, 1, 2, 3, 4, 5, 6];
   if (!scheduleDays.includes(weekday)) return false;
   if (ctx.isWeekend && task.hideOnWeekend) return false;
   return true;

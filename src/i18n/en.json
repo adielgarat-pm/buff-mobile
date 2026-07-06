@@ -1674,6 +1674,7 @@
   "parentTasks.day.5": "Fr",
   "parentTasks.day.6": "Sa",
   "parentTasks.daysPausedHint": "Task paused — it won't show to your child until you pick a day",
+  "parentTasks.oneTimeHint": "One-time task — scheduled for {{date}}",
   "parentRewards.title": "Rewards",
   "parentRewards.addBtn": "+ Add Reward",
   "parentRewards.noChildren": "No children yet.",
