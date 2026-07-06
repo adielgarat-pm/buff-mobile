@@ -25,6 +25,7 @@ import { crossAlert } from '../../platform';
 
 import { PARENT_THEME as T } from '../../theme';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
+import TimeField from '../../components/TimeField';
 import { supabase } from '../../integrations/supabase/client';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useTimetable } from '../../hooks/useTimetable';
@@ -775,18 +776,17 @@ export default function TimetableScreen() {
                     </View>
                   )}
 
-                  {/* Time input */}
-                  <TextInput
+                  {/* Time — native OS picker (matches the task-edit modal) */}
+                  <TimeField
                     value={period.time}
-                    onChangeText={v => updatePeriod(period.id, { time: v, autoTime: false })}
+                    onChange={v => updatePeriod(period.id, { time: v, autoTime: false })}
                     style={[
-                      styles.timeInput,
-                      { borderColor: period.autoTime ? '#F59E0B' : T.cardBorder, color: T.text },
+                      styles.timeField,
+                      { borderColor: period.autoTime ? '#F59E0B' : T.cardBorder },
                     ]}
-                    placeholder="HH:MM"
-                    placeholderTextColor={T.textMuted}
-                    keyboardType="numbers-and-punctuation"
-                    maxLength={5}
+                    textStyle={[styles.timeFieldText, { color: T.text }]}
+                    accessibilityLabel={t('timetable.lessonTimeLabel')}
+                    testID={`time-field-review-${period.id}`}
                   />
 
                   {/* Subject input */}
@@ -952,14 +952,13 @@ export default function TimetableScreen() {
                 <View style={[styles.lessonBadge, { backgroundColor: T.accent + '22' }]}>
                   <Text style={[styles.lessonBadgeText, { color: T.accent }]}>{i + 1}</Text>
                 </View>
-                <TextInput
+                <TimeField
                   value={lesson.startTime}
-                  onChangeText={v => manualUpdateLesson(manualDay, i, { startTime: v })}
-                  style={[styles.timeInput, { borderColor: T.cardBorder, color: T.text }]}
-                  placeholder="HH:MM"
-                  placeholderTextColor={T.textMuted}
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={5}
+                  onChange={v => manualUpdateLesson(manualDay, i, { startTime: v })}
+                  style={[styles.timeField, { borderColor: T.cardBorder }]}
+                  textStyle={[styles.timeFieldText, { color: T.text }]}
+                  accessibilityLabel={t('timetable.lessonTimeLabel')}
+                  testID={`time-field-manual-${i}`}
                 />
                 <TextInput
                   value={lesson.subject}
@@ -1089,8 +1088,9 @@ const styles = StyleSheet.create({
                    alignItems: 'center', justifyContent: 'center' },
   lessonBadge:   { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   lessonBadgeText:{ fontSize: 11, fontWeight: '700' },
-  timeInput:     { width: 64, height: 36, borderWidth: 1.5, borderRadius: 8,
-                   paddingHorizontal: 6, fontSize: 13, textAlign: 'center' },
+  timeField:     { width: 76, height: 36, borderWidth: 1.5, borderRadius: 8,
+                   flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
+  timeFieldText: { fontSize: 13, fontWeight: '600' },
   subjectInput:  { flex: 1, height: 36, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 8, fontSize: 14 },
   deleteBtn:     { padding: 4 },
 
