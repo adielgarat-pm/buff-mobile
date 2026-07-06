@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TimetableScreen — Parent side
  *
  * Manages the full schedule lifecycle in one screen:
@@ -57,6 +57,11 @@ export default function TimetableScreen() {
   // opened the system menu instead). ≥20pt clearance per the safe-zone rule.
   const insets    = useSafeAreaInsets();
   const footerPad = { paddingBottom: Math.max(insets.bottom + 12, 20) };
+  // Headers must clear the status bar the same way: this screen hard-coded
+  // paddingTop 16 on Android, which put "Update Schedule" + the bell UNDER the
+  // status bar on edge-to-edge devices — reproduced on the emulator
+  // (2026-07-06): every header tap was swallowed by the system bar.
+  const headerPad = { paddingTop: Math.max(insets.top + 8, Platform.OS === 'ios' ? 56 : 16) };
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId]  = useState<string | null>(null);
@@ -469,7 +474,7 @@ export default function TimetableScreen() {
 
     return (
       <View style={[styles.container, { backgroundColor: T.bg }]}>
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <Text style={[styles.title, { color: T.text }]}>{t('timetable.title')}</Text>
           <View style={styles.headerRight}>
             {hasTimetable && (
@@ -550,7 +555,7 @@ export default function TimetableScreen() {
   if (mode === 'choose') {
     return (
       <View style={[styles.container, { backgroundColor: T.bg }]}>
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('view')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -620,7 +625,7 @@ export default function TimetableScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={[styles.container, { backgroundColor: T.bg }]}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -717,7 +722,7 @@ export default function TimetableScreen() {
         style={[styles.container, { backgroundColor: T.bg }]}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -969,7 +974,7 @@ export default function TimetableScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={[styles.container, { backgroundColor: T.bg }]}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
