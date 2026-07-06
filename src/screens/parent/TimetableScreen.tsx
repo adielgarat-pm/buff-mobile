@@ -38,6 +38,7 @@ import {
   parseExcelBase64, processApiResponse, periodsToTimetable,
   generateBuffStandardTime, type ParsedPeriod,
 } from '../../utils/timetableParser';
+import { copyTimetableDay, dayHasLessons, type CopyDayMode } from '../../utils/timetableCopy';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,10 @@ export default function TimetableScreen() {
   // ── Manual ─────────────────────────────────────────────────────────────────
   const [manualTimetable, setManualTimetable] = useState<Timetable>({});
   const [manualDay,       setManualDay]       = useState<WeekDay>('sunday');
+  // Copy-day (pkg/timetable-copy-day): duplicate the current day's lessons
+  // (incl. equipment) into other days in ≤3 taps.
+  const [copyDayOpen,     setCopyDayOpen]     = useState(false);
+  const [copyTargets,     setCopyTargets]     = useState<WeekDay[]>([]);
 
   // ── Paste ──────────────────────────────────────────────────────────────────
   const [pasteText,    setPasteText]    = useState('');
@@ -362,6 +367,35 @@ export default function TimetableScreen() {
       const existing = prev[day] ?? [];
       return { ...prev, [day]: [...existing, { subject: '', startTime: generateBuffStandardTime(existing.length) }] };
     });
+  };
+
+  // ── Copy-day handlers ───────────────────────────────────────────────────────
+  const openCopyDay  = () => { setCopyTargets([]); setCopyDayOpen(true); };
+  const closeCopyDay = () => setCopyDayOpen(false);
+
+  const applyCopyDay = (copyMode: CopyDayMode) => {
+    setManualTimetable(prev => copyTimetableDay(prev, manualDay, copyTargets, copyMode));
+    setCopyDayOpen(false);
+    // Jump to the first target so the result is visible instantly.
+    if (copyTargets.length > 0) setManualDay(copyTargets[0]);
+  };
+
+  const handleCopyDayConfirm = () => {
+    // Never silently overwrite a day that already has named lessons.
+    const conflict = copyTargets.some(d => dayHasLessons(manualTimetable, d));
+    if (conflict) {
+      crossAlert(
+        t('timetable.copyDay.existingTitle'),
+        t('timetable.copyDay.existingMsg'),
+        [
+          { text: t('timetable.cancel'), style: 'cancel' },
+          { text: t('timetable.copyDay.append'),  onPress: () => applyCopyDay('append') },
+          { text: t('timetable.copyDay.replace'), style: 'destructive', onPress: () => applyCopyDay('replace') },
+        ],
+      );
+      return;
+    }
+    applyCopyDay('replace');
   };
 
   const manualUpdateLesson = (day: WeekDay, idx: number, updates: Partial<PeriodInfo>) => {
@@ -994,7 +1028,77 @@ export default function TimetableScreen() {
               {t('timetable.addLesson')}
             </Text>
           </TouchableOpacity>
+
+          {/* Copy this day's lessons to other days (visible affordance —
+              features that hide don't exist; see SPEC discoverability note) */}
+          {manualLessons.length > 0 && (
+            <TouchableOpacity
+              onPress={openCopyDay}
+              style={[styles.addLessonBtn, { borderColor: T.cardBorder }]}
+              testID="copy-day-open"
+            >
+              <Text style={[styles.addLessonText, { color: T.accent }]}>
+                {t('timetable.copyDay.button')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
+
+        {/* Copy-day target picker */}
+        <Modal visible={copyDayOpen} transparent animationType="fade" onRequestClose={closeCopyDay}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeCopyDay}>
+            <View style={[styles.dayPickerModal, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+              <Text style={[styles.dayPickerTitle, { color: T.text }]}>
+                {t('timetable.copyDay.title', { day: dayLabels[manualDay] })}
+              </Text>
+              <View style={styles.dayPickerGrid}>
+                {WEEK_DAYS_WITH_FRIDAY.filter(d => d !== manualDay).map(day => {
+                  const selected = copyTargets.includes(day);
+                  const hasRows  = dayHasLessons(manualTimetable, day);
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      testID={`copy-day-chip-${day}`}
+                      onPress={() =>
+                        setCopyTargets(prev =>
+                          selected ? prev.filter(d => d !== day) : [...prev, day])
+                      }
+                      style={[
+                        styles.dayPickerOption,
+                        {
+                          backgroundColor: selected ? T.accent : 'transparent',
+                          borderColor: selected ? T.accent : T.cardBorder,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.dayPickerOptionText, { color: selected ? '#fff' : T.text }]}>
+                        {dayLabels[day]}
+                      </Text>
+                      {hasRows && (
+                        <Text style={[styles.copyDayHint, { color: selected ? '#fff' : T.textMuted }]}>
+                          {t('timetable.copyDay.hasLessons')}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <TouchableOpacity
+                testID="copy-day-confirm"
+                disabled={copyTargets.length === 0}
+                onPress={handleCopyDayConfirm}
+                style={[
+                  styles.confirmBtn, styles.copyDayConfirm,
+                  { backgroundColor: copyTargets.length === 0 ? T.cardBorder : T.accent },
+                ]}
+              >
+                <Text style={styles.confirmBtnText}>
+                  {t('timetable.copyDay.confirm', { count: copyTargets.length })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-manual">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
@@ -1104,6 +1208,8 @@ const styles = StyleSheet.create({
   addLessonBtn:  { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 12,
                    paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   addLessonText: { fontSize: 14, fontWeight: '600' },
+  copyDayHint:   { fontSize: 9, marginTop: 2 },
+  copyDayConfirm:{ marginTop: 16 },
 
   groupBadge:    { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,
                    paddingVertical: 2, borderRadius: 8, backgroundColor: '#E0E7FF',
