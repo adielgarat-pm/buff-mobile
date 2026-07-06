@@ -15,8 +15,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, StyleSheet, Platform, Modal,
+  ActivityIndicator, StyleSheet, Platform, Modal, KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
@@ -47,6 +48,13 @@ export default function TimetableScreen() {
   const { t, i18n } = useTranslation();
   const isHebrew    = i18n.language === 'he';
   const dayLabels   = isHebrew ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
+
+  // Fixed footers must clear the system nav / gesture area — edge-to-edge
+  // Android draws content behind it, so without this the save button lands in
+  // the untappable zone (real-user report, Noa 2026-07-06: tapping "save"
+  // opened the system menu instead). ≥20pt clearance per the safe-zone rule.
+  const insets    = useSafeAreaInsets();
+  const footerPad = { paddingBottom: Math.max(insets.bottom + 12, 20) };
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId]  = useState<string | null>(null);
@@ -573,7 +581,10 @@ export default function TimetableScreen() {
   if (mode === 'paste') {
     const lineCount = pasteText.split('\n').filter(l => l.trim()).length;
     return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.container, { backgroundColor: T.bg }]}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
@@ -617,7 +628,7 @@ export default function TimetableScreen() {
           textAlignVertical="top"
         />
 
-        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+        <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-paste">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
             <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
           </TouchableOpacity>
@@ -637,7 +648,7 @@ export default function TimetableScreen() {
             }
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -666,7 +677,10 @@ export default function TimetableScreen() {
       .sort((a, b) => (a.lessonNumber ?? 0) - (b.lessonNumber ?? 0) || a.time.localeCompare(b.time));
 
     return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.container, { backgroundColor: T.bg }]}
+      >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setMode('choose')}>
@@ -713,7 +727,7 @@ export default function TimetableScreen() {
         )}
 
         {/* Period rows */}
-        <ScrollView contentContainerStyle={styles.periodList}>
+        <ScrollView contentContainerStyle={styles.periodList} keyboardShouldPersistTaps="handled">
           {dayPeriods.map(period => {
             const hasError = period.selected && (period.missingSubject || period.missingDay);
             const isSplit  = (period.groupTotal ?? 0) > 1;
@@ -811,7 +825,8 @@ export default function TimetableScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Equipment for this lesson */}
+                {/* Equipment for this lesson — bounded multiline so a long gear
+                    list stays readable without one field swallowing the screen */}
                 <View style={styles.equipRow}>
                   <Text style={styles.equipIcon}>🎒</Text>
                   <TextInput
@@ -821,6 +836,7 @@ export default function TimetableScreen() {
                     placeholder={t('timetable.equipmentBagPlaceholder')}
                     placeholderTextColor={T.textMuted}
                     accessibilityLabel={t('timetable.equipmentForLesson')}
+                    multiline
                   />
                 </View>
               </View>
@@ -880,7 +896,7 @@ export default function TimetableScreen() {
         </Modal>
 
         {/* Confirm */}
-        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+        <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-review">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
             <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
           </TouchableOpacity>
@@ -902,7 +918,7 @@ export default function TimetableScreen() {
             }
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -915,7 +931,10 @@ export default function TimetableScreen() {
     );
 
     return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.container, { backgroundColor: T.bg }]}
+      >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
@@ -926,7 +945,7 @@ export default function TimetableScreen() {
 
         {renderDayTabs(manualDay, setManualDay, WEEK_DAYS_WITH_FRIDAY)}
 
-        <ScrollView contentContainerStyle={styles.periodList}>
+        <ScrollView contentContainerStyle={styles.periodList} keyboardShouldPersistTaps="handled">
           {manualLessons.map((lesson, i) => (
             <View key={i} style={[styles.equipCard, { borderColor: T.cardBorder }]}>
               <View style={styles.cardTopRow}>
@@ -962,6 +981,7 @@ export default function TimetableScreen() {
                   placeholder={t('timetable.equipmentBagPlaceholder')}
                   placeholderTextColor={T.textMuted}
                   accessibilityLabel={t('timetable.equipmentForLesson')}
+                  multiline
                 />
               </View>
             </View>
@@ -977,7 +997,7 @@ export default function TimetableScreen() {
           </TouchableOpacity>
         </ScrollView>
 
-        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+        <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-manual">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
             <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
           </TouchableOpacity>
@@ -994,7 +1014,7 @@ export default function TimetableScreen() {
             }
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -1061,7 +1081,10 @@ const styles = StyleSheet.create({
   cardTopRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
   equipRow:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
   equipIcon:     { fontSize: 15 },
-  equipInput:    { flex: 1, height: 34, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 8, fontSize: 13 },
+  // Bounded multiline: grows to ~3 lines then scrolls internally, so one long
+  // gear list can never push the footer off-screen (Noa, 2026-07-06).
+  equipInput:    { flex: 1, minHeight: 34, maxHeight: 76, borderWidth: 1.5, borderRadius: 8,
+                   paddingHorizontal: 8, paddingVertical: 6, fontSize: 13 },
   checkbox:      { width: 22, height: 22, borderRadius: 6, borderWidth: 2,
                    alignItems: 'center', justifyContent: 'center' },
   lessonBadge:   { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
