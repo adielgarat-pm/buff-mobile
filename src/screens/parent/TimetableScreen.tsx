@@ -35,7 +35,7 @@ import {
   type WeekDay, type Timetable, type PeriodInfo,
 } from '../../types/timetable';
 import {
-  parseExcelBase64, processApiResponse, periodsToTimetable,
+  parseExcelBase64, processApiResponse, periodsToTimetable, applyDailyEquipment,
   generateBuffStandardTime, type ParsedPeriod,
 } from '../../utils/timetableParser';
 import { copyTimetableDay, dayHasLessons, type CopyDayMode } from '../../utils/timetableCopy';
@@ -252,7 +252,8 @@ export default function TimetableScreen() {
       }
 
       const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
-      openReview(periods, hasAuto, hasErrors);
+      const withGear = applyDailyEquipment(periods, data.daily_equipment, t('timetable.dailyGear'));
+      openReview(withGear, hasAuto, hasErrors);
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError') return;
       console.error('[TimetableScreen] OCR error:', err);
@@ -283,9 +284,10 @@ export default function TimetableScreen() {
         return;
       }
       const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
+      const withGear = applyDailyEquipment(periods, data.daily_equipment, t('timetable.dailyGear'));
       // Clear the paste buffer once we've consumed it
       setPasteText('');
-      openReview(periods, hasAuto, hasErrors);
+      openReview(withGear, hasAuto, hasErrors);
     } catch (err: unknown) {
       console.error('[TimetableScreen] paste error:', err);
       crossAlert(t('timetable.parseError'), err instanceof Error ? err.message : '');
