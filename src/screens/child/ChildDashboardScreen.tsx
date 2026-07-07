@@ -155,7 +155,7 @@ function PastelChildDashboard() {
           onPress={exitChildPreview}
         >
           <Text style={[styles.previewText, { color: T.primaryForeground }]}>
-            {t('childDashboard.previewBanner')}
+            {t('childDashboard.previewBanner', { name: previewChildName ?? t('childDashboard.previewName') })}
           </Text>
         </TouchableOpacity>
       )}

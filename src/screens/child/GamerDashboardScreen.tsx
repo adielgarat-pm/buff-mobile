@@ -263,7 +263,7 @@ export default function GamerDashboardScreen() {
       {isChildPreview && (
         <View style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}>
           <Ionicons name="eye-outline" size={16} color="#fff" />
-          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner')}</Text>
+          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}</Text>
         </View>
       )}
 
