@@ -14,6 +14,18 @@
 
 ## Implementation Notes
 
+### IN-2026-07-06-01: ה-realtime publication היה כמעט ריק — כל המנויים של pause-mode מעולם לא ירו; ופיצול-ערכות-נושא (Mint/Gamer) גרם לבאג ערכים אצל משתמשת אמיתית
+
+- **תאריך:** 2026-07-06
+- **מקור:** CC, חקירת דיווח של נועה (משתמשת אמיתית): "שמתי משימה בהשהיה, היא עדין מופיעה אצל ליה". חבילת `pkg/fix-pause-visibility-child`.
+- **גילוי 1 — Mint לא בדק pause:** שער ה-Pause נוסף עם `GamerTasksScreen` (4d28f14) אבל מעולם לא הועבר אחורה ל-`PastelChildTasks` (ערכת ברירת המחדל!) ול-`ChildRewardsScreen`. הדשבורדים כן בדקו — מה שהפך את זה למבלבל במיוחד להורה. **לקח: כל התנהגות-שער (pause/gate/filter) חייבת להיכנס לשתי הערכות באותו commit, או לחיות בשכבה משותפת (hook/HOC), לא במסך.**
+- **גילוי 2 — supabase_realtime publication הכיל רק activities+notifications:** המנויים על `daily_progress`/`lesson_progress`/`credit_vault` (קיימים מאז pkg/pause-mode) **מעולם לא ירו** — postgres_changes שקט לחלוטין לטבלה שלא ב-publication, בלי שום שגיאה. תוקן עבור `tasks` בלבד (migration 040). **החלטה פתוחה:** האם להוסיף את 3 הטבלאות האחרות (שיקול volume/perf) או להסיר את הקוד המת. **לקח: מנוי realtime בלי בדיקת publication = קוד שנראה עובד ולא עושה כלום. לבדוק `pg_publication_tables` לפני שסומכים על `.on('postgres_changes',…)`.**
+- **גילוי 3 — ברירות מחדל סותרות ל-scheduleDays null:** `lib/taskScheduling.ts` השלים ל-[0..5] (בלי שבת) בעוד `utils/taskSchedule.ts` השלים לכל 7 הימים. יושר ל-[0..6]. שאריות מה-"blank on Shabbat".
+- **גילוי 4 (tooling) — MSYS path conversion שובר uiautomator:** ב-Git Bash על Windows, `uiautomator dump /sdcard/_ui.xml` מתורגם ל-`C:/Program Files/Git/sdcard/...` → ה-dump נכתב לנתיב שגוי וה-pull מושך קובץ ישן ⇒ **טאפים לפי מסך ישן, בלופ אינסופי ומבלבל.** פתרון: `export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*"` לפני כל עבודת adb. בנוסף: LogBox toast עם אנימציה (למשל RevenueCat BILLING_UNAVAILABLE באמולטור) מחזיק את uiautomator ב-"could not get idle state" — logcat הוא ערוץ האימות האמין כשה-UI לא נרגע. שווה לתקן ב-helpers.sh.
+- **השפעה:** ההבטחה המרכזית של Pause (רגיעה לילד) לא התקיימה אצל ילדי Mint; עריכות הורה לא הגיעו למכשיר ילד פתוח.
+- **סטטוס:** resolved (הקוד בחבילה זו); open — החלטת publication ל-3 הטבלאות; open — עדכון helpers.sh.
+- **קשור ל:** pkg/fix-pause-visibility-child, migration 040, pkg/pause-mode (PRs #22-25), PR #233 (day chips + backfill).
+
 ### IN-2026-06-29-01: GitHub Actions CI נוסף — חשף 3 כשלים pre-existing שהיו אדומים ב-main (כי לא היה gate). 2 בודדו עם tracking, 1 תוקן
 
 - **תאריך:** 2026-06-29
