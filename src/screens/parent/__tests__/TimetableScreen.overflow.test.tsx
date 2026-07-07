@@ -37,20 +37,30 @@ jest.mock('../../../hooks/useChildrenDashboard', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useTimetable', () => ({
-  useTimetable: () => ({
-    timetable: {},
-    loading: false,
-    saving: false,
-    saveTimetable: jest.fn(),
-  }),
-}));
+jest.mock('../../../hooks/useTimetable', () => {
+  const saveTimetable = jest.fn().mockResolvedValue(true);
+  return {
+    useTimetable: () => ({
+      timetable: {},
+      loading: false,
+      saving: false,
+      saveTimetable,
+    }),
+  };
+});
 
 jest.mock('../../../components/parent/ParentNotificationBell', () => ({
   ParentNotificationBell: () => null,
 }));
 
 jest.mock('../../../platform', () => ({ crossAlert: jest.fn() }));
+
+// Handles to the shared mocks (factories above are hoisted; grab lazily).
+const crossAlertMock = () =>
+  (jest.requireMock('../../../platform') as { crossAlert: jest.Mock }).crossAlert;
+const saveTimetableMock = () =>
+  (jest.requireMock('../../../hooks/useTimetable') as { useTimetable: () => { saveTimetable: jest.Mock } })
+    .useTimetable().saveTimetable;
 
 jest.mock('../../../integrations/supabase/client', () => ({
   supabase: { functions: { invoke: jest.fn() } },
@@ -115,6 +125,7 @@ describe('TimetableScreen — editor overflow fix', () => {
   test('save button still renders and stays pressable with a long equipment text', () => {
     const api = openManualMode();
     fireEvent.press(api.getByText('timetable.addLesson'));
+    fireEvent.changeText(api.getAllByPlaceholderText('timetable.lessonPlaceholder')[0], 'קייטנה');
 
     const equip = api.getAllByLabelText('timetable.equipmentForLesson')[0];
     fireEvent.changeText(
@@ -150,6 +161,67 @@ describe('TimetableScreen — editor overflow fix', () => {
     const footer = api.getByTestId('timetable-footer-paste');
     const flat = StyleSheet.flatten(footer.props.style);
     expect(flat.paddingBottom).toBe(60);
+  });
+});
+
+describe('TimetableScreen — clear day + empty save (season change: school → camp)', () => {
+  beforeEach(() => {
+    crossAlertMock().mockClear();
+    saveTimetableMock().mockClear();
+  });
+
+  test('clear-day button empties the current day in one tap', () => {
+    const api = openManualMode();
+    fireEvent.press(api.getByText('timetable.addLesson'));
+    fireEvent.press(api.getByText('timetable.addLesson'));
+    expect(api.getAllByLabelText('timetable.equipmentForLesson')).toHaveLength(2);
+
+    fireEvent.press(api.getByTestId('clear-day'));
+
+    expect(api.queryAllByLabelText('timetable.equipmentForLesson')).toHaveLength(0);
+    // affordance hides once the day is empty; add-lesson stays available
+    expect(api.queryByTestId('clear-day')).toBeNull();
+    expect(api.getByText('timetable.addLesson')).toBeTruthy();
+  });
+
+  test('saving an EMPTY schedule is allowed behind an explicit confirm (was hard-blocked)', () => {
+    const api = openManualMode();
+
+    // Save button must NOT be disabled at 0 lessons anymore
+    const save = api.getByTestId('manual-save');
+    expect(save.props.accessibilityState?.disabled).not.toBe(true);
+    expect(api.getByText('timetable.saveEmpty')).toBeTruthy();
+
+    fireEvent.press(save);
+
+    // Confirm dialog fired instead of a silent block
+    const alert = crossAlertMock();
+    expect(alert).toHaveBeenCalledWith(
+      'timetable.clearAllTitle',
+      'timetable.clearAllMsg',
+      expect.any(Array),
+    );
+
+    // Confirming the destructive option persists an all-empty timetable
+    const buttons = alert.mock.calls[0][2] as Array<{ text: string; onPress?: () => void }>;
+    const confirm = buttons.find(b => b.text === 'timetable.clearAllConfirm');
+    expect(confirm).toBeTruthy();
+    confirm!.onPress!();
+
+    const saved = saveTimetableMock().mock.calls[0][0] as Record<string, unknown[]>;
+    expect(Object.values(saved).every(rows => rows.length === 0)).toBe(true);
+  });
+
+  test('cancel on the empty-save confirm does NOT persist anything', () => {
+    const api = openManualMode();
+    fireEvent.press(api.getByTestId('manual-save'));
+
+    const buttons = crossAlertMock().mock.calls[0][2] as Array<{ text: string; onPress?: () => void }>;
+    const cancel = buttons.find(b => b.text === 'timetable.cancel');
+    expect(cancel).toBeTruthy();
+    cancel!.onPress?.();
+
+    expect(saveTimetableMock()).not.toHaveBeenCalled();
   });
 });
 

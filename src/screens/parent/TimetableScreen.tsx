@@ -354,17 +354,32 @@ export default function TimetableScreen() {
       filtered[day] = (manualTimetable[day] ?? []).filter(p => p.subject.trim());
     });
     const total = Object.values(filtered).reduce((s, ps) => s + ps.length, 0);
+
+    const doSave = async () => {
+      const ok = await saveTimetable(filtered);
+      if (ok) {
+        crossAlert('', t('timetable.saveSuccess'));
+        setMode('view');
+      } else {
+        crossAlert('', t('timetable.saveError'));
+      }
+    };
+
+    // Saving an EMPTY schedule is legal — it's how a parent wipes last year's
+    // timetable (e.g. school year → camp). It just needs explicit consent;
+    // the old hard block made clearing impossible (Adi, 2026-07-07).
     if (total === 0) {
-      crossAlert('', t('timetable.noLessonsManual'));
+      crossAlert(
+        t('timetable.clearAllTitle'),
+        t('timetable.clearAllMsg'),
+        [
+          { text: t('timetable.cancel'), style: 'cancel' },
+          { text: t('timetable.clearAllConfirm'), style: 'destructive', onPress: () => { void doSave(); } },
+        ],
+      );
       return;
     }
-    const ok = await saveTimetable(filtered);
-    if (ok) {
-      crossAlert('', t('timetable.saveSuccess'));
-      setMode('view');
-    } else {
-      crossAlert('', t('timetable.saveError'));
-    }
+    await doSave();
   }, [manualTimetable, saveTimetable, t]);
 
   const manualAddLesson = (day: WeekDay) => {
@@ -415,6 +430,13 @@ export default function TimetableScreen() {
       ...prev,
       [day]: (prev[day] ?? []).filter((_, i) => i !== idx),
     }));
+  };
+
+  // Clear the whole day in one tap (season change: school year → camp).
+  // Local editor state only — nothing persists until the parent saves, and
+  // Back discards, so no confirm dialog is needed here.
+  const manualClearDay = (day: WeekDay) => {
+    setManualTimetable(prev => ({ ...prev, [day]: [] }));
   };
 
   // ─── Render helpers ───────────────────────────────────────────────────────────
@@ -1047,6 +1069,20 @@ export default function TimetableScreen() {
               </Text>
             </TouchableOpacity>
           )}
+
+          {/* Clear the whole day (season change: school → camp). Local-only
+              until save; Back discards, so no confirm here. */}
+          {manualLessons.length > 0 && (
+            <TouchableOpacity
+              onPress={() => manualClearDay(manualDay)}
+              style={[styles.addLessonBtn, { borderColor: '#FCA5A5' }]}
+              testID="clear-day"
+            >
+              <Text style={[styles.addLessonText, { color: '#EF4444' }]}>
+                {t('timetable.clearDayBtn')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
 
         {/* Copy-day target picker */}
@@ -1111,13 +1147,16 @@ export default function TimetableScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleConfirmManual}
-            disabled={totalFilled === 0 || saving}
-            style={[styles.confirmBtn, { backgroundColor: totalFilled === 0 ? T.cardBorder : T.accent }]}
+            disabled={saving}
+            style={[styles.confirmBtn, { backgroundColor: totalFilled === 0 ? '#EF4444' : T.accent }]}
+            testID="manual-save"
           >
             {saving
               ? <ActivityIndicator size="small" color="#fff" />
               : <Text style={styles.confirmBtnText}>
-                  {t('timetable.saveLessons', { count: totalFilled })}
+                  {totalFilled === 0
+                    ? t('timetable.saveEmpty')
+                    : t('timetable.saveLessons', { count: totalFilled })}
                 </Text>
             }
           </TouchableOpacity>
