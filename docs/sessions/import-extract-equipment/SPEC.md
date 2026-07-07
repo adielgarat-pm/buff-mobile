@@ -1,9 +1,14 @@
 # SPEC — Extract equipment from imported schedules
 
 **Slug:** `import-extract-equipment` · **Proposed branch:** `pkg/import-extract-equipment`
-**Status:** SPEC — **awaiting `approved, proceed`** (deployment of the Edge Function gated separately)
+**Status:** SPEC — **awaiting `approved, proceed`** (deploy done safely via a parallel function; see D-IE-3)
 **Author:** CC · **Date:** 2026-07-07
-**Origin:** Adi — after Noa's camp file: a camp/school file already contains the gear list ("swimsuit/sunscreen/hat/water/change — in the bag every day"), so gear should come **from what you import**, not only from fixed templates.
+**Origin:** Adi — after Noa's camp file. **Adi's framing (D-IE-2, 2026-07-07):** the importer should handle **ANY kind of schedule file** and load it by **the hours / lessons written in it** — not assume a school template. Gear comes from what you import. Templates are at most a no-file convenience, not the point.
+
+### Decisions locked (2026-07-07)
+- **D-IE-1 = A** — daily gear as a synthetic "ציוד יומי" period per day (no timetable model change).
+- **D-IE-2 = general importer** — parse ANY file by its own times/lessons; do **not** center on templates. See revised Goal/Scope.
+- **D-IE-3 = config-driven** (Adi 2026-07-07): deploy the function **once** with prompts/model read from a DB config table; thereafter fix/tune via a DB edit, **no redeploy**. See §Deploy & tuning.
 
 > Companion to `noaa-behavior-spec` (which unified the packing *surface*). This is the *import* layer. No code changes until approved; **the Edge Function deploy touches production and needs its own explicit go-ahead.**
 
@@ -23,9 +28,13 @@ Anchors:
 
 ---
 
-## Goal
+## Goal (revised per D-IE-2)
 
-When a parent imports a schedule (photo / paste / Excel), BUFF extracts the gear the file already lists — both **per-lesson** equipment and a **daily "always in the bag"** note — and surfaces it on the child's packing card, with **no retyping**. Templates stay as the no-file fallback (they compose, neither replaces the other).
+Make the importer **format- and layout-agnostic**: a parent uploads **any** schedule file — school timetable, camp grid, a חוג sheet, photo / paste / Excel — and BUFF loads it **by the times and lessons actually written in it**, not by a school template. As part of the same pass it extracts the gear the file lists (per-lesson **and** a daily "always in the bag" note) and surfaces it on the child's packing card, with **no retyping**.
+
+**Honest boundary (not a non-goal, a model fact):** the importer can *parse* any layout, but storage is a **weekly Sun–Fri grid** (`Timetable`). A dated camp week (Wed 8.7, Thu 9.7, Sun–Tue 12–14.7) is loaded by **weekday** (dates drop). True dated/multi-week schedules are a separate model question, flagged, not solved here. The review screen is the safety net — the parent confirms/fixes whatever OCR read before it saves.
+
+Templates (`packingTemplates`) remain only as a **no-file** convenience for a parent who has nothing to upload; they are not the mechanism here.
 
 ---
 
@@ -42,7 +51,8 @@ When a parent imports a schedule (photo / paste / Excel), BUFF extracts the gear
    Instruction: *"If a lesson lists gear to bring, put it in `equipment` (comma-separated). If the sheet has a general/daily 'bring every day' note (often a footer), return it once in top-level `daily_equipment`."* Keep ZERO-DATA-LOSS framing. Cost: same OCR pass, a few dozen more output tokens — negligible.
 3. **Threading:** carry `equipment` through `lessonsToTasks` → `ParsedTask.equipment`; return `daily_equipment` alongside `tasks`:
    `return { tasks: parsedTasks, daily_equipment }` (all three modes).
-4. **Note (not school-only):** loosen the prompts from "SCHOOL schedule" to "school **or camp/activity** schedule" so camp activities (בריכה, סרט, הפנינג) and non-Sun–Fri dated grids aren't fought by the model. Small wording change; keeps the Israeli-week guidance as a hint, not a filter.
+3b. **Config-read (D-IE-3):** load `edge_function_config.parse_schedule` via a service-role client and use `value.prompts[mode]` / `value.models[mode]`; fall back to the baked-in defaults if missing/unreadable so a DB issue never breaks parsing. This is what lets prompt/model tuning be a DB edit, not a redeploy (see §Deploy & tuning).
+4. **Generalise the parser (D-IE-2) — the headline change:** rewrite the prompts from "Hebrew **SCHOOL** schedule, Sunday–Friday subjects" to **"any weekly schedule — school, camp, or activities — parsed by the times and labels written in it."** Camp activities (בריכה, סרט, הפנינג, חוג מקצועי) are valid `lesson_name`s, not rejects; dated column headers ("רביעי 8.7") map to their weekday; the Israeli-week text becomes a *hint*, not a filter that drops rows. Keep ZERO-DATA-LOSS. This is what lets "any kind of file" load, per Adi's framing.
 
 ### B. Client `TimetableScreen.tsx` + `timetableParser.ts` (small)
 
@@ -57,11 +67,33 @@ When a parent imports a schedule (photo / paste / Excel), BUFF extracts the gear
 
 ---
 
-## Decisions for Adi
+## Deploy & tuning — config-driven (D-IE-3, per Adi 2026-07-07)
 
-- **D-IE-1 — daily-gear representation:** (A, recommended) synthetic "ציוד יומי" period per day (no model change) · (B) new day-level equipment field on `Timetable` (cleaner, heavier).
-- **D-IE-2 — templates vs import:** keep templates as the no-file fallback (recommended), import-extraction is authoritative when a file exists. Confirm we are **adding**, not replacing.
-- **D-IE-3 — deploy:** the Function change is inert until deployed to the Supabase project. Deploy is a **separate explicit approval** (production surface).
+**Adi's preference:** be able to fix/tune the function **via DB config, without a new deploy** when there are problems.
+
+**Why a deploy is needed at all (once):** the parser is **server-side** — a Supabase Edge Function that holds `ANTHROPIC_API_KEY` and calls Claude. The app only *invokes* it (`TimetableScreen.tsx:241` `supabase.functions.invoke('parse-schedule')`). So the equipment-threading + config-reading **code** has to be deployed once.
+
+**After that one deploy, the volatile parts live in the DB — no more deploys to fix problems:**
+
+### New config table (migration — additive, low-risk)
+```
+edge_function_config ( key text primary key, value jsonb not null, updated_at timestamptz default now() )
+-- seed row: key='parse_schedule', value = { prompts:{image,text,excel}, models:{image,text,excel} }
+-- RLS: no public access; the function reads it with the service-role key (bypasses RLS). Config holds
+--      prompts only (no secrets), never exposed to clients.
+```
+
+### Function reads config at runtime, with baked-in fallback
+On each invoke the function loads the `parse_schedule` row (service-role client) and uses `value.prompts[mode]` / `value.models[mode]`. **If the row is missing or the DB read fails, it falls back to hardcoded defaults** — a DB problem can never break parsing.
+
+### Tuning = a DB edit, instant + revertible
+Prompt not extracting a camp footer well? Model too slow? → `UPDATE edge_function_config SET value = … WHERE key='parse_schedule'` (via Supabase MCP `execute_sql`). Takes effect on the next import — **no deploy, no version.** Rollback = restore the previous JSON (keep a copy before each edit).
+
+### What stays in code vs config
+- **Config (DB, tune freely):** the prompt wording, model per mode, and any keyword lists we choose to externalise.
+- **Code (needs the one deploy):** output-schema handling + equipment/`daily_equipment` threading (structural, stable).
+
+**Gates (both one-time, explicit approval):** (1) the additive migration for `edge_function_config`; (2) the single function deploy. After those, iteration is config-only. CC will not run either without Adi's go.
 
 ---
 
@@ -81,7 +113,8 @@ Near-zero marginal cost: the OCR/text/excel model call already runs and already 
 
 - No change to the packing *surfaces* (owned by `noaa-behavior-spec`).
 - No OCR engine swap; no new dependency.
-- Multi-week dated camp grids still collapse to weekdays (timetable is weekly) — out of scope; the gear is what matters here.
+- **True dated / multi-week schedules** (storing actual calendar dates instead of weekdays) — a `Timetable`-model question, flagged for a later package, not this one.
+- Not deleting or replacing the packing templates (they stay as the no-file path).
 
 ## Values Check
 
