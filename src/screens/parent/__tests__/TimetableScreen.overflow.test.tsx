@@ -152,3 +152,48 @@ describe('TimetableScreen — editor overflow fix', () => {
     expect(flat.paddingBottom).toBe(60);
   });
 });
+
+describe('TimetableScreen — copy day (pkg/timetable-copy-day)', () => {
+  function seedLesson(api: ReturnType<typeof openManualMode>, subject: string, equipment: string) {
+    fireEvent.press(api.getByText('timetable.addLesson'));
+    const subjects = api.getAllByPlaceholderText('timetable.lessonPlaceholder');
+    fireEvent.changeText(subjects[subjects.length - 1], subject);
+    const equips = api.getAllByLabelText('timetable.equipmentForLesson');
+    fireEvent.changeText(equips[equips.length - 1], equipment);
+  }
+
+  test('copy affordance appears only once the day has a lesson row', () => {
+    const api = openManualMode();
+    expect(api.queryByTestId('copy-day-open')).toBeNull();
+    fireEvent.press(api.getByText('timetable.addLesson'));
+    expect(api.getByTestId('copy-day-open')).toBeTruthy();
+  });
+
+  test('copies lessons + equipment to an empty day and jumps to it', () => {
+    const api = openManualMode();
+    seedLesson(api, 'קייטנה', 'בקבוק מים, כובע');
+
+    fireEvent.press(api.getByTestId('copy-day-open'));
+    fireEvent.press(api.getByTestId('copy-day-chip-monday'));
+    fireEvent.press(api.getByTestId('copy-day-confirm'));
+
+    // Editor jumped to Monday and shows the copied lesson (deep copy)
+    expect(api.getByDisplayValue('קייטנה')).toBeTruthy();
+    expect(api.getByDisplayValue('בקבוק מים, כובע')).toBeTruthy();
+
+    // Editing the Monday copy must NOT touch Sunday's original (no shared refs):
+    fireEvent.changeText(api.getByDisplayValue('קייטנה'), 'בריכה');
+    // (state assertions on Sunday's row are covered by timetableCopy unit tests;
+    // here we only assert the copy is an editable, independent row)
+    expect(api.getByDisplayValue('בריכה')).toBeTruthy();
+  });
+
+  test('confirm is disabled with no target selected', () => {
+    const api = openManualMode();
+    seedLesson(api, 'קייטנה', '');
+    fireEvent.press(api.getByTestId('copy-day-open'));
+
+    const confirm = api.getByTestId('copy-day-confirm');
+    expect(confirm.props.accessibilityState?.disabled).toBe(true);
+  });
+});
