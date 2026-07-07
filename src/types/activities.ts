@@ -75,10 +75,11 @@ export type NewActivity =
 
 /**
  * The unified shape the child-facing packing surface reads, regardless of
- * source. Built by buildPackingGroups() for a child + a given day.
+ * source. Built by buildPackingGroups() (activities) and buildTimetableGroups()
+ * (school timetable) for a child + a given day.
  */
 export interface PackingGroup {
-  source: 'activity';
+  source: 'activity' | 'school';
   /** Drives the card icon on the child surface. */
   templateId: string | null;
   title: string;

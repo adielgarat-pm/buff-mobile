@@ -7,7 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useChildTheme } from '../contexts/ThemeContext';
 import { useActivities } from '../hooks/useActivities';
+import { useTimetable } from '../hooks/useTimetable';
 import { buildPackingGroups } from '../lib/activities/packing';
+import { buildTimetableGroups } from '../lib/packing/fromTimetable';
 import { TEMPLATE_BY_ID } from '../lib/packingTemplates/catalog';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -32,10 +34,16 @@ export default function PackingCard({ childId }: { childId: string | null }) {
   const T = useChildTheme();
   const date = todayISO();
   const { activities } = useActivities(childId);
+  const { timetable } = useTimetable(childId);
 
+  // Both sources, one surface (D1): today's school-timetable gear + today's
+  // activities. School groups come first — on a camp/school day that gear is
+  // the main thing the child carries.
   const groups = useMemo(
-    () => (childId ? buildPackingGroups(activities, childId, date) : []),
-    [activities, childId, date],
+    () => (childId
+      ? [...buildTimetableGroups(timetable, date), ...buildPackingGroups(activities, childId, date)]
+      : []),
+    [activities, timetable, childId, date],
   );
 
   // ── Per-day, per-child check-off state (ephemeral, AsyncStorage) ────────────
@@ -66,7 +74,7 @@ export default function PackingCard({ childId }: { childId: string | null }) {
 
   if (!childId) return null;
 
-  const allItems = groups.flatMap((g) => g.items.map((it) => `${g.title}::${it}`));
+  const allItems = groups.flatMap((g) => g.items.map((it) => `${g.source}::${g.title}::${it}`));
   const allPacked = allItems.length > 0 && allItems.every((id) => checked.has(id));
 
   return (
@@ -83,7 +91,9 @@ export default function PackingCard({ childId }: { childId: string | null }) {
         <Text style={[styles.empty, { color: T.mutedForeground }]}>{t('camp.empty')}</Text>
       ) : (
         groups.map((g, gi) => {
-          const icon = (g.templateId && TEMPLATE_BY_ID[g.templateId]?.icon) || 'sparkles-outline';
+          const icon = g.source === 'school'
+            ? 'book-outline'
+            : (g.templateId && TEMPLATE_BY_ID[g.templateId]?.icon) || 'sparkles-outline';
           return (
             <View key={`${g.title}-${gi}`} style={[styles.group, { borderColor: T.border }]}>
               <View style={styles.groupHead}>
@@ -93,7 +103,7 @@ export default function PackingCard({ childId }: { childId: string | null }) {
                 </Text>
               </View>
               {g.items.map((it, ii) => {
-                const id = `${g.title}::${it}`;
+                const id = `${g.source}::${g.title}::${it}`;
                 const on = checked.has(id);
                 return (
                   <TouchableOpacity key={ii} style={styles.item} onPress={() => toggle(id)} activeOpacity={0.7}>
