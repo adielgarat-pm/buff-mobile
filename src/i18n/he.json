@@ -1674,6 +1674,7 @@
   "parentTasks.day.5": "ו׳",
   "parentTasks.day.6": "ש׳",
   "parentTasks.daysPausedHint": "המשימה מושהית — לא תוצג לילד עד שתבחרי יום",
+  "parentTasks.oneTimeHint": "משימה חד־פעמית — מתוזמנת ל‑{{date}}",
   "parentRewards.title": "פרסים",
   "parentRewards.addBtn": "+ הוסף פרס",
   "parentRewards.noChildren": "אין ילדים עדיין.",

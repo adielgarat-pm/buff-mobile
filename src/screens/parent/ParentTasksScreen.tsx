@@ -90,6 +90,10 @@ export default function ParentTasksScreen() {
   const [approveTime, setApproveTime]       = useState('16:00');
   const [approveCredits, setApproveCredits] = useState('10');
   const [approveDays, setApproveDays]        = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  // Set when editing a one-time (dated) task: visibility ignores scheduleDays
+  // for dated tasks (isTaskVisibleOn short-circuits on dueDate), so the day
+  // chips — and especially the "paused" hint — would lie for them.
+  const [editingDueDate, setEditingDueDate]  = useState<string | null>(null);
   const [approveSaving, setApproveSaving]   = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [dupTask, setDupTask] = useState<Task | null>(null);
@@ -120,6 +124,7 @@ export default function ParentTasksScreen() {
     setApproveTime('16:00');
     setApproveCredits('10');
     setApproveDays(ALL_DAYS);
+    setEditingDueDate(null);
     setApproveOpen(true);
   };
 
@@ -130,16 +135,18 @@ export default function ParentTasksScreen() {
     setApproveTime('16:00');
     setApproveCredits('10');
     setApproveDays(ALL_DAYS);
+    setEditingDueDate(null);
     setApproveOpen(true);
   };
 
-  const handleEditTask = (task: { id: string; title: string; time: string; credits: number; scheduleDays?: number[] }) => {
+  const handleEditTask = (task: { id: string; title: string; time: string; credits: number; scheduleDays?: number[]; dueDate?: string }) => {
     setApprovingId(null);
     setEditingId(task.id);
     setApproveTitle(task.title);
     setApproveTime(task.time);
     setApproveCredits(String(task.credits));
     setApproveDays(Array.isArray(task.scheduleDays) ? task.scheduleDays : ALL_DAYS);
+    setEditingDueDate(task.dueDate ?? null);
     setApproveOpen(true);
   };
 
@@ -209,9 +216,13 @@ export default function ParentTasksScreen() {
 
     setApproveSaving(true);
 
-    // Edit mode — update the existing task in place.
+    // Edit mode — update the existing task in place. A one-time (dated) task
+    // keeps its dueDate semantics: scheduleDays is not written for it (the
+    // chips are hidden in the modal and visibility ignores them anyway).
     if (editingId) {
-      await updateTask(editingId, { title, time: approveTime, credits, scheduleDays: approveDays });
+      await updateTask(editingId, editingDueDate
+        ? { title, time: approveTime, credits }
+        : { title, time: approveTime, credits, scheduleDays: approveDays });
       await refetch();
       setApproveSaving(false);
       closeTaskModal();
@@ -478,10 +489,18 @@ export default function ParentTasksScreen() {
               selectTextOnFocus
             />
 
-            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentTasks.daysLabel')}</Text>
-            <DayScheduleToggles selectedDays={approveDays} onChange={setApproveDays} />
-            {approveDays.length === 0 && (
-              <Text style={styles.daysPausedHint}>{t('parentTasks.daysPausedHint')}</Text>
+            {editingDueDate ? (
+              <Text style={[styles.inputLabel, { color: T.textMuted }]}>
+                {t('parentTasks.oneTimeHint', { date: editingDueDate })}
+              </Text>
+            ) : (
+              <>
+                <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentTasks.daysLabel')}</Text>
+                <DayScheduleToggles selectedDays={approveDays} onChange={setApproveDays} />
+                {approveDays.length === 0 && (
+                  <Text style={styles.daysPausedHint}>{t('parentTasks.daysPausedHint')}</Text>
+                )}
+              </>
             )}
 
             <TouchableOpacity
