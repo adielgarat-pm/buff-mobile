@@ -1,7 +1,7 @@
 # SPEC — Noa's "illogical packing behaviour" (diagnosis + proposal)
 
 **Slug:** `noaa-behavior-spec` · **Branch:** `claude/noaa-behavior-spec-rlymvx`
-**Status:** SPEC — **awaiting `approved, proceed`** (and decisions D1–D6 below)
+**Status:** ✅ **APPROVED + IMPLEMENTED** (Adi accepted recommendations 2026-07-07). D1-A, D2-A, D3-A, D4-A locked; D5 moot after D3-A; D6 obviated by P2. Build P1–P5 shipped on the branch — see `STATUS.md`.
 **Author:** CC · **Date:** 2026-07-07 · **App version reported:** 1.7.8 (vc64)
 **Source:** Noa (מורג שגיא), external tester, 4 WhatsApp screenshots (2026-07-07 09:03–09:06)
 
