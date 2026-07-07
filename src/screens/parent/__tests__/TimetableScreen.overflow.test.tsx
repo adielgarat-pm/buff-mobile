@@ -68,6 +68,16 @@ jest.mock('../../../utils/timetableParser', () => ({
   generateBuffStandardTime: jest.fn(() => '08:00'),
 }));
 
+// Native time picker (pkg/timetable-time-picker) — stub so tapping the
+// TimeField in jsdom never touches the native module.
+jest.mock('@react-native-community/datetimepicker', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => <Text testID="native-time-picker">PICKER</Text>,
+  };
+});
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 function openManualMode() {
   const api = render(<TimetableScreen />);
@@ -115,6 +125,20 @@ describe('TimetableScreen — editor overflow fix', () => {
     // Footer + save button still present in the tree (not displaced/unmounted)
     expect(api.getByTestId('timetable-footer-manual')).toBeTruthy();
     expect(api.getByText('timetable.saveLessons')).toBeTruthy();
+  });
+
+  test('lesson time is a tap-to-pick TimeField, not free text (pkg/timetable-time-picker)', () => {
+    const api = openManualMode();
+    fireEvent.press(api.getByText('timetable.addLesson'));
+
+    // The seeded lesson renders a TimeField with the generated default time
+    const tf = api.getByTestId('time-field-manual-0');
+    expect(tf).toBeTruthy();
+    expect(api.getByText('08:00')).toBeTruthy(); // generateBuffStandardTime mock
+
+    // Tapping opens the (stubbed) native picker
+    fireEvent.press(tf);
+    expect(api.getByTestId('native-time-picker')).toBeTruthy();
   });
 
   test('review/paste footers share the same safe-area padding style', () => {

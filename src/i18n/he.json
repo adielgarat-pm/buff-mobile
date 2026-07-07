@@ -1806,6 +1806,7 @@
   "timetable.noLessonsManual": "יש להזין לפחות שיעור אחד",
   "timetable.equipment": "ציוד",
   "timetable.lessonPlaceholder": "שם המקצוע...",
+  "timetable.lessonTimeLabel": "שעת השיעור",
   "timetable.timePlaceholder": "HH:MM",
   "common.cancel": "ביטול",
   "pause.parentCardTitle": "לקחת הפסקה",

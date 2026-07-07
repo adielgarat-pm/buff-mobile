@@ -1806,6 +1806,7 @@
   "timetable.noLessonsManual": "Add at least one lesson",
   "timetable.equipment": "Equipment",
   "timetable.lessonPlaceholder": "Subject name...",
+  "timetable.lessonTimeLabel": "Lesson time",
   "timetable.timePlaceholder": "HH:MM",
   "common.cancel": "Cancel",
   "pause.parentCardTitle": "Take a break",
