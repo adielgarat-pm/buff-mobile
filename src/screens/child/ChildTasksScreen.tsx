@@ -24,6 +24,7 @@ import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../c
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { isWeekendToday } from '../../utils/schoolDay';
+import PauseEmptyState from '../../components/PauseEmptyState';
 import GamerTasksScreen from './GamerTasksScreen';
 import { formatNum } from '../../lib/uiLocale';
 
@@ -62,7 +63,7 @@ function PastelChildTasks() {
     completeTask,
     uncompleteTask,
   } = useChildData(childId);
-  const { settings } = useAppSettings();
+  const { settings, isPauseActive } = useAppSettings();
   const fridayEnabled = settings?.friday_enabled ?? false;
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
@@ -124,6 +125,17 @@ function PastelChildTasks() {
     return (
       <SafeAreaView style={[styles.root, { backgroundColor: T.background }]} edges={['top']}>
         <ActivityIndicator style={{ flex: 1 }} size="large" color={T.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  // ── Pause active: short-circuit to empty state (mirrors GamerTasksScreen) ──
+  if (isPauseActive) {
+    return (
+      <SafeAreaView style={[styles.root, { backgroundColor: T.background }]} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <PauseEmptyState />
+        </ScrollView>
       </SafeAreaView>
     );
   }

@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
+import { AppState } from 'react-native';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { Task } from '../types/task';
@@ -314,6 +315,40 @@ export function useChildData(childId: string | null) {
   useEffect(() => {
     setLoading(true);
     fetchChildData();
+  }, [fetchChildData]);
+
+  // Live task updates: parent edits (pause via schedule_days=[], time/title/day
+  // changes) must reach an open child session without a restart — the
+  // 2026-07-06 report: "I paused a task and it still shows for my daughter".
+  // `tasks` was added to the supabase_realtime publication in migration 040;
+  // RLS scopes events to the subscriber's own family, and the filter narrows
+  // the stream further. (daily_progress/lesson_progress/credit_vault above are
+  // NOT in the publication — those older subscriptions never fire; flagged in
+  // INTEGRATION_LEARNINGS rather than silently expanded here.)
+  useEffect(() => {
+    if (!familyId || !childId) return;
+
+    const channel = supabase
+      .channel(`child-tasks-${childId}-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks', filter: `family_id=eq.${familyId}` },
+        () => fetchChildData(),
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [familyId, childId, fetchChildData]);
+
+  // Belt-and-suspenders: refetch when the app returns to the foreground, so an
+  // own-device child whose realtime socket dropped in the background still
+  // sees fresh tasks the moment they reopen the app. (AppState maps to the
+  // page visibility API on web — same signal on both platforms.)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchChildData();
+    });
+    return () => sub.remove();
   }, [fetchChildData]);
 
   // ג”€ג”€ Vault ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€

@@ -1,0 +1,18 @@
+-- 040_tasks_realtime_publication.sql  (pkg/fix-pause-visibility-child)
+--
+-- Child devices must learn about parent task edits (pause via
+-- schedule_days=[], time/title/day changes) without an app restart —
+-- the 2026-07-06 user report: "I paused a task and it still shows for
+-- my daughter".
+--
+-- The client (useChildData) subscribes to postgres_changes on `tasks`;
+-- Supabase only emits those events for tables in the supabase_realtime
+-- publication. RLS still applies per subscriber, so a family only
+-- receives its own rows.
+--
+-- NOTE (flagged in INTEGRATION_LEARNINGS): daily_progress /
+-- lesson_progress / credit_vault have had client subscriptions since
+-- pkg/pause-mode but are NOT in the publication either — those
+-- subscriptions have never fired. Adding them is a separate, deliberate
+-- decision (event volume / perf), intentionally not done here.
+ALTER PUBLICATION supabase_realtime ADD TABLE public.tasks;

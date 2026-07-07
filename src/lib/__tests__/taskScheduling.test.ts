@@ -41,11 +41,14 @@ describe('isTaskVisibleOn — one-time (dueDate set)', () => {
   });
 });
 
-describe('isTaskVisibleOn — recurring (dueDate undefined) parity with old logic', () => {
-  // old logic: scheduleDays.includes(weekday) && !(isWeekend && hideOnWeekend)
+describe('isTaskVisibleOn — recurring (dueDate undefined) parity with reference logic', () => {
+  // reference: scheduleDays.includes(weekday) && !(isWeekend && hideOnWeekend)
+  // null default = all 7 days (aligned with utils/taskSchedule.ts, pkg
+  // fix-pause-visibility-child; the previous [0..5] default hid legacy
+  // null-days tasks on Saturday).
   function old(t: Task, dateKey: string, isWeekend: boolean): boolean {
     const weekday = new Date(dateKey + 'T00:00:00').getDay();
-    const sd = t.scheduleDays ?? [0, 1, 2, 3, 4, 5];
+    const sd = t.scheduleDays ?? [0, 1, 2, 3, 4, 5, 6];
     if (!sd.includes(weekday)) return false;
     if (isWeekend && t.hideOnWeekend) return false;
     return true;
@@ -63,4 +66,19 @@ describe('isTaskVisibleOn — recurring (dueDate undefined) parity with old logi
       });
     }
   }
+});
+
+describe('isTaskVisibleOn — pause + defaults (fix-pause-visibility-child)', () => {
+  test('paused task (explicit []) is hidden on every day', () => {
+    const t = task({ scheduleDays: [] });
+    expect(isTaskVisibleOn(t, MON, { isWeekend: false })).toBe(false);
+    expect(isTaskVisibleOn(t, TUE, { isWeekend: false })).toBe(false);
+    expect(isTaskVisibleOn(t, SAT, { isWeekend: true })).toBe(false);
+  });
+
+  test('legacy null scheduleDays shows every day — including Saturday', () => {
+    const t = task({ scheduleDays: undefined });
+    expect(isTaskVisibleOn(t, MON, { isWeekend: false })).toBe(true);
+    expect(isTaskVisibleOn(t, SAT, { isWeekend: true })).toBe(true);
+  });
 });
