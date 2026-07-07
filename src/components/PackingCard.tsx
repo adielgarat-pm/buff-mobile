@@ -11,6 +11,7 @@ import { useTimetable } from '../hooks/useTimetable';
 import { buildPackingGroups } from '../lib/activities/packing';
 import { buildTimetableGroups } from '../lib/packing/fromTimetable';
 import { TEMPLATE_BY_ID } from '../lib/packingTemplates/catalog';
+import type { PackingGroup } from '../types/activities';
 import type { RootStackParamList } from '../navigation/types';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -22,80 +23,99 @@ function todayISO(): string {
   return `${d.getFullYear()}-${m}-${day}`;
 }
 
+/** `base` (YYYY-MM-DD) shifted by `days`, parsed at local noon (no TZ slip). */
+function isoShift(base: string, days: number): string {
+  const [y, m, d] = base.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + days, 12, 0, 0);
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${dt.getFullYear()}-${mm}-${dd}`;
+}
+
 /**
- * Child-facing "what to pack today" surface (SPEC §"Child-facing packing").
- * Theme-aware (Mint/Gamer), body-double copy, the CHILD checks items off.
- * NO progress counter — a half-done list is never a miss. Reached from a
- * dashboard; does not touch ChildTabs.
+ * Child-facing "what to pack" surface (SPEC §"Child-facing packing").
+ * Shows TODAY and TOMORROW in one card (D2), each merging the school timetable
+ * gear (D1) with activities. Theme-aware (Mint/Gamer), body-double copy, the
+ * CHILD checks items off. NO progress counter — a half-done list is never a
+ * miss. Reached from a dashboard; does not touch ChildTabs.
  */
 export default function PackingCard({ childId }: { childId: string | null }) {
   const { t } = useTranslation();
   const navigation = useNavigation<Nav>();
   const T = useChildTheme();
-  const date = todayISO();
+  const today = todayISO();
+  const tomorrow = isoShift(today, 1);
   const { activities } = useActivities(childId);
   const { timetable } = useTimetable(childId);
 
-  // Both sources, one surface (D1): today's school-timetable gear + today's
-  // activities. School groups come first — on a camp/school day that gear is
-  // the main thing the child carries.
-  const groups = useMemo(
-    () => (childId
-      ? [...buildTimetableGroups(timetable, date), ...buildPackingGroups(activities, childId, date)]
+  // Both sources, one surface (D1). School groups come first — on a camp/school
+  // day that gear is the main thing the child carries.
+  const buildFor = useCallback(
+    (iso: string): PackingGroup[] => (childId
+      ? [...buildTimetableGroups(timetable, iso), ...buildPackingGroups(activities, childId, iso)]
       : []),
-    [activities, timetable, childId, date],
+    [activities, timetable, childId],
   );
+  const todayGroups = useMemo(() => buildFor(today), [buildFor, today]);
+  const tomorrowGroups = useMemo(() => buildFor(tomorrow), [buildFor, tomorrow]);
 
-  // ── Per-day, per-child check-off state (ephemeral, AsyncStorage) ────────────
-  const storeKey = childId ? `buff_packing_${childId}_${date}` : null;
+  // ── Per-day, per-child check-off (ephemeral, AsyncStorage) ──────────────────
+  // The item id embeds its date so today's "hat" and tomorrow's "hat" are
+  // independent, and each day persists under its own key (so gear ticked
+  // tonight is still ticked tomorrow, and each key resets when its day passes).
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const keyFor = (iso: string) => (childId ? `buff_packing_${childId}_${iso}` : null);
+  const idFor = (iso: string, g: PackingGroup, it: string) => `${iso}::${g.source}::${g.title}::${it}`;
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (!storeKey) return;
+      const keys = [keyFor(today), keyFor(tomorrow)].filter(Boolean) as string[];
+      if (keys.length === 0) return;
       try {
-        const raw = await AsyncStorage.getItem(storeKey);
-        if (!cancelled && raw) setChecked(new Set(JSON.parse(raw) as string[]));
-        else if (!cancelled) setChecked(new Set());
+        const pairs = await AsyncStorage.multiGet(keys);
+        if (cancelled) return;
+        const set = new Set<string>();
+        for (const [, raw] of pairs) {
+          if (raw) for (const id of JSON.parse(raw) as string[]) set.add(id);
+        }
+        setChecked(set);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
-  }, [storeKey]);
+  }, [childId, today, tomorrow]);
 
   const toggle = useCallback((id: string) => {
+    const iso = id.slice(0, 10);
     setChecked((prev) => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
-      if (storeKey) AsyncStorage.setItem(storeKey, JSON.stringify([...next])).catch(() => {});
+      const key = childId ? `buff_packing_${childId}_${iso}` : null;
+      if (key) {
+        const subset = [...next].filter((x) => x.startsWith(`${iso}::`));
+        AsyncStorage.setItem(key, JSON.stringify(subset)).catch(() => {});
+      }
       return next;
     });
-  }, [storeKey]);
+  }, [childId]);
 
   if (!childId) return null;
 
-  const allItems = groups.flatMap((g) => g.items.map((it) => `${g.source}::${g.title}::${it}`));
-  const allPacked = allItems.length > 0 && allItems.every((id) => checked.has(id));
+  const nothing = todayGroups.length === 0 && tomorrowGroups.length === 0;
 
-  return (
-    <View style={[styles.card, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
-      <View style={styles.head}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.title, { color: T.foreground }]}>{t('camp.cardTitle')}</Text>
-          <Text style={[styles.sub, { color: T.mutedForeground }]}>{t('camp.cardSub')}</Text>
-        </View>
-        <Ionicons name="bag-handle-outline" size={22} color={T.primary} />
-      </View>
-
-      {groups.length === 0 ? (
-        <Text style={[styles.empty, { color: T.mutedForeground }]}>{t('camp.empty')}</Text>
-      ) : (
-        groups.map((g, gi) => {
+  const renderSection = (iso: string, label: string, groups: PackingGroup[]) => {
+    if (groups.length === 0) return null;
+    const ids = groups.flatMap((g) => g.items.map((it) => idFor(iso, g, it)));
+    const sectionPacked = ids.length > 0 && ids.every((id) => checked.has(id));
+    return (
+      <View key={iso}>
+        <Text style={[styles.sectionLabel, { color: T.mutedForeground }]}>{label}</Text>
+        {groups.map((g, gi) => {
           const icon = g.source === 'school'
             ? 'book-outline'
             : (g.templateId && TEMPLATE_BY_ID[g.templateId]?.icon) || 'sparkles-outline';
           return (
-            <View key={`${g.title}-${gi}`} style={[styles.group, { borderColor: T.border }]}>
+            <View key={`${g.source}-${g.title}-${gi}`} style={[styles.group, { borderColor: T.border }]}>
               <View style={styles.groupHead}>
                 <Ionicons name={icon as any} size={16} color={T.mutedForeground} />
                 <Text style={[styles.groupTitle, { color: T.foreground }]}>
@@ -103,7 +123,7 @@ export default function PackingCard({ childId }: { childId: string | null }) {
                 </Text>
               </View>
               {g.items.map((it, ii) => {
-                const id = `${g.source}::${g.title}::${it}`;
+                const id = idFor(iso, g, it);
                 const on = checked.has(id);
                 return (
                   <TouchableOpacity key={ii} style={styles.item} onPress={() => toggle(id)} activeOpacity={0.7}>
@@ -118,10 +138,30 @@ export default function PackingCard({ childId }: { childId: string | null }) {
               })}
             </View>
           );
-        })
-      )}
+        })}
+        {sectionPacked && <Text style={[styles.packed, { color: T.success }]}>{t('camp.allPacked')}</Text>}
+      </View>
+    );
+  };
 
-      {allPacked && <Text style={[styles.packed, { color: T.success }]}>{t('camp.allPacked')}</Text>}
+  return (
+    <View style={[styles.card, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
+      <View style={styles.head}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.title, { color: T.foreground }]}>{t('camp.cardTitle')}</Text>
+          <Text style={[styles.sub, { color: T.mutedForeground }]}>{t('camp.cardSub')}</Text>
+        </View>
+        <Ionicons name="bag-handle-outline" size={22} color={T.primary} />
+      </View>
+
+      {nothing ? (
+        <Text style={[styles.empty, { color: T.mutedForeground }]}>{t('camp.empty')}</Text>
+      ) : (
+        <>
+          {renderSection(today, t('camp.today'), todayGroups)}
+          {renderSection(tomorrow, t('camp.tomorrow'), tomorrowGroups)}
+        </>
+      )}
 
       <TouchableOpacity style={styles.addMine} onPress={() => navigation.navigate('ChildAddActivity')} activeOpacity={0.7}>
         <Ionicons name="add" size={18} color={T.primary} />
@@ -137,6 +177,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: '700' },
   sub: { fontSize: 12, marginTop: 1 },
   empty: { fontSize: 13, paddingVertical: 10, textAlign: 'center' },
+  sectionLabel: { fontSize: 12, fontWeight: '700', marginTop: 10, marginBottom: 2 },
   group: { borderTopWidth: 1, paddingTop: 8, marginTop: 4 },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   groupTitle: { fontSize: 13, fontWeight: '600' },
