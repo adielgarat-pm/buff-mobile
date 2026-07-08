@@ -6,6 +6,7 @@ import Terms from '@/pages/Terms';
 import Refund from '@/pages/Refund';
 import Pricing from '@/pages/Pricing';
 import Join from '@/pages/Join';
+import SummerGuide from '@/pages/SummerGuide';
 import { AboutPage } from '@/components/AboutPage';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/refund" element={<Refund />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/join" element={<Join />} />
+          <Route path="/summer" element={<SummerGuide />} />
           <Route path="/about" element={<AboutRoute />} />
           <Route path="*" element={<Landing />} />
         </Routes>
