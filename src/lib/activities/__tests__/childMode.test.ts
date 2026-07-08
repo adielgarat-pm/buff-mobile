@@ -14,10 +14,7 @@ describe('isTeenAgeGroup', () => {
 });
 
 describe('childAddOptions', () => {
-  it('teen adds directly active', () => {
-    expect(childAddOptions('15-18')).toEqual({ status: 'active', createdByChild: true });
-  });
-  it('young child proposes for approval', () => {
-    expect(childAddOptions('9-11')).toEqual({ status: 'proposed', createdByChild: true });
+  it('always adds directly active — no parent approval gate (D3-A)', () => {
+    expect(childAddOptions()).toEqual({ status: 'active', createdByChild: true });
   });
 });

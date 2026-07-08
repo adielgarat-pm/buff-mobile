@@ -40,6 +40,7 @@ import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { trimTasksForLowPower } from '../../utils/vibeUtils';
 import { isWeekendToday } from '../../utils/schoolDay';
 import { isTaskVisibleToday } from '../../utils/taskSchedule';
+import { successGoal, fuelProgressPct, isActiveDay } from '../../utils/successDay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import OffRoutineBanner from '../../components/OffRoutineBanner';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
@@ -135,7 +136,7 @@ function timeBucket(time: string | undefined): TimeFilter {
 export default function GamerDashboardScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, previewChildName, isChildPreview } = useMode();
+  const { previewChildId, previewChildName, isChildPreview, exitChildPreview } = useMode();
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
@@ -226,8 +227,12 @@ export default function GamerDashboardScreen() {
 
   const doneCount  = filteredTasks.filter(t => t.completed).length;
   const totalCount = filteredTasks.length;
-  const fuelPct    = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
-  const atGoal     = fuelPct >= 70;
+  // Count-based success (D-2026-06-14): a good day = min(3, total) completed
+  // tasks, NOT 70% of the whole list — with 9-20 tasks a % goal is unreachable
+  // and reads as permanent failure. Shared rule lives in utils/successDay.
+  const goalCount  = successGoal(totalCount);
+  const fuelPct    = fuelProgressPct(doneCount, totalCount);
+  const atGoal     = isActiveDay(doneCount, totalCount);
 
   // ── Loading ────────────────────────────────────────────────────────────
   if (dataLoading || petLoading) {
@@ -259,12 +264,21 @@ export default function GamerDashboardScreen() {
         onDismiss={() => { void markVibeDismissed(); }}
       />
       <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
-      {/* Parent preview banner */}
+      {/* Parent preview banner — tappable exit, same contract as Pastel
+          (ChildDashboardScreen). On shared devices this is the parent's way
+          back out of the child's view. */}
       {isChildPreview && (
-        <View style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}>
+        <TouchableOpacity
+          style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}
+          onPress={exitChildPreview}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}
+          testID="preview-banner"
+        >
           <Ionicons name="eye-outline" size={16} color="#fff" />
-          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner')}</Text>
-        </View>
+          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}</Text>
+        </TouchableOpacity>
       )}
 
       {offRoutineActive && <OffRoutineBanner />}
@@ -314,7 +328,13 @@ export default function GamerDashboardScreen() {
             <Ionicons name="checkmark-circle" size={14} color={COLORS.lime} />
             <Text style={styles.statLabel}>{t('gamerDashboard.successfulDays')}</Text>
           </View>
-          <Text style={styles.statValue}>{petState.evolution_days_count}</Text>
+          {/* Server-derived per child (buddy_relationships) — same source as
+              GamerMyStats/MeAndBuddy, so the teen sees ONE consistent number.
+              pet_state.evolution_days_count is per-device and wrong on shared
+              devices (see the streak comment near the top of this component). */}
+          <Text style={styles.statValue} testID="successful-days-value">
+            {relationship?.successful_days_count ?? 0}
+          </Text>
         </View>
 
         <View style={styles.statCard}>
@@ -322,7 +342,18 @@ export default function GamerDashboardScreen() {
             <Ionicons name="flame" size={14} color={COLORS.lime} />
             <Text style={styles.statLabel}>{t('gamerDashboard.currentStreak')}</Text>
           </View>
-          <Text style={[styles.statValue, { color: COLORS.lime }]}>{dailyStreak}</Text>
+          {/* Never show a "0 🔥" to a lapsed teen (Pillar 2 — no failure
+              framing). Mirrors the Pastel dashboard's streak>0 gate; here the
+              card stays (grid symmetry) with a forward-looking nudge instead. */}
+          {dailyStreak > 0 ? (
+            <Text style={[styles.statValue, { color: COLORS.lime }]} testID="streak-value">
+              {dailyStreak}
+            </Text>
+          ) : (
+            <Text style={styles.streakStartText} testID="streak-start">
+              {t('gamerDashboard.streakStart')}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -337,7 +368,7 @@ export default function GamerDashboardScreen() {
         <View style={styles.fuelHeaderRow}>
           <Text style={styles.fuelLabel}>⚡ {t('gamerDashboard.focusFuel')}</Text>
           <Text style={[styles.fuelPct, { color: atGoal ? COLORS.lime : COLORS.text }]}>
-            {doneCount}/{totalCount}
+            {Math.min(doneCount, goalCount)}/{goalCount}
           </Text>
         </View>
         <View style={styles.barTrack}>
@@ -533,6 +564,8 @@ const styles = StyleSheet.create({
   statLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   statLabel:    { color: COLORS.text, fontSize: 10, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
   statValue:    { color: COLORS.text, fontSize: 36, fontWeight: '900', lineHeight: 40 },
+  // Zero-streak nudge — same slot as statValue (lineHeight keeps card height).
+  streakStartText: { color: COLORS.textMuted, fontSize: 14, fontWeight: '700', lineHeight: 40 },
 
   buffsCard: {
     backgroundColor: COLORS.surface,

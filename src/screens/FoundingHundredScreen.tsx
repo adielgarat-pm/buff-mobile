@@ -8,6 +8,12 @@
  * When count >= 100, renders a "Founding 100 closed" empty state with
  * a fallback CTA to the regular Family Plan.
  *
+ * PARENT-ONLY (Pillar 1): children must never see purchase screens. This
+ * screen is registered only in RootNavigator's parent branch, and — since
+ * buff://founding-100 (and /founding-100 on web) is a public marketing deep
+ * link — it also renders nothing (and navigates back) when the signed-in
+ * profile role is 'child'.
+ *
  * Source SPEC: docs/sessions/founding-100-payment/SPEC.md §Phases / Phase 3
  *
  * TODO: i18n — currently English-only. Add HE translations once core flow
@@ -19,6 +25,7 @@ import {
   StyleSheet, ActivityIndicator, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
 import { FoundingBadge } from '../components/FoundingBadge';
 import { supabase } from '../integrations/supabase/client';
@@ -29,11 +36,18 @@ const HARD_CAP = 100;
 
 export default function FoundingHundredScreen() {
   const navigation = useNavigation();
+  const { profile } = useAuth();
   const {
     purchaseLifetime,
     isFoundingMember,
     foundingMemberNumber,
   } = useSubscription();
+
+  // ── Role guard (Pillar 1) — children never see purchase screens ──────────
+  const isChild = profile?.role === 'child';
+  useEffect(() => {
+    if (isChild && navigation.canGoBack()) navigation.goBack();
+  }, [isChild, navigation]);
 
   const [salesCount, setSalesCount] = useState<number | null>(null);
   const [countLoading, setCountLoading] = useState(true);
@@ -93,6 +107,9 @@ export default function FoundingHundredScreen() {
       setPurchasing(false);
     }
   };
+
+  // ── Render: child role — never show a purchase screen (Pillar 1) ─────────
+  if (isChild) return null;
 
   // ── Render: user is already a Founding Member ────────────────────────────
   if (isFoundingMember && foundingMemberNumber) {

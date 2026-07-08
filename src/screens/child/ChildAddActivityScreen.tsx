@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Platform, SafeAreaView, ActivityIndicator,
 } from 'react-native';
@@ -9,10 +9,9 @@ import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
-import { supabase } from '../../integrations/supabase/client';
 import { useChildTheme } from '../../contexts/ThemeContext';
 import { useActivities } from '../../hooks/useActivities';
-import { childAddOptions, isTeenAgeGroup } from '../../lib/activities/childMode';
+import { childAddOptions } from '../../lib/activities/childMode';
 import {
   ACTIVITY_WEEKDAYS, ACTIVITY_WEEKDAY_LABELS, type ActivityWeekday, type NewActivity,
 } from '../../types/activities';
@@ -27,10 +26,11 @@ function toHHMM(d: Date): string {
 }
 
 /**
- * Child-authored activity (SPEC Feature C / D7). The child adds something for
- * themselves — a one-off event like a job interview. Teen → saved active;
- * Children Mode → proposed for a parent to approve. Reached from PackingCard;
- * does not touch ChildTabs.
+ * Child-authored activity (SPEC Feature C / D7, revised — noaa-behavior-spec D3-A).
+ * The child adds something for themselves — a one-off event like a job interview,
+ * or gear for their own day. It posts DIRECTLY (no parent approval gate, all ages);
+ * the parent still sees it in ActivitiesScreen. Reached from PackingCard; does not
+ * touch ChildTabs.
  */
 export default function ChildAddActivityScreen() {
   const navigation = useNavigation();
@@ -45,27 +45,6 @@ export default function ChildAddActivityScreen() {
   // acting child comes from preview mode; on an own-device child it's the
   // child's own profile. Mirrors the dashboards' childId derivation.
   const childId = previewChildId ?? profile?.id ?? null;
-  const [ageGroup, setAgeGroup] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      if (!childId) { setAgeGroup(undefined); return; }
-      if (profile?.id === childId) {
-        setAgeGroup((profile as any)?.pro_settings?.age_group);
-        return;
-      }
-      const { data } = await supabase
-        .from('profiles')
-        .select('pro_settings')
-        .eq('id', childId)
-        .maybeSingle();
-      if (!cancelled) setAgeGroup((data as any)?.pro_settings?.age_group);
-    })();
-    return () => { cancelled = true; };
-  }, [childId, profile]);
-
-  const teen = isTeenAgeGroup(ageGroup);
 
   const { addActivity, saving } = useActivities(childId);
 
@@ -78,7 +57,6 @@ export default function ChildAddActivityScreen() {
   const [newItem, setNewItem] = useState('');
   const [showDate, setShowDate] = useState(false);
   const [showTime, setShowTime] = useState(false);
-  const [sent, setSent] = useState(false);
 
   const canSave = title.trim().length > 0 && (scheduleKind === 'recurring' || !!date);
 
@@ -101,24 +79,9 @@ export default function ChildAddActivityScreen() {
       time,
       equipment: gear,
     };
-    const ok = await addActivity(payload, childAddOptions(ageGroup));
-    if (ok) {
-      if (teen) navigation.goBack();
-      else setSent(true);
-    }
+    const ok = await addActivity(payload, childAddOptions());
+    if (ok) navigation.goBack();
   };
-
-  if (sent) {
-    return (
-      <SafeAreaView style={[styles.safe, styles.center, { backgroundColor: T.background }]}>
-        <Ionicons name="paper-plane-outline" size={40} color={T.primary} />
-        <Text style={[styles.sentText, { color: T.foreground }]}>{t('camp.proposed')}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={[styles.saveBtn, { backgroundColor: T.primary }]}>
-          <Text style={[styles.saveText, { color: T.primaryForeground }]}>{t('activities.back')}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: T.background }]}>
@@ -131,8 +94,6 @@ export default function ChildAddActivityScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        {!teen && <Text style={[styles.note, { color: T.mutedForeground }]}>{t('camp.proposeNote')}</Text>}
-
         <TextInput
           value={title}
           onChangeText={setTitle}
@@ -254,13 +215,10 @@ export default function ChildAddActivityScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  center: { justifyContent: 'center', alignItems: 'center', gap: 14 },
-  sentText: { fontSize: 16, fontWeight: '600' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1 },
   iconBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 17, fontWeight: '700' },
   body: { padding: 16, gap: 10 },
-  note: { fontSize: 12, marginBottom: 4 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 11, fontSize: 14 },
   btnLike: { justifyContent: 'center' },
   toggleRow: { flexDirection: 'row', gap: 8, marginTop: 6 },

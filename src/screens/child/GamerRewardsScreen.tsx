@@ -122,29 +122,45 @@ export default function GamerRewardsScreen() {
     refetchRedemptions();
   }, [refetchBalance, refetchRedemptions]));
 
-  const [tab, setTab]         = useState<TabKey>('parent');
-  const [rewards, setRewards] = useState<StoreReward[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tab, setTab]               = useState<TabKey>('parent');
+  const [rewards, setRewards]       = useState<StoreReward[]>([]);
+  const [loading, setLoading]       = useState(true);
+  // Fetch errors must NOT masquerade as the empty state ("Ask your parent to
+  // add some rewards") — on flaky networks (e.g. ERR_CONNECTION_RESET to
+  // Supabase) the kid would nag the parent while rewards actually exist.
+  // Track the error separately and render a distinct, retryable state.
+  const [fetchError, setFetchError] = useState(false);
 
   // ── Fetch rewards (parent-set) ───────────────────────────────────────────
-  useEffect(() => {
+  const fetchRewards = useCallback(() => {
     if (!childId) {
       setRewards([]);
+      setFetchError(false);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setFetchError(false);
     supabase
       .from('store_rewards')
       .select('id, title, title_he, emoji, size, credits_needed, is_redeemed, cash_value')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
-        if (error) console.error('[GamerRewards] fetch error:', error.message);
+        if (error) {
+          console.error('[GamerRewards] fetch error:', error.message);
+          setFetchError(true);
+          setLoading(false);
+          return;
+        }
         setRewards((data ?? []) as StoreReward[]);
         setLoading(false);
       });
   }, [childId]);
+
+  useEffect(() => {
+    fetchRewards();
+  }, [fetchRewards]);
 
   // ── Categorize rewards by affordability ──────────────────────────────────
   const { unlocked, locked } = useMemo(() => {
@@ -257,7 +273,23 @@ export default function GamerRewardsScreen() {
         {/* ── Content ──────────────────────────────────────────────────── */}
         {tab === 'parent' ? (
           <>
-            {rewards.length === 0 ? (
+            {fetchError ? (
+              // Distinct error state — never show "ask your parent" for a network hiccup.
+              <View style={styles.emptyState} testID="rewards-error-state">
+                <Text style={styles.emptyEmoji}>📡</Text>
+                <Text style={styles.emptyTitle}>{t('gamerRewards.errorTitle')}</Text>
+                <Text style={styles.emptySubtitle}>{t('gamerRewards.errorSubtitle')}</Text>
+                <TouchableOpacity
+                  style={styles.retryBtn}
+                  onPress={fetchRewards}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('gamerRewards.retry')}
+                  testID="rewards-retry"
+                >
+                  <Text style={styles.retryBtnText}>{t('gamerRewards.retry')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : rewards.length === 0 ? (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyEmoji}>🎁</Text>
                 <Text style={styles.emptyTitle}>{t('gamerRewards.emptyParentTitle')}</Text>
@@ -550,6 +582,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 260,
     lineHeight: 18,
+  },
+
+  // ── Error state (retry) ───────────────────────────────────────────────
+  // ≥44pt touch target per safe-zone rule (minHeight + centered content).
+  retryBtn: {
+    marginTop: 18,
+    minHeight: 44,
+    paddingHorizontal: 28,
+    borderRadius: 10,
+    backgroundColor: COLORS.lime,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryBtnText: {
+    color: COLORS.canvas,
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
 
   // ── Suggest CTA ───────────────────────────────────────────────────────

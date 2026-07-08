@@ -14,6 +14,26 @@
 
 ## Implementation Notes
 
+### IN-2026-07-08-01: buffadhd.com/summer החזיר "404 Oops! Page not found" למשתמשי קהילה — הדף הזה לא קיים בשום גרסה של הריפו; המקור הוא ה-app הישן מעידן Lovable שעדיין מוגש לחלק מהמבקרים
+
+- **תאריך:** 2026-07-08
+- **מקור:** CC — דיווח מקבוצת הוואטסאפ (הורה + Adi שחזרו על אנדרואיד/Chrome), אבחון על branch `claude/problem-diagnosis-oxlw5x`
+- **תיאור:** קישור `buffadhd.com/summer` (מדריך הקיץ, PR #331) החזיר דף סגול "404 / Oops! Page not found / Return to Home" + באנר "התקנת BUFF" של Chrome. בדיקות: (1) build של `landing-web` עובר; (2) רינדור headless של `/summer` תקין ב-EN+HE; (3) לכל נתיב לא-מוכר יש catch-all → Landing, **בכל קומיט בהיסטוריה** — אף גרסה של `landing-web` לא מסוגלת להציג 404 כזה, ואין לה בכלל manifest שמפעיל באנר התקנה. `git log -S "Page not found"` ריק. המסקנה: מה שהוגש למשתמשים הוא ה-web-app הישן של Lovable (שהיה PWA עם manifest ו-NotFound סגול — boilerplate של Lovable). DNS של apex+www מצביע על Vercel. **אושר (2026-07-08, Adi):** פתיחה באינקוגניטו על אותו טלפון עבדה ⇒ השרת מגיש את ה-landing הנכון, והמנגנון הוא service worker ישן של Lovable שתקוע בדפדפנים של משתמשי העבר (בדיוק אוכלוסיית קבוצת הוואטסאפ). מלכודת מבנית: ה-rewrite `/(.*) → /index.html` מחזיר HTML לכל בקשת עדכון של service worker ⇒ הדפדפן שומר על ה-SW הישן לנצח (עדכון SW נכשל על MIME שגוי אבל לא מוחק את הרישום; רק 404/410 אמיתי מוחק).
+- **השפעה:** תוקן בקוד: `landing-web/public/service-worker.js` + `sw.js` — self-destroying SW שמחליף כל SW ישן ב-scope, מוחק caches, עושה unregister ומרענן טאבים. נוסף `landing-web/src/vite-env.d.ts` (tsc על PNG imports). **נשאר ל-Adi (Vercel dashboard):** לוודא שהדומיין buffadhd.com מחובר לפרויקט `buff-landing` ושה-production deployment שלו הוא מ-main העדכני — ואם יש פרויקט Vercel ישן מעידן Lovable שמחזיק את הדומיין, לנתק אותו.
+- **סטטוס:** `open` — אבחנה אושרה (אינקוגניטו עובד); ממתין ל-merge של ה-kill-switch ל-main + אימות אצל תמר (המדווחת) בדפדפן הרגיל שלה אחרי ה-deploy
+- **קשור ל:** PR #331 (/summer) · RELEASE_QUEUE הערת "needs Vercel redeploy of BOTH buff-landing and app/www" (#306) · LAUNCH_KIT_2026-06 §"Lovable reminder"
+
+### IN-2026-07-07-01: שני מסכי "אריזה" מנותקים (timetable מול activities) — נועה נתקלה בכל התפרים בבת אחת
+
+- **תאריך:** 2026-07-07
+- **מקור:** CC, חקירת דיווח של נועה (משתמשת אמיתית, 1.7.8): "התנהגות לא הגיונית" באריזת ציוד לקייטנה. סשן `noaa-behavior-spec`.
+- **תיאור — היו שתי מערכות אריזה שלא מדברות:** (א) **BagPrep** (טאב "ציוד", `ChildBagPrepScreen`) נשען על `timetables`, מציג **מחר**. (ב) **PackingCard** ("נארוז יחד?" במפקדה/HQ) נשען על `activities`, מציג **היום**. הן מעולם לא קראו אחת מהשנייה (מתועד ככוונה ב-`types/activities.ts`). נועה הזינה קייטנה כ**מקצוע ב-timetable** → הופיע רק ב-BagPrep, בלתי-נראה ל-PackingCard שהראה "היום אין מה לארוז". בנוסף: אישור הצעת-ילד לאריזה היה קבור ב-Settings ללא באדג' (בניגוד ל-`PendingSuggestions` שההורה כבר מכיר בטאבים משימות/פרסים), וה-streak במפקדה אין לו מראה בצד ההורה.
+- **תיקון (5 chunks):** D3-A הסרת שער האישור (`childAddOptions()` תמיד `active`); D1 גשר `lib/packing/fromTimetable.ts` (ציוד timetable → אותו `PackingGroup[]`, PackingCard קורא את שני המקורות); D2 סקשני היום/מחר בכרטיס אחד; D4 הבאנר של View-as-Child מציין את שם הילד.
+- **לקח:** שני מסכים שעונים על אותה שאלת-משתמש ("מה הילד אורז") אבל נשענים על שתי טבלאות ושני day-scopes = "התנהגות לא הגיונית" מובטחת. לפני שבונים משטח-ילד שני לאותו concept — לאחד את ה-builder, לא את ה-UI בלבד. גם: `INTEGRATION_LEARNINGS:1306` כבר חזה את התפר הזה ("Equipment surfacing… P-05 Bag Prep") אבל הוא לא אוחד עד עכשיו.
+- **השפעה:** ההבטחה של "מקום אחד למה שהילד אורז" לא התקיימה; הורה שהזין ציוד ב-timetable לא ראה אותו במפקדה.
+- **סטטוס:** resolved (5 chunks בענף); open — איחוד/הפניה של טאב BagPrep (D1 option 2, נוגע ב-`ChildTabs` של סשן אחר; ל-BagPrep גם מונה count/total שסותר את כלל ה-no-counter); open — D5 סף גיל (לא נושא-משקל יותר אחרי D3-A, FLAG F-2026-05-03-03).
+- **קשור ל:** `docs/sessions/noaa-behavior-spec/`, IN-2026-07-06-01 (דיווח נועה קודם), `docs/sessions/activities-and-camp-lists/` (Feature C / D7 שעודכן), INTEGRATION_LEARNINGS:1306.
+
 ### IN-2026-07-06-01: ה-realtime publication היה כמעט ריק — כל המנויים של pause-mode מעולם לא ירו; ופיצול-ערכות-נושא (Mint/Gamer) גרם לבאג ערכים אצל משתמשת אמיתית
 
 - **תאריך:** 2026-07-06

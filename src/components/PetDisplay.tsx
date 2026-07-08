@@ -19,6 +19,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PET_SKINS, STAGE_VISUALS, getDefaultSkin } from '../types/pet';
+import { eggCrackStage } from '../utils/successDay';
 import { usePetState } from '../hooks/usePetState';
 import { useTheme, useChildTheme } from '../contexts/ThemeContext';
 import PetSkinPicker from './PetSkinPicker';
@@ -44,22 +45,15 @@ interface Props {
 }
 
 // ─── Egg crack helpers ───────────────────────────────────────────────────────
+// Stage progression is count-based (D-2026-06-14, utils/successDay):
+// 1 task done = first crack, 2 = second crack, goal (min(3, total)) = hatch.
+// Indexed by crackStage - 1; stage 3 IS the hatch, so it gets the hatch copy.
 
 const EGG_CRACK_KEYS = [
   'pet.eggCrack1',
   'pet.eggCrack2',
-  'pet.eggCrack3',
   'pet.hatching',
 ] as const;
-
-function getEggCrackStage(done: number, total: number): 0 | 1 | 2 | 3 {
-  if (total === 0) return 0;
-  const pct = done / total;
-  if (pct >= 0.9) return 3;
-  if (pct >= 0.6) return 2;
-  if (pct >= 0.3) return 1;
-  return 0;
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -94,7 +88,7 @@ export function PetDisplay({
   const stage = STAGE_VISUALS[themeName][petState.evolution_stage];
 
   const crackStage = petState.evolution_stage === 'egg'
-    ? getEggCrackStage(completedToday, totalToday)
+    ? eggCrackStage(completedToday, totalToday)
     : 0;
 
   const showEgg       = petState.evolution_stage === 'egg' && crackStage < 3;

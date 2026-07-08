@@ -1,12 +1,13 @@
 /**
  * PaywallScreen — "Unlock BUFF Premium ✨"
  *
- * Two usage patterns:
- *   1. Via navigation:  navigation.navigate('Paywall', { childName })
- *   2. Inline render:   <PaywallScreen />   (e.g. in ChildRewardsScreen)
+ * Reached via navigation only:  navigation.navigate('Paywall', { childName })
+ * — registered exclusively in RootNavigator's PARENT branch. Never register
+ * this screen in the child branch and never render it inline in a child
+ * screen (Pillar 1: children must never see purchase pressure).
  *
- * Both patterns are supported via PaywallScreenContent (the real UI)
- * and a thin PaywallScreen wrapper that reads route params.
+ * Defense-in-depth: renders nothing (and navigates back) when the signed-in
+ * profile role is 'child', on top of the navigator-level exclusion.
  *
  * Fetches real pricing from RevenueCat offerings on mount.
  * Falls back to hardcoded labels if offerings aren't available.
@@ -14,15 +15,22 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, } from 'react-native';
+  StyleSheet, ActivityIndicator, Linking, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/types';
 import { PARENT_THEME as T } from '../theme';
+import { useAuth } from '../contexts/AuthContext';
 import { useSubscription } from '../hooks/useSubscription';
 import { getOfferings } from '../services/purchaseService';
 
 type Route = RouteProp<RootStackParamList, 'Paywall'>;
+
+// Legal pages — served by the marketing site (landing-web routes /privacy
+// and /terms on the buffadhd.com root). Google Play requires functional
+// legal links on subscription screens.
+export const PRIVACY_POLICY_URL = 'https://buffadhd.com/privacy';
+export const TERMS_OF_USE_URL   = 'https://buffadhd.com/terms';
 
 const FEATURES = [
   { emoji: '🐾', text: 'Buddy pet — grows with consistency' },
@@ -36,7 +44,14 @@ const FEATURES = [
 
 function PaywallScreenContent({ childName = '' }: { childName?: string }) {
   const navigation = useNavigation();
+  const { profile } = useAuth();
   const { purchaseMonthly, purchaseYearly, restorePurchases } = useSubscription();
+
+  // ── Role guard (Pillar 1) — children never see purchase screens ────────────
+  const isChild = profile?.role === 'child';
+  useEffect(() => {
+    if (isChild && navigation.canGoBack()) navigation.goBack();
+  }, [isChild, navigation]);
 
   const [monthlyLabel, setMonthlyLabel] = useState('$9.99 / month');
   const [yearlyLabel,  setYearlyLabel]  = useState('');
@@ -96,6 +111,8 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
   };
 
   const isBusy = purchasing !== null;
+
+  if (isChild) return null;
 
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
@@ -214,9 +231,19 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
             )}
           </TouchableOpacity>
           <Text style={styles.footerDivider}>|</Text>
-          <Text style={styles.footerLink}>Privacy Policy</Text>
+          <TouchableOpacity
+            onPress={() => { void Linking.openURL(PRIVACY_POLICY_URL); }}
+            accessibilityRole="link"
+          >
+            <Text style={styles.footerLink}>Privacy Policy</Text>
+          </TouchableOpacity>
           <Text style={styles.footerDivider}>|</Text>
-          <Text style={styles.footerLink}>Terms of Use</Text>
+          <TouchableOpacity
+            onPress={() => { void Linking.openURL(TERMS_OF_USE_URL); }}
+            accessibilityRole="link"
+          >
+            <Text style={styles.footerLink}>Terms of Use</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -230,9 +257,10 @@ export default function PaywallScreen() {
   return <PaywallScreenContent childName={route.params?.childName ?? ''} />;
 }
 
-// ── Standalone export (rendered without navigator, e.g. ChildRewardsScreen) ──
-
-export { PaywallScreenContent as PaywallContent };
+// NOTE: the old `PaywallContent` inline-render export (used by
+// ChildRewardsScreen pre-PR #40) was removed — nothing imported it, and
+// keeping it invited re-adding a child-facing paywall. Reach this screen
+// via navigation from parent screens only.
 
 // ─────────────────────────────────────────────────────────────────────────────
 

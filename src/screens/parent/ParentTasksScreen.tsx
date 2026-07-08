@@ -6,7 +6,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StyleSheet,
-  Modal, TextInput, KeyboardAvoidingView, Platform,
+  Modal, TextInput, KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { crossAlert } from '../../platform';
@@ -25,23 +25,14 @@ import PhilosophyTip from '../../components/PhilosophyTip';
 import { DayScheduleToggles } from '../../components/DayScheduleToggles';
 import { DuplicateToChildModal } from '../../components/parent/DuplicateToChildModal';
 import type { Task } from '../../types/task';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+// Platform-split time control ("HH:MM" in/out): native OS picker on Android/iOS,
+// browser <input type="time"> on web — a direct DateTimePicker import renders
+// NOTHING on web, leaving every task stuck at the 16:00 default (dead control).
+import TimeField from '../../components/TimeField';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 import type { AgeGroup, Gender } from '../onboarding/unified/onboardingData';
-
-// Native time-picker helpers — mirror MedReminderSheet so an "HH:MM" string
-// round-trips through a Date for the OS time wheel. Stored value stays 24h HH:MM.
-function hhmmToDate(hhmm: string): Date {
-  const [h, m] = hhmm.split(':').map((n) => parseInt(n, 10));
-  const d = new Date();
-  d.setHours(Number.isFinite(h) ? h : 16, Number.isFinite(m) ? m : 0, 0, 0);
-  return d;
-}
-function toHHMM(d: Date): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
 
 const STAGE_IDS: Phase[] = ['morning', 'school', 'afternoon', 'evening'];
 
@@ -95,7 +86,6 @@ export default function ParentTasksScreen() {
   // chips — and especially the "paused" hint — would lie for them.
   const [editingDueDate, setEditingDueDate]  = useState<string | null>(null);
   const [approveSaving, setApproveSaving]   = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [dupTask, setDupTask] = useState<Task | null>(null);
   const { rowDirection } = useRTLStyles();
 
@@ -455,29 +445,14 @@ export default function ParentTasksScreen() {
             />
 
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.timeLabel')}</Text>
-            <TouchableOpacity
+            <TimeField
+              value={approveTime}
+              onChange={setApproveTime}
               style={[styles.timeRow, { backgroundColor: T.bg, borderColor: T.cardBorder, flexDirection: rowDirection }]}
-              onPress={() => setShowTimePicker(true)}
-              accessibilityRole="button"
+              textStyle={[styles.timeValue, { color: T.text }]}
               accessibilityLabel={t('childSuggest.approve.timeLabel')}
-            >
-              {/* Clock value always reads LTR ("16:00"), even inside an RTL layout. */}
-              <Text style={[styles.timeValue, { color: T.text }]}>{approveTime}</Text>
-              <Text style={[styles.timeIcon, { color: T.textMuted }]}>🕐</Text>
-            </TouchableOpacity>
-            {showTimePicker && (
-              <DateTimePicker
-                mode="time"
-                is24Hour
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                value={hhmmToDate(approveTime)}
-                onChange={(e: DateTimePickerEvent, sel?: Date) => {
-                  if (Platform.OS === 'android') setShowTimePicker(false);
-                  if (e.type === 'set' && sel) setApproveTime(toHHMM(sel));
-                  if (e.type === 'dismissed') setShowTimePicker(false);
-                }}
-              />
-            )}
+              testID="task-time-field"
+            />
 
             <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('childSuggest.approve.creditsLabel')}</Text>
             <TextInput
@@ -581,7 +556,6 @@ const styles = StyleSheet.create({
   input:         { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, marginBottom: 16 },
   timeRow:       { alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 16 },
   timeValue:     { fontSize: 16, fontWeight: '700', writingDirection: 'ltr' },
-  timeIcon:      { fontSize: 18 },
   daysPausedHint:{ color: '#B45309', fontSize: 12, fontWeight: '600', marginTop: 8, marginBottom: 8 },
   confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
