@@ -1,13 +1,17 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
-  SafeAreaView, Modal, TextInput, Platform,
+  SafeAreaView, Modal, TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+// Platform-split date/time controls: native OS pickers on Android/iOS, browser
+// <input type="date"> / <input type="time"> on web — a direct DateTimePicker
+// import renders NOTHING on web (dead controls).
+import DateField from '../../components/DateField';
+import TimeField from '../../components/TimeField';
 import { supabase } from '../../integrations/supabase/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRTLStyles } from '../../contexts/LanguageContext';
@@ -35,10 +39,6 @@ function toISODate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
-function toHHMM(d: Date): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
 export default function ActivitiesScreen() {
   const navigation = useNavigation<Nav>();
   const { t, i18n } = useTranslation();
@@ -92,14 +92,12 @@ export default function ActivitiesScreen() {
   const [time, setTime] = useState<string | null>(null);
   const [gear, setGear] = useState<GearItem[]>([]);
   const [newItem, setNewItem] = useState('');
-  const [showDate, setShowDate] = useState(false);
-  const [showTime, setShowTime] = useState(false);
   const [savingForm, setSavingForm] = useState(false);
 
   const resetForm = () => {
     setEditing(null); setStep('template'); setTitle(''); setTemplateId(null);
     setScheduleKind('recurring'); setWeekday('sunday'); setDate(null); setTime(null);
-    setGear([]); setNewItem(''); setShowDate(false); setShowTime(false);
+    setGear([]); setNewItem('');
   };
 
   const openAdd = () => { resetForm(); setEditorOpen(true); };
@@ -368,48 +366,29 @@ export default function ActivitiesScreen() {
                       })}
                     </View>
                   ) : (
-                    <TouchableOpacity
+                    <DateField
+                      value={date}
+                      onChange={setDate}
+                      placeholder={t('activities.pickDate')}
+                      locale={lang}
                       style={[styles.input, styles.dateBtn, { borderColor: T.cardBorder, backgroundColor: T.card }]}
-                      onPress={() => setShowDate(true)}
-                    >
-                      <Text style={{ color: date ? T.text : T.textMuted }}>
-                        {date ? date.toLocaleDateString(lang) : t('activities.pickDate')}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                  {showDate && (
-                    <DateTimePicker
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      value={date ?? new Date()}
-                      onChange={(e: DateTimePickerEvent, sel?: Date) => {
-                        if (Platform.OS === 'android') setShowDate(false);
-                        if (e.type === 'set' && sel) setDate(sel);
-                        if (e.type === 'dismissed') setShowDate(false);
-                      }}
+                      textStyle={{ color: date ? T.text : T.textMuted, fontSize: 14 }}
+                      testID="activity-date-field"
                     />
                   )}
 
                   {/* Time (optional) */}
-                  <TouchableOpacity
-                    style={[styles.input, styles.dateBtn, { borderColor: T.cardBorder, backgroundColor: T.card }]}
-                    onPress={() => setShowTime(true)}
-                  >
-                    <Text style={{ color: time ? T.text : T.textMuted }}>{time ?? t('activities.timeOptional')}</Text>
-                  </TouchableOpacity>
-                  {showTime && (
-                    <DateTimePicker
-                      mode="time"
-                      is24Hour
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      value={new Date()}
-                      onChange={(e: DateTimePickerEvent, sel?: Date) => {
-                        if (Platform.OS === 'android') setShowTime(false);
-                        if (e.type === 'set' && sel) setTime(toHHMM(sel));
-                        if (e.type === 'dismissed') setShowTime(false);
-                      }}
-                    />
-                  )}
+                  <Text style={[styles.fieldLabel, { color: T.textMuted, textAlign, marginTop: 10 }]}>
+                    {t('activities.timeOptional')}
+                  </Text>
+                  <TimeField
+                    value={time ?? ''}
+                    onChange={setTime}
+                    style={[styles.input, styles.timeField, { borderColor: T.cardBorder, backgroundColor: T.card }]}
+                    textStyle={{ color: time ? T.text : T.textMuted, fontSize: 14 }}
+                    accessibilityLabel={t('activities.timeOptional')}
+                    testID="activity-time-field"
+                  />
 
                   {/* Gear checklist */}
                   <Text style={[styles.fieldLabel, { color: T.textMuted, textAlign, marginTop: 16 }]}>{t('activities.step.gear')}</Text>
@@ -514,7 +493,8 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 12, marginTop: 6, marginBottom: 2 },
   fieldLabel: { fontSize: 12, marginBottom: 4 },
   input: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14 },
-  dateBtn: { justifyContent: 'center', marginTop: 10 },
+  dateBtn: { justifyContent: 'space-between', marginTop: 10 },
+  timeField: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 0 },
   toggleRow: { gap: 8, marginTop: 12 },
   toggle: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 10, borderWidth: 1 },
   toggleText: { fontSize: 13, fontWeight: '600' },

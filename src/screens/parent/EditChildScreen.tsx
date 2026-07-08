@@ -7,11 +7,15 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { crossAlert } from '../../platform';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+// Platform-split birthday control: native OS date picker on Android/iOS,
+// browser <input type="date"> on web — a direct DateTimePicker import renders
+// NOTHING on web (dead-control bug already fixed in onboarding via PR #287;
+// this brings the same fix to EditChild).
+import BirthdayField from '../../components/BirthdayField';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -39,10 +43,6 @@ function toISODate(d: Date): string {
   return d.toISOString().split('T')[0];
 }
 
-function formatDate(d: Date, locale: string): string {
-  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
 export default function EditChildScreen() {
   const navigation       = useNavigation<Nav>();
   const { params }       = useRoute<Route>();
@@ -59,7 +59,6 @@ export default function EditChildScreen() {
   const [birth,    setBirth]     = useState<Date | null>(null);
   const [ageGroup, setAgeGroup]  = useState<string | null>(null);
   const [language, setLanguage]  = useState<SupportedLanguage>('he');
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [saving,   setSaving]    = useState(false);
   const [saveErr,  setSaveErr]   = useState<string | null>(null);
@@ -106,12 +105,6 @@ export default function EditChildScreen() {
     })();
     return () => { cancelled = true; };
   }, [params.childId]);
-
-  const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') setShowDatePicker(false);
-    if (event.type === 'set' && selected) setBirth(selected);
-    if (event.type === 'dismissed') setShowDatePicker(false);
-  };
 
   const save = async () => {
     const trimmed = name.trim();
@@ -296,40 +289,12 @@ export default function EditChildScreen() {
 
         {/* ── Birthday ─────────────────────────────────────────────────── */}
         <Text style={[styles.label, { textAlign, marginTop: 24 }]}>{t('editChild.birthdayLabel')}</Text>
-
-        {Platform.OS === 'ios' && showDatePicker && (
-          <DateTimePicker
-            mode="date"
-            display="spinner"
-            value={birth ?? new Date(2014, 0, 1)}
-            maximumDate={new Date()}
-            onChange={onDateChange}
-            style={styles.iosSpinner}
-          />
-        )}
-
-        {(Platform.OS !== 'ios' || !showDatePicker) && (
-          <TouchableOpacity
-            style={[styles.dateBtn, !!birth && styles.dateBtnFilled]}
-            onPress={() => setShowDatePicker(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={[styles.dateBtnText, !!birth && styles.dateBtnTextFilled, { textAlign }]}>
-              {birth ? formatDate(birth, i18n.language) : t('editChild.birthdayPlaceholder')}
-            </Text>
-            <Text style={styles.dateBtnIcon}>📅</Text>
-          </TouchableOpacity>
-        )}
-
-        {Platform.OS === 'android' && showDatePicker && (
-          <DateTimePicker
-            mode="date"
-            display="default"
-            value={birth ?? new Date(2014, 0, 1)}
-            maximumDate={new Date()}
-            onChange={onDateChange}
-          />
-        )}
+        <BirthdayField
+          value={birth}
+          onChange={setBirth}
+          placeholder={t('editChild.birthdayPlaceholder')}
+          locale={i18n.language}
+        />
 
         {/* ── Age group ────────────────────────────────────────────────── */}
         <Text style={[styles.label, { textAlign, marginTop: 24 }]}>{t('editChild.ageGroupLabel')}</Text>
@@ -471,23 +436,6 @@ const styles = StyleSheet.create({
   },
   iconBtnActive: { borderColor: T.accent, backgroundColor: '#EDE9FE' },
   iconEmoji:    { fontSize: 26 },
-
-  dateBtn:      {
-    flexDirection:  'row',
-    alignItems:     'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
-    borderRadius:   12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderWidth:    1,
-    borderColor:    T.cardBorder,
-  },
-  dateBtnFilled: { borderColor: T.accent, backgroundColor: '#F5F3FF' },
-  dateBtnText:  { flex: 1, color: T.textMuted, fontSize: 15 },
-  dateBtnTextFilled: { color: T.text, fontWeight: '500' },
-  dateBtnIcon:  { fontSize: 18 },
-  iosSpinner:   { width: '100%' },
 
   pillRow:      { flexWrap: 'wrap', gap: 10 },
   pill:         {
