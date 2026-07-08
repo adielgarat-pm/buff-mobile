@@ -1,4 +1,4 @@
-# Release MANIFEST — 1.7.10 (versionCode 66)
+# Release MANIFEST — 1.8.0 (versionCode 66)
 
 > Prepared 2026-07-09. Content = the 2026-07-08 UX-fix train (#332–#339) + the QA-sweep follow-up (#341).
 > Cut/build: EAS production app-bundle via the `EAS Build (Android)` GitHub workflow (autoIncrement → vc66). Prior release: 1.7.9 (vc65, base `55a243b`).

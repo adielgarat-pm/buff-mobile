@@ -1,7 +1,7 @@
-# Release v1.7.10 (versionCode 66)
+# Release v1.8.0 (versionCode 66)
 
 ## A. Technical
-- versionName **1.7.10**, versionCode **66** (EAS remote autoIncrement).
+- versionName **1.8.0**, versionCode **66** (EAS remote autoIncrement).
 - Content in `main` via PRs #332–#339 + #341. Anchor: `1.7.9 (vc65)` (base `55a243b`).
 - Change set: parent path → Signup · no late-shame timestamp · rewards error state · gamer daily loop (server days, hidden 0-streak, full-row tap, banner exit) · child count goal (fuel/egg/ignition) · child purchase-screen gate + legal links · cross-platform dashboard invite share · web time/date pickers · parent surfaces aligned to the count rule.
 - Gates: Gate 1 ✅ (tsc 0 · **jest 666/666, 0 skipped** · no-raw-alert clean). Gate 2 ✅ full autonomous sweep 2026-07-08 (Android emulator + Expo Web) — MASTER_TEST_PLAYBOOK § Run 2026-07-08.
