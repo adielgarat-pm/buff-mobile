@@ -40,6 +40,7 @@ import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { trimTasksForLowPower } from '../../utils/vibeUtils';
 import { isWeekendToday } from '../../utils/schoolDay';
 import { isTaskVisibleToday } from '../../utils/taskSchedule';
+import { successGoal, fuelProgressPct, isActiveDay } from '../../utils/successDay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import OffRoutineBanner from '../../components/OffRoutineBanner';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
@@ -226,8 +227,12 @@ export default function GamerDashboardScreen() {
 
   const doneCount  = filteredTasks.filter(t => t.completed).length;
   const totalCount = filteredTasks.length;
-  const fuelPct    = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
-  const atGoal     = fuelPct >= 70;
+  // Count-based success (D-2026-06-14): a good day = min(3, total) completed
+  // tasks, NOT 70% of the whole list — with 9-20 tasks a % goal is unreachable
+  // and reads as permanent failure. Shared rule lives in utils/successDay.
+  const goalCount  = successGoal(totalCount);
+  const fuelPct    = fuelProgressPct(doneCount, totalCount);
+  const atGoal     = isActiveDay(doneCount, totalCount);
 
   // ── Loading ────────────────────────────────────────────────────────────
   if (dataLoading || petLoading) {
@@ -363,7 +368,7 @@ export default function GamerDashboardScreen() {
         <View style={styles.fuelHeaderRow}>
           <Text style={styles.fuelLabel}>⚡ {t('gamerDashboard.focusFuel')}</Text>
           <Text style={[styles.fuelPct, { color: atGoal ? COLORS.lime : COLORS.text }]}>
-            {doneCount}/{totalCount}
+            {Math.min(doneCount, goalCount)}/{goalCount}
           </Text>
         </View>
         <View style={styles.barTrack}>
