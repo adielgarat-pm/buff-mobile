@@ -137,6 +137,8 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 | 2026-07-08 | #340 / `f8ea774` | fix | **Self-destroying service worker evicts the legacy Lovable PWA worker** on buffadhd.com. Landing-site only — ships via Vercel redeploy, NOT the app train. | Train | yes (web) | Old-PWA browsers get fresh landing after SW self-destruct |
 | 2026-07-08 | #341 / `f2001ef` | fix | **QA sweep follow-ups: parent dashboard + Philosophy copy aligned to count-based active-day rule** (`successDay.ts`; "70% = a successful day" removed everywhere, `weeklyGoal.goalCount` EN+HE) + ThemeContext Jest suite fixed & preview-theme test un-quarantined (666/666, 0 skips). Copy redlined by Adi at merge. | Train | yes | Parent dashboard child card shows "{{goal}} done = an active day"; Philosophy pillar 6 |
 
+> 🚧 **CUT — 1.7.10 (versionCode 66), 2026-07-09.** Content = the 2026-07-08 rows above that are app-code: **#332 · #333 · #334 · #335 · #336 · #337 · #338 · #339 · #341** (+ CI workflows #328/#329 ride along, no runtime content). **Landing-only rows (#331, #340, + #343) ship via Vercel, NOT this build.** Manifest + notes: `docs/releases/66/`. Gate 1 ✅ tsc 0 · jest 666/666 (0 skips). Gate 2 ✅ = the full 2026-07-08 QA sweep (MASTER_TEST_PLAYBOOK § Run 2026-07-08). Build: `EAS Build (Android)` workflow from `origin/main`, autoIncrement → vc66. Rows move to **Shipped (66)** after Adi promotes + "verified, tag it".
+
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
