@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-07-08-01: buffadhd.com/summer החזיר "404 Oops! Page not found" למשתמשי קהילה — הדף הזה לא קיים בשום גרסה של הריפו; המקור הוא ה-app הישן מעידן Lovable שעדיין מוגש לחלק מהמבקרים
+
+- **תאריך:** 2026-07-08
+- **מקור:** CC — דיווח מקבוצת הוואטסאפ (הורה + Adi שחזרו על אנדרואיד/Chrome), אבחון על branch `claude/problem-diagnosis-oxlw5x`
+- **תיאור:** קישור `buffadhd.com/summer` (מדריך הקיץ, PR #331) החזיר דף סגול "404 / Oops! Page not found / Return to Home" + באנר "התקנת BUFF" של Chrome. בדיקות: (1) build של `landing-web` עובר; (2) רינדור headless של `/summer` תקין ב-EN+HE; (3) לכל נתיב לא-מוכר יש catch-all → Landing, **בכל קומיט בהיסטוריה** — אף גרסה של `landing-web` לא מסוגלת להציג 404 כזה, ואין לה בכלל manifest שמפעיל באנר התקנה. `git log -S "Page not found"` ריק. המסקנה: מה שהוגש למשתמשים הוא ה-web-app הישן של Lovable (שהיה PWA עם manifest ו-NotFound סגול — boilerplate של Lovable). DNS של apex+www מצביע על Vercel. **אושר (2026-07-08, Adi):** פתיחה באינקוגניטו על אותו טלפון עבדה ⇒ השרת מגיש את ה-landing הנכון, והמנגנון הוא service worker ישן של Lovable שתקוע בדפדפנים של משתמשי העבר (בדיוק אוכלוסיית קבוצת הוואטסאפ). מלכודת מבנית: ה-rewrite `/(.*) → /index.html` מחזיר HTML לכל בקשת עדכון של service worker ⇒ הדפדפן שומר על ה-SW הישן לנצח (עדכון SW נכשל על MIME שגוי אבל לא מוחק את הרישום; רק 404/410 אמיתי מוחק).
+- **השפעה:** תוקן בקוד: `landing-web/public/service-worker.js` + `sw.js` — self-destroying SW שמחליף כל SW ישן ב-scope, מוחק caches, עושה unregister ומרענן טאבים. נוסף `landing-web/src/vite-env.d.ts` (tsc על PNG imports). **נשאר ל-Adi (Vercel dashboard):** לוודא שהדומיין buffadhd.com מחובר לפרויקט `buff-landing` ושה-production deployment שלו הוא מ-main העדכני — ואם יש פרויקט Vercel ישן מעידן Lovable שמחזיק את הדומיין, לנתק אותו.
+- **סטטוס:** `open` — אבחנה אושרה (אינקוגניטו עובד); ממתין ל-merge של ה-kill-switch ל-main + אימות אצל תמר (המדווחת) בדפדפן הרגיל שלה אחרי ה-deploy
+- **קשור ל:** PR #331 (/summer) · RELEASE_QUEUE הערת "needs Vercel redeploy of BOTH buff-landing and app/www" (#306) · LAUNCH_KIT_2026-06 §"Lovable reminder"
+
 ### IN-2026-07-07-01: שני מסכי "אריזה" מנותקים (timetable מול activities) — נועה נתקלה בכל התפרים בבת אחת
 
 - **תאריך:** 2026-07-07
