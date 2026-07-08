@@ -29,20 +29,7 @@ const CATEGORY_I18N_KEYS: Record<TaskCategory, string> = {
   movement:       'category.movement',
 };
 
-// ─── Out-of-window detection ──────────────────────────────────────────────────
-
-/**
- * Returns true when the completedAt time falls outside the phase's hour window.
- * e.g. a Morning task (06–09) completed at 14:30 → out of window.
- */
-function isOutOfWindow(completedAt: Date | string | undefined, phase: PhaseConfig): boolean {
-  if (!completedAt) return false;
-  const d = completedAt instanceof Date ? completedAt : new Date(completedAt);
-  const h = d.getHours();
-  // evening wraps to midnight so endHour is effectively 24
-  const end = phase.id === 'evening' ? 24 : phase.endHour;
-  return h < phase.startHour || h >= end;
-}
+// ─── Completion timestamp ─────────────────────────────────────────────────────
 
 /** Format a Date/string as "2:30 PM" (in the active UI language's locale). */
 function formatTime(completedAt: Date | string): string {
@@ -54,6 +41,7 @@ function formatTime(completedAt: Date | string): string {
 
 interface Props {
   task:              Task;
+  /** Kept for API stability with PhaseView; the card no longer branches on the phase window. */
   phase:             PhaseConfig;
   onComplete:        (id: string) => void;
   onUncomplete:      (id: string) => void;
@@ -61,13 +49,12 @@ interface Props {
   hapticsEnabled?:   boolean;
 }
 
-export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEnabled = true }: Props) {
+export function PhaseTaskCard({ task, onComplete, onUncomplete, hapticsEnabled = true }: Props) {
   const T = useChildTheme();
   const [pressed, setPressed] = useState(false);
   const { t } = useTranslation();
   const popScale = useCompletionPop(task.completed);
 
-  const outOfWindow = task.completed && isOutOfWindow(task.completedAt, phase);
   const categoryLabel = t(CATEGORY_I18N_KEYS[task.category]);
   const iconName      = CATEGORY_ICONS[task.category];
 
@@ -153,12 +140,12 @@ export function PhaseTaskCard({ task, phase, onComplete, onUncomplete, hapticsEn
           </View>
         </View>
 
-        {/* Out-of-window completion timestamp */}
-        {outOfWindow && task.completedAt && (
+        {/* Completion timestamp — always neutral. Whenever the task got done,
+            it got done: no warning framing for late completions (Pillar 2). */}
+        {task.completed && task.completedAt && (
           <View style={styles.timestampRow}>
-            <Ionicons name="alert-circle-outline" size={11} color={T.warning} />
-            <Text style={[styles.timestampText, { color: T.warning }]}>
-              Completed at {formatTime(task.completedAt)} (outside window)
+            <Text style={[styles.timestampText, { color: T.mutedForeground }]}>
+              {t('phase.doneAt', { time: formatTime(task.completedAt) })}
             </Text>
           </View>
         )}

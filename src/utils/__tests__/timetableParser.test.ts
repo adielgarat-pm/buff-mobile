@@ -32,6 +32,7 @@ import {
   periodsToTimetable,
   parseExcelBase64,
   extractSubjectGroupsFromCell,
+  applyDailyEquipment,
 } from '../timetableParser';
 import type { WeekDay } from '../../types/timetable';
 
@@ -387,6 +388,49 @@ describe('processApiResponse', () => {
     ]);
     expect(periods).toHaveLength(1);
     expect(periods[0].subject).toBe('מתמטיקה');
+  });
+
+  test('carries per-lesson equipment from the Edge Function', () => {
+    const { periods } = processApiResponse([
+      { title: 'אמנות', day: 'sunday', time: '08:00', equipment: 'צבעים, מכחול' },
+    ]);
+    expect(periods[0].equipment).toBe('צבעים, מכחול');
+  });
+});
+
+// ─── Daily gear (import-extract-equipment, D-IE-1) ────────────────────────────
+
+describe('applyDailyEquipment', () => {
+  const base = () => processApiResponse([
+    { title: 'בריכה', day: 'sunday', time: '10:00', lessonNumber: 2 },
+    { title: 'קליטה', day: 'sunday', time: '08:00', lessonNumber: 1 },
+    { title: 'סרט',   day: 'monday', time: '09:00', lessonNumber: 1 },
+  ]).periods;
+
+  test('adds one daily-gear row per day that has lessons, at the earliest time', () => {
+    const out = applyDailyEquipment(base(), 'בגד ים, כובע', 'ציוד יומי');
+    const gear = out.filter((p) => p.subject === 'ציוד יומי');
+    expect(gear).toHaveLength(2); // sunday + monday
+    expect(gear.every((p) => p.equipment === 'בגד ים, כובע')).toBe(true);
+    expect(gear.every((p) => p.lessonNumber === 0)).toBe(true);
+    expect(gear.find((p) => p.day === 'sunday')!.time).toBe('08:00'); // earliest
+  });
+
+  test('is a no-op when there is no daily note', () => {
+    const periods = base();
+    expect(applyDailyEquipment(periods, '', 'ציוד יומי')).toBe(periods);
+    expect(applyDailyEquipment(periods, '   ', 'ציוד יומי')).toBe(periods);
+    expect(applyDailyEquipment(periods, null, 'ציוד יומי')).toBe(periods);
+  });
+
+  test('is a no-op when there are no lessons', () => {
+    expect(applyDailyEquipment([], 'בגד ים', 'ציוד יומי')).toEqual([]);
+  });
+
+  test('daily-gear rows survive periodsToTimetable and sort first', () => {
+    const out = applyDailyEquipment(base(), 'מים', 'ציוד יומי');
+    const tt = periodsToTimetable(out);
+    expect(tt.sunday?.[0]).toMatchObject({ subject: 'ציוד יומי', equipment: 'מים' });
   });
 });
 

@@ -268,11 +268,11 @@ export default function GamerDashboardScreen() {
           onPress={exitChildPreview}
           activeOpacity={0.8}
           accessibilityRole="button"
-          accessibilityLabel={t('gamerDashboard.previewBanner')}
+          accessibilityLabel={t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}
           testID="preview-banner"
         >
           <Ionicons name="eye-outline" size={16} color="#fff" />
-          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner')}</Text>
+          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}</Text>
         </TouchableOpacity>
       )}
 

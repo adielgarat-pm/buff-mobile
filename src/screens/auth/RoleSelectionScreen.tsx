@@ -58,11 +58,13 @@ export default function RoleSelectionScreen() {
 
         <Text style={styles.headline}>{t('roleSelection.headline')}</Text>
 
-        {/* Parent card */}
+        {/* Parent card — new-parent path goes to Signup with the role
+            preselected. Returning parents use the "Already have an account?"
+            footer link below, which still routes to Login. */}
         <TouchableOpacity
           style={styles.card}
           activeOpacity={0.75}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigation.navigate('Signup', { initialRole: 'parent' })}
         >
           <Text style={styles.cardEmoji}>⚡</Text>
           <Text style={styles.cardTitle}>{t('auth.iAmParent')}</Text>

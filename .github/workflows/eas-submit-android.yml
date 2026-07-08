@@ -1,0 +1,69 @@
+name: EAS Submit (Android → Play)
+
+# Submits an EAS build to Google Play (internal track by default — see eas.json
+# submit.production.android). Runs on GitHub Actions (EAS Submit runs the upload).
+#
+# Requires TWO repo secrets:
+#   EXPO_TOKEN                  — expo.dev → Account → Access tokens
+#   GOOGLE_SERVICE_ACCOUNT_KEY — the Google Play service-account JSON (raw JSON),
+#     from Play Console → Setup → API access → service account with the "Release
+#     to testing tracks" (or Release) permission. Paste the whole JSON as the secret.
+#
+# By default submits the LATEST build; pass a build_id to target a specific one.
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: 'EAS build ID to submit (blank = latest finished build)'
+        default: ''
+        type: string
+
+concurrency:
+  group: eas-submit-android
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard — require secrets
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        run: |
+          missing=0
+          [ -z "$EXPO_TOKEN" ] && { echo "::error::EXPO_TOKEN secret is not set."; missing=1; }
+          [ -z "$GOOGLE_SERVICE_ACCOUNT_KEY" ] && { echo "::error::GOOGLE_SERVICE_ACCOUNT_KEY secret is not set (paste the Play service-account JSON)."; missing=1; }
+          [ "$missing" = "1" ] && exit 1 || true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Write Play service-account key (from secret, git-ignored)
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        run: printf '%s' "$GOOGLE_SERVICE_ACCOUNT_KEY" > ./google-play-key.json
+
+      - name: EAS submit (Android → Play internal track)
+        run: |
+          if [ -n "${{ inputs.build_id }}" ]; then
+            eas submit --platform android --profile production --id "${{ inputs.build_id }}" --non-interactive
+          else
+            eas submit --platform android --profile production --latest --non-interactive
+          fi
+
+      - name: Clean up key
+        if: always()
+        run: rm -f ./google-play-key.json
