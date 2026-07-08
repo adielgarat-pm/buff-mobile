@@ -11,12 +11,12 @@ import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, KeyboardAvoidingView,
-  Share,
 } from 'react-native';
 import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
+import InviteChildCard from '../../components/parent/InviteChildCard';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -24,7 +24,6 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { PARENT_THEME as T } from '../../theme';
-import { BUFF_URLS } from '../../lib/buffConfig';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
 import { useParentRecommendations } from '../../hooks/useParentRecommendations';
@@ -58,7 +57,6 @@ export default function ParentDashboardScreen() {
   const route                              = useRoute<RouteProp<ParentTabsParamList, 'ParentDashboard'>>();
   const { t }                              = useTranslation();
   const { profile, user, familyId, familyShortCode } = useAuth();
-  const [codeCopied, setCodeCopied]        = useState(false);
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
   const { isSubscribed, insightsUnlocked, isTrialActive, trialDaysLeft } = useSubscription();
@@ -747,53 +745,12 @@ export default function ParentDashboardScreen() {
           Surface for the family-level join code. Today the code lives only at
           end-of-onboarding + Settings → Account, and parents couldn't find it
           post-onboarding (Noa/Leia bug, 2026-05-27, see IN-2026-05-27-02).
-          Family-scoped, not per-child: one code joins any kid. */}
+          Family-scoped, not per-child: one code joins any kid.
+          Extracted component — share is cross-platform (shareInvite) with a
+          visible clipboard fallback; the old inline Share.share was a silent
+          no-op on web. */}
       {effectiveView === 'today' && familyShortCode && (
-        <View style={[styles.inviteCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
-          <Text style={[styles.inviteTitle, { color: T.text }]}>{t('inviteCard.title')}</Text>
-          <Text style={[styles.inviteMicrocopy, { color: T.textMuted }]}>{t('inviteCard.microcopy')}</Text>
-
-          <Text style={[styles.inviteCodeLabel, { color: T.textMuted }]}>{t('inviteCard.codeLabel')}</Text>
-          <View style={[styles.inviteCodeBox, { backgroundColor: T.accent }]}>
-            <Text style={styles.inviteCodeText}>{familyShortCode}</Text>
-          </View>
-
-          <View style={styles.inviteBtnRow}>
-            <TouchableOpacity
-              style={[styles.inviteShareBtn, { backgroundColor: T.accent }]}
-              onPress={async () => {
-                try {
-                  await Share.share({
-                    message: t('inviteCard.shareMessage', {
-                      code: familyShortCode,
-                      installUrl: BUFF_URLS.playStoreInstall,
-                    }),
-                  });
-                } catch (err) {
-                  console.warn('[InviteCard] Share failed:', err);
-                }
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.inviteShareBtnText}>{t('inviteCard.shareBtn')}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.inviteCopyBtn, { borderColor: T.cardBorder }]}
-              onPress={async () => {
-                const Clipboard = await import('expo-clipboard');
-                await Clipboard.setStringAsync(familyShortCode);
-                setCodeCopied(true);
-                setTimeout(() => setCodeCopied(false), 2000);
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.inviteCopyBtnText, { color: T.accent }]}>
-                {codeCopied ? t('inviteCard.copiedBtn') : t('inviteCard.copyBtn')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <InviteChildCard familyShortCode={familyShortCode} />
       )}
 
       {/* ── Children cards (Yesterday view) ──────────────────────────────── */}
@@ -1133,19 +1090,6 @@ const styles = StyleSheet.create({
   childActions: { flexDirection: 'row', gap: 10 },
   actionBtn:    { flex: 1, borderWidth: 1, borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   actionBtnText: { fontSize: 13, fontWeight: '600' },
-
-  // Invite-a-child card (family-level)
-  inviteCard:        { borderRadius: 16, padding: 18, marginTop: 4, marginBottom: 18, borderWidth: 1 },
-  inviteTitle:       { fontSize: 16, fontWeight: '700', marginBottom: 6 },
-  inviteMicrocopy:   { fontSize: 13, lineHeight: 19, marginBottom: 14 },
-  inviteCodeLabel:   { fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6 },
-  inviteCodeBox:     { borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, alignItems: 'center', marginBottom: 14 },
-  inviteCodeText:    { color: '#fff', fontSize: 26, fontWeight: '900', letterSpacing: 6 },
-  inviteBtnRow:      { flexDirection: 'row', gap: 10 },
-  inviteShareBtn:    { flex: 2, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
-  inviteShareBtnText:{ color: '#fff', fontSize: 14, fontWeight: '700' },
-  inviteCopyBtn:     { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center', borderWidth: 1 },
-  inviteCopyBtnText: { fontSize: 14, fontWeight: '600' },
 
   // Shared modal overlay
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },

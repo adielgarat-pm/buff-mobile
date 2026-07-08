@@ -1397,6 +1397,8 @@
   "inviteCard.copyBtn": "Copy",
   "inviteCard.copiedBtn": "Copied ✓",
   "inviteCard.shareMessage": "Hey! I joined BUFF — an app that helps me organize myself 💪\n\n📲 Download: {{installUrl}}\n\nThen during sign-up enter the code:\n\n{{code}}",
+  "inviteCard.shareFallbackTitle": "Invite copied",
+  "inviteCard.shareFallbackBody": "Sharing isn't available here, so we copied the invite message instead — paste it into any chat to send it.",
   "footer.lovableAttribution": "Made with love using",
   "v2.stepOf": "Step {current} of {total}",
   "v2.continue": "Continue",
