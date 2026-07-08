@@ -48,9 +48,24 @@ jest.mock('../../../integrations/supabase/client', () => ({
   supabase: { from: jest.fn() },
 }));
 
-// Stub the native date picker — it's not the system under test and depends
-// on platform-specific native modules that aren't loaded in jsdom.
-jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
+// Stub the platform-split BirthdayField (pkg/ux-parent-web-pickers replaced the
+// screen's inline DateTimePicker with it — same fix onboarding got in PR #287).
+// The stub exposes a button that "picks" a fixed date so tests can verify the
+// screen wires value/onChange through to the save payload.
+jest.mock('../../../components/BirthdayField', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ value, onChange, placeholder }: any) => (
+      <TouchableOpacity
+        testID="edit-child-birthday-field"
+        onPress={() => onChange(new Date('2015-06-01T00:00:00Z'))}
+      >
+        <Text>{value ? value.toISOString().split('T')[0] : placeholder}</Text>
+      </TouchableOpacity>
+    ),
+  };
+});
 
 // Off-routine card is its own unit (its own auth/language/supabase deps) — stub
 // it out of the EditChild test so it doesn't pull those into this suite.
@@ -193,6 +208,27 @@ describe('EditChildScreen', () => {
       // Seeded from the Latin name "Lia" (no stored language) → 'en'.
       language:        'en',
     });
+  });
+
+  test('birthday field renders the stored date and a picked date reaches the save payload', async () => {
+    const updateSpy = installSupabaseMock({
+      loadRow:         baseChild,
+      prevProSettings: { age_group: '9-11', gender: 'girl' },
+    });
+
+    const { getByTestId, getByText } = render(<EditChildScreen />);
+    await waitFor(() => expect(getByTestId('edit-child-birthday-field')).toBeTruthy());
+
+    // Hydrated from profiles.birth_date.
+    expect(getByText('2014-03-10')).toBeTruthy();
+
+    // "Pick" a new date via the platform-split field, then save.
+    fireEvent.press(getByTestId('edit-child-birthday-field'));
+    fireEvent.press(getByTestId('edit-child-save'));
+
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+    const payload = updateSpy.mock.calls[0][0] as { birth_date: string };
+    expect(payload.birth_date).toBe('2015-06-01'); // same "YYYY-MM-DD" contract as before
   });
 
   test('language toggle writes the chosen pro_settings.language', async () => {
