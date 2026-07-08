@@ -383,6 +383,7 @@
   "gamerDashboard.previewBanner": "{{name}}'s screen",
   "gamerDashboard.successfulDays": "Successful days",
   "gamerDashboard.currentStreak": "Current streak",
+  "gamerDashboard.streakStart": "Start one today",
   "gamerDashboard.totalBuffs": "TOTAL BUFFS",
   "gamerDashboard.focusFuel": "Focus Fuel",
   "gamerDashboard.ignitionReached": "70% Ignition reached 🏆",
