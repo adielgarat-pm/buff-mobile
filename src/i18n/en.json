@@ -905,6 +905,7 @@
   "phase.afternoon": "Afternoon",
   "phase.evening": "Evening",
   "phase.tasks": "Quests",
+  "phase.doneAt": "Done at {{time}} ✓",
   "day.sun": "Sun",
   "day.mon": "Mon",
   "day.tue": "Tue",

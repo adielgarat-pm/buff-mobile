@@ -905,6 +905,7 @@
   "phase.afternoon": "צהריים",
   "phase.evening": "ערב",
   "phase.tasks": "משימות",
+  "phase.doneAt": "סיימת ב-{{time}} ✓",
   "day.sun": "ראשון",
   "day.mon": "שני",
   "day.tue": "שלישי",
