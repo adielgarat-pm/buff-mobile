@@ -3,8 +3,9 @@
 > Bilingual (HE + EN) parent guide for the school-year → summer/camp transition for ADHD kids.
 > Source content for the shared web page (Artifact). Brand: BUFF_BRAND.md (Pastel palette, Heebo, "coach not cop" voice, no streaks / no 🔥, no surveillance framing).
 >
-> **Web version:** https://claude.ai/code/artifact/d7cb8645-386e-44cd-80ba-f2bdac333399
+> **Web version:** https://buffadhd.com/guides/summer/ (static page in landing-web, `pkg/seo-guides`, 2026-07-08 — replaces the claude.ai Artifact, which returns 403 to anonymous visitors).
 > **Origin:** built from Noa's 1.7.8 questions; broadened per Adi to a seasonal transition guide (2026-07-07).
+> **Copy change 2026-07-08:** "חגגו 70%" reworded to "חגגו את ה'רוב'" (both languages) — "70%" is legacy copy; in-app success moved to an absolute count (D-2026-06-14, per GEMINI_CONTEXT_PACK).
 
 ---
 
@@ -27,13 +28,13 @@
 4. **הכינו את התיק בערב שלפני** — קיץ = ציוד שמשתנה כל יום; רשימה שמכינים בערב מורידה עומס בוקר.
 5. **תנו לילד/ה לארוז לבד** — אריזה היא מיומנות תפקוד ניהולי; הקיץ הוא זמן מצוין לתרגל בלי לחץ. _ב‑BUFF: הילד/ה מסמן/ת בעצמו/ה מה כבר נארז._
 6. **בנו ימי מנוחה — בלי אשמה** — יום בבית הוא חלק מהתכנית, לא כישלון. _ב‑BUFF: Pause עוצר את השגרה ליום מנוחה._
-7. **חגגו 70%** — קיץ הוא לא מבחן; אם רוב הדברים קרו, זה יום מנצח.
+7. **חגגו את ה"רוב"** — קיץ הוא לא מבחן; אם רוב הדברים קרו היום, זה יום מנצח.
 
 **איך BUFF תומך במעבר**
 - **ייבוא לוח הקייטנה** — צילום/הדבקה, ו‑BUFF שולף גם את הציוד כולל „בתיק כל יום”.
 - **כרטיס „נארוז יחד?”** — כל מה שצריך לארוז, להיום ולמחר, במקום אחד; הילד/ה מסמן/ת לבד.
 - **Pause לימי מנוחה** — עוצרים בלי אשמה, ממשיכים כשמוכנים.
-- **70% = ניצחון** — יום לא‑מושלם עדיין נחשב הצלחה.
+- **יום לא‑מושלם עדיין נחשב** — רוב הדברים קרו? יום מנצח. בלי איפוסים, בלי בושה.
 
 _עד שהם כבר לא יזדקקו לנו._
 
@@ -58,13 +59,13 @@ The ADHD brain leans on structure and repetition. When the fixed school routine 
 4. **Pack the bag the night before** — summer gear changes daily; a list packed the night before cuts the morning load.
 5. **Let your child pack on their own** — packing is a core executive-function skill; summer is a great time to practise it. _In BUFF: your child checks off what's already packed._
 6. **Build in rest days — guilt-free** — a day at home is part of the plan, not a failure of it. _In BUFF: Pause stops the routine for a rest day._
-7. **Celebrate 70%** — summer isn't a test; if most things happened, it's a winning day.
+7. **Celebrate "most of it"** — summer isn't a test; if most things happened today, it's a winning day.
 
 **How BUFF supports the transition**
 - **Import the camp schedule** — snap/paste, and BUFF also pulls the gear, including a "bring every day" note.
 - **The "Let's pack" card** — everything to pack, today and tomorrow, in one place; your child checks it off.
 - **Pause for rest days** — pause without guilt, resume when ready.
-- **70% = a win** — an imperfect day still counts as success.
+- **An imperfect day still counts** — most things happened? That's a win. No resets, no shame.
 
 _Until they don't need us._
 
