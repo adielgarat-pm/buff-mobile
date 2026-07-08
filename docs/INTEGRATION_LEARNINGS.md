@@ -46,6 +46,15 @@
 - **סטטוס:** resolved (הקוד בחבילה זו); open — החלטת publication ל-3 הטבלאות; open — עדכון helpers.sh.
 - **קשור ל:** pkg/fix-pause-visibility-child, migration 040, pkg/pause-mode (PRs #22-25), PR #233 (day chips + backfill).
 
+### IN-2026-07-08-01: ה-quarantine של ThemeContext (preview-theme) היה חסר-mock, לא באג מוצר; ובנוסף — קופי 70% שרד את D-2026-06-14 בשני מסכי הורה
+
+- **תאריך:** 2026-07-08
+- **מקור:** CC — סשן "בקרה impeccable" אחרי מיזוג 16 הקומיטים של 2026-07-08 (#325-#340).
+- **תיאור:** (1) הטסט המבודד מ-IN-2026-06-29-01 ("previewed child theme") נכשל כי הסוויטה לא עשתה mock ל-supabase client — נתיב ה-View-as-Child קורא את התמה מה-DB, וה-client האמיתי קרס ב-import (realtime-js דורש WebSocket ב-Node 20). אחרי mock — הטסט עובר; **אין באג מוצר**. ה-skip הוסר. (2) כרטיסי הילדים בדשבורד ההורה עדיין הציגו "70% = יום מוצלח" עם `pct>=70`, ומסך הפילוסופיה לימד את חוק ה-70% — שניהם סותרים את `successDay.ts` (D-2026-06-14). יושרו ל-count (`isActiveDay`/`successGoal`) + מפתח `weeklyGoal.goalCount`.
+- **השפעה:** עקביות הורה↔ילד על הגדרת "יום פעיל"; אמינות סוויטת הטסטים (0 skips).
+- **סטטוס:** resolved — pkg/qa-impeccable-sweep.
+- **קשור ל:** IN-2026-06-29-01, D-2026-06-14, PR #336.
+
 ### IN-2026-06-29-01: GitHub Actions CI נוסף — חשף 3 כשלים pre-existing שהיו אדומים ב-main (כי לא היה gate). 2 בודדו עם tracking, 1 תוקן
 
 - **תאריך:** 2026-06-29
