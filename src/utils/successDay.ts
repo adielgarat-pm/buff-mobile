@@ -30,3 +30,38 @@ export const SUCCESS_DAY_FLOOR = 3;
 export function isActiveDay(completed: number, assigned: number): boolean {
   return assigned > 0 && completed >= Math.min(SUCCESS_DAY_FLOOR, assigned);
 }
+
+/**
+ * The day's success goal in absolute completed tasks — `LEAST(3, assigned)`.
+ * A 1-2 task day has a reachable goal of 1-2; zero assigned tasks → goal 0
+ * (a rest day, nothing to chase). Child surfaces (Focus Fuel, egg hatch,
+ * ignition copy) MUST anchor on this, never on a % of the whole list
+ * (D-2026-06-14).
+ */
+export function successGoal(assigned: number): number {
+  return Math.max(0, Math.min(SUCCESS_DAY_FLOOR, Math.floor(assigned)));
+}
+
+/**
+ * Focus Fuel fill — progress toward the count goal as a 0-100 percentage,
+ * capped at 100 (completing beyond the goal keeps the bar full, it never
+ * overflows). Zero-goal days (no tasks) show an empty bar.
+ */
+export function fuelProgressPct(completed: number, assigned: number): number {
+  const goal = successGoal(assigned);
+  if (goal === 0) return 0;
+  return Math.min(100, Math.round((Math.max(0, completed) / goal) * 100));
+}
+
+/**
+ * Egg crack stage keyed to COMPLETIONS, not a % of all tasks
+ * (D-2026-06-14): 0 = intact, 1 = first crack (1 task done),
+ * 2 = second crack (2 done), 3 = hatch (goal `successGoal(assigned)`
+ * reached). On a 1-2 task day the egg hatches at 1-2 completions.
+ */
+export function eggCrackStage(completed: number, assigned: number): 0 | 1 | 2 | 3 {
+  const goal = successGoal(assigned);
+  if (goal === 0) return 0;
+  if (completed >= goal) return 3;
+  return Math.min(Math.max(0, Math.floor(completed)), 2) as 0 | 1 | 2;
+}
