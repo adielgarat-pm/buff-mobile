@@ -95,27 +95,43 @@ function PastelChildRewards() {
     border:     T.border,
   };
 
-  const [rewards, setRewards] = useState<StoreReward[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [rewards, setRewards]       = useState<StoreReward[]>([]);
+  const [loading, setLoading]       = useState(true);
+  // Fetch errors must NOT masquerade as the empty state ("Ask your parent to
+  // add some!") — on flaky networks (e.g. ERR_CONNECTION_RESET to Supabase)
+  // the kid would nag the parent while rewards actually exist. Track the
+  // error separately and render a distinct, retryable state instead.
+  const [fetchError, setFetchError] = useState(false);
 
-  useEffect(() => {
+  const fetchRewards = useCallback(() => {
     if (!childId) {
       setRewards([]);
+      setFetchError(false);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setFetchError(false);
     supabase
       .from('store_rewards')
       .select('id, title, title_he, emoji, size, credits_needed, is_redeemed, cash_value')
       .eq('child_id', childId)
       .eq('is_redeemed', false)
       .then(({ data, error }) => {
-        if (error) console.error('[ChildRewards] fetch error:', error.message);
+        if (error) {
+          console.error('[ChildRewards] fetch error:', error.message);
+          setFetchError(true);
+          setLoading(false);
+          return;
+        }
         setRewards(data ?? []);
         setLoading(false);
       });
   }, [childId]);
+
+  useEffect(() => {
+    fetchRewards();
+  }, [fetchRewards]);
 
   // Redeem = open a redemption REQUEST for parent approval (points are deducted
   // later, by the parent, on approval). Only opens if the child can afford it.
@@ -177,6 +193,26 @@ function PastelChildRewards() {
         <ScrollView contentContainerStyle={styles.content}>
           <PauseEmptyState />
         </ScrollView>
+      ) : fetchError ? (
+        // Distinct error state — never show "ask your parent" for a network hiccup.
+        <View style={styles.centered} testID="rewards-error-state">
+          <Text style={styles.errorEmoji}>📡</Text>
+          <Text style={{ color: T.foreground, fontSize: 15, fontWeight: '600', textAlign: 'center' }}>
+            {t('childRewards.errorTitle')}
+          </Text>
+          <Text style={{ color: T.mutedForeground, fontSize: 13, marginTop: 6, textAlign: 'center' }}>
+            {t('childRewards.errorSub')}
+          </Text>
+          <TouchableOpacity
+            style={[styles.retryBtn, { backgroundColor: T.primary }]}
+            onPress={fetchRewards}
+            accessibilityRole="button"
+            accessibilityLabel={t('childRewards.retry')}
+            testID="rewards-retry"
+          >
+            <Text style={[styles.retryText, { color: T.primaryForeground }]}>{t('childRewards.retry')}</Text>
+          </TouchableOpacity>
+        </View>
       ) : rewards.length === 0 ? (
         <View style={styles.centered}>
           <Text style={{ color: T.mutedForeground, fontSize: 15 }}>{t('childRewards.empty')}</Text>
@@ -301,7 +337,11 @@ const styles = StyleSheet.create({
   walletIcon:   { fontSize: 16 },
   walletAmount: { fontSize: 18, fontWeight: '800' },
   walletLabel:  { fontSize: 12 },
-  centered:     { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  centered:     { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
+  errorEmoji:   { fontSize: 40, marginBottom: 10 },
+  // ≥44pt touch target per safe-zone rule (minHeight + centered content).
+  retryBtn:     { marginTop: 18, minHeight: 44, paddingHorizontal: 28, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  retryText:    { fontSize: 14, fontWeight: '700' },
   content:      { padding: 20, paddingTop: 4, paddingBottom: 32 },
   sectionLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 },
   rewardCard:   { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, gap: 12, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 1, shadowRadius: 12, elevation: 3 },
