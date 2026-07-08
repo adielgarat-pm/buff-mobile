@@ -17,6 +17,26 @@ let mockPreviewChildId: string | null = null;
 jest.mock('../AuthContext', () => ({ useAuth: () => ({ profile: mockProfile }) }));
 jest.mock('../ModeContext', () => ({ useMode: () => ({ previewChildId: mockPreviewChildId }) }));
 
+// Mock the supabase client: realtime-js now demands a WebSocket constructor at
+// import time (absent in Jest's Node env), and the View-as-Child path reads the
+// previewed child's theme from profiles.pro_settings.
+jest.mock('../../integrations/supabase/client', () => ({
+  supabase: {
+    from: () => ({
+      select: () => ({
+        eq: (_col: string, id: string) => ({
+          single: () =>
+            Promise.resolve({
+              data: id === 'gamer-kid' ? { pro_settings: { child_theme: 'gamer' } } : { pro_settings: null },
+              error: null,
+            }),
+        }),
+      }),
+      update: () => ({ eq: () => Promise.resolve({ data: null, error: null }) }),
+    }),
+  },
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
   default: { getItem: jest.fn(), setItem: jest.fn().mockResolvedValue(undefined) },
@@ -49,11 +69,10 @@ describe('ThemeContext — per-child isolation', () => {
     await waitFor(() => expect(result.current.themeName).toBe('mint'));
   });
 
-  // QUARANTINED (pre-existing failure, red on main before CI existed): in
-  // View-as-Child the theme resolves to 'mint' instead of the previewed child's
-  // 'gamer'. May be a real bug in preview-child theme resolution — do NOT treat
-  // this skip as accepted behavior. Tracked in IN-2026-06-29-01; un-skip on fix.
-  it.skip('uses the previewed child id when a parent is in View-as-Child', async () => {
+  // Un-quarantined (was IN-2026-06-29-01): the failure was the missing supabase
+  // mock — the View-as-Child path reads the theme from the DB, and the unmocked
+  // client hung, leaving the theme at 'mint'. With the client mocked it passes.
+  it('uses the previewed child id when a parent is in View-as-Child', async () => {
     mockProfile = { id: 'parent-1', role: 'parent' };
     mockPreviewChildId = 'gamer-kid';
     const { result } = renderHook(() => useTheme(), { wrapper });
