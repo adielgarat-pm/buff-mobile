@@ -1026,7 +1026,38 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 ---
 
 <a name="sign-off"></a>
-## ✍️ Sign-off — Current run
+## ✍️ Sign-off — Run 2026-07-08 (post-merge impeccable sweep)
+
+**Run started:** 2026-07-08
+**Build:** Dev-client + Metro 8083 (main @ ec440dd merged) — Android emulator + Expo Web :19006
+**Tester:** CC (Hat 1 + Hat 2 + Hat 3 autonomous)
+**Scope:** the 9 UX-fix merges of 2026-07-08 (#332-#339 + packing #325/#326)
+
+| Check | Verdict | Notes |
+|---|---|---|
+| Hat 1 tsc + Jest | ✅ | 663→666 tests green; fixed ThemeContext suite (websocket env crash) + un-quarantined View-as-Child theme test (IN-2026-06-29-01 was a missing mock, not a product bug) |
+| #332 parent → Signup | ✅ web | "אני הורה" lands on Signup, not Login |
+| #333 no late-shame | ✅ android | Morning task completed 15:10 → neutral done row, no warning badge |
+| #334 rewards error state | ✅ | healthy path on device; error path via new Jest suites |
+| #335 gamer daily loop | ✅ android | successful-days = DB value (6); 0-streak hidden ("Start one today"); full-row tap toggles + Buffs 140↔175; banner-tap exits preview |
+| #336 count goal | ✅ both | child fuel 0/3 + "משלימים 3 = הצתה"; **found+fixed**: parent card still said "70% = a successful day" — now `successDay.ts`-anchored (see run findings) |
+| #337 paywall child gate | ✅ | parent deep-link opens FoundingHundred (correct); child-stack removal covered by PaywallChildGate.test (7 tests) |
+| #338 share invite | ✅ both | Android: system share sheet w/ install URL; Web: clipboard fallback + "הועתק" toast |
+| #339 web pickers | ✅ web | ParentTasks `input[type=time]` live, 08:00→08:30 saved+persisted; UStep1 date input works; Activities/MedReminder via Jest |
+| Packing (#325/#326) | ✅ android | "נארוז יחד?" renders daily gear (07:30 activity) + child "הוסף לעצמי" |
+| Web signup→onboarding E2E | ✅ | fresh family, 7 steps, plan preview personalized to motivator, family code issued; 0 console errors |
+
+**Run findings (fixed in `pkg/qa-impeccable-sweep`):**
+1. Parent dashboard child card contradicted D-2026-06-14 (70% copy + `pct>=70` goal logic) → now uses `isActiveDay`/`successGoal`/`fuelProgressPct` + `weeklyGoal.goalCount` key (EN+HE).
+2. Philosophy screen `smartGoal` pillar still taught the 70% rule → copy re-anchored to ~3-missions/active-day (EN+HE, flagged for Adi redline).
+3. Dead i18n key `ignition.aboveGoal` ("Above the 70% success threshold!") removed.
+4. `ThemeContext.test.tsx` failed at import (realtime-js demands WebSocket in Node 20) → supabase client mocked; quarantined preview-theme test re-enabled and green.
+
+**Known items observed, NOT in scope (already tracked):** 13-vs-14 task count divergence (day-filtering, has HANDOFF), Latin-name → English task titles for Hebrew family (language trap memory), RevenueCat BILLING_UNAVAILABLE LogBox on emulator (dev-only).
+
+---
+
+## ✍️ Sign-off — Run 2026-05-20 (previous)
 
 **Run started:** 2026-05-20
 **Build:** Dev-client + Metro 8083 from worktree `elastic-cannon-6d759f`

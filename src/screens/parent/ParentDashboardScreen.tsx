@@ -29,6 +29,7 @@ import { useParentInsights } from '../../hooks/useParentInsights';
 import { useParentRecommendations } from '../../hooks/useParentRecommendations';
 import RecommendationCard from '../../components/parent/RecommendationCard';
 import type { Recommendation } from '../../utils/recommendationEngine';
+import { isActiveDay, successGoal, fuelProgressPct } from '../../utils/successDay';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
 import { useParentNotifications } from '../../hooks/useParentNotifications';
@@ -656,8 +657,11 @@ export default function ParentDashboardScreen() {
         </View>
       ) : (
         children.map(child => {
-          const pct    = child.tasksTotal > 0 ? Math.round((child.tasksCompleted / child.tasksTotal) * 100) : 0;
-          const atGoal = pct >= 70;
+          // Anchor on the shared count rule (successDay.ts, D-2026-06-14) so the
+          // parent card and the child's Focus Fuel never contradict each other.
+          const pct    = fuelProgressPct(child.tasksCompleted, child.tasksTotal);
+          const atGoal = isActiveDay(child.tasksCompleted, child.tasksTotal);
+          const goal   = successGoal(child.tasksTotal);
           const sos    = getSosForChild(child.childId);
           return (
             <View key={child.childId} style={[styles.childCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
@@ -711,7 +715,7 @@ export default function ParentDashboardScreen() {
                 <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: atGoal ? T.success : T.accentLight }]} />
               </View>
               <View style={styles.goalRow}>
-                <Text style={[styles.goalText, { color: T.textMuted }]}>{t('weeklyGoal.goal70')}</Text>
+                <Text style={[styles.goalText, { color: T.textMuted }]}>{t('weeklyGoal.goalCount', { goal })}</Text>
                 <View style={styles.goalMark} />
               </View>
 
