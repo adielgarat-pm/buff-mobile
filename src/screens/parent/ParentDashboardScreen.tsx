@@ -36,6 +36,7 @@ import { useParentNotifications } from '../../hooks/useParentNotifications';
 import { useYesterdayRecap } from '../../hooks/useYesterdayRecap';
 import LinkChildModal from '../../components/LinkChildModal';
 import PauseBanner from '../../components/PauseBanner';
+import ResumeHandoffBanner from '../../components/ResumeHandoffBanner';
 import YesterdayRecapCard from '../../components/YesterdayRecapCard';
 import AnchorRecoveryPromptModal from './AnchorRecoveryPromptModal';
 import MedReminderSheet from './MedReminderSheet';
@@ -426,6 +427,9 @@ export default function ParentDashboardScreen() {
     >
       {/* ── Pause banner (only renders when paused) ─────────────────────── */}
       <PauseBanner />
+
+      {/* ── Resume-handoff nudge (child added but never activated) ────────── */}
+      <ResumeHandoffBanner familyChildren={children} familyShortCode={familyShortCode} />
 
       {/* ── Passive nudge slot (install / rate-us) — at most one at a time ── */}
       {activeNudge?.render() ?? null}
