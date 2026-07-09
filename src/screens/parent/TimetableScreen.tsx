@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TimetableScreen — Parent side
  *
  * Manages the full schedule lifecycle in one screen:
@@ -15,8 +15,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
-  ActivityIndicator, StyleSheet, Platform, Modal,
+  ActivityIndicator, StyleSheet, Platform, Modal, KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system';
@@ -24,6 +25,7 @@ import { crossAlert } from '../../platform';
 
 import { PARENT_THEME as T } from '../../theme';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
+import TimeField from '../../components/TimeField';
 import { supabase } from '../../integrations/supabase/client';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useTimetable } from '../../hooks/useTimetable';
@@ -33,9 +35,10 @@ import {
   type WeekDay, type Timetable, type PeriodInfo,
 } from '../../types/timetable';
 import {
-  parseExcelBase64, processApiResponse, periodsToTimetable,
+  parseExcelBase64, processApiResponse, periodsToTimetable, applyDailyEquipment,
   generateBuffStandardTime, type ParsedPeriod,
 } from '../../utils/timetableParser';
+import { copyTimetableDay, dayHasLessons, type CopyDayMode } from '../../utils/timetableCopy';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,6 +50,18 @@ export default function TimetableScreen() {
   const { t, i18n } = useTranslation();
   const isHebrew    = i18n.language === 'he';
   const dayLabels   = isHebrew ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
+
+  // Fixed footers must clear the system nav / gesture area — edge-to-edge
+  // Android draws content behind it, so without this the save button lands in
+  // the untappable zone (real-user report, Noa 2026-07-06: tapping "save"
+  // opened the system menu instead). ≥20pt clearance per the safe-zone rule.
+  const insets    = useSafeAreaInsets();
+  const footerPad = { paddingBottom: Math.max(insets.bottom + 12, 20) };
+  // Headers must clear the status bar the same way: this screen hard-coded
+  // paddingTop 16 on Android, which put "Update Schedule" + the bell UNDER the
+  // status bar on edge-to-edge devices — reproduced on the emulator
+  // (2026-07-06): every header tap was swallowed by the system bar.
+  const headerPad = { paddingTop: Math.max(insets.top + 8, Platform.OS === 'ios' ? 56 : 16) };
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
   const [selectedChildId, setSelectedChildId]  = useState<string | null>(null);
@@ -92,6 +107,10 @@ export default function TimetableScreen() {
   // ── Manual ─────────────────────────────────────────────────────────────────
   const [manualTimetable, setManualTimetable] = useState<Timetable>({});
   const [manualDay,       setManualDay]       = useState<WeekDay>('sunday');
+  // Copy-day (pkg/timetable-copy-day): duplicate the current day's lessons
+  // (incl. equipment) into other days in ≤3 taps.
+  const [copyDayOpen,     setCopyDayOpen]     = useState(false);
+  const [copyTargets,     setCopyTargets]     = useState<WeekDay[]>([]);
 
   // ── Paste ──────────────────────────────────────────────────────────────────
   const [pasteText,    setPasteText]    = useState('');
@@ -233,7 +252,8 @@ export default function TimetableScreen() {
       }
 
       const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
-      openReview(periods, hasAuto, hasErrors);
+      const withGear = applyDailyEquipment(periods, data.daily_equipment, t('timetable.dailyGear'));
+      openReview(withGear, hasAuto, hasErrors);
     } catch (err: unknown) {
       if ((err as Error)?.name === 'AbortError') return;
       console.error('[TimetableScreen] OCR error:', err);
@@ -264,9 +284,10 @@ export default function TimetableScreen() {
         return;
       }
       const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
+      const withGear = applyDailyEquipment(periods, data.daily_equipment, t('timetable.dailyGear'));
       // Clear the paste buffer once we've consumed it
       setPasteText('');
-      openReview(periods, hasAuto, hasErrors);
+      openReview(withGear, hasAuto, hasErrors);
     } catch (err: unknown) {
       console.error('[TimetableScreen] paste error:', err);
       crossAlert(t('timetable.parseError'), err instanceof Error ? err.message : '');
@@ -335,17 +356,32 @@ export default function TimetableScreen() {
       filtered[day] = (manualTimetable[day] ?? []).filter(p => p.subject.trim());
     });
     const total = Object.values(filtered).reduce((s, ps) => s + ps.length, 0);
+
+    const doSave = async () => {
+      const ok = await saveTimetable(filtered);
+      if (ok) {
+        crossAlert('', t('timetable.saveSuccess'));
+        setMode('view');
+      } else {
+        crossAlert('', t('timetable.saveError'));
+      }
+    };
+
+    // Saving an EMPTY schedule is legal — it's how a parent wipes last year's
+    // timetable (e.g. school year → camp). It just needs explicit consent;
+    // the old hard block made clearing impossible (Adi, 2026-07-07).
     if (total === 0) {
-      crossAlert('', t('timetable.noLessonsManual'));
+      crossAlert(
+        t('timetable.clearAllTitle'),
+        t('timetable.clearAllMsg'),
+        [
+          { text: t('timetable.cancel'), style: 'cancel' },
+          { text: t('timetable.clearAllConfirm'), style: 'destructive', onPress: () => { void doSave(); } },
+        ],
+      );
       return;
     }
-    const ok = await saveTimetable(filtered);
-    if (ok) {
-      crossAlert('', t('timetable.saveSuccess'));
-      setMode('view');
-    } else {
-      crossAlert('', t('timetable.saveError'));
-    }
+    await doSave();
   }, [manualTimetable, saveTimetable, t]);
 
   const manualAddLesson = (day: WeekDay) => {
@@ -353,6 +389,35 @@ export default function TimetableScreen() {
       const existing = prev[day] ?? [];
       return { ...prev, [day]: [...existing, { subject: '', startTime: generateBuffStandardTime(existing.length) }] };
     });
+  };
+
+  // ── Copy-day handlers ───────────────────────────────────────────────────────
+  const openCopyDay  = () => { setCopyTargets([]); setCopyDayOpen(true); };
+  const closeCopyDay = () => setCopyDayOpen(false);
+
+  const applyCopyDay = (copyMode: CopyDayMode) => {
+    setManualTimetable(prev => copyTimetableDay(prev, manualDay, copyTargets, copyMode));
+    setCopyDayOpen(false);
+    // Jump to the first target so the result is visible instantly.
+    if (copyTargets.length > 0) setManualDay(copyTargets[0]);
+  };
+
+  const handleCopyDayConfirm = () => {
+    // Never silently overwrite a day that already has named lessons.
+    const conflict = copyTargets.some(d => dayHasLessons(manualTimetable, d));
+    if (conflict) {
+      crossAlert(
+        t('timetable.copyDay.existingTitle'),
+        t('timetable.copyDay.existingMsg'),
+        [
+          { text: t('timetable.cancel'), style: 'cancel' },
+          { text: t('timetable.copyDay.append'),  onPress: () => applyCopyDay('append') },
+          { text: t('timetable.copyDay.replace'), style: 'destructive', onPress: () => applyCopyDay('replace') },
+        ],
+      );
+      return;
+    }
+    applyCopyDay('replace');
   };
 
   const manualUpdateLesson = (day: WeekDay, idx: number, updates: Partial<PeriodInfo>) => {
@@ -367,6 +432,13 @@ export default function TimetableScreen() {
       ...prev,
       [day]: (prev[day] ?? []).filter((_, i) => i !== idx),
     }));
+  };
+
+  // Clear the whole day in one tap (season change: school year → camp).
+  // Local editor state only — nothing persists until the parent saves, and
+  // Back discards, so no confirm dialog is needed here.
+  const manualClearDay = (day: WeekDay) => {
+    setManualTimetable(prev => ({ ...prev, [day]: [] }));
   };
 
   // ─── Render helpers ───────────────────────────────────────────────────────────
@@ -426,7 +498,7 @@ export default function TimetableScreen() {
 
     return (
       <View style={[styles.container, { backgroundColor: T.bg }]}>
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <Text style={[styles.title, { color: T.text }]}>{t('timetable.title')}</Text>
           <View style={styles.headerRight}>
             {hasTimetable && (
@@ -507,7 +579,7 @@ export default function TimetableScreen() {
   if (mode === 'choose') {
     return (
       <View style={[styles.container, { backgroundColor: T.bg }]}>
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('view')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -573,8 +645,11 @@ export default function TimetableScreen() {
   if (mode === 'paste') {
     const lineCount = pasteText.split('\n').filter(l => l.trim()).length;
     return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
-        <View style={styles.header}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.container, { backgroundColor: T.bg }]}
+      >
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -617,7 +692,7 @@ export default function TimetableScreen() {
           textAlignVertical="top"
         />
 
-        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+        <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-paste">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
             <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
           </TouchableOpacity>
@@ -637,7 +712,7 @@ export default function TimetableScreen() {
             }
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -666,9 +741,12 @@ export default function TimetableScreen() {
       .sort((a, b) => (a.lessonNumber ?? 0) - (b.lessonNumber ?? 0) || a.time.localeCompare(b.time));
 
     return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.container, { backgroundColor: T.bg }]}
+      >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -713,7 +791,7 @@ export default function TimetableScreen() {
         )}
 
         {/* Period rows */}
-        <ScrollView contentContainerStyle={styles.periodList}>
+        <ScrollView contentContainerStyle={styles.periodList} keyboardShouldPersistTaps="handled">
           {dayPeriods.map(period => {
             const hasError = period.selected && (period.missingSubject || period.missingDay);
             const isSplit  = (period.groupTotal ?? 0) > 1;
@@ -761,18 +839,17 @@ export default function TimetableScreen() {
                     </View>
                   )}
 
-                  {/* Time input */}
-                  <TextInput
+                  {/* Time — native OS picker (matches the task-edit modal) */}
+                  <TimeField
                     value={period.time}
-                    onChangeText={v => updatePeriod(period.id, { time: v, autoTime: false })}
+                    onChange={v => updatePeriod(period.id, { time: v, autoTime: false })}
                     style={[
-                      styles.timeInput,
-                      { borderColor: period.autoTime ? '#F59E0B' : T.cardBorder, color: T.text },
+                      styles.timeField,
+                      { borderColor: period.autoTime ? '#F59E0B' : T.cardBorder },
                     ]}
-                    placeholder="HH:MM"
-                    placeholderTextColor={T.textMuted}
-                    keyboardType="numbers-and-punctuation"
-                    maxLength={5}
+                    textStyle={[styles.timeFieldText, { color: T.text }]}
+                    accessibilityLabel={t('timetable.lessonTimeLabel')}
+                    testID={`time-field-review-${period.id}`}
                   />
 
                   {/* Subject input */}
@@ -811,7 +888,8 @@ export default function TimetableScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Equipment for this lesson */}
+                {/* Equipment for this lesson — bounded multiline so a long gear
+                    list stays readable without one field swallowing the screen */}
                 <View style={styles.equipRow}>
                   <Text style={styles.equipIcon}>🎒</Text>
                   <TextInput
@@ -821,6 +899,7 @@ export default function TimetableScreen() {
                     placeholder={t('timetable.equipmentBagPlaceholder')}
                     placeholderTextColor={T.textMuted}
                     accessibilityLabel={t('timetable.equipmentForLesson')}
+                    multiline
                   />
                 </View>
               </View>
@@ -880,7 +959,7 @@ export default function TimetableScreen() {
         </Modal>
 
         {/* Confirm */}
-        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+        <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-review">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
             <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
           </TouchableOpacity>
@@ -902,7 +981,7 @@ export default function TimetableScreen() {
             }
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -915,8 +994,11 @@ export default function TimetableScreen() {
     );
 
     return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
-        <View style={styles.header}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[styles.container, { backgroundColor: T.bg }]}
+      >
+        <View style={[styles.header, headerPad]}>
           <TouchableOpacity onPress={() => setMode('choose')}>
             <Ionicons name="arrow-back" size={24} color={T.text} />
           </TouchableOpacity>
@@ -926,21 +1008,20 @@ export default function TimetableScreen() {
 
         {renderDayTabs(manualDay, setManualDay, WEEK_DAYS_WITH_FRIDAY)}
 
-        <ScrollView contentContainerStyle={styles.periodList}>
+        <ScrollView contentContainerStyle={styles.periodList} keyboardShouldPersistTaps="handled">
           {manualLessons.map((lesson, i) => (
             <View key={i} style={[styles.equipCard, { borderColor: T.cardBorder }]}>
               <View style={styles.cardTopRow}>
                 <View style={[styles.lessonBadge, { backgroundColor: T.accent + '22' }]}>
                   <Text style={[styles.lessonBadgeText, { color: T.accent }]}>{i + 1}</Text>
                 </View>
-                <TextInput
+                <TimeField
                   value={lesson.startTime}
-                  onChangeText={v => manualUpdateLesson(manualDay, i, { startTime: v })}
-                  style={[styles.timeInput, { borderColor: T.cardBorder, color: T.text }]}
-                  placeholder="HH:MM"
-                  placeholderTextColor={T.textMuted}
-                  keyboardType="numbers-and-punctuation"
-                  maxLength={5}
+                  onChange={v => manualUpdateLesson(manualDay, i, { startTime: v })}
+                  style={[styles.timeField, { borderColor: T.cardBorder }]}
+                  textStyle={[styles.timeFieldText, { color: T.text }]}
+                  accessibilityLabel={t('timetable.lessonTimeLabel')}
+                  testID={`time-field-manual-${i}`}
                 />
                 <TextInput
                   value={lesson.subject}
@@ -962,6 +1043,7 @@ export default function TimetableScreen() {
                   placeholder={t('timetable.equipmentBagPlaceholder')}
                   placeholderTextColor={T.textMuted}
                   accessibilityLabel={t('timetable.equipmentForLesson')}
+                  multiline
                 />
               </View>
             </View>
@@ -975,26 +1057,113 @@ export default function TimetableScreen() {
               {t('timetable.addLesson')}
             </Text>
           </TouchableOpacity>
+
+          {/* Copy this day's lessons to other days (visible affordance —
+              features that hide don't exist; see SPEC discoverability note) */}
+          {manualLessons.length > 0 && (
+            <TouchableOpacity
+              onPress={openCopyDay}
+              style={[styles.addLessonBtn, { borderColor: T.cardBorder }]}
+              testID="copy-day-open"
+            >
+              <Text style={[styles.addLessonText, { color: T.accent }]}>
+                {t('timetable.copyDay.button')}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Clear the whole day (season change: school → camp). Local-only
+              until save; Back discards, so no confirm here. */}
+          {manualLessons.length > 0 && (
+            <TouchableOpacity
+              onPress={() => manualClearDay(manualDay)}
+              style={[styles.addLessonBtn, { borderColor: '#FCA5A5' }]}
+              testID="clear-day"
+            >
+              <Text style={[styles.addLessonText, { color: '#EF4444' }]}>
+                {t('timetable.clearDayBtn')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
 
-        <View style={[styles.reviewFooter, { borderTopColor: T.cardBorder }]}>
+        {/* Copy-day target picker */}
+        <Modal visible={copyDayOpen} transparent animationType="fade" onRequestClose={closeCopyDay}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={closeCopyDay}>
+            <View style={[styles.dayPickerModal, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
+              <Text style={[styles.dayPickerTitle, { color: T.text }]}>
+                {t('timetable.copyDay.title', { day: dayLabels[manualDay] })}
+              </Text>
+              <View style={styles.dayPickerGrid}>
+                {WEEK_DAYS_WITH_FRIDAY.filter(d => d !== manualDay).map(day => {
+                  const selected = copyTargets.includes(day);
+                  const hasRows  = dayHasLessons(manualTimetable, day);
+                  return (
+                    <TouchableOpacity
+                      key={day}
+                      testID={`copy-day-chip-${day}`}
+                      onPress={() =>
+                        setCopyTargets(prev =>
+                          selected ? prev.filter(d => d !== day) : [...prev, day])
+                      }
+                      style={[
+                        styles.dayPickerOption,
+                        {
+                          backgroundColor: selected ? T.accent : 'transparent',
+                          borderColor: selected ? T.accent : T.cardBorder,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.dayPickerOptionText, { color: selected ? '#fff' : T.text }]}>
+                        {dayLabels[day]}
+                      </Text>
+                      {hasRows && (
+                        <Text style={[styles.copyDayHint, { color: selected ? '#fff' : T.textMuted }]}>
+                          {t('timetable.copyDay.hasLessons')}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <TouchableOpacity
+                testID="copy-day-confirm"
+                disabled={copyTargets.length === 0}
+                onPress={handleCopyDayConfirm}
+                style={[
+                  styles.confirmBtn, styles.copyDayConfirm,
+                  { backgroundColor: copyTargets.length === 0 ? T.cardBorder : T.accent },
+                ]}
+              >
+                <Text style={styles.confirmBtnText}>
+                  {t('timetable.copyDay.confirm', { count: copyTargets.length })}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-manual">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
             <Text style={{ color: T.textMuted }}>{t('timetable.back')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={handleConfirmManual}
-            disabled={totalFilled === 0 || saving}
-            style={[styles.confirmBtn, { backgroundColor: totalFilled === 0 ? T.cardBorder : T.accent }]}
+            disabled={saving}
+            style={[styles.confirmBtn, { backgroundColor: totalFilled === 0 ? '#EF4444' : T.accent }]}
+            testID="manual-save"
           >
             {saving
               ? <ActivityIndicator size="small" color="#fff" />
               : <Text style={styles.confirmBtnText}>
-                  {t('timetable.saveLessons', { count: totalFilled })}
+                  {totalFilled === 0
+                    ? t('timetable.saveEmpty')
+                    : t('timetable.saveLessons', { count: totalFilled })}
                 </Text>
             }
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
@@ -1061,13 +1230,17 @@ const styles = StyleSheet.create({
   cardTopRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
   equipRow:      { flexDirection: 'row', alignItems: 'center', gap: 6 },
   equipIcon:     { fontSize: 15 },
-  equipInput:    { flex: 1, height: 34, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 8, fontSize: 13 },
+  // Bounded multiline: grows to ~3 lines then scrolls internally, so one long
+  // gear list can never push the footer off-screen (Noa, 2026-07-06).
+  equipInput:    { flex: 1, minHeight: 34, maxHeight: 76, borderWidth: 1.5, borderRadius: 8,
+                   paddingHorizontal: 8, paddingVertical: 6, fontSize: 13 },
   checkbox:      { width: 22, height: 22, borderRadius: 6, borderWidth: 2,
                    alignItems: 'center', justifyContent: 'center' },
   lessonBadge:   { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   lessonBadgeText:{ fontSize: 11, fontWeight: '700' },
-  timeInput:     { width: 64, height: 36, borderWidth: 1.5, borderRadius: 8,
-                   paddingHorizontal: 6, fontSize: 13, textAlign: 'center' },
+  timeField:     { width: 76, height: 36, borderWidth: 1.5, borderRadius: 8,
+                   flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
+  timeFieldText: { fontSize: 13, fontWeight: '600' },
   subjectInput:  { flex: 1, height: 36, borderWidth: 1.5, borderRadius: 8, paddingHorizontal: 8, fontSize: 14 },
   deleteBtn:     { padding: 4 },
 
@@ -1081,6 +1254,8 @@ const styles = StyleSheet.create({
   addLessonBtn:  { borderWidth: 1.5, borderStyle: 'dashed', borderRadius: 12,
                    paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   addLessonText: { fontSize: 14, fontWeight: '600' },
+  copyDayHint:   { fontSize: 9, marginTop: 2 },
+  copyDayConfirm:{ marginTop: 16 },
 
   groupBadge:    { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,
                    paddingVertical: 2, borderRadius: 8, backgroundColor: '#E0E7FF',

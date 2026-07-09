@@ -18,9 +18,12 @@
  */
 import { useState } from 'react';
 import {
-  Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet, Platform, ActivityIndicator,
+  Modal, View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator,
 } from 'react-native';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+// Platform-split time control ("HH:MM" in/out): native OS picker on Android/iOS,
+// browser <input type="time"> on web — a direct DateTimePicker import renders
+// NOTHING on web (dead control).
+import TimeField from '../../components/TimeField';
 import { useTranslation } from 'react-i18next';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 import { PARENT_THEME as T } from '../../theme';
@@ -30,16 +33,6 @@ const MORNING_DEFAULT = '07:30';
 const EVENING_DEFAULT = '20:00';
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
-
-function hhmmToDate(hhmm: string): Date {
-  const [h, m] = hhmm.split(':').map((n) => parseInt(n, 10));
-  const d = new Date();
-  d.setHours(Number.isFinite(h) ? h : 7, Number.isFinite(m) ? m : 30, 0, 0);
-  return d;
-}
-function toHHMM(d: Date): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
 
 export interface MedReminderSheetProps {
   visible: boolean;
@@ -58,10 +51,8 @@ export default function MedReminderSheet({
   const { textAlign, rowDirection } = useRTLStyles();
 
   const [morningTime, setMorningTime] = useState(MORNING_DEFAULT);
-  const [showMorning, setShowMorning] = useState(false);
   const [eveningOn, setEveningOn]     = useState(false);
   const [eveningTime, setEveningTime] = useState(EVENING_DEFAULT);
-  const [showEvening, setShowEvening] = useState(false);
   const [days, setDays]               = useState<number[]>(ALL_DAYS);
   const [saving, setSaving]           = useState(false);
 
@@ -73,8 +64,6 @@ export default function MedReminderSheet({
     setEveningOn(false);
     setEveningTime(EVENING_DEFAULT);
     setDays(ALL_DAYS);
-    setShowMorning(false);
-    setShowEvening(false);
     setSaving(false);
   };
 
@@ -149,27 +138,17 @@ export default function MedReminderSheet({
             <Text style={[styles.label, { color: T.textMuted, textAlign }]}>
               {t('medReminder.morningLabel')}
             </Text>
-            <TouchableOpacity
-              style={[styles.timeRow, { borderColor: T.cardBorder, flexDirection: rowDirection }]}
-              onPress={() => setShowMorning(true)}
-              accessibilityRole="button"
-            >
+            <View style={[styles.timeRow, { borderColor: T.cardBorder, flexDirection: rowDirection }]}>
               <Text style={[styles.timeRowLabel, { color: T.text }]}>{t('medReminder.morning')}</Text>
-              <Text style={[styles.timeRowValue, { color: T.text }]}>{morningTime}</Text>
-            </TouchableOpacity>
-            {showMorning && (
-              <DateTimePicker
-                mode="time"
-                is24Hour
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                value={hhmmToDate(morningTime)}
-                onChange={(e: DateTimePickerEvent, sel?: Date) => {
-                  if (Platform.OS === 'android') setShowMorning(false);
-                  if (e.type === 'set' && sel) setMorningTime(toHHMM(sel));
-                  if (e.type === 'dismissed') setShowMorning(false);
-                }}
+              <TimeField
+                value={morningTime}
+                onChange={setMorningTime}
+                style={styles.timeFieldTap}
+                textStyle={[styles.timeRowValue, { color: T.text }]}
+                accessibilityLabel={t('medReminder.morningLabel')}
+                testID="med-morning-time"
               />
-            )}
+            </View>
 
             {/* Evening dose — opt-in */}
             {!eveningOn ? (
@@ -194,27 +173,17 @@ export default function MedReminderSheet({
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={[styles.timeRow, { borderColor: T.cardBorder, flexDirection: rowDirection }]}
-                  onPress={() => setShowEvening(true)}
-                  accessibilityRole="button"
-                >
+                <View style={[styles.timeRow, { borderColor: T.cardBorder, flexDirection: rowDirection }]}>
                   <Text style={[styles.timeRowLabel, { color: T.text }]}>{t('medReminder.evening')}</Text>
-                  <Text style={[styles.timeRowValue, { color: T.text }]}>{eveningTime}</Text>
-                </TouchableOpacity>
-                {showEvening && (
-                  <DateTimePicker
-                    mode="time"
-                    is24Hour
-                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    value={hhmmToDate(eveningTime)}
-                    onChange={(e: DateTimePickerEvent, sel?: Date) => {
-                      if (Platform.OS === 'android') setShowEvening(false);
-                      if (e.type === 'set' && sel) setEveningTime(toHHMM(sel));
-                      if (e.type === 'dismissed') setShowEvening(false);
-                    }}
+                  <TimeField
+                    value={eveningTime}
+                    onChange={setEveningTime}
+                    style={styles.timeFieldTap}
+                    textStyle={[styles.timeRowValue, { color: T.text }]}
+                    accessibilityLabel={t('medReminder.evening')}
+                    testID="med-evening-time"
                   />
-                )}
+                </View>
               </>
             )}
 
@@ -301,6 +270,8 @@ const styles = StyleSheet.create({
   subtitle:   { fontSize: 13, marginTop: 2 },
   label:      { fontSize: 13, marginTop: 18, marginBottom: 8 },
   timeRow:    { alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14 },
+  // The tappable time value inside the row (TimeField renders value + 🕐).
+  timeFieldTap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   timeRowLabel: { fontSize: 15 },
   timeRowValue: { fontSize: 18, fontWeight: '700' },
   addEveningBtn: { paddingVertical: 10, marginTop: 8 },

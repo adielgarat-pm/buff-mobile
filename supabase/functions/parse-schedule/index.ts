@@ -10,6 +10,7 @@ interface ParsedLesson {
   start_time: string;
   end_time: string | null;
   lesson_name: string | null;
+  equipment?: string | null;   // comma-separated gear for this lesson
   auto_time?: boolean;
   row_index?: number;
 }
@@ -20,6 +21,7 @@ interface ParsedTask {
   day: string;
   category: string;
   credits: number;
+  equipment?: string | null;   // carried through to PeriodInfo.equipment on the client
   autoTime?: boolean;
   missingSubject?: boolean;
   lessonNumber?: number;
@@ -226,6 +228,7 @@ function lessonsToTasks(lessons: ParsedLesson[], applyCleanup = true): ParsedTas
         day: l.day,
         category: guessCategory(subject),
         credits: isEmpty ? 0 : guessCredits(subject),
+        equipment: (l.equipment ?? '').toString().trim() || null,
         autoTime: l.auto_time,
         missingSubject: isEmpty,
         lessonNumber: (l as any).row_index || 0,
@@ -282,6 +285,74 @@ async function callAnthropic(opts: {
   return json.content?.[0]?.text ?? "{}";
 }
 
+// ── Runtime config (DB-driven, D-IE-3) ────────────────────────────────────────
+// Model + optional prompt override per mode live in public.edge_function_config
+// (row key 'parse_schedule'), so tuning is a DB edit, not a redeploy. Anything
+// absent falls back to the baked-in defaults below; any load failure → defaults,
+// so a DB problem never breaks import.
+
+const DEFAULT_MODELS: Record<string, string> = {
+  image: "claude-sonnet-4-6",
+  text:  "claude-haiku-4-5-20251001",
+  excel: "claude-haiku-4-5-20251001",
+};
+
+const EQUIPMENT_RULE = `EQUIPMENT (IMPORTANT):
+- If a lesson/cell lists gear to bring, put it in "equipment" (comma-separated).
+- If the sheet has a general "bring every day / keep in the bag" note (often a footer), return it ONCE in top-level "daily_equipment" (comma-separated). Do NOT repeat it on every lesson.`;
+
+const DEFAULT_PROMPTS: Record<string, string> = {
+  image: `You are an OCR parser for ANY weekly schedule — a school timetable, a summer-camp board, or after-school activities. Extract EXACTLY what is written, by the times and labels in the sheet. Do NOT assume a fixed list of subjects; camp activities (בריכה, סרט, הפנינג, חוג) are valid lesson_name values.
+
+LAYOUT: columns are usually days (headers may be dated, e.g. "רביעי 8.7" → map to that weekday). Rows are time slots. Cells may be merged/colored; IGNORE header blocks (coordinator name, phone numbers, group name).
+
+DAYS (RTL, right→left): ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday. Include any day that appears.
+
+${EQUIPMENT_RULE}
+
+ZERO DATA LOSS: keep a row if it has a label OR a time. Unclear label → append [?]. Missing time → start_time null (the system fills it).
+
+Return ONLY valid JSON, no markdown fences.
+OUTPUT: {"lessons":[{"day":"יום ב'","row_index":1,"start_time":"08:00","lesson_name":"מתמטיקה","equipment":"מחשבון, סרגל"}],"daily_equipment":"בגד ים, קרם הגנה, כובע, מים, בגדים להחלפה"}`,
+
+  text: `You parse ANY weekly schedule from extracted OCR/pasted text — school, camp, or activities. Use the times and labels as written; do not assume fixed subjects.
+
+DAYS: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday. Include Friday if present. A dated day header → its weekday.
+
+${EQUIPMENT_RULE}
+
+RULES: Return ONLY valid JSON, no markdown, no explanation. If time is missing set start_time to null.
+OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה","equipment":"חלוק"}],"daily_equipment":null}`,
+
+  excel: `You parse ANY weekly schedule from spreadsheet rows — school, camp, or activities. Use the times and labels as written; do not assume fixed subjects.
+
+DAYS: ראשון=Sunday, שני=Monday, שלישי=Tuesday, רביעי=Wednesday, חמישי=Thursday, שישי=Friday. Always extract the Friday column if present (often leftmost in RTL).
+
+${EQUIPMENT_RULE}
+
+RULES: Return ONLY valid JSON, no markdown. If time missing set start_time to null.
+OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה","equipment":"מחברת"}],"daily_equipment":null}`,
+};
+
+interface ParseConfig { models?: Record<string, string>; prompts?: Record<string, string>; }
+
+async function loadParseConfig(): Promise<ParseConfig> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return {};
+  try {
+    const res = await fetch(
+      `${url}/rest/v1/edge_function_config?key=eq.parse_schedule&select=value`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!res.ok) return {};
+    const rows = await res.json();
+    return (rows?.[0]?.value as ParseConfig) ?? {};
+  } catch {
+    return {}; // DB unreachable → baked-in defaults; import never breaks
+  }
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -295,30 +366,24 @@ serve(async (req) => {
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
 
+    const config = await loadParseConfig();
+    const modelFor  = (m: string) => config.models?.[m]  || DEFAULT_MODELS[m];
+    const promptFor = (m: string) => config.prompts?.[m] || DEFAULT_PROMPTS[m];
+
     let parsedTasks: ParsedTask[] = [];
+    let dailyEquipment: string | null = null;
 
     // ── TEXT mode ────────────────────────────────────────────────────────────
     if (fileType === "text" && extractedText) {
       console.log("Processing extracted text...");
 
-      const system = `You are a Hebrew school schedule parser. Parse extracted OCR text into a structured schedule.
-
-CRITICAL: ISRAELI 6-DAY SCHOOL WEEK (Sunday-Friday)
-Friday (יום ו' / שישי) is a STANDARD school day — often shorter with 4-5 lessons. Do NOT skip Friday!
-
-RULES:
-1. Return ONLY valid JSON — no markdown, no explanation, no code fences.
-2. Hebrew days: ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday
-3. If time is missing, set start_time to null.
-4. Include ALL Friday lessons even if fewer than other days.
-
-OUTPUT FORMAT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},{"day":"יום ו","start_time":null,"lesson_name":"אנגלית"},...]}`;
+      const system = promptFor("text");
 
       let content: string;
       try {
         content = await callAnthropic({
           apiKey: ANTHROPIC_API_KEY,
-          model: "claude-haiku-4-5-20251001",
+          model: modelFor("text"),
           system,
           userContent: `Parse this extracted Hebrew schedule text into JSON:\n\n${extractedText}`,
           maxTokens: 4000,
@@ -337,6 +402,9 @@ OUTPUT FORMAT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name"
       try {
         const parsed = JSON.parse(jsonStr);
         const rawLessons = parsed.lessons || [];
+        if (typeof parsed.daily_equipment === "string" && parsed.daily_equipment.trim()) {
+          dailyEquipment = parsed.daily_equipment.trim();
+        }
         const byDay: Record<string, any[]> = {};
         rawLessons.forEach((l: any) => {
           const day = normalizeDay(l.day || 'sunday');
@@ -349,7 +417,7 @@ OUTPUT FORMAT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name"
             const time = normalizeTime(l.start_time);
             const rawIdx = l.row_index ?? (i + 1);
             const rowIdx = Math.min(Math.max(Number(rawIdx) || (i + 1), 1), 10);
-            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, auto_time: !time, row_index: rowIdx });
+            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, equipment: l.equipment ?? null, auto_time: !time, row_index: rowIdx });
           });
         });
         parsedTasks = lessonsToTasks(validated);
@@ -361,26 +429,13 @@ OUTPUT FORMAT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name"
     } else if (fileType === "image" && imageBase64) {
       console.log("Processing image with OCR...");
 
-      const system = `You are a Hebrew school schedule OCR system with ZERO DATA LOSS policy.
-
-CRITICAL: ISRAELI 6-DAY SCHOOL WEEK
-Israeli schools run Sunday–Friday. Friday (יום ו' / שישי) is a STANDARD school day — extract ALL Friday lessons!
-
-RTL COLUMN ORDER (right → left): יום א (Sunday) → יום ב → יום ג → יום ד → יום ה → יום ו (Friday, leftmost)
-
-ZERO DATA LOSS:
-- If you find a subject OR a time, KEEP the row.
-- If subject is unclear, append [?].
-- If time is missing, set start_time to null (system auto-fills).
-
-Return ONLY valid JSON, no markdown fences.
-OUTPUT: {"lessons":[{"day":"יום ב'","row_index":1,"start_time":"08:00","lesson_name":"מתמטיקה"},{"day":"יום ו'","row_index":1,"start_time":null,"lesson_name":"אנגלית"},...]}`;
+      const system = promptFor("image");
 
       let content: string;
       try {
         content = await callAnthropic({
           apiKey: ANTHROPIC_API_KEY,
-          model: "claude-sonnet-4-6",
+          model: modelFor("image"),
           system,
           userContent: [
             { type: "text", text: "Extract the school schedule with ZERO DATA LOSS. Include ALL visible subjects and times. Return only JSON." },
@@ -407,6 +462,9 @@ OUTPUT: {"lessons":[{"day":"יום ב'","row_index":1,"start_time":"08:00","less
       try {
         const parsed = JSON.parse(jsonStr);
         const rawLessons = parsed.lessons || [];
+        if (typeof parsed.daily_equipment === "string" && parsed.daily_equipment.trim()) {
+          dailyEquipment = parsed.daily_equipment.trim();
+        }
         const byDay: Record<string, any[]> = {};
         rawLessons.forEach((l: any) => {
           const day = normalizeDay(l.day || 'sunday');
@@ -420,7 +478,7 @@ OUTPUT: {"lessons":[{"day":"יום ב'","row_index":1,"start_time":"08:00","less
             const time = normalizeTime(l.start_time);
             const rawIdx = l.row_index ?? (i + 1);
             const rowIdx = Math.min(Math.max(Number(rawIdx) || (i + 1), 1), 10);
-            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, auto_time: !time, row_index: rowIdx });
+            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, equipment: l.equipment ?? null, auto_time: !time, row_index: rowIdx });
           });
         });
         parsedTasks = lessonsToTasks(validated);
@@ -433,24 +491,13 @@ OUTPUT: {"lessons":[{"day":"יום ב'","row_index":1,"start_time":"08:00","less
     } else if (fileType === "excel" && excelData) {
       console.log("Processing Excel data...");
 
-      const system = `Parse Hebrew school schedule from spreadsheet data.
-
-CRITICAL: ISRAELI 6-DAY SCHOOL WEEK (Sunday-Friday)
-Friday (יום ו' / שישי) is a STANDARD school day. Include ALL Friday lessons!
-
-RULES:
-1. Return ONLY valid JSON — no markdown, no explanation.
-2. Days: ראשון=Sunday, שני=Monday, שלישי=Tuesday, רביעי=Wednesday, חמישי=Thursday, שישי=Friday
-3. If time missing, set start_time to null.
-4. Always extract Friday column (often leftmost in RTL layout).
-
-OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה"},{"day":"יום ו","start_time":null,"lesson_name":"אנגלית"},...]}`;
+      const system = promptFor("excel");
 
       let content: string;
       try {
         content = await callAnthropic({
           apiKey: ANTHROPIC_API_KEY,
-          model: "claude-haiku-4-5-20251001",
+          model: modelFor("excel"),
           system,
           userContent: `Parse this timetable:\n${JSON.stringify(excelData, null, 2)}`,
           maxTokens: 6000,
@@ -469,6 +516,9 @@ OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מת�
       try {
         const parsed = JSON.parse(jsonStr);
         const rawLessons = parsed.lessons || [];
+        if (typeof parsed.daily_equipment === "string" && parsed.daily_equipment.trim()) {
+          dailyEquipment = parsed.daily_equipment.trim();
+        }
         const byDay: Record<string, any[]> = {};
         rawLessons.forEach((l: any) => {
           const day = normalizeDay(l.day || 'sunday');
@@ -482,7 +532,7 @@ OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מת�
             const time = normalizeTime(l.start_time);
             const rawIdx = l.row_index ?? (i + 1);
             const rowIdx = Math.min(Math.max(Number(rawIdx) || (i + 1), 1), 10);
-            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, auto_time: !time, row_index: rowIdx });
+            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, equipment: l.equipment ?? null, auto_time: !time, row_index: rowIdx });
           });
         });
         parsedTasks = lessonsToTasks(validated);
@@ -492,7 +542,7 @@ OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מת�
       }
     }
 
-    return new Response(JSON.stringify({ tasks: parsedTasks }), {
+    return new Response(JSON.stringify({ tasks: parsedTasks, daily_equipment: dailyEquipment }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 

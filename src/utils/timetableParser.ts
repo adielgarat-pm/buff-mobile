@@ -546,6 +546,40 @@ export const processApiResponse = (
   return { periods, hasAuto, hasErrors };
 };
 
+/**
+ * Append a per-day "daily gear" pseudo-period carrying the schedule's
+ * "bring every day" note (parse-schedule `daily_equipment`, D-IE-1). One row
+ * per day that already has ≥1 lesson, sorted first (lessonNumber 0), so it
+ * surfaces as its own group in the child packing surfaces. No-op when there is
+ * no daily note or no lessons.
+ */
+export const applyDailyEquipment = (
+  periods: ParsedPeriod[],
+  dailyEquipment: string | null | undefined,
+  label: string,
+): ParsedPeriod[] => {
+  const gear = (dailyEquipment ?? '').trim();
+  if (!gear || periods.length === 0) return periods;
+
+  const earliestByDay = new Map<WeekDay, string>();
+  for (const p of periods) {
+    const cur = earliestByDay.get(p.day);
+    if (cur === undefined || p.time.localeCompare(cur) < 0) earliestByDay.set(p.day, p.time);
+  }
+
+  const synthetic: ParsedPeriod[] = [];
+  for (const day of WEEK_DAYS_WITH_FRIDAY) {
+    const time = earliestByDay.get(day);
+    if (time === undefined) continue;
+    synthetic.push({
+      id: generateId(), subject: label, time, day, selected: true,
+      autoTime: false, missingSubject: false, missingDay: false,
+      lessonNumber: 0, equipment: gear,
+    });
+  }
+  return [...periods, ...synthetic];
+};
+
 // ─── Final conversion ─────────────────────────────────────────────────────────
 
 /** Convert confirmed ParsedPeriods to the Timetable shape stored in Supabase. */

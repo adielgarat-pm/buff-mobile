@@ -178,6 +178,11 @@ export default function RootNavigator() {
 
         ) : profile.role === 'child' ? (
           // ─── 3. CHILD — always goes straight to the child app ────────
+          // NOTE: Paywall / FoundingHundred are deliberately NOT registered
+          // here (Pillar 1 — children never see purchase screens). A deep
+          // link like buff://founding-100 opened on a child device falls
+          // back to ChildApp instead of a purchase screen. Both screens
+          // also carry their own role guard as defense-in-depth.
           <>
             <Stack.Screen name="ChildApp" component={ChildTabs} />
             <Stack.Screen
@@ -189,16 +194,6 @@ export default function RootNavigator() {
               name="BuffCatch"
               component={BuffCatchScreen}
               options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Paywall"
-              component={PaywallScreen}
-              options={{ presentation: 'modal', headerShown: false }}
-            />
-            <Stack.Screen
-              name="FoundingHundred"
-              component={FoundingHundredScreen}
-              options={{ presentation: 'modal', headerShown: false }}
             />
           </>
 

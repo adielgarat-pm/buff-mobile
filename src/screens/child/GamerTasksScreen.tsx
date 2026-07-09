@@ -117,39 +117,49 @@ function GamerTaskCard({ task, isNextUp, onTap, labelDone, labelTodo }: {
     >
       {isNextUp && <View style={styles.nextUpBar} />}
 
+      {/* The WHOLE row toggles completion — same contract as the dashboard's
+          task cards. A 26pt circle alone is too small a target for the core
+          action; the circle stays as the visual state indicator only. */}
       <TouchableOpacity
         onPress={() => onTap(task.id, task.completed)}
-        style={[
-          styles.checkCircle,
-          {
-            backgroundColor: task.completed ? COLORS.lime : 'transparent',
-            borderColor:     task.completed
-              ? COLORS.lime
-              : (isNextUp ? COLORS.lime : 'rgba(167,139,250,0.5)'),
-          },
-        ]}
-        accessibilityRole="button"
-        accessibilityLabel={task.completed ? labelDone : labelTodo}
+        style={styles.taskRowTap}
+        activeOpacity={0.7}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: task.completed }}
+        accessibilityLabel={`${task.title} — ${task.completed ? labelDone : labelTodo}`}
+        testID={`task-row-${task.id}`}
       >
-        {task.completed && (
-          <Ionicons name="checkmark" size={14} color={COLORS.canvas} />
-        )}
+        <View
+          style={[
+            styles.checkCircle,
+            {
+              backgroundColor: task.completed ? COLORS.lime : 'transparent',
+              borderColor:     task.completed
+                ? COLORS.lime
+                : (isNextUp ? COLORS.lime : 'rgba(167,139,250,0.5)'),
+            },
+          ]}
+        >
+          {task.completed && (
+            <Ionicons name="checkmark" size={14} color={COLORS.canvas} />
+          )}
+        </View>
+
+        <Text
+          style={[
+            styles.taskTitle,
+            task.completed && styles.taskTitleDone,
+            isNextUp        && styles.taskTitleNextUp,
+          ]}
+          numberOfLines={1}
+        >
+          {task.title}
+        </Text>
+
+        <Text style={[styles.taskCredits, task.completed && { opacity: 0.55 }]}>
+          +{task.credits}
+        </Text>
       </TouchableOpacity>
-
-      <Text
-        style={[
-          styles.taskTitle,
-          task.completed && styles.taskTitleDone,
-          isNextUp        && styles.taskTitleNextUp,
-        ]}
-        numberOfLines={1}
-      >
-        {task.title}
-      </Text>
-
-      <Text style={[styles.taskCredits, task.completed && { opacity: 0.55 }]}>
-        +{task.credits}
-      </Text>
     </Animated.View>
   );
 }
@@ -473,14 +483,18 @@ const styles = StyleSheet.create({
   taskCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 12,
-    padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     position: 'relative',
     overflow: 'hidden',
+  },
+  // Full-row tap target — carries the card's inner layout (padding/row/gap)
+  // so the touchable covers the entire card surface.
+  taskRowTap: {
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   taskCardDone: { opacity: 0.55 },
   taskCardNextUp: {

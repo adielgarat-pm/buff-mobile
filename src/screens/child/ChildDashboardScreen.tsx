@@ -21,6 +21,7 @@ import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { isWeekendToday } from '../../utils/schoolDay';
 import { isTaskVisibleToday } from '../../utils/taskSchedule';
+import { successGoal, fuelProgressPct, isActiveDay } from '../../utils/successDay';
 import { PetDisplay } from '../../components/PetDisplay';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import OffRoutineBanner from '../../components/OffRoutineBanner';
@@ -118,8 +119,12 @@ function PastelChildDashboard() {
   const todayTasks = tasks.filter(t => isTaskVisibleToday(t, isWeekend));
   const doneTasks  = todayTasks.filter(t => t.completed).length;
   const totalTasks = todayTasks.length;
-  const fuelPct    = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-  const atGoal     = fuelPct >= 70;
+  // Count-based success (D-2026-06-14): a good day = min(3, total) completed
+  // tasks, NOT 70% of the whole list — with 9-20 tasks a % goal is unreachable
+  // and reads as permanent failure. Shared rule lives in utils/successDay.
+  const goalCount  = successGoal(totalTasks);
+  const fuelPct    = fuelProgressPct(doneTasks, totalTasks);
+  const atGoal     = isActiveDay(doneTasks, totalTasks);
 
   // Streak is server-derived per child (migration 029, read from daily_progress)
   // so it's correct on shared devices. The hook refetches on focus, so the badge
@@ -155,7 +160,7 @@ function PastelChildDashboard() {
           onPress={exitChildPreview}
         >
           <Text style={[styles.previewText, { color: T.primaryForeground }]}>
-            {t('childDashboard.previewBanner')}
+            {t('childDashboard.previewBanner', { name: previewChildName ?? t('childDashboard.previewName') })}
           </Text>
         </TouchableOpacity>
       )}
@@ -205,6 +210,7 @@ function PastelChildDashboard() {
             t={t}
             doneTasks={doneTasks}
             totalTasks={totalTasks}
+            goalCount={goalCount}
             fuelPct={fuelPct}
             atGoal={atGoal}
             isChildPreview={isChildPreview}
@@ -234,6 +240,7 @@ interface DashboardActiveContentProps {
   t: (key: string, options?: Record<string, unknown>) => string;
   doneTasks: number;
   totalTasks: number;
+  goalCount: number;
   fuelPct: number;
   atGoal: boolean;
   isChildPreview: boolean;
@@ -248,7 +255,7 @@ interface DashboardActiveContentProps {
 }
 
 function DashboardActiveContent({
-  T, t, doneTasks, totalTasks, fuelPct, atGoal, isChildPreview,
+  T, t, doneTasks, totalTasks, goalCount, fuelPct, atGoal, isChildPreview,
   profileName, previewChildName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
   catchBest, catchPlaysLeft,
 }: DashboardActiveContentProps) {
@@ -259,7 +266,7 @@ function DashboardActiveContent({
         <View style={styles.fuelHeader}>
           <Text style={[styles.fuelLabel, { color: T.foreground }]}>{t('childDashboard.focusFuel')}</Text>
           <Text style={[styles.fuelPct, { color: atGoal ? T.success : T.primary }]}>
-            {doneTasks}/{totalTasks}
+            {Math.min(doneTasks, goalCount)}/{goalCount}
           </Text>
         </View>
         <View style={[styles.barTrack, { backgroundColor: T.muted }]}>
@@ -268,12 +275,13 @@ function DashboardActiveContent({
             { width: `${fuelPct}%`, backgroundColor: atGoal ? T.success : T.primary },
           ]} />
         </View>
-        <View style={styles.goalRow}>
-          <View style={[styles.goalLine, { left: '70%', borderColor: T.accent }]} />
-          <Text style={[styles.goalHint, { color: T.mutedForeground }]}>
-            {t('childDashboard.goalHint')}
-          </Text>
-        </View>
+        {goalCount > 0 && (
+          <View style={styles.goalRow}>
+            <Text style={[styles.goalHint, { color: T.mutedForeground }]}>
+              {t('childDashboard.goalHint', { goal: goalCount })}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* BUFF Catch — daily mini-game entry card (full-screen on tap) */}
@@ -354,7 +362,6 @@ const styles = StyleSheet.create({
   barTrack:      { height: 10, borderRadius: 5, overflow: 'visible', marginBottom: 4, position: 'relative' },
   barFill:       { height: '100%', borderRadius: 5, position: 'absolute', top: 0, left: 0 },
   goalRow:       { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 4 },
-  goalLine:      { position: 'absolute', top: -14, bottom: 0, width: 1, borderLeftWidth: 1, borderStyle: 'dashed' },
   goalHint:      { fontSize: 12 },
   petCard:         { borderRadius: 16, padding: 16, marginBottom: 14, borderWidth: 1 },
   lockedPet:       { alignItems: 'center', paddingVertical: 12 },

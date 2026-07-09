@@ -1,0 +1,60 @@
+name: EAS Build (Android)
+
+# Manual/API-triggered production Android build. Runs on EAS cloud (remote
+# credentials — no keystore in the repo). autoIncrement in eas.json bumps the
+# versionCode (→ vc65, …). Trigger from the Actions tab or via the API.
+#
+# Requires ONE repo secret: EXPO_TOKEN
+#   expo.dev → Account → Access tokens → create → add as
+#   GitHub repo → Settings → Secrets and variables → Actions → New secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile'
+        default: production
+        type: string
+      wait:
+        description: 'Wait for the EAS build to finish (else kick and return)'
+        default: false
+        type: boolean
+
+concurrency:
+  group: eas-build-android
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Guard — require EXPO_TOKEN
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Add it in Settings → Secrets and variables → Actions (from expo.dev → Account → Access tokens)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS build (Android app-bundle)
+        run: |
+          eas build \
+            --platform android \
+            --profile "${{ inputs.profile }}" \
+            --non-interactive \
+            ${{ inputs.wait == true && '--wait' || '--no-wait' }}
