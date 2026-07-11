@@ -42,6 +42,7 @@ import { GlobalRewardPop }               from './src/components/GlobalRewardPop'
 import { AlertHost }                     from './src/platform';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
+import { useOtaUpdate }                   from './src/hooks/useOtaUpdate';
 import { resolveChildLang }              from './src/lib/i18nString';
 import { setupPwa }                      from './src/lib/setupPwa';
 import { captureRefFromUrl }             from './src/lib/referralCapture';
@@ -151,6 +152,11 @@ function ChildLanguageBinder() {
 function AppContent() {
   const { isHydrating } = useLanguage();
   const { theme }       = useTheme();
+
+  // OTA: check for an EAS Update on launch; a fetched JS bundle is applied
+  // silently at the next cold start. No-op on web and in dev (see useOtaUpdate).
+  // Called unconditionally, before the isHydrating early-return, per rules-of-hooks.
+  useOtaUpdate();
 
   if (isHydrating) {
     // Blank screen during the ~1 AsyncStorage read.
