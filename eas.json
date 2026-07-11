@@ -14,6 +14,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://api.buffadhd.com",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdmcm9uZ2ZueWlneHNleHVvZnJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3ODQ0MDEsImV4cCI6MjA5MTM2MDQwMX0.74hGy67NJ_YemZK_lKa8LCZFk9VtVZkYa0h5Vs90qpc",
@@ -24,6 +25,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "android": {
         "buildType": "app-bundle"
       },

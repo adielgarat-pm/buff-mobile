@@ -70,7 +70,8 @@ _עד שהם כבר לא יזדקקו לנו._
 ---
 
 ## Open items before publish
-- [ ] Adi redline (new copy — not yet approved).
+- [ ] **Adi redline** (new copy — not yet approved). ← the one gate before merge/publish.
 - [ ] Verify timetable-import phrasing matches the shipped feature's actual flow (parse-schedule v2).
-- [ ] Port to `/guides/back-to-school/` static page (same template as summer) after redline.
-- [ ] Publish ~Aug 1; add cross-links between the two guides.
+- [x] Port to `/guides/back-to-school/` static page (same template as summer) — built at `landing-web/public/guides/back-to-school/index.html` (PR `pkg/seo-guide-back-to-school`).
+- [x] Cross-links between the two guides — added both directions (summer ↔ back-to-school).
+- [ ] Publish: merge the PR after redline. **Publishing early (now) is fine/better** — evergreen page, and earlier indexing helps before the Aug–Sep "back to school ADHD" search peak.

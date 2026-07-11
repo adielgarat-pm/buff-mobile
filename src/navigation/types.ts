@@ -43,6 +43,7 @@ export type RootStackParamList = {
   UStep4_Motivator:    UWithChallenges;
   ULoadingScreen:      UWithMotivator;
   UStep5_Preview:      UWithMotivator;   // saves child profile + tasks + rewards; produces childProfileId
+  UStep6_FirstTask:    UWithPreview;     // "first mission together" — writes the seed daily_progress row
   UStep7_Phone:        UWithPreview;     // receives childProfileId from Preview
   UStep8_Complete:     UWithPhone;       // only updates parent profile + refreshes auth
 

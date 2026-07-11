@@ -3,11 +3,20 @@
     "name": "BUFF",
     "slug": "buff-mobile",
     "scheme": "buff",
-    "version": "1.7.9",
+    "version": "1.8.1",
     "orientation": "portrait",
     "icon": "./assets/BUFF_LOGO.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
+    "updates": {
+      "url": "https://u.expo.dev/8796128b-5e2d-4c0e-9c41-016e87c62ab7",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
     "splash": {
       "image": "./assets/BUFF_LOGO.png",
       "resizeMode": "contain",

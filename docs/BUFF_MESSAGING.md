@@ -205,8 +205,10 @@
 ## 5. Play Store Copy
 
 ### 5.1 Short title (30 chars max)
-**EN:** `BUFF — ADHD Routine Coach`
-**HE:** `BUFF — מאמן שגרה ל-ADHD`
+**EN (live Play title — Adi's call, 2026-07-10):** `BUFF: ADHD Quest Kids & Teens`
+**HE:** `BUFF: קווסט ADHD לילדים ונוער`
+_Alt (coach positioning, prior recommendation):_ `BUFF — ADHD Routine Coach` / `BUFF — מאמן שגרה ל-ADHD`
+_Why the change: the live title had drifted to "BUFF: Habit Quest Kids & Teens" with **no ADHD keyword** — the single highest-intent search term. Restored "ADHD" while keeping "Kids & Teens" (both high-value terms), dropping "Habit" to stay ≤30 chars._
 
 ### 5.2 Short description (80 chars max)
 **EN:** `Routine coaching for kids & teens with ADHD. Real rewards. Built to outgrow.`

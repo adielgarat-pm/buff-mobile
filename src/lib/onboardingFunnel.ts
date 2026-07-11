@@ -1,0 +1,65 @@
+/**
+ * onboardingFunnel — fire-and-forget instrumentation for the acquisition→
+ * activation funnel (Phase 0 of onboarding-redesign).
+ *
+ * Writes to public.onboarding_events. The point is to see where families leak
+ * BETWEEN "child created" and "child active" — the blind spot where the web PWA
+ * dies (parent finishes setup, child never gets a working way in).
+ *
+ * Contract:
+ *   - Never throws. Instrumentation must never break a user flow.
+ *   - Skips silently when familyId is unknown — RLS requires a family scope, and
+ *     the insert would be rejected anyway.
+ *   - Backward-compatible with old app builds: they simply never write these
+ *     rows (the table is invisible to them); no shared contract is changed.
+ */
+import { Platform } from 'react-native';
+import { supabase } from '../integrations/supabase/client';
+
+export type OnboardingEventType =
+  | 'family_created'
+  | 'child_created'
+  | 'tasks_generated'
+  | 'invite_shown'
+  | 'invite_sent'
+  | 'join_page_viewed'
+  | 'child_first_open'
+  | 'first_task_complete'
+  | 'first_task_write_failed'
+  | 'onboarding_resumed'
+  | 'onboarding_abandoned_at_step';
+
+/** How the parent tried to hand BUFF to the child's device. */
+export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';
+
+interface LogArgs {
+  /** Required for RLS scope; the event is skipped if null/undefined. */
+  familyId: string | null | undefined;
+  eventType: OnboardingEventType;
+  childId?: string | null;
+  method?: InviteMethod | null;
+  /** For first_task_complete: 'onboarding_first_task' (seed) vs 'child_authored'. */
+  source?: string | null;
+  /** Feature-flag / A-B cohort. */
+  variant?: string | null;
+  /** Acquisition context (utm/landing) captured on family_created. */
+  acquisition?: Record<string, unknown> | null;
+}
+
+export async function logOnboardingEvent(args: LogArgs): Promise<void> {
+  try {
+    if (!args.familyId) return;
+    await supabase.from('onboarding_events').insert({
+      family_id:   args.familyId,
+      child_id:    args.childId ?? null,
+      event_type:  args.eventType,
+      method:      args.method ?? null,
+      source:      args.source ?? null,
+      variant:     args.variant ?? null,
+      acquisition: args.acquisition ?? null,
+      platform:    Platform.OS,
+    } as never);
+  } catch {
+    /* analytics must never break a flow */
+  }
+}

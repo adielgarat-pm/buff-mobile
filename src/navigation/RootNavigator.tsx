@@ -41,6 +41,7 @@ import UStep3_Challenges   from '../screens/onboarding/unified/UStep3_Challenges
 import UStep4_Motivator    from '../screens/onboarding/unified/UStep4_Motivator';
 import ULoadingScreen      from '../screens/onboarding/unified/ULoadingScreen';
 import UStep5_Preview      from '../screens/onboarding/unified/UStep5_Preview';
+import UStep6_FirstTask    from '../screens/onboarding/unified/UStep6_FirstTask';
 import UStep7_Phone        from '../screens/onboarding/unified/UStep7_Phone';
 import UStep8_Complete     from '../screens/onboarding/unified/UStep8_Complete';
 
@@ -282,6 +283,7 @@ export default function RootNavigator() {
               <Stack.Screen name="UStep4_Motivator"  component={UStep4_Motivator} />
               <Stack.Screen name="ULoadingScreen"    component={ULoadingScreen} />
               <Stack.Screen name="UStep5_Preview"    component={UStep5_Preview} />
+              <Stack.Screen name="UStep6_FirstTask"  component={UStep6_FirstTask} />
               <Stack.Screen name="UStep7_Phone"      component={UStep7_Phone} />
               <Stack.Screen name="UStep8_Complete"   component={UStep8_Complete} />
             </Stack.Group>
@@ -297,6 +299,7 @@ export default function RootNavigator() {
             <Stack.Screen name="UStep4_Motivator"  component={UStep4_Motivator} />
             <Stack.Screen name="ULoadingScreen"    component={ULoadingScreen} />
             <Stack.Screen name="UStep5_Preview"    component={UStep5_Preview} />
+            <Stack.Screen name="UStep6_FirstTask"  component={UStep6_FirstTask} />
             <Stack.Screen name="UStep7_Phone"      component={UStep7_Phone} />
             <Stack.Screen name="UStep8_Complete"   component={UStep8_Complete} />
           </>
