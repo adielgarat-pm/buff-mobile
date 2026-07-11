@@ -8,6 +8,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:web": "expo export --platform web",
+    "ota:preview": "eas update --branch preview",
+    "ota:prod": "eas update --branch production",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
