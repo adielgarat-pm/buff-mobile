@@ -392,7 +392,7 @@ export default function ParentTasksScreen() {
                         {task.title}
                       </Text>
                       <Text style={[styles.taskMeta, { color: T.textMuted }]}>
-                        {task.time} · {task.credits} Buffs
+                        {t('parentTasks.taskMeta', { time: task.time, credits: task.credits })}
                       </Text>
                     </View>
                     {children.length > 1 && (

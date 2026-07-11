@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Phase, PhaseConfig, getPhaseConfig, getSmartPhaseForTime } from '../types/phase';
 import { Task } from '../types/task';
 import { isTaskVisibleOn, toDateKey } from '../lib/taskScheduling';
@@ -33,6 +34,7 @@ export function PhaseView({
   onUncompleteTask,
   hapticsEnabled  = true,
 }: Props) {
+  const { t }       = useTranslation();
   const T           = useChildTheme();
   const phaseConfig = getPhaseConfig(phase);
 
@@ -66,7 +68,7 @@ export function PhaseView({
       {/* Task list */}
       {phaseTasks.length > 0 ? (
         <View style={styles.taskList}>
-          <Text style={[styles.sectionLabel, { color: T.mutedForeground }]}>Tasks</Text>
+          <Text style={[styles.sectionLabel, { color: T.mutedForeground }]}>{t('phaseView.tasksHeader')}</Text>
           {phaseTasks.map(task => (
             <PhaseTaskCard
               key={task.id}
@@ -82,7 +84,7 @@ export function PhaseView({
         <View style={styles.emptyState}>
           <Text style={styles.emptyIcon}>{phaseConfig.icon}</Text>
           <Text style={[styles.emptyText, { color: T.mutedForeground }]}>
-            No tasks for this phase
+            {t('phaseView.empty')}
           </Text>
         </View>
       )}
