@@ -42,6 +42,7 @@ import { GlobalRewardPop }               from './src/components/GlobalRewardPop'
 import { AlertHost }                     from './src/platform';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
+import { useVersionGate }                 from './src/hooks/useVersionGate';
 import { resolveChildLang }              from './src/lib/i18nString';
 import { setupPwa }                      from './src/lib/setupPwa';
 import { captureRefFromUrl }             from './src/lib/referralCapture';
@@ -151,6 +152,11 @@ function ChildLanguageBinder() {
 function AppContent() {
   const { isHydrating } = useLanguage();
   const { theme }       = useTheme();
+
+  // On launch, prompt to update if a newer BINARY is on the Play track (Android
+  // flexible flow). No-op on web/iOS and in dev (see useVersionGate). Called
+  // unconditionally, before the isHydrating early-return, per rules-of-hooks.
+  useVersionGate();
 
   if (isHydrating) {
     // Blank screen during the ~1 AsyncStorage read.
