@@ -1764,6 +1764,7 @@
   "childRewards.errorTitle": "Hmm, we couldn't load your rewards.",
   "childRewards.errorSub": "It's nothing you did — the connection hiccuped. Your rewards are safe!",
   "childRewards.retry": "Try again",
+  "childRewards.toGo": "Only {{count}} to go! ⚡",
   "gamerRewards.title": "REWARDS",
   "gamerRewards.subtitle": "Spend your buffs",
   "gamerRewards.tab.parent": "FROM PARENT",
