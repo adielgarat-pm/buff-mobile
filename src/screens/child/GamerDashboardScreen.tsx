@@ -19,14 +19,17 @@
  * Pause Mode: respects useAppSettings.isPauseActive — shows PauseEmptyState
  * + WelcomeBackModal (per pause-mode SPEC) instead of task content.
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator, Animated,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, useFocusEffect, type CompositeNavigationProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
@@ -54,10 +57,18 @@ import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
 import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
-import type { RootStackParamList } from '../../navigation/types';
+import { useCompletionPop } from '../../hooks/useCompletionPop';
+import type { Task } from '../../types/task';
+import type { RootStackParamList, ChildTabsParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
 
-type Nav = StackNavigationProp<RootStackParamList>;
+// This screen renders inside the ChildTabs navigator (as the ChildDashboard
+// tab) — the composite prop lets it navigate both sibling tabs (ChildSettings)
+// and root-stack screens (GamerMeAndBuddy, BuffCatch).
+type Nav = CompositeNavigationProp<
+  BottomTabNavigationProp<ChildTabsParamList>,
+  StackNavigationProp<RootStackParamList>
+>;
 
 // ─── BUFF brand palette (Gamer mode) — per BUFF_BRAND.md §7.5 ────────────────
 const COLORS = {
@@ -133,6 +144,59 @@ function timeBucket(time: string | undefined): TimeFilter {
   return 'all';
 }
 
+// One HQ task card. Its own component so it can run the completion "pop"
+// (useCompletionPop needs a hook per card; a .map callback can't call hooks).
+// Same feedback contract as the Quests tab's GamerTaskCard.
+function DashboardTaskCard({ task, onTap }: {
+  task: Task;
+  onTap: (id: string, completed: boolean) => void;
+}) {
+  const { t } = useTranslation();
+  const popScale = useCompletionPop(task.completed);
+  return (
+    <Animated.View
+      style={[
+        styles.taskCard,
+        task.completed && styles.taskCardDone,
+        { transform: [{ scale: popScale }] },
+      ]}
+    >
+      <TouchableOpacity
+        style={styles.taskRowTap}
+        onPress={() => onTap(task.id, task.completed)}
+        activeOpacity={0.7}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: task.completed }}
+        accessibilityLabel={`${task.title} — ${task.completed
+          ? t('gamerTasks.markIncomplete')
+          : t('gamerTasks.markComplete')}`}
+        testID={`hq-task-${task.id}`}
+      >
+        <View style={[
+          styles.checkCircle,
+          {
+            backgroundColor: task.completed ? COLORS.lime : 'transparent',
+            borderColor:     task.completed ? COLORS.lime : COLORS.borderActive,
+          },
+        ]}>
+          {task.completed && (
+            <Ionicons name="checkmark" size={14} color={COLORS.canvas} />
+          )}
+        </View>
+        <Text style={[
+          styles.taskTitle,
+          task.completed && styles.taskTitleDone,
+        ]}>
+          {task.title}
+        </Text>
+        <Text style={styles.taskCredits}>
+          {t('gamerTasks.taskCredits', { credits: task.credits })}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 export default function GamerDashboardScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
@@ -185,6 +249,15 @@ export default function GamerDashboardScreen() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [hideModalVisible, setHideModalVisible] = useState(false);
 
+  // Haptics preference persisted by ChildSettingsScreen — same contract as
+  // ChildTasksScreen → PhaseTaskCard (hapticsEnabled).
+  const [hapticsOn, setHapticsOn] = useState(true);
+  useEffect(() => {
+    AsyncStorage.getItem('hapticsOn').then(v => {
+      if (v !== null) setHapticsOn(v === 'true');
+    });
+  }, []);
+
   const buddyVisible = relationship?.buddy_visible ?? true;
   const buddyLevel = relationship?.friendship_level ?? 1;
   // BUDDY skin follows the child's PetSkinPicker choice (pet_state.current_skin)
@@ -197,8 +270,16 @@ export default function GamerDashboardScreen() {
   // contract as the Quests tab (GamerTasksScreen). Writes under previewChildId
   // in view-as-child; RLS allows the family member to write daily_progress.
   const onTaskTap = async (taskId: string, completed: boolean) => {
-    if (completed) await uncompleteTask(taskId);
-    else           await completeTask(taskId);
+    // Same haptic contract as PhaseTaskCard (Mint) and the Quests tab:
+    // success notification on complete, light impact on un-complete.
+    // expo-haptics is a no-op on web, so this is platform-safe.
+    if (completed) {
+      if (hapticsOn) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await uncompleteTask(taskId);
+    } else {
+      if (hapticsOn) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await completeTask(taskId);
+    }
     // Completing on HQ doesn't change focus, so refresh the server streak here
     // (the focus effect covers tasks completed on the Quests tab).
     void refetchStreak();
@@ -213,7 +294,13 @@ export default function GamerDashboardScreen() {
   );
   const filteredTasks = useMemo(() => {
     if (timeFilter === 'all') return todayTasks;
-    return todayTasks.filter(t => timeBucket(t.time) === timeFilter);
+    // Tasks whose time can't be bucketed (empty/unparseable → 'all') stay
+    // visible under EVERY chip — otherwise they'd silently vanish the moment
+    // a teen filters to Morning/…/Evening and the empty state would lie.
+    return todayTasks.filter(t => {
+      const bucket = timeBucket(t.time);
+      return bucket === 'all' || bucket === timeFilter;
+    });
   }, [todayTasks, timeFilter]);
 
   // Low Power Mode trims the task list to the most important + first
@@ -297,12 +384,18 @@ export default function GamerDashboardScreen() {
         </View>
         <View style={styles.iconRow}>
           <SosButton palette={GAMER_LP_PALETTES.sos} />
-          <View style={styles.iconBtn}>
-            <Ionicons name="notifications-outline" size={20} color={COLORS.textMuted} />
-          </View>
-          <View style={styles.iconBtn}>
+          {/* Bell removed — no child-facing notification feed exists, and a
+              dead control dressed as a button erodes trust (Pillar 2). */}
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => navigation.navigate('ChildSettings')}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={t('tabs.child.menu')}
+            testID="dashboard-settings-btn"
+          >
             <Ionicons name="settings-outline" size={20} color={COLORS.textMuted} />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -431,6 +524,9 @@ export default function GamerDashboardScreen() {
                 },
               ]}
               onPress={() => setTimeFilter(key)}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              testID={`filter-chip-${key}`}
             >
               <Text style={[
                 styles.chipText,
@@ -457,40 +553,7 @@ export default function GamerDashboardScreen() {
         </View>
       ) : (
         displayedTasks.map(task => (
-          <TouchableOpacity
-            key={task.id}
-            style={[
-              styles.taskCard,
-              task.completed && styles.taskCardDone,
-            ]}
-            onPress={() => onTaskTap(task.id, task.completed)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel={task.completed
-              ? t('gamerTasks.markIncomplete')
-              : t('gamerTasks.markComplete')}
-          >
-            <View style={[
-              styles.checkCircle,
-              {
-                backgroundColor: task.completed ? COLORS.lime : 'transparent',
-                borderColor:     task.completed ? COLORS.lime : COLORS.borderActive,
-              },
-            ]}>
-              {task.completed && (
-                <Ionicons name="checkmark" size={14} color={COLORS.canvas} />
-              )}
-            </View>
-            <Text style={[
-              styles.taskTitle,
-              task.completed && styles.taskTitleDone,
-            ]}>
-              {task.title}
-            </Text>
-            <Text style={styles.taskCredits}>
-              +{task.credits} BUFFs
-            </Text>
-          </TouchableOpacity>
+          <DashboardTaskCard key={task.id} task={task} onTap={onTaskTap} />
         ))
       )}
 
@@ -620,13 +683,17 @@ const styles = StyleSheet.create({
   taskCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 12,
-    padding: 14,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 230, 62, 0.20)',  // subtle lime border
+  },
+  // Full-row tap target — carries the card's inner layout so the touchable
+  // covers the entire card surface (mirrors GamerTasksScreen.taskRowTap).
+  taskRowTap: {
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(168, 230, 62, 0.20)',  // subtle lime border
   },
   taskCardDone: {
     borderColor: COLORS.border,

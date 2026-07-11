@@ -26,8 +26,10 @@ jest.mock('../../../contexts/ModeContext', () => ({
   useMode: () => ({ previewChildId: null, isChildPreview: false }),
 }));
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('../../../hooks/useBuddyRelationship', () => ({
@@ -217,6 +219,15 @@ describe('GamerMyStatsScreen', () => {
     expect(queryByText('LEVEL 5')).toBeTruthy();
     // progressToNextLevel:6 would render if the bar wasn't hidden
     expect(queryByText('gamerMyStats.progressToNextLevel:6')).toBeNull();
+  });
+
+  test('header gear is a real button that navigates to ChildSettings', () => {
+    const { getByTestId } = render(<GamerMyStatsScreen />);
+    const gear = getByTestId('stats-settings-btn');
+
+    expect(gear.props.accessibilityRole).toBe('button');
+    fireEvent.press(gear);
+    expect(mockNavigate).toHaveBeenCalledWith('ChildSettings');
   });
 
   test('tapping an available booster opens the gift reveal modal', () => {

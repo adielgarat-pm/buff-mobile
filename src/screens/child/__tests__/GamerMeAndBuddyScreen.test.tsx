@@ -198,18 +198,22 @@ describe('GamerMeAndBuddyScreen', () => {
     expect(getByText('STORMY')).toBeTruthy();
   });
 
-  test('non-buddy pet skin (tiger) falls back to "Buddy" name', () => {
+  test('non-buddy pet skin (tiger) falls back to the i18n default buddy name', () => {
     setHooks({
       relationship: { ...baseRelationship, current_skin_id: null, buddy_name: null },
       petSkin: 'tiger',
     });
     const { getByText } = render(<GamerMeAndBuddyScreen />);
-    expect(getByText('Buddy')).toBeTruthy();
+    // t() is mocked to return the key — the fallback is the gamerBuddy.defaultName
+    // catalog entry, not a hardcoded English 'Buddy' literal.
+    expect(getByText('gamerBuddy.defaultName')).toBeTruthy();
   });
 
-  test('back button navigates back', () => {
+  test('back button navigates back and carries an i18n accessibility label', () => {
     const { getByTestId } = render(<GamerMeAndBuddyScreen />);
-    fireEvent.press(getByTestId('me-and-buddy-back'));
+    const back = getByTestId('me-and-buddy-back');
+    expect(back.props.accessibilityLabel).toBe('common.back');
+    fireEvent.press(back);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
