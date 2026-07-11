@@ -322,6 +322,7 @@
   "pet.restMessage": "I'm resting while you go conquer the world. See you after your next task!",
   "pet.levelUp": "Level Up! 🎉",
   "pet.coachSubtitle": "Your buddy is growing thanks to your consistency",
+  "pet.defaultName": "Buddy",
   "pet.celebrationCoach": "Great job! Keep it up! 🔥",
   "pet.greeting.ready": "Hey {name}! Let's keep going together?",
   "pet.greeting.awesome": "{name}, I'm so proud of you! 💪",
