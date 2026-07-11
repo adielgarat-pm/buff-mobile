@@ -14,7 +14,7 @@
 | # | Check | Command | Status |
 |---|-------|---------|--------|
 | 1.1 | Typecheck | `npm run typecheck` | ✅ clean |
-| 1.2 | Web bundles; `.web.ts` resolved; expo-updates absent from web bundle | `npm run web` → "Bundled … (N modules)" no error | ✅ (1754 modules, clean) |
+| 1.2 | Web bundles clean (OTA config is native-only; no new web surface) | `npm run web` → "Bundled … (N modules)" no error | ✅ (1754 modules, clean) |
 | 1.3 | Jest suite unaffected | `npm test` | ⏳ run before merge |
 | 1.4 | No raw Alert introduced | `npm run check:no-raw-alert` | ⏳ (hook uses no Alert — expect pass) |
 | 1.5 | Code review | `/code-review` on diff | ⏳ |
@@ -38,10 +38,10 @@ Prereq: install the Hat-2 `preview` APK on the emulator (NOT a sideloaded dev bu
 | # | Scenario | Steps | Pass criteria |
 |---|----------|-------|---------------|
 | 3.1 | OTA enabled in a real build | Launch app; log `Updates.isEnabled` | `true` (was `false` in dev) |
-| 3.2 | App launches clean with OTA active | Cold start | No crash; onboarding/home renders; no `[OTA]` error in logcat |
+| 3.2 | App launches clean with OTA active | Cold start | No crash; onboarding/home renders |
 | 3.3 | **Silent apply on 2nd cold start** | Make a visible JS change (e.g. a label) → `npm run ota:preview -- --message "hat3 test"` → force-stop → **1st** relaunch → force-stop → **2nd** relaunch | Change is **absent** on 1st relaunch (fetch happened in background), **present** on 2nd. No prompt, no mid-session reload. |
 | 3.4 | No mid-session interruption | While app open, publish an update | App does **not** reload itself; user session uninterrupted |
-| 3.5 | Offline resilience (swallowed failure) | Emulator airplane mode → cold start | App launches normally; `[OTA] update check failed (non-fatal)` in logcat; no user-visible error |
+| 3.5 | Offline resilience | Emulator airplane mode → cold start | App launches normally from the cached bundle; no crash, no user-visible error (expo-updates handles offline internally) |
 | 3.6 | Rollback | `eas update --branch preview` republishing the prior bundle | Reverts on 2nd cold start (proves republish-from-known-state works) |
 
 ---

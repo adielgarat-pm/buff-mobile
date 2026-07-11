@@ -34,9 +34,13 @@ Stop sending every change through the slowest door. Route by what the change tou
   new binary). This is what keeps the native/JS boundary safe.
 - **Channels** (`eas.json`): `production` build → `production` channel; `preview` build →
   `preview` channel. `eas update --branch <b>` publishes to the branch linked to that channel.
-- **App-side** (`src/hooks/useOtaUpdate.ts`): on launch, if `Updates.isEnabled`,
-  check → fetch in background → **apply silently on the next cold start**. No prompt (v1).
-  Web resolves `useOtaUpdate.web.ts` (no-op); expo-updates never enters the web bundle.
+- **Silent apply, no app code (v1):** `checkAutomatically: ON_LOAD` + `fallbackToCacheTimeout: 0`
+  means expo-updates, at the **native** layer on every cold start, launches instantly from the
+  cached bundle, checks + downloads a newer bundle in the background, and applies it on the
+  **next** cold start. No prompt, no JS hook. Doing it at the native layer (rather than a JS
+  hook) means a bad OTA that crashes the JS on launch still self-heals on the next start —
+  the check runs before our JS does, and expo-updates auto-rolls-back a crash-looping update.
+  Web has no `updates` config, so OTA is inherently a native-only concern (no split file needed).
 
 ---
 
