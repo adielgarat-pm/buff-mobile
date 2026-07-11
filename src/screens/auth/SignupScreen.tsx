@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RouteProp } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { crossAlert } from '../../platform';
 import LanguagePicker from '../../components/LanguagePicker';
@@ -41,8 +42,13 @@ export default function SignupScreen() {
   const [familyCode, setFamilyCode]   = useState('');
   const [role, setRole]               = useState<'parent' | 'child'>(initialRole);
   const [marketing, setMarketing]     = useState(false);
+  const [showPassword, setShowPassword]   = useState(false);
   const [loading, setLoading]         = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Keyboard "next" chaining: display name → email/username → password → submit
+  const identifierRef = useRef<TextInput>(null);
+  const passwordRef   = useRef<TextInput>(null);
 
   const handleSignUp = async () => {
     if (role === 'child') {
@@ -86,7 +92,7 @@ export default function SignupScreen() {
     setGoogleLoading(true);
     const { error } = await signInWithGoogle();
     setGoogleLoading(false);
-    if (error) crossAlert('Google sign-up failed', error.message);
+    if (error) crossAlert(t('auth.googleSignUpFailed'), error.message);
   };
 
   return (
@@ -127,9 +133,13 @@ export default function SignupScreen() {
           placeholderTextColor={T.textMuted}
           value={displayName}
           onChangeText={setDisplayName}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => identifierRef.current?.focus()}
         />
         {role === 'child' ? (
           <TextInput
+            ref={identifierRef}
             style={styles.input}
             placeholder={t('auth.username')}
             placeholderTextColor={T.textMuted}
@@ -137,9 +147,13 @@ export default function SignupScreen() {
             onChangeText={setUsername}
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
         ) : (
           <TextInput
+            ref={identifierRef}
             style={styles.input}
             placeholder={t('auth.email')}
             placeholderTextColor={T.textMuted}
@@ -148,16 +162,37 @@ export default function SignupScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => passwordRef.current?.focus()}
           />
         )}
-        <TextInput
-          style={styles.input}
-          placeholder={t('auth.password')}
-          placeholderTextColor={T.textMuted}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordWrap}>
+          <TextInput
+            ref={passwordRef}
+            style={[styles.input, styles.passwordInput]}
+            placeholder={t('auth.password')}
+            placeholderTextColor={T.textMuted}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            returnKeyType="go"
+            onSubmitEditing={handleSignUp}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword((v) => !v)}
+            style={styles.eyeBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+          >
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={22}
+              color={T.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
 
         {/* Family code (only for children) — prominent */}
         {role === 'child' && (
@@ -245,6 +280,9 @@ const styles = StyleSheet.create({
   roleBtnText:       { color: T.textMuted, fontWeight: '600' },
   roleBtnTextActive: { color: '#fff' },
   input:             { backgroundColor: T.card, color: T.text, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 12, borderWidth: 1, borderColor: T.cardBorder },
+  passwordWrap:      { position: 'relative', marginBottom: 12 },
+  passwordInput:     { marginBottom: 0, paddingEnd: 48 },
+  eyeBtn:            { position: 'absolute', end: 14, top: 0, bottom: 0, justifyContent: 'center' },
   hint:              { color: T.textMuted, fontSize: 12, marginBottom: 12 },
   familyCodeLabel:   { color: T.accent, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 8, marginBottom: 8 },
   familyCodeInput:   { backgroundColor: T.card, color: T.text, borderRadius: 16, paddingHorizontal: 20, paddingVertical: 20, marginBottom: 12, borderWidth: 2, borderColor: T.accent, fontSize: 28, fontWeight: '700', textAlign: 'center', letterSpacing: 6 },
