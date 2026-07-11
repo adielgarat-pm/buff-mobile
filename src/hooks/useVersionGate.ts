@@ -26,7 +26,6 @@
  * real on a fresh dev-client/preview/production build.
  */
 import { useEffect } from 'react';
-import * as InAppUpdates from 'expo-in-app-updates';
 
 export function useVersionGate(): void {
   useEffect(() => {
@@ -34,12 +33,22 @@ export function useVersionGate(): void {
 
     (async () => {
       try {
+        // LAZY require — never a top-level import. expo-in-app-updates calls
+        // requireNativeModule("ExpoInAppUpdates") at module-load, which THROWS
+        // when the native module isn't linked (Expo Go / autolink hiccup). A
+        // top-level import runs during App.tsx load, BEFORE Sentry.init — an
+        // invisible launch crash (memory native_import_sentry_blindspot,
+        // IN-2026-06-17 / expo-audio). Requiring here defers that call past
+        // init and inside this try/catch, so a missing/unlinked module is a
+        // swallowed no-op, never a crash.
+        const InAppUpdates = require('expo-in-app-updates') as typeof import('expo-in-app-updates');
         const { updateAvailable, flexibleAllowed } = await InAppUpdates.checkForUpdate();
         if (updateAvailable && flexibleAllowed) {
           await InAppUpdates.startUpdate(false); // false = FLEXIBLE (dismissible); IMMEDIATE off for v1
         }
       } catch (err) {
-        // Non-fatal: a failed update check must never affect the running app.
+        // Non-fatal: a failed update check (or unlinked module) must never
+        // affect the running app.
         console.warn('[version-gate] in-app-update check failed (non-fatal):', err);
       }
     })();
