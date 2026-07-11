@@ -139,6 +139,12 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 
 > 🚧 **CUT — 1.8.0 (versionCode 66), 2026-07-09.** Content = the 2026-07-08 rows above that are app-code: **#332 · #333 · #334 · #335 · #336 · #337 · #338 · #339 · #341** (+ CI workflows #328/#329 ride along, no runtime content). **Landing-only rows (#331, #340, + #343) ship via Vercel, NOT this build.** Manifest + notes: `docs/releases/66/`. Gate 1 ✅ tsc 0 · jest 666/666 (0 skips). Gate 2 ✅ = the full 2026-07-08 QA sweep (MASTER_TEST_PLAYBOOK § Run 2026-07-08). Build: `EAS Build (Android)` workflow from `origin/main`, autoIncrement → vc66. Rows move to **Shipped (66)** after Adi promotes + "verified, tag it".
 
+> 🚉 **NEXT BUILD — merged to `main` AFTER the 1.8.0(vc66)/1.8.1(vc67) train, NOT in any build yet.** Activates on whichever binary is next cut from `origin/main`; no cut-time action needed for it to take effect (config already in `main`).
+>
+> | Date merged | PR / Commit | Type | Change (native-relevant) | Lane | User-facing? | Flow Suite |
+> |---|---|---|---|---|---|---|
+> | 2026-07-11 | #350 / `6244b43` | feat | **Activate OTA (EAS Update)** — JS-only changes now ship over-the-air (minutes, no Play review) via `checkAutomatically:ON_LOAD` + `runtimeVersion:fingerprint`. Config-only, no app-code, no new dep. **⚠️ The FIRST binary carrying this config must ship through the store once — OTA works from that binary onward; the currently-live binary cannot receive OTA.** At cut: confirm fingerprint builds clean (the one risk), then `ota:preview`→verify→`ota:prod`. Playbook: `docs/OTA_PLAYBOOK.md`; tests: `docs/sessions/eas-update-ota/TESTS.md`. | Train | no (infra; makes JS updates invisible-fast) | OTA: preview build → `eas update --branch preview` → new JS applies on 2nd cold start (TESTS Hat 3.3) |
+
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
