@@ -30,6 +30,7 @@ import type { Task } from '../../types/task';
 // NOTHING on web, leaving every task stuck at the 16:00 default (dead control).
 import TimeField from '../../components/TimeField';
 import { useRTLStyles } from '../../contexts/LanguageContext';
+import { guardedSheetClose } from '../../utils/sheetDismissGuard';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 import type { AgeGroup, Gender } from '../onboarding/unified/onboardingData';
@@ -86,10 +87,19 @@ export default function ParentTasksScreen() {
   // chips — and especially the "paused" hint — would lie for them.
   const [editingDueDate, setEditingDueDate]  = useState<string | null>(null);
   const [approveSaving, setApproveSaving]   = useState(false);
+  // Snapshot of the form as it was OPENED (create/approve/edit) — a backdrop
+  // tap on an unchanged form still closes instantly, but once the parent has
+  // typed/edited anything the dismissal asks confirm-discard (sheetDismissGuard).
+  const [openedSnapshot, setOpenedSnapshot] = useState('');
   const [dupTask, setDupTask] = useState<Task | null>(null);
   const { rowDirection } = useRTLStyles();
 
   const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+  // Canonical string form of the modal's editable fields, used to compare the
+  // current form against the state it opened with (order-stable arrays).
+  const formSnapshot = (title: string, time: string, credits: string, days: number[]) =>
+    JSON.stringify([title, time, credits, days]);
 
   // Tasks created via the empty-state CTA land back here while this tab is still
   // mounted — useChildData has no focus/realtime refetch, so re-pull on focus.
@@ -115,6 +125,7 @@ export default function ParentTasksScreen() {
     setApproveCredits('10');
     setApproveDays(ALL_DAYS);
     setEditingDueDate(null);
+    setOpenedSnapshot(formSnapshot('', '16:00', '10', ALL_DAYS));
     setApproveOpen(true);
   };
 
@@ -126,17 +137,20 @@ export default function ParentTasksScreen() {
     setApproveCredits('10');
     setApproveDays(ALL_DAYS);
     setEditingDueDate(null);
+    setOpenedSnapshot(formSnapshot(s.title, '16:00', '10', ALL_DAYS));
     setApproveOpen(true);
   };
 
   const handleEditTask = (task: { id: string; title: string; time: string; credits: number; scheduleDays?: number[]; dueDate?: string }) => {
+    const days = Array.isArray(task.scheduleDays) ? task.scheduleDays : ALL_DAYS;
     setApprovingId(null);
     setEditingId(task.id);
     setApproveTitle(task.title);
     setApproveTime(task.time);
     setApproveCredits(String(task.credits));
-    setApproveDays(Array.isArray(task.scheduleDays) ? task.scheduleDays : ALL_DAYS);
+    setApproveDays(days);
     setEditingDueDate(task.dueDate ?? null);
+    setOpenedSnapshot(formSnapshot(task.title, task.time, String(task.credits), days));
     setApproveOpen(true);
   };
 
@@ -149,6 +163,13 @@ export default function ParentTasksScreen() {
     setApprovingId(null);
     setEditingId(null);
   };
+
+  // Backdrop tap / Android back: instant close when nothing changed, but a
+  // typed/edited form asks confirm-discard instead of silently losing it.
+  const taskModalDirty =
+    formSnapshot(approveTitle, approveTime, approveCredits, approveDays) !== openedSnapshot;
+  const requestCloseTaskModal = () =>
+    guardedSheetClose({ dirty: taskModalDirty, close: closeTaskModal, t });
 
   const handleDeleteTask = () => {
     if (!editingId) return;
@@ -420,13 +441,18 @@ export default function ParentTasksScreen() {
         visible={approveOpen}
         transparent
         animationType="slide"
-        onRequestClose={closeTaskModal}
+        onRequestClose={requestCloseTaskModal}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior="padding"
         >
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeTaskModal} />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={requestCloseTaskModal}
+            testID="task-modal-backdrop"
+          />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
             <Text style={[styles.sheetTitle, { color: T.text }]}>
               {editingId

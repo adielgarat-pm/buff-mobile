@@ -11,6 +11,7 @@
  *      (same contract as the Pastel ChildDashboardScreen banner).
  */
 import { render, fireEvent } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import GamerDashboardScreen from '../GamerDashboardScreen';
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
@@ -24,9 +25,28 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate }),
   useFocusEffect: jest.fn(),
+}));
+
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn().mockResolvedValue(null),
+  setItem: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+  NotificationFeedbackType: { Success: 'success' },
+}));
+
+// Keep day-visibility out of scope — the filter tests below are about the
+// time-of-day chips, not schedule_days.
+jest.mock('../../../utils/taskSchedule', () => ({
+  isTaskVisibleToday: () => true,
 }));
 
 jest.mock('../../../contexts/AuthContext', () => ({
@@ -121,12 +141,18 @@ function setHooks({
   evolutionDaysCount = 99, // deliberately different — must never be shown
   isChildPreview = false,
   exitChildPreview = jest.fn(),
+  tasks = [],
+  completeTask = jest.fn(),
+  uncompleteTask = jest.fn(),
 }: Partial<{
   streak: number;
   successfulDays: number;
   evolutionDaysCount: number;
   isChildPreview: boolean;
   exitChildPreview: () => void;
+  tasks: any[];
+  completeTask: () => void;
+  uncompleteTask: () => void;
 }> = {}) {
   mockedUseMode.mockReturnValue({
     viewMode: isChildPreview ? 'child-preview' : 'child',
@@ -137,11 +163,11 @@ function setHooks({
     exitChildPreview,
   } as any);
   mockedUseChildData.mockReturnValue({
-    tasks: [],
+    tasks,
     totalBalance: 25,
     loading: false,
-    completeTask: jest.fn(),
-    uncompleteTask: jest.fn(),
+    completeTask,
+    uncompleteTask,
     refetch: jest.fn(),
     offRoutineActive: false,
   } as any);
@@ -229,5 +255,123 @@ describe('GamerDashboardScreen — daily-loop fixes', () => {
     const { queryByTestId } = render(<GamerDashboardScreen />);
 
     expect(queryByTestId('preview-banner')).toBeNull();
+  });
+});
+
+// ── Gamer polish (pkg/ux-gamer-polish) ───────────────────────────────────────
+const makeTask = (overrides: Record<string, unknown> = {}) => ({
+  id: 't-1',
+  title: 'Brush teeth',
+  time: '07:30',
+  credits: 10,
+  completed: false,
+  category: 'responsibility',
+  ...overrides,
+});
+
+describe('GamerDashboardScreen — time-filter buckets', () => {
+  beforeEach(() => setHooks());
+  afterEach(() => jest.clearAllMocks());
+
+  test('a task with unparseable time stays visible under EVERY filter', () => {
+    setHooks({
+      tasks: [
+        makeTask({ id: 't-vague', title: 'Practice guitar', time: 'whenever' }),
+        makeTask({ id: 't-eve', title: 'Shower', time: '19:00' }),
+      ],
+    });
+
+    const { getByTestId, queryByTestId } = render(<GamerDashboardScreen />);
+
+    // Evening: bucketed evening task AND the unbucketable task both show.
+    fireEvent.press(getByTestId('filter-chip-evening'));
+    expect(getByTestId('hq-task-t-vague')).toBeTruthy();
+    expect(getByTestId('hq-task-t-eve')).toBeTruthy();
+
+    // Morning: evening task drops out, the unbucketable one does NOT vanish.
+    fireEvent.press(getByTestId('filter-chip-morning'));
+    expect(getByTestId('hq-task-t-vague')).toBeTruthy();
+    expect(queryByTestId('hq-task-t-eve')).toBeNull();
+  });
+
+  test('a task with empty time is visible under a non-all filter', () => {
+    setHooks({ tasks: [makeTask({ id: 't-none', time: undefined })] });
+
+    const { getByTestId } = render(<GamerDashboardScreen />);
+
+    fireEvent.press(getByTestId('filter-chip-noon'));
+    expect(getByTestId('hq-task-t-none')).toBeTruthy();
+  });
+
+  test('filter chips expose button role + selected state', () => {
+    const { getByTestId } = render(<GamerDashboardScreen />);
+
+    const allChip = getByTestId('filter-chip-all');
+    expect(allChip.props.accessibilityRole).toBe('button');
+    expect(allChip.props.accessibilityState).toEqual({ selected: true });
+
+    fireEvent.press(getByTestId('filter-chip-evening'));
+    expect(getByTestId('filter-chip-evening').props.accessibilityState).toEqual({ selected: true });
+    expect(getByTestId('filter-chip-all').props.accessibilityState).toEqual({ selected: false });
+  });
+});
+
+describe('GamerDashboardScreen — header controls', () => {
+  beforeEach(() => setHooks());
+  afterEach(() => jest.clearAllMocks());
+
+  test('gear navigates to ChildSettings', () => {
+    const { getByTestId } = render(<GamerDashboardScreen />);
+
+    fireEvent.press(getByTestId('dashboard-settings-btn'));
+    expect(mockNavigate).toHaveBeenCalledWith('ChildSettings');
+  });
+
+  test('dead bell is gone', () => {
+    const { UNSAFE_queryAllByProps } = render(<GamerDashboardScreen />);
+
+    expect(UNSAFE_queryAllByProps({ name: 'notifications-outline' })).toHaveLength(0);
+  });
+});
+
+describe('GamerDashboardScreen — HQ task completion feedback', () => {
+  beforeEach(() => setHooks());
+  afterEach(() => jest.clearAllMocks());
+
+  test('tapping an incomplete HQ card completes it and fires the success haptic', () => {
+    const completeTask = jest.fn();
+    const uncompleteTask = jest.fn();
+    setHooks({ tasks: [makeTask()], completeTask, uncompleteTask });
+
+    const { getByTestId } = render(<GamerDashboardScreen />);
+    fireEvent.press(getByTestId('hq-task-t-1'));
+
+    expect(completeTask).toHaveBeenCalledWith('t-1');
+    expect(uncompleteTask).not.toHaveBeenCalled();
+    expect(Haptics.notificationAsync).toHaveBeenCalled();
+  });
+
+  test('tapping a completed HQ card un-completes it with a light impact haptic', () => {
+    const completeTask = jest.fn();
+    const uncompleteTask = jest.fn();
+    setHooks({ tasks: [makeTask({ completed: true })], completeTask, uncompleteTask });
+
+    const { getByTestId } = render(<GamerDashboardScreen />);
+    fireEvent.press(getByTestId('hq-task-t-1'));
+
+    expect(uncompleteTask).toHaveBeenCalledWith('t-1');
+    expect(Haptics.impactAsync).toHaveBeenCalled();
+  });
+
+  test('HQ card carries checkbox semantics and the shared credits key', () => {
+    setHooks({ tasks: [makeTask({ completed: true })] });
+
+    const { getByTestId, getByText } = render(<GamerDashboardScreen />);
+    const row = getByTestId('hq-task-t-1');
+
+    expect(row.props.accessibilityRole).toBe('checkbox');
+    expect(row.props.accessibilityState).toEqual({ checked: true });
+    // i18n'd credits badge (was a hardcoded "+N BUFFs" literal).
+    expect(getByText('gamerTasks.taskCredits')).toBeTruthy();
   });
 });

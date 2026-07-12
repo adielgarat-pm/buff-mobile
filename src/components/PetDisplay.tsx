@@ -37,6 +37,8 @@ const GREETING_KEYS = [
 
 interface Props {
   childName?:           string;
+  /** Child's chosen buddy name (buddy_relationships.buddy_name); null/undefined → translated default */
+  buddyName?:           string | null;
   justCompletedTask?:   boolean;
   onTaskCompletionAck?: () => void;
   /** Tasks done today — drives egg-crack progression */
@@ -59,6 +61,7 @@ const EGG_CRACK_KEYS = [
 
 export function PetDisplay({
   childName,
+  buddyName,
   justCompletedTask,
   onTaskCompletionAck,
   completedToday = 0,
@@ -93,7 +96,8 @@ export function PetDisplay({
 
   const showEgg       = petState.evolution_stage === 'egg' && crackStage < 3;
   const isHighEnergy  = petState.energy_level >= 70;
-  const petName       = 'Buddy'; // TODO: read from profile / proSettings
+  // Child's chosen name (Pillar 3 — ownership); translated default when unset.
+  const petName       = buddyName || t('pet.defaultName');
 
   // ── Animations ───────────────────────────────────────────────────────────
   const floatY        = useRef(new Animated.Value(0)).current;
