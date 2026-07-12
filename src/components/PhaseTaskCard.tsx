@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -8,6 +8,15 @@ import { Phase, PhaseConfig } from '../types/phase';
 import { useChildTheme } from '../contexts/ThemeContext';
 import { useCompletionPop } from '../hooks/useCompletionPop';
 import { uiLocale } from '../lib/uiLocale';
+import { crossAlert } from '../platform';
+
+/**
+ * Safe Harbour guard (Pillar 2): for this window after the child completes a
+ * task, taps on the (now-completed) card are ignored entirely. An excited or
+ * impulsive double-tap must never silently un-complete the task and debit the
+ * BUFFs it just awarded — "you can only earn Buffs, never lose them".
+ */
+const UNCOMPLETE_LOCK_MS = 2000;
 
 // ─── Category config ──────────────────────────────────────────────────────────
 
@@ -58,12 +67,30 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, hapticsEnabled =
   const categoryLabel = t(CATEGORY_I18N_KEYS[task.category]);
   const iconName      = CATEGORY_ICONS[task.category];
 
+  // Timestamp of the last completion tap on THIS card. Local ref (no re-render,
+  // no new deps) — resets naturally when the card unmounts.
+  const completedAtTapRef = useRef(0);
+
   const handlePress = () => {
     if (task.completed) {
+      // Post-completion tap lock: ignore taps for a short window after the
+      // completing tap, so accidental double-taps do nothing.
+      if (Date.now() - completedAtTapRef.current < UNCOMPLETE_LOCK_MS) return;
+
+      // Deliberate tap on a completed task → kid-friendly confirm before
+      // un-completing (never a silent BUFF debit). No guilt either way.
       if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      onUncomplete(task.id);
+      crossAlert(
+        t('phase.undoTitle'),
+        t('phase.undoBody'),
+        [
+          { text: t('phase.undoKeep'), style: 'cancel' },
+          { text: t('phase.undoConfirm'), onPress: () => onUncomplete(task.id) },
+        ],
+      );
     } else {
       if (hapticsEnabled) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      completedAtTapRef.current = Date.now();
       onComplete(task.id);
     }
   };

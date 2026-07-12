@@ -42,6 +42,15 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success' },
 }));
 
+// crossAlert mock — captures the confirm-dialog invocation so tests can
+// inspect title/body keys and drive the confirm/cancel buttons.
+jest.mock('../../platform', () => ({
+  crossAlert: jest.fn(),
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { crossAlert } = require('../../platform') as { crossAlert: jest.Mock };
+
 const MORNING = PHASES[0]; // 06:00–09:00 window
 
 const makeTask = (overrides: Partial<Task> = {}): Task => ({
@@ -129,17 +138,98 @@ describe('PhaseTaskCard', () => {
     });
   });
 
-  describe('toggle behavior (unchanged by the redesign)', () => {
-    test('pressing an incomplete card calls onComplete', () => {
+  describe('completion path (zero added friction) + Safe Harbour uncomplete guard', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      crossAlert.mockClear();
+    });
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    /** Last crossAlert call's buttons: [keep(cancel), undo(confirm)]. */
+    const lastAlertButtons = () => crossAlert.mock.calls[crossAlert.mock.calls.length - 1][2];
+
+    test('first tap on an incomplete card completes immediately — no dialog, no delay', () => {
       const onComplete = jest.fn();
       const { getByText } = render(
         <PhaseTaskCard task={makeTask()} phase={MORNING} onComplete={onComplete} onUncomplete={noop} />,
       );
       fireEvent.press(getByText('Pack backpack'));
       expect(onComplete).toHaveBeenCalledWith('t1');
+      expect(crossAlert).not.toHaveBeenCalled();
     });
 
-    test('pressing a completed card calls onUncomplete', () => {
+    test('immediate second tap after completing is ignored (post-completion lock)', () => {
+      const onComplete = jest.fn();
+      const onUncomplete = jest.fn();
+      const { getByText, rerender } = render(
+        <PhaseTaskCard task={makeTask()} phase={MORNING} onComplete={onComplete} onUncomplete={onUncomplete} />,
+      );
+      fireEvent.press(getByText('Pack backpack'));
+      expect(onComplete).toHaveBeenCalledWith('t1');
+
+      // Parent marks the task completed; the excited double-tap lands right after.
+      rerender(
+        <PhaseTaskCard
+          task={makeTask({ completed: true, completedAt: new Date() })}
+          phase={MORNING}
+          onComplete={onComplete}
+          onUncomplete={onUncomplete}
+        />,
+      );
+      jest.advanceTimersByTime(300); // well inside the 2s lock
+      fireEvent.press(getByText('Pack backpack'));
+      expect(onUncomplete).not.toHaveBeenCalled();
+      expect(crossAlert).not.toHaveBeenCalled();
+    });
+
+    test('after the lock expires, tapping a completed card asks a friendly confirm (no silent uncomplete)', () => {
+      const onUncomplete = jest.fn();
+      const { getByText, rerender } = render(
+        <PhaseTaskCard task={makeTask()} phase={MORNING} onComplete={noop} onUncomplete={onUncomplete} />,
+      );
+      fireEvent.press(getByText('Pack backpack')); // complete → starts the lock
+      rerender(
+        <PhaseTaskCard
+          task={makeTask({ completed: true, completedAt: new Date() })}
+          phase={MORNING}
+          onComplete={noop}
+          onUncomplete={onUncomplete}
+        />,
+      );
+      jest.advanceTimersByTime(2500); // past the 2s lock
+      fireEvent.press(getByText('Pack backpack'));
+
+      expect(onUncomplete).not.toHaveBeenCalled(); // never silent
+      expect(crossAlert).toHaveBeenCalledTimes(1);
+      const [title, body, buttons] = crossAlert.mock.calls[0];
+      expect(title).toBe('phase.undoTitle');
+      expect(body).toBe('phase.undoBody');
+      expect(buttons).toHaveLength(2);
+      expect(buttons[0]).toMatchObject({ text: 'phase.undoKeep', style: 'cancel' });
+      expect(buttons[1].text).toBe('phase.undoConfirm');
+    });
+
+    test('confirming the dialog calls onUncomplete (existing flow untouched)', () => {
+      const onUncomplete = jest.fn();
+      const { getByText } = render(
+        <PhaseTaskCard
+          task={makeTask({ completed: true, completedAt: todayAt(20) })}
+          phase={MORNING}
+          onComplete={noop}
+          onUncomplete={onUncomplete}
+        />,
+      );
+      // Card mounted already-completed → no active lock → confirm dialog.
+      fireEvent.press(getByText('Pack backpack'));
+      expect(crossAlert).toHaveBeenCalledTimes(1);
+
+      lastAlertButtons()[1].onPress(); // "Undo"
+      expect(onUncomplete).toHaveBeenCalledWith('t1');
+    });
+
+    test('cancelling the dialog does NOT uncomplete', () => {
       const onUncomplete = jest.fn();
       const { getByText } = render(
         <PhaseTaskCard
@@ -150,7 +240,11 @@ describe('PhaseTaskCard', () => {
         />,
       );
       fireEvent.press(getByText('Pack backpack'));
-      expect(onUncomplete).toHaveBeenCalledWith('t1');
+      expect(crossAlert).toHaveBeenCalledTimes(1);
+
+      const keep = lastAlertButtons()[0];
+      keep.onPress?.(); // cancel button has no side effect
+      expect(onUncomplete).not.toHaveBeenCalled();
     });
   });
 });
