@@ -1774,6 +1774,7 @@
   "childRewards.errorTitle": "אופס, הפרסים לא נטענו הפעם.",
   "childRewards.errorSub": "זה לא בגללך — החיבור התעצבן לרגע. הפרסים שלך שמורים!",
   "childRewards.retry": "לנסות שוב",
+  "childRewards.toGo": "עוד {{count}} וזה שלך! ⚡",
   "gamerRewards.title": "פרסים",
   "gamerRewards.subtitle": "החליפי באף לתגמולים",
   "gamerRewards.tab.parent": "מההורים",

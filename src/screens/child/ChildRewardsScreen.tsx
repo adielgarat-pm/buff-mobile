@@ -11,7 +11,7 @@
  * Not gated behind subscription: the rewards shop is core to Pillar 1
  * (Intrinsic Motivation) and is not a paid feature per BUFF_PRD.md §5.1.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { crossAlert } from '../../platform';
@@ -29,8 +29,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../integrations/supabase/client';
 import GamerRewardsScreen from './GamerRewardsScreen';
 import { pickI18nColumn } from '../../lib/i18nString';
-import { getCurrencySymbol } from '../../lib/currency';
 import { formatNum } from '../../lib/uiLocale';
+
+// Pending-request footer actions render ~16pt of text; this hitSlop lifts the
+// effective touch target to ≥44pt each way (16 + 14 + 14) per safe-zone rule.
+const PENDING_ACTION_HITSLOP = { top: 14, bottom: 14, left: 16, right: 16 };
 
 interface StoreReward {
   id:             string;
@@ -133,15 +136,24 @@ function PastelChildRewards() {
     fetchRewards();
   }, [fetchRewards]);
 
+  // "Always close to a win" (Pillar 1): unlocked rewards float to the top so
+  // the child's next actionable win is the first thing they see — mirrors
+  // GamerRewardsScreen's unlocked-first ordering.
+  const sortedRewards = useMemo(() => {
+    return [
+      ...rewards.filter(r => totalBalance >= r.credits_needed),
+      ...rewards.filter(r => totalBalance <  r.credits_needed),
+    ];
+  }, [rewards, totalBalance]);
+
   // Redeem = open a redemption REQUEST for parent approval (points are deducted
   // later, by the parent, on approval). Only opens if the child can afford it.
+  // Unaffordable tap is a silent no-op: the card already carries the "X to go"
+  // progress inline, so no blocking alert (tap→modal→dismiss friction tax on
+  // impulsive kids — Pillar 1/2).
   const handleClaim = async (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
-      crossAlert(
-        t('childRewards.notEnoughTitle'),
-        t('childRewards.notEnoughMsg', { count: reward.credits_needed - totalBalance, title: displayTitle })
-      );
       return;
     }
     const { error } = await requestRedemption({
@@ -224,8 +236,11 @@ function PastelChildRewards() {
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={[styles.sectionLabel, { color: T.mutedForeground }]}>{t('childRewards.available')}</Text>
 
-          {rewards.map((reward) => {
+          {sortedRewards.map((reward) => {
             const canAfford = totalBalance >= reward.credits_needed;
+            const progressPct = canAfford
+              ? 100
+              : Math.min(100, Math.round((totalBalance / reward.credits_needed) * 100));
             const pending = openForReward(reward.id);
             return (
               <View
@@ -242,11 +257,29 @@ function PastelChildRewards() {
                 <Text style={styles.rewardIcon}>{reward.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rewardTitle, { color: T.foreground }]}>{pickI18nColumn(reward, i18n.language)}</Text>
+                  {/* Always the Buffs price — never a money tag on the child side
+                      (cash_value stays parent-facing in ParentRewardsScreen). */}
                   <Text style={[styles.rewardDesc, { color: T.mutedForeground }]}>
-                    {reward.cash_value != null
-                      ? t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })
-                      : t('childRewards.needed', { count: formatNum(reward.credits_needed) })}
+                    {t('childRewards.needed', { count: formatNum(reward.credits_needed) })}
                   </Text>
+                  {/* Per-card progress: the child sees how close the win is
+                      without doing mental subtraction (working-memory tax). */}
+                  <View
+                    style={[styles.progressTrack, { backgroundColor: T.muted }]}
+                    testID={`reward-progress-${reward.id}`}
+                  >
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: `${progressPct}%`, backgroundColor: canAfford ? T.success : T.primary },
+                      ]}
+                    />
+                  </View>
+                  {!canAfford && (
+                    <Text style={[styles.toGoText, { color: T.primary }]}>
+                      {t('childRewards.toGo', { count: formatNum(reward.credits_needed - totalBalance) })}
+                    </Text>
+                  )}
                 </View>
                 {pending ? (
                   <View style={styles.pendingCol}>
@@ -256,13 +289,21 @@ function PastelChildRewards() {
                         : t('childRewards.pendingLabel')}
                     </Text>
                     {pending.status === 'discussing' ? (
-                      <TouchableOpacity onPress={() => handleAcknowledge(reward)} hitSlop={6}>
+                      <TouchableOpacity
+                        onPress={() => handleAcknowledge(reward)}
+                        hitSlop={PENDING_ACTION_HITSLOP}
+                        accessibilityRole="button"
+                      >
                         <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
                           {t('childRewards.gotIt')}
                         </Text>
                       </TouchableOpacity>
                     ) : (
-                      <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                      <TouchableOpacity
+                        onPress={() => handleWithdraw(reward)}
+                        hitSlop={PENDING_ACTION_HITSLOP}
+                        accessibilityRole="button"
+                      >
                         <Text style={[styles.pendingCancel, { color: T.mutedForeground }]}>
                           {t('childRewards.cancelRequest')}
                         </Text>
@@ -348,11 +389,15 @@ const styles = StyleSheet.create({
   rewardIcon:   { fontSize: 30 },
   rewardTitle:  { fontSize: 15, fontWeight: '600', marginBottom: 3 },
   rewardDesc:   { fontSize: 13 },
-  claimBtn:     { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1 },
-  claimPts:     { fontWeight: '700', fontSize: 13 },
+  // ≥44pt touch target per safe-zone rule (minHeight + centered content).
+  claimBtn:     { borderRadius: 10, paddingHorizontal: 14, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  claimPts:     { fontWeight: '700', fontSize: 14 },
   pendingCol:   { alignItems: 'flex-end', gap: 3, maxWidth: 120 },
   pendingLabel: { fontSize: 12, fontWeight: '700', textAlign: 'right' },
-  pendingCancel:{ fontSize: 11, fontWeight: '600' },
+  pendingCancel:{ fontSize: 12, fontWeight: '600' },
+  progressTrack:{ height: 6, borderRadius: 3, overflow: 'hidden', marginTop: 6, alignSelf: 'stretch' },
+  progressFill: { height: '100%', borderRadius: 3 },
+  toGoText:     { fontSize: 12, fontWeight: '700', marginTop: 4 },
   safeCard:     { flexDirection: 'row', alignItems: 'center', borderRadius: 14, padding: 14, borderWidth: 1, gap: 12, marginTop: 8 },
   safeEmoji:    { fontSize: 24 },
   safeText:     { flex: 1, fontSize: 13, lineHeight: 18 },
