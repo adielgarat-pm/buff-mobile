@@ -31,6 +31,13 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  ImpactFeedbackStyle: { Light: 'light' },
+  NotificationFeedbackType: { Success: 'success' },
+}));
+
 jest.mock('../../../contexts/AuthContext', () => ({
   useAuth: () => ({ profile: { id: 'child-1', display_name: 'TestKid' } }),
 }));
@@ -148,5 +155,56 @@ describe('GamerTasksScreen — full-row tap target', () => {
 
     expect(row.props.accessibilityState).toEqual({ checked: false });
     expect(row.props.accessibilityLabel).toContain('gamerTasks.markComplete');
+  });
+});
+
+// ── Gamer polish (pkg/ux-gamer-polish): haptics wired into completion ────────
+import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { act } from '@testing-library/react-native';
+
+describe('GamerTasksScreen — completion haptics', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('completing a task fires the success haptic (haptics on by default)', () => {
+    setHooks([makeTask()]);
+
+    const { getByTestId } = render(<GamerTasksScreen />);
+    fireEvent.press(getByTestId('task-row-t-1'));
+
+    expect(Haptics.notificationAsync).toHaveBeenCalled();
+    expect(Haptics.impactAsync).not.toHaveBeenCalled();
+  });
+
+  test('un-completing a task fires the light impact haptic', () => {
+    setHooks([makeTask({ completed: true })]);
+
+    const { getByTestId } = render(<GamerTasksScreen />);
+    fireEvent.press(getByTestId('task-row-t-1'));
+
+    expect(Haptics.impactAsync).toHaveBeenCalled();
+    expect(Haptics.notificationAsync).not.toHaveBeenCalled();
+  });
+
+  test('haptics setting off (ChildSettings toggle) suppresses the haptic but still completes', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce('false');
+    const { completeTask } = setHooks([makeTask()]);
+
+    const { getByTestId } = render(<GamerTasksScreen />);
+    // Flush the AsyncStorage effect that loads the persisted preference.
+    await act(async () => {});
+
+    fireEvent.press(getByTestId('task-row-t-1'));
+
+    expect(completeTask).toHaveBeenCalledWith('t-1');
+    expect(Haptics.notificationAsync).not.toHaveBeenCalled();
+    expect(Haptics.impactAsync).not.toHaveBeenCalled();
+  });
+
+  test('credits badge renders via the shared i18n key (no bare literal)', () => {
+    setHooks([makeTask({ credits: 15 })]);
+
+    const { getByText } = render(<GamerTasksScreen />);
+    expect(getByText('gamerTasks.taskCredits')).toBeTruthy();
   });
 });
