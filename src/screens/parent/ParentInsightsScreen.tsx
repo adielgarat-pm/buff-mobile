@@ -53,7 +53,7 @@ const PHASE_LOW    = 50;
 export default function ParentInsightsScreen() {
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { isSubscribed, hasRealEntitlement } = useSubscription();
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
@@ -407,7 +407,7 @@ export default function ParentInsightsScreen() {
           <View style={[styles.smartCard, { backgroundColor: '#F5F3FF', borderColor: '#C4B5FD' }]}>
             <View style={styles.smartBadgeRow}>
               <View style={styles.smartBadge}>
-                <Text style={styles.smartBadgeText}>✨ Smart Insight</Text>
+                <Text style={styles.smartBadgeText}>{t('insights.smart.badge')}</Text>
               </View>
             </View>
             <Text style={[styles.smartHeadline, { color: '#4C1D95' }]}>{smartInsight.headline}</Text>
@@ -427,7 +427,7 @@ export default function ParentInsightsScreen() {
             {/* 👍 👎 feedback row */}
             <View style={styles.voteRow}>
               <Text style={[styles.voteLabel, { color: T.textMuted }]}>
-                {i18n.language === 'he' ? 'האם התובנה הייתה מועילה?' : 'Was this insight helpful?'}
+                {t('insights.smart.voteLabel')}
               </Text>
               <View style={styles.voteButtons}>
                 <TouchableOpacity
@@ -451,22 +451,16 @@ export default function ParentInsightsScreen() {
         {isSubscribed && (
           <View style={[styles.contextCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
             <Text style={[styles.contextLabel, { color: T.text }]}>
-              {i18n.language === 'he'
-                ? 'מה כדאי שנדע על השבוע שהיה?'
-                : 'Anything we should know about this week?'}
+              {t('insights.smart.contextLabel')}
             </Text>
             <Text style={[styles.contextHint, { color: T.textMuted }]}>
-              {i18n.language === 'he'
-                ? 'אופציונלי — יעזור לנו לתת תובנה מדויקת יותר'
-                : 'Optional — helps us give a more personalised insight'}
+              {t('insights.smart.contextHint')}
             </Text>
             <TextInput
               style={[styles.contextInput, { color: T.text, borderColor: T.cardBorder }]}
               value={parentContext}
               onChangeText={setParentContext}
-              placeholder={i18n.language === 'he'
-                ? 'לדוגמה: היה מבחן, הייתה מסיבה, שינוי בתרופות...'
-                : 'e.g. big test, family event, changed meds...'}
+              placeholder={t('insights.smart.contextPlaceholder')}
               placeholderTextColor={T.textMuted}
               maxLength={140}
               multiline
@@ -485,7 +479,7 @@ export default function ParentInsightsScreen() {
                 {generating
                   ? <ActivityIndicator color="#fff" size="small" />
                   : <Text style={styles.ctaText}>
-                      {i18n.language === 'he' ? '✨ צור תובנה חכמה' : '✨ Generate Smart Insight'}
+                      {t('insights.smart.generateCta')}
                     </Text>
                 }
               </TouchableOpacity>
@@ -494,19 +488,15 @@ export default function ParentInsightsScreen() {
                   {generationsLeft}/3
                 </Text>
                 <Text style={[styles.quotaLabel, { color: T.textMuted }]}>
-                  {i18n.language === 'he' ? 'השבוע' : 'this week'}
+                  {t('insights.smart.quotaThisWeek')}
                 </Text>
               </View>
             </View>
             {smartError && (
               <Text style={styles.smartErrorText}>
-                {i18n.language === 'he'
-                  ? smartError === 'premium'    ? 'נדרשת מנוי פרימיום'
-                  : smartError === 'rate-limit' ? 'הגעת למגבלת 3 תובנות השבוע. נתחדש ביום שני'
-                  : 'משהו השתבש, נסי שוב'
-                  : smartError === 'premium'    ? 'Premium required'
-                  : smartError === 'rate-limit' ? "You've used all 3 insights this week. Resets Monday"
-                  : 'Something went wrong, try again'}
+                {smartError === 'premium'    ? t('insights.smart.errorPremium')
+                : smartError === 'rate-limit' ? t('insights.smart.errorRateLimit')
+                : t('insights.smart.errorGeneric')}
               </Text>
             )}
           </View>

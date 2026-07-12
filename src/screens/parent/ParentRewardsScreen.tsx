@@ -475,8 +475,7 @@ export default function ParentRewardsScreen() {
               <View>
                 <Text style={styles.balanceName}>{selectedChild.displayName}</Text>
                 <Text style={styles.balanceAmount}>
-                  {formatNum(selectedChild.totalBalance)}
-                  {' Buffs ⚡'}
+                  {t('parentRewards.balanceBuffs', { amount: formatNum(selectedChild.totalBalance) })}
                 </Text>
               </View>
             </View>
