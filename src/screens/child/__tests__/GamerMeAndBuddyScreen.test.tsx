@@ -204,9 +204,9 @@ describe('GamerMeAndBuddyScreen', () => {
       petSkin: 'tiger',
     });
     const { getByText } = render(<GamerMeAndBuddyScreen />);
-    // t() is mocked to return the key — the fallback is the gamerBuddy.defaultName
+    // t() is mocked to return the key — the fallback is the pet.defaultName
     // catalog entry, not a hardcoded English 'Buddy' literal.
-    expect(getByText('gamerBuddy.defaultName')).toBeTruthy();
+    expect(getByText('pet.defaultName')).toBeTruthy();
   });
 
   test('back button navigates back and carries an i18n accessibility label', () => {

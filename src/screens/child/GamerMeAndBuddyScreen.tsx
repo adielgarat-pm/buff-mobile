@@ -94,7 +94,7 @@ export default function GamerMeAndBuddyScreen() {
   // dragon, …) fall back to the generic "Buddy" label and the kid can
   // rename via the BuddyNameModal.
   const skinId = relationship?.current_skin_id ?? petState.current_skin;
-  const defaultName = getBuddyDefaultName(skinId) ?? t('gamerBuddy.defaultName');
+  const defaultName = getBuddyDefaultName(skinId) ?? t('pet.defaultName');
   const buddyName = relationship?.buddy_name ?? defaultName;
 
   // Gender resolution: profile.gender doesn't exist on live schema today

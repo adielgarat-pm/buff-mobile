@@ -144,6 +144,14 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 > | Date merged | PR / Commit | Type | Change (native-relevant) | Lane | User-facing? | Flow Suite |
 > |---|---|---|---|---|---|---|
 > | 2026-07-11 | #350 / `6244b43` | feat | **Activate OTA (EAS Update)** — JS-only changes now ship over-the-air (minutes, no Play review) via `checkAutomatically:ON_LOAD` + `runtimeVersion:fingerprint`. Config-only, no app-code, no new dep. **⚠️ The FIRST binary carrying this config must ship through the store once — OTA works from that binary onward; the currently-live binary cannot receive OTA.** At cut: confirm fingerprint builds clean (the one risk), then `ota:preview`→verify→`ota:prod`. Playbook: `docs/OTA_PLAYBOOK.md`; tests: `docs/sessions/eas-update-ota/TESTS.md`. | Train | no (infra; makes JS updates invisible-fast) | OTA: preview build → `eas update --branch preview` → new JS applies on 2nd cold start (TESTS Hat 3.3) |
+> | 2026-07-12 | #353 / `7d5f600` | fix | **Un-complete guard (Safe Harbour):** 2s post-completion tap lock + friendly confirm before un-completing debits Buffs (Pastel task cards). | Train | yes | Complete a task → immediate 2nd tap ignored; later tap asks "Undo this one?" |
+> | 2026-07-12 | #354 / `ebb27dc` | fix | **Auth errors + form ergonomics:** network failures no longer masquerade as "Invalid email or password"; password-reset failure feedback; keyboard next-chaining + show/hide password on Login+Signup. | Train | yes | Login with wifi off → connection error (not invalid-credentials) |
+> | 2026-07-12 | #355 / `edfad89` | feat | **Always-close-to-a-win on child rewards:** per-card progress bar + inline "עוד X!" (no blocking alert), Buffs price always shown to child (₪ tag parent-only), ≥44pt targets in both skins. | Train | yes | Child Shop: unaffordable reward shows progress + x-to-go inline |
+> | 2026-07-12 | #356 / `de4bfaf` | fix | **i18n sweep:** parent-screen hardcoded strings → t() (subscription status, Insights ternaries, Buffs labels), PhaseView empty state in buddy voice, `category.other` added, dead `ignition.*` (18 keys) removed. | Train | yes | Hebrew locale: Settings subscription status + Insights render in Hebrew |
+> | 2026-07-12 | #357 / `1384d37` | fix | **Parent dashboard ergonomics:** dirty-guard on bonus/sticker/task-sheet backdrops (typed text no longer lost), pull-to-refresh, time-aware greeting. | Train | yes | Type a bonus note → tap backdrop → "Discard?" confirm; pull down refreshes |
+> | 2026-07-12 | #358 / `4c4cb07` | fix | **Pet card honors the child's buddy rename** (was hardcoded 'Buddy'); i18n'd default. | Train | yes | Rename buddy in Settings → HQ pet card shows the new name on return |
+> | 2026-07-12 | #359 / `45453f8` | fix | **Gamer polish:** unparseable-time tasks visible under every filter (no vanishing quests), HQ completion pop + haptics (setting wired), gear→Settings / dead bell removed, chip a11y, credits label i18n. | Train | yes | Gamer HQ: filter to Evening → time-less task still listed; complete → pop |
+> | 2026-07-12 | #361 / `0045ab1` | feat | **Parent dashboard success = count goal (D-2026-06-14):** `done/goal ⚡` badge replaces `%` (amber gone; neutral below goal, green at goal), "~3 tasks = a successful day" line. Companion spec-sync: BUFF_VALUES.md updated in #360 (docs-only, no build impact). | Train | yes | Parent dashboard child card shows "2/3 ⚡" + count goal line, no % |
 
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
@@ -206,4 +214,4 @@ Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
 ---
 
 **Maintained by:** CC (rows at merge time) · Adi (cut approval).
-**Last updated:** 2026-06-23
+**Last updated:** 2026-07-12
