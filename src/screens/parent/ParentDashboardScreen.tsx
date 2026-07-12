@@ -54,6 +54,38 @@ type Nav = StackNavigationProp<RootStackParamList>;
 
 const QUICK_AMOUNTS = [10, 20, 50, 100];
 
+/**
+ * ChildDayBadge — the child card's success badge, count-framed (D-2026-06-14).
+ *
+ * Shows "{done}/{goal} ⚡" where goal = successGoal(assigned) — NEVER a % of
+ * the whole list. `done` is capped at the goal (5 done of goal 3 → "3/3 ⚡");
+ * the card's subtitle already shows the real done/total. Below-goal renders in
+ * the card's NEUTRAL muted color, not amber — an unfinished day is progress,
+ * not failure (Pillar 2). Zero-task days (rest days) render nothing: there is
+ * no "0/0" to chase.
+ *
+ * Exported for tests only — rendered exclusively by ParentDashboardScreen.
+ */
+export function ChildDayBadge({ completed, assigned }: { completed: number; assigned: number }) {
+  const goal = successGoal(assigned);
+  if (goal === 0) return null; // rest day — nothing assigned, no badge
+  const atGoal = isActiveDay(completed, assigned);
+  const shown  = Math.min(Math.max(0, completed), goal);
+  return (
+    <View
+      testID="child-day-badge"
+      style={[styles.badge, { backgroundColor: atGoal ? '#ECFDF5' : '#F3F4F6' }]}
+    >
+      <Text
+        testID="child-day-badge-text"
+        style={{ color: atGoal ? T.success : T.textMuted, fontSize: 12, fontWeight: '700' }}
+      >
+        {shown}/{goal} ⚡
+      </Text>
+    </View>
+  );
+}
+
 export default function ParentDashboardScreen() {
   const navigation                         = useNavigation<Nav>();
   const route                              = useRoute<RouteProp<ParentTabsParamList, 'ParentDashboard'>>();
@@ -699,11 +731,7 @@ export default function ParentDashboardScreen() {
                     {child.tasksCompleted}/{child.tasksTotal} {t('overview.tasks')} · ⚡ {formatNum(child.totalBalance)} {t('parentSettings.buffPoints')}
                   </Text>
                 </View>
-                <View style={[styles.badge, { backgroundColor: atGoal ? '#ECFDF5' : '#FEF3C7' }]}>
-                  <Text style={{ color: atGoal ? T.success : '#D97706', fontSize: 12, fontWeight: '700' }}>
-                    {pct}%
-                  </Text>
-                </View>
+                <ChildDayBadge completed={child.tasksCompleted} assigned={child.tasksTotal} />
               </View>
 
               {/* SOS inline message — sits between header and progress bar.
@@ -718,10 +746,14 @@ export default function ParentDashboardScreen() {
               <View style={[styles.barTrack, { backgroundColor: T.cardBorder }]}>
                 <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: atGoal ? T.success : T.accentLight }]} />
               </View>
-              <View style={styles.goalRow}>
-                <Text style={[styles.goalText, { color: T.textMuted }]}>{t('weeklyGoal.goalCount', { goal })}</Text>
-                <View style={styles.goalMark} />
-              </View>
+              {goal > 0 && (
+                <View style={styles.goalRow}>
+                  <Text style={[styles.goalText, { color: T.textMuted }]}>
+                    {goal === 1 ? t('dashboard.goalLineOne') : t('dashboard.goalLine', { goal })}
+                  </Text>
+                  <View style={styles.goalMark} />
+                </View>
+              )}
 
               {/* Quick actions */}
               <View style={styles.childActions}>
