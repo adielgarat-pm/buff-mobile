@@ -330,6 +330,7 @@
   "pet.restMessage": "אני נח קצת בזמן שאתה הולך לכבוש את העולם. נתראה אחרי המשימה הבאה שלך!",
   "pet.levelUp": "עלייה ברמה! 🎉",
   "pet.coachSubtitle": "החבר שלך גדל הודות להתמדה שלך",
+  "pet.defaultName": "באדי",
   "pet.celebrationCoach": "כל הכבוד! המשך ככה! 🔥",
   "pet.greeting.ready": "היי {name}! בוא נמשיך ביחד?",
   "pet.greeting.awesome": "{name}, אני גאה בך! 💪",

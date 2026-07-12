@@ -17,6 +17,7 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { useChildStreak } from '../../hooks/useChildStreak';
 import { useBuffCatch } from '../../hooks/useBuffCatch';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { useBuddyRelationship } from '../../hooks/useBuddyRelationship';
 import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useVibeDismiss } from '../../hooks/useVibeDismiss';
 import { isWeekendToday } from '../../utils/schoolDay';
@@ -66,12 +67,15 @@ function PastelChildDashboard() {
   const welcomeBack = useWelcomeBack();
   // BUFF Catch entry-card stats (personal best + plays left today).
   const { best: catchBest, playsLeft: catchPlaysLeft, reload: reloadCatch } = useBuffCatch(childId);
+  // Buddy relationship — the child's chosen buddy name shows on the pet card.
+  const { relationship: buddyRelationship, refetch: refetchBuddy } = useBuddyRelationship(childId);
 
   // Refetch on focus — completing a task on the Tasks tab writes to a separate
   // useChildData instance, so the dashboard's stat tiles are stale until we
   // re-pull when the child navigates back here. Also refresh the mini-game
-  // stats so the card reflects a just-played round.
-  useFocusEffect(useCallback(() => { refetch(); void reloadCatch(); }, [refetch, reloadCatch]));
+  // stats so the card reflects a just-played round, and the buddy name so a
+  // rename in Settings shows up as soon as the child returns to HQ.
+  useFocusEffect(useCallback(() => { refetch(); void reloadCatch(); void refetchBuddy(); }, [refetch, reloadCatch, refetchBuddy]));
 
   // Daily Vibe Check — once per day, gated by Pause (Pause wins per SPEC
   // Scenario C). View-as-child IS the kid's actual interface on shared
@@ -216,6 +220,7 @@ function PastelChildDashboard() {
             isChildPreview={isChildPreview}
             profileName={profile?.display_name ?? undefined}
             previewChildName={previewChildName}
+            buddyName={buddyRelationship?.buddy_name ?? null}
             justCompletedTask={justCompletedTask}
             setJustCompletedTask={setJustCompletedTask}
             totalBalance={totalBalance}
@@ -246,6 +251,7 @@ interface DashboardActiveContentProps {
   isChildPreview: boolean;
   profileName: string | undefined;
   previewChildName: string | null;
+  buddyName: string | null;
   justCompletedTask: boolean;
   setJustCompletedTask: (v: boolean) => void;
   totalBalance: number;
@@ -256,7 +262,7 @@ interface DashboardActiveContentProps {
 
 function DashboardActiveContent({
   T, t, doneTasks, totalTasks, goalCount, fuelPct, atGoal, isChildPreview,
-  profileName, previewChildName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
+  profileName, previewChildName, buddyName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
   catchBest, catchPlaysLeft,
 }: DashboardActiveContentProps) {
   return (
@@ -312,6 +318,7 @@ function DashboardActiveContent({
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
         <PetDisplay
           childName={isChildPreview ? (previewChildName ?? t('childDashboard.previewName')) : profileName}
+          buddyName={buddyName}
           justCompletedTask={justCompletedTask}
           onTaskCompletionAck={() => setJustCompletedTask(false)}
           completedToday={doneTasks}
