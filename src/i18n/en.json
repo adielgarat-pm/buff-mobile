@@ -1938,6 +1938,8 @@
   "childSettings.buddyView.statusShown": "Showing",
   "childSettings.buddyView.statusHidden": "Hidden",
   "childSettings.renameBuddy.entry": "Rename Buddy",
+  "childSettings.buddySaveError.title": "Couldn't save",
+  "childSettings.buddySaveError.body": "That change didn't go through. Please try again.",
   "childSettings.generalSection": "General",
   "buddy.story.L1": "{{buddyName}} is here.",
   "buddy.story.L2": "{{buddyName}}'s nearby.",

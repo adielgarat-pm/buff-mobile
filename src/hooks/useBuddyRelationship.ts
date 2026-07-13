@@ -66,6 +66,13 @@ export function useBuddyRelationship(childId: string | null) {
   /**
    * Toggle the buddy's visibility on the dashboard / 5A.
    * Optimistic update; on Supabase error, refetch restores server truth.
+   *
+   * `.select('id')` makes silent no-op writes detectable: an UPDATE that
+   * matches 0 rows (no relationship row, or RLS filtered it out — e.g. a
+   * parent in View-as-Child, whose auth.uid() doesn't satisfy the
+   * "Child can update own buddy fields" policy) returns success with an
+   * empty array. Without this check the optimistic state lies until the
+   * next refetch (the "renamed to BOBO but באדי came back" bug).
    */
   const setBuddyVisible = useCallback(
     async (visible: boolean): Promise<{ error: Error | null }> => {
@@ -75,15 +82,16 @@ export function useBuddyRelationship(childId: string | null) {
         setRelationship({ ...relationship, buddy_visible: visible });
       }
 
-      const { error: updateError } = await supabase
+      const { data, error: updateError } = await supabase
         .from('buddy_relationships')
         .update({ buddy_visible: visible, updated_at: new Date().toISOString() } as never)
-        .eq('child_profile_id', childId);
+        .eq('child_profile_id', childId)
+        .select('id');
 
-      if (updateError) {
-        console.error('[useBuddyRelationship] setBuddyVisible failed:', updateError);
+      if (updateError || !data || data.length === 0) {
+        console.error('[useBuddyRelationship] setBuddyVisible failed:', updateError ?? 'no rows updated (missing row or RLS)');
         await refetch();
-        return { error: updateError as unknown as Error };
+        return { error: (updateError as unknown as Error) ?? new Error('Buddy visibility not saved (no rows updated)') };
       }
 
       return { error: null };
@@ -95,6 +103,8 @@ export function useBuddyRelationship(childId: string | null) {
    * Set or clear the buddy's custom name. Pass `null` to revert to the
    * skin-default name (resolved at render time via getBuddyDefaultName).
    * Optimistic update; on Supabase error, refetch restores server truth.
+   *
+   * Same 0-rows-updated detection as setBuddyVisible (see comment there).
    */
   const setBuddyName = useCallback(
     async (name: string | null): Promise<{ error: Error | null }> => {
@@ -104,15 +114,16 @@ export function useBuddyRelationship(childId: string | null) {
         setRelationship({ ...relationship, buddy_name: name });
       }
 
-      const { error: updateError } = await supabase
+      const { data, error: updateError } = await supabase
         .from('buddy_relationships')
         .update({ buddy_name: name, updated_at: new Date().toISOString() } as never)
-        .eq('child_profile_id', childId);
+        .eq('child_profile_id', childId)
+        .select('id');
 
-      if (updateError) {
-        console.error('[useBuddyRelationship] setBuddyName failed:', updateError);
+      if (updateError || !data || data.length === 0) {
+        console.error('[useBuddyRelationship] setBuddyName failed:', updateError ?? 'no rows updated (missing row or RLS)');
         await refetch();
-        return { error: updateError as unknown as Error };
+        return { error: (updateError as unknown as Error) ?? new Error('Buddy name not saved (no rows updated)') };
       }
 
       return { error: null };
