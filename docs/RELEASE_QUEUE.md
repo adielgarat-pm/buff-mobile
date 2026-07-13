@@ -152,6 +152,10 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 > | 2026-07-12 | #358 / `4c4cb07` | fix | **Pet card honors the child's buddy rename** (was hardcoded 'Buddy'); i18n'd default. | Train | yes | Rename buddy in Settings → HQ pet card shows the new name on return |
 > | 2026-07-12 | #359 / `45453f8` | fix | **Gamer polish:** unparseable-time tasks visible under every filter (no vanishing quests), HQ completion pop + haptics (setting wired), gear→Settings / dead bell removed, chip a11y, credits label i18n. | Train | yes | Gamer HQ: filter to Evening → time-less task still listed; complete → pop |
 > | 2026-07-12 | #361 / `0045ab1` | feat | **Parent dashboard success = count goal (D-2026-06-14):** `done/goal ⚡` badge replaces `%` (amber gone; neutral below goal, green at goal), "~3 tasks = a successful day" line. Companion spec-sync: BUFF_VALUES.md updated in #360 (docs-only, no build impact). | Train | yes | Parent dashboard child card shows "2/3 ⚡" + count goal line, no % |
+> | 2026-07-12 | #352 / `18d34a2` | feat | **Play flexible in-app-update prompt on launch** (Noa gap) — new native dep `expo-in-app-updates@^0.12.0` (Adi-approved), lazy-required, Android-only, web no-op. | Train | yes | Installed older binary + newer on track → dismissible update sheet on launch |
+> | 2026-07-12 | #362 / `93b859a` | chore | Buddy default-name key unified to `pet.defaultName` (dup from parallel #358/#359 removed). | Train | no | — |
+>
+> 🚧 **CUT — 1.8.2 (versionCode 68), 2026-07-12.** vc67 (1.8.1) published to Play 2026-07-12 → this table departs. Content = ALL rows above (#350 OTA activation · #352 in-app-update prompt · #353–#359, #361–#362 UX batch 2). **This is the FIRST OTA-capable binary** — after it's live, JS-only fixes ship via `ota:preview`→`ota:prod` (docs/OTA_PLAYBOOK.md); build-time risk = fingerprint runtime resolving clean. Manifest: `docs/releases/68/MANIFEST.md`. Gate 1 ✅ tsc 0 · jest 732/732 (82 suites, 0 skips) · key-check ✅ (on `93b859a`). Build: `EAS Build (Android)` workflow from `origin/main`, autoIncrement → vc68. Rows move to **Shipped (68)** after Adi promotes + "verified, tag it".
 
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
@@ -214,4 +218,4 @@ Lane mix: <X Train, Y Hotfix> · Manifest: docs/releases/v<N>/MANIFEST.md
 ---
 
 **Maintained by:** CC (rows at merge time) · Adi (cut approval).
-**Last updated:** 2026-07-12
+**Last updated:** 2026-07-12 (vc68 cut)
