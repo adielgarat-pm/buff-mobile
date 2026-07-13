@@ -22,6 +22,7 @@ import { usePetState } from '../../hooks/usePetState';
 import { PET_SKINS, getSkinsForTheme, getDefaultSkin } from '../../types/pet';
 import type { RootStackParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
+import { crossAlert } from '../../platform/crossAlert';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -36,7 +37,7 @@ const THEME_OPTIONS: { name: ChildThemeName; labelKey: string; descKey: string; 
 export default function ChildSettingsScreen() {
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, viewMode, previewChildId } = useMode();
+  const { isChildPreview, exitChildPreview, viewMode, previewChildId, previewChildName } = useMode();
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
   const { rowDirection } = useRTLStyles();
@@ -64,8 +65,21 @@ export default function ChildSettingsScreen() {
 
   const buddyVisible = relationship?.buddy_visible ?? true;
   const toggleMode: 'hide' | 'show' = buddyVisible ? 'hide' : 'show';
-  const buddyDefaultName = getBuddyDefaultName(relationship?.current_skin_id ?? null) ?? 'Buddy';
+  // Skin-specific default (STORMY/LUNA) → translated generic default. Never
+  // a person's name — the buddy-name slot must not inherit a profile name.
+  const buddyDefaultName = getBuddyDefaultName(relationship?.current_skin_id ?? null) ?? t('pet.defaultName');
   const buddyDisplayName = relationship?.buddy_name ?? buddyDefaultName;
+
+  // Active child's name for the profile card. In View-as-Child `profile` is
+  // still the PARENT's profile — rendering profile.display_name here leaked
+  // the parent's name ("ADI") next to the pet emoji in the Menu.
+  const childDisplayName = isChildPreview
+    ? (previewChildName ?? '')
+    : (profile?.display_name ?? '');
+
+  const showBuddySaveError = () => {
+    crossAlert(t('childSettings.buddySaveError.title'), t('childSettings.buddySaveError.body'));
+  };
 
   // Load persisted haptics preference on mount
   useEffect(() => {
@@ -101,7 +115,7 @@ export default function ChildSettingsScreen() {
         <Text style={styles.profileEmoji}>{PET_SKINS[selectedSkin]?.emoji ?? '🐶'}</Text>
         <View>
           <Text style={[styles.profileName,  { color: T.foreground }]}>
-            {profile?.display_name ?? ''}
+            {childDisplayName}
           </Text>
           <Text style={[styles.profileBuffs, { color: T.buff }]}>
             {formatNum(totalBalance)} {t('childSettings.buffsSuffix')}
@@ -243,7 +257,8 @@ export default function ChildSettingsScreen() {
         mode={toggleMode}
         onConfirm={async () => {
           setToggleModalVisible(false);
-          await setBuddyVisible(!buddyVisible);
+          const { error } = await setBuddyVisible(!buddyVisible);
+          if (error) showBuddySaveError();
         }}
         onCancel={() => setToggleModalVisible(false)}
       />
@@ -254,7 +269,8 @@ export default function ChildSettingsScreen() {
         defaultName={buddyDefaultName}
         onSave={async (name) => {
           setNameModalVisible(false);
-          await setBuddyName(name);
+          const { error } = await setBuddyName(name);
+          if (error) showBuddySaveError();
         }}
         onCancel={() => setNameModalVisible(false)}
       />

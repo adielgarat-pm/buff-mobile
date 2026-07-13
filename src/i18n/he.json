@@ -1938,6 +1938,8 @@
   "childSettings.buddyView.statusShown": "מוצג",
   "childSettings.buddyView.statusHidden": "מוסתר",
   "childSettings.renameBuddy.entry": "שינוי שם הבאדי",
+  "childSettings.buddySaveError.title": "לא הצלחנו לשמור",
+  "childSettings.buddySaveError.body": "השינוי לא נקלט. נסו שוב.",
   "childSettings.generalSection": "כללי",
   "buddy.story.L1": "{{buddyName}} פה.",
   "buddy.story.L2": "{{buddyName}} בסביבה.",
