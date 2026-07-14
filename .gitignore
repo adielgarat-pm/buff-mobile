@@ -86,3 +86,6 @@ e2e/.auth/
 e2e/.report/
 e2e/android/fail-*.png
 test-results/
+
+# Nightly automation — launcher logs stay local (reports in docs/nightly/ are reviewed then committed manually)
+scripts/nightly/logs/
