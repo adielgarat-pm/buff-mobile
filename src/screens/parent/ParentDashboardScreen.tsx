@@ -26,6 +26,9 @@ import { useMode } from '../../contexts/ModeContext';
 import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
+import { useSmartInsights } from '../../hooks/useSmartInsights';
+import { useAutoCoachInsight } from '../../hooks/useAutoCoachInsight';
+import { useWeeklyStats } from '../../hooks/useWeeklyStats';
 import { useParentRecommendations } from '../../hooks/useParentRecommendations';
 import RecommendationCard from '../../components/parent/RecommendationCard';
 import type { Recommendation } from '../../utils/recommendationEngine';
@@ -91,11 +94,11 @@ export function ChildDayBadge({ completed, assigned }: { completed: number; assi
 export default function ParentDashboardScreen() {
   const navigation                         = useNavigation<Nav>();
   const route                              = useRoute<RouteProp<ParentTabsParamList, 'ParentDashboard'>>();
-  const { t }                              = useTranslation();
+  const { t, i18n }                        = useTranslation();
   const { profile, user, familyId, familyShortCode } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
-  const { isSubscribed, insightsUnlocked, isTrialActive, trialDaysLeft } = useSubscription();
+  const { isSubscribed, insightsUnlocked, hasRealEntitlement, isTrialActive, trialDaysLeft } = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
   // Today's parent_sos signals per child — surfaces an inline message +
   // soft dot on the child's card. Auto-clears at midnight (filter is
@@ -281,6 +284,37 @@ export default function ParentDashboardScreen() {
   const { insights, loading: insightsLoading, refetch: refetchInsights } = useParentInsights(firstChildId);
   const topInsight = insights[0] ?? null;
 
+  // ── AI coach insight — the dashboard card's primary content ─────────────
+  // (pkg/dashboard-ai-insight). Reads the saved insight from child_insights;
+  // useAutoCoachInsight lazily generates one per child per week when the
+  // family is entitled (or on web, where the coach is free) and there is
+  // enough data. The rule-based topInsight above stays as the fallback.
+  const { stats: weeklyStats } = useWeeklyStats(firstChildId);
+  const {
+    smartInsight, computedAt, generating: coachGenerating,
+    loadingState: coachLoading, generationsLeft,
+    userVote, submitVote, generate: generateCoach,
+  } = useSmartInsights(firstChildId);
+  useAutoCoachInsight({
+    childId: firstChildId,
+    smartInsight,
+    computedAt,
+    loadingState: coachLoading,
+    generating:   coachGenerating,
+    generationsLeft,
+    hasRealEntitlement,
+    activeDays: weeklyStats.activeDays,
+    generate:   generateCoach,
+  });
+  // "Valid as of" stamp (D: Adi 2026-07-14 — an insight is valid until the
+  // next one is computed, so the card must say when it was computed).
+  const coachDate = computedAt
+    ? new Date(computedAt).toLocaleDateString(
+        i18n.language?.startsWith('he') ? 'he-IL' : 'en-US',
+        { month: 'short', day: 'numeric' },
+      )
+    : null;
+
   // FIX 1 — detect "not enough data yet" for the insights card
   const daysSinceChildCreated = firstChild?.created_at
     ? (Date.now() - new Date(firstChild.created_at).getTime()) / (1000 * 60 * 60 * 24)
@@ -438,6 +472,34 @@ export default function ParentDashboardScreen() {
     }
   };
 
+  // ── AI coach card CTA router — same levers as the Insights screen, but
+  // local (we're already on the dashboard, no navigation bridge needed).
+  const runCoachCta = (ctaType: string) => {
+    if (!firstChildId) return;
+    switch (ctaType) {
+      case 'send-bonus':   openBonus(firstChildId); break;
+      case 'send-sticker': openSticker(firstChildId); break;
+      case 'set-anchor':
+        setMedSheetTarget({ childId: firstChildId, childName: firstChild?.displayName ?? '' });
+        break;
+      case 'open-rewards':
+        navigation.navigate('ParentApp', { screen: 'ParentRewards', params: { childId: firstChildId } });
+        break;
+      case 'start-conversation': // the action is the IRL talk — no lever
+      default:
+        break;
+    }
+  };
+  const coachCtaLabel = (ctaType: string | undefined): string | null => {
+    switch (ctaType) {
+      case 'send-bonus':   return t('insights.weekly.cta.bonus');
+      case 'send-sticker': return t('insights.weekly.cta.sticker');
+      case 'set-anchor':   return t('insights.weekly.cta.anchor');
+      case 'open-rewards': return t('insights.weekly.cta.rewards');
+      default:             return null;
+    }
+  };
+
   // ── Insights-screen CTA bridge ───────────────────────────────────────────
   // The Parent Insights screen routes a CTA back here (openSheet/sheetChildId)
   // to reuse the sticker/bonus/med sheets instead of duplicating their logic.
@@ -581,6 +643,65 @@ export default function ParentDashboardScreen() {
           onCta={() => handleRecCta(activeRec)}
           onDismiss={() => handleRecDismiss(activeRec)}
         />
+      ) : smartInsight ? (
+        /* ── AI coach insight — the primary card (pkg/dashboard-ai-insight).
+             Coach text only: never a % / failure count of the child (Pillar 2).
+             Tap opens the full Insights screen; CTA + 👍👎 act inline. ── */
+        <TouchableOpacity
+          style={[styles.insightCard, { backgroundColor: T.accent }]}
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          activeOpacity={0.85}
+        >
+          <View style={styles.teaserTagRow}>
+            <Text style={styles.insightTag}>
+              🧠 {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
+            </Text>
+            {coachDate && (
+              <Text style={styles.coachAsOf}>{t('insights.smart.asOf', { date: coachDate })}</Text>
+            )}
+          </View>
+          {isTrialActive && (
+            <Text style={styles.trialRibbon}>
+              {trialDaysLeft <= 3
+                ? t('dashboard.trialRibbonEnding', { days: trialDaysLeft })
+                : t('dashboard.trialRibbonActive')}
+            </Text>
+          )}
+          <Text style={styles.coachHeadline}>{smartInsight.headline}</Text>
+          <Text style={styles.coachMessage}>{smartInsight.message}</Text>
+          <Text style={styles.coachAction}>→ {smartInsight.action}</Text>
+          {coachCtaLabel(smartInsight.cta_type) && (
+            <TouchableOpacity style={styles.coachCtaBtn} onPress={() => runCoachCta(smartInsight.cta_type)}>
+              <Text style={styles.coachCtaBtnText}>{coachCtaLabel(smartInsight.cta_type)}</Text>
+            </TouchableOpacity>
+          )}
+          {/* 👍👎 feedback row — synced with the Insights screen (same vote RPC) */}
+          <View style={styles.coachVoteRow}>
+            <Text style={styles.coachVoteLabel}>{t('insights.smart.voteLabel')}</Text>
+            <View style={styles.coachVoteBtns}>
+              <TouchableOpacity
+                onPress={() => submitVote(1)}
+                style={[styles.coachVoteBtn, userVote === 1 && styles.coachVoteBtnActive]}
+              >
+                <Text style={styles.coachVoteEmoji}>👍</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => submitVote(-1)}
+                style={[styles.coachVoteBtn, userVote === -1 && styles.coachVoteBtnActive]}
+              >
+                <Text style={styles.coachVoteEmoji}>👎</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      ) : coachGenerating ? (
+        /* Silent auto-generate in flight — short branded wait, no error surface */
+        <View style={[styles.insightCard, { backgroundColor: T.accent, justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator color="#fff" />
+          <Text style={styles.coachGeneratingText}>
+            {t('dashboard.aiGenerating', { name: firstChild?.displayName ?? '' })}
+          </Text>
+        </View>
       ) : insightsLoading ? (
         <View style={[styles.insightCard, { backgroundColor: T.accent, justifyContent: 'center', alignItems: 'center' }]}>
           <ActivityIndicator color="#fff" />
@@ -1103,6 +1224,21 @@ const styles = StyleSheet.create({
   teaserValueNote: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 10 },
   insightCtaChevron: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: -2 },
   insightLockedCta:  { fontSize: 13, fontWeight: '700', marginTop: 10 },
+
+  // AI coach card (pkg/dashboard-ai-insight)
+  coachAsOf:          { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  coachHeadline:      { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 6 },
+  coachMessage:       { color: 'rgba(255,255,255,0.92)', fontSize: 14, lineHeight: 20, marginBottom: 8 },
+  coachAction:        { color: '#fff', fontSize: 13.5, fontWeight: '600', fontStyle: 'italic' },
+  coachCtaBtn:        { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, marginTop: 10 },
+  coachCtaBtnText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  coachVoteRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)' },
+  coachVoteLabel:     { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  coachVoteBtns:      { flexDirection: 'row', gap: 8 },
+  coachVoteBtn:       { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: 'rgba(255,255,255,0.12)' },
+  coachVoteBtnActive: { backgroundColor: 'rgba(255,255,255,0.35)' },
+  coachVoteEmoji:     { fontSize: 16 },
+  coachGeneratingText:{ color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 8 },
   teaserTagRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   premiumPill:       { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   premiumPillText:   { color: '#fff', fontSize: 11, fontWeight: '800' },

@@ -12,6 +12,9 @@ export interface SmartInsight {
 
 interface UseSmartInsightsResult {
   smartInsight:     SmartInsight | null;
+  /** ISO timestamp of when the saved insight was computed — powers the
+   *  "valid as of {date}" stamp (D: Adi 2026-07-14). Null until loaded. */
+  computedAt:       string | null;
   parentContext:    string;
   setParentContext: (v: string) => void;
   generating:       boolean;
@@ -39,6 +42,7 @@ function insightHash(insight: SmartInsight): string {
 export function useSmartInsights(childId: string | null): UseSmartInsightsResult {
   const { i18n } = useTranslation();
   const [smartInsight,    setSmartInsight]    = useState<SmartInsight | null>(null);
+  const [computedAt,      setComputedAt]      = useState<string | null>(null);
   const [parentContext,   setParentContextRaw] = useState('');
   const [generating,      setGenerating]       = useState(false);
   const [error,           setError]            = useState<string | null>(null);
@@ -60,6 +64,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     if (!childId) return;
     let cancelled = false;
     setSmartInsight(null);
+    setComputedAt(null);
     setParentContextRaw('');
     setWeeklyCount(0);
     setError(null);
@@ -74,6 +79,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
         }
         const row = data[0];
         setSmartInsight((row.smart_insight as SmartInsight) ?? null);
+        setComputedAt((row.computed_at as string | null) ?? null);
         setParentContextRaw(row.parent_context ?? '');
         setWeeklyCount(row.weekly_count ?? 0);
         setLoadingState(false);
@@ -143,6 +149,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
 
       const { _weekly_count, ...insight } = raw;
       setSmartInsight(insight as SmartInsight);
+      setComputedAt(new Date().toISOString());
       if (typeof _weekly_count === 'number') setWeeklyCount(_weekly_count);
       else setWeeklyCount(prev => prev + 1);
       setWindowEnd(new Date().toISOString().split('T')[0]);
@@ -167,6 +174,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
 
   return {
     smartInsight,
+    computedAt,
     parentContext,
     setParentContext,
     generating,

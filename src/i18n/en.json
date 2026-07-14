@@ -2076,6 +2076,8 @@
   "insights.smart.errorPremium": "Premium required",
   "insights.smart.errorRateLimit": "You've used all 3 insights this week. Resets Monday",
   "insights.smart.errorGeneric": "Something went wrong, try again",
+  "insights.smart.asOf": "As of {{date}}",
+  "dashboard.aiGenerating": "BUFF is thinking about {{name}}'s week…",
   "insights.weekly.activeDays": "Active days",
   "insights.weekly.restDays": "Rest days",
   "insights.weekly.activeDayLabel": "Active day",
