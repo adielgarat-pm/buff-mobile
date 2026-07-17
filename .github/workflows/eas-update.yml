@@ -1,0 +1,85 @@
+name: EAS Update (OTA)
+
+# Publishes an OTA (expo-updates) bundle from CI.
+#
+# WHY CI AND NOT LOCAL (IN-2026-07-17): the runtimeVersion policy is
+# `fingerprint`, computed from the project + node_modules state. Local
+# machines drift from the clean `npm ci` environment that builds the
+# binaries, so locally-published updates carried a DIFFERENT fingerprint
+# (056b9b94…) than the vc68 binary expects (e4983c15…) — devices silently
+# ignored every OTA. Publishing from the same clean CI environment as
+# `eas-build-android.yml` guarantees the fingerprints match.
+#
+# Production OTAs publish from `main` only (OTA_PLAYBOOK.md). Preview OTAs
+# may publish from any ref via the `ref` input.
+#
+# Requires the same repo secret as the build workflow: EXPO_TOKEN.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'EAS Update branch (channel)'
+        default: production
+        type: choice
+        options: [production, preview]
+      message:
+        description: 'Update message (what changed)'
+        required: true
+        type: string
+      ref:
+        description: 'Git ref to publish from (production MUST be main)'
+        default: main
+        type: string
+
+concurrency:
+  group: eas-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard — production publishes from main only
+        if: ${{ inputs.branch == 'production' && inputs.ref != 'main' }}
+        run: |
+          echo "::error::Production OTA must publish from main (got '${{ inputs.ref }}'). See docs/OTA_PLAYBOOK.md."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Guard — require EXPO_TOKEN
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish OTA
+        run: |
+          eas update \
+            --branch "${{ inputs.branch }}" \
+            --message "${{ inputs.message }}" \
+            --non-interactive
+
+      - name: Show published runtime fingerprints (compare to the live binary!)
+        run: |
+          echo "Latest updates on branch '${{ inputs.branch }}':"
+          eas update:list --branch "${{ inputs.branch }}" --limit 2 --non-interactive || true
+          echo "::notice::Verify the android runtime above matches the live binary's runtimeVersion (eas build:list)."

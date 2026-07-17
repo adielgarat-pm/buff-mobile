@@ -1367,6 +1367,22 @@ CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: 
 
 ---
 
+### Lesson 2026-07-17 — Every OTA ever published was silently dead (fingerprint mismatch)
+
+**Symptom:** Production OTAs published 2026-07-12 (#364) and 2026-07-15 (#365) never appeared on any device — Adi's phone on 1.8.2 (vc68) kept running the binary's original JS with no error anywhere. Discovered only because the #365 "As of {date}" stamp visibly refused to show up.
+
+**Root cause:** `runtimeVersion: { policy: "fingerprint" }` hashes the project + node_modules state. The vc68 binary was built in CI (`npm ci`, clean tree) → embedded runtime `e4983c15…`. The OTAs were published from local sibling worktrees sharing the drifted local node_modules → fingerprint `056b9b94…`. expo-updates treats a runtime mismatch as "not for me" and ignores the update **silently** — no client error, no server error, `eas update` succeeds happily.
+
+**Detection command:** compare `eas build:list` (binary's `runtimeVersion`) against the published update's `Runtime version`. They MUST be equal.
+
+**Mitigation:** `.github/workflows/eas-update.yml` — OTAs publish from CI (same clean env as `eas-build-android.yml`), production restricted to `main`. Local `eas update` for production is now forbidden practice. The workflow's last step prints the published runtimes for eyeball comparison.
+
+**Pattern to watch:** any "successfully published but nothing changed on device" with fingerprint policy → check runtime equality FIRST, before debugging restarts/channels/caching.
+
+**FLAGs opened:** None (workflow shipped in the same PR).
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
