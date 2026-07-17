@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { ParentTabsParamList } from './types';
+import { useMarketingConsentPrompt } from '../hooks/useMarketingConsentPrompt';
 import { PARENT_THEME } from '../theme';
 
 import ParentDashboardScreen from '../screens/parent/ParentDashboardScreen';
@@ -29,6 +30,9 @@ const TAB_CONFIG: Record<
 export default function ParentTabs() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  // One-time email-consent ask for Google/Apple-signup parents (Phase 2,
+  // pkg/lifecycle-emails) — mounted here so every parent screen is covered.
+  useMarketingConsentPrompt();
 
   return (
     <Tab.Navigator

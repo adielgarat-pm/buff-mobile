@@ -42,6 +42,8 @@ export interface Profile {
   founding_member_number: number | null;
   pro_settings: Record<string, unknown>;
   premium_until: string | null;
+  marketing_consent?: boolean;
+  onboarding_data?: Record<string, unknown> | null;
 }
 
 // Discriminated result for a profile fetch. Distinguishing "no row exists"
