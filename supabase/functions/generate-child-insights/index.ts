@@ -3,9 +3,15 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const ANTHROPIC_API_KEY     = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
+const GEMINI_API_KEY        = Deno.env.get('GEMINI_API_KEY') ?? '';
 const SUPABASE_URL          = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const SUPABASE_ANON_KEY     = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+// Gemini is the primary insight model (D: Adi, 2026-07-14 — Hebrew quality).
+// Anthropic stays as fallback so the function keeps working until the
+// GEMINI_API_KEY secret is set, and survives Gemini outages.
+const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const WEEKLY_LIMIT = 3;
 
@@ -225,6 +231,72 @@ async function getWeeklyCount(svc: ReturnType<typeof createClient>, childId: str
   return data.smart_insight_weekly_count ?? 0;
 }
 
+/** Gemini call — primary model. Returns the raw model text or null on failure. */
+async function callGemini(prompt: string): Promise<string | null> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': GEMINI_API_KEY,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          // Structured output — the model returns pure JSON, no regex digging.
+          responseMimeType: 'application/json',
+          maxOutputTokens: 1024,
+          // No "thinking" needed for this short structured task; keeps latency
+          // and cost flat (thinking tokens count toward maxOutputTokens).
+          thinkingConfig: { thinkingBudget: 0 },
+        },
+      }),
+    },
+  );
+  if (!res.ok) {
+    console.error('Gemini error', res.status, await res.text());
+    return null;
+  }
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text ?? null;
+}
+
+/** Anthropic call — fallback while GEMINI_API_KEY is unset / Gemini is down. */
+async function callAnthropic(prompt: string): Promise<string | null> {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+  if (!res.ok) {
+    console.error('Anthropic error', res.status, await res.text());
+    return null;
+  }
+  const data = await res.json();
+  return data.content?.[0]?.text ?? null;
+}
+
+/** Gemini first (when the key exists), Anthropic as fallback. Null = both failed. */
+async function generateWithGeminiOrFallback(prompt: string): Promise<string | null> {
+  if (GEMINI_API_KEY) {
+    const text = await callGemini(prompt);
+    if (text !== null) return text;
+    console.error('Gemini failed — falling back to Anthropic');
+  } else {
+    console.error('GEMINI_API_KEY not set — using Anthropic fallback');
+  }
+  return ANTHROPIC_API_KEY ? callAnthropic(prompt) : null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
@@ -379,25 +451,10 @@ Deno.serve(async (req: Request) => {
 
   let smartInsight: Record<string, string>;
   try {
-    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 500,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
-    if (!anthropicRes.ok) {
-      console.error('Anthropic error', anthropicRes.status, await anthropicRes.text());
+    const rawText = await generateWithGeminiOrFallback(prompt);
+    if (rawText === null) {
       return new Response('LLM unavailable', { status: 502, headers: corsHeaders });
     }
-    const anthropicData = await anthropicRes.json();
-    const rawText: string = anthropicData.content?.[0]?.text ?? '';
     const jsonMatch = rawText.match(/\{[\s\S]*\}/);
     smartInsight = JSON.parse(jsonMatch?.[0] ?? rawText);
   } catch (e) {

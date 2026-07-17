@@ -1353,6 +1353,20 @@ CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: 
 
 ---
 
+### Lesson 2026-07-14 — Dev-client first bundle from a fresh sibling worktree times out
+
+**Symptom:** During pkg/dashboard-ai-insight verification, the dev client on the emulator showed "Error loading app — timeout", and on retry a frozen "Bundling 22.2%…" banner, while Metro (started from a brand-new sibling worktree, `buff-wt-dashboard-ai`) was still building the first Android bundle (~5+ min cold build).
+
+**Root cause:** The dev client's bundle-fetch timeout is shorter than a cold Metro build from a fresh worktree (no Metro cache). The stuck progress banner is a dev-client UI state after its fetch died — Metro itself completed fine ("Android Bundled … 2170 modules").
+
+**Mitigation (worked):** Pre-warm the bundle before deep-linking: `curl "http://localhost:8083/index.bundle?platform=android&dev=true&minify=false"` until HTTP 200, then `am force-stop` the app and relaunch. Second load is served from Metro's cache and attaches instantly.
+
+**Pattern to watch:** Any first emulator run from a NEW worktree — pre-warm the bundle first; don't debug the app for what is a Metro cold-cache wait.
+
+**FLAGs opened:** None.
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:

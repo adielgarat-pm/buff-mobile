@@ -2076,6 +2076,8 @@
   "insights.smart.errorPremium": "נדרש מנוי פרימיום",
   "insights.smart.errorRateLimit": "הגעת למגבלת 3 תובנות השבוע. נתחדש ביום שני",
   "insights.smart.errorGeneric": "משהו השתבש, נסי שוב",
+  "insights.smart.asOf": "נכון ל-{{date}}",
+  "dashboard.aiGenerating": "באף חושב על השבוע של {{name}}…",
   "insights.weekly.activeDays": "ימים פעילים",
   "insights.weekly.restDays": "ימי מנוחה",
   "insights.weekly.activeDayLabel": "יום פעיל",

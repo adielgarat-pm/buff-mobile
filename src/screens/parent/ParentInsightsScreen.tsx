@@ -15,10 +15,10 @@
  * dashboard's existing levers (sticker / bonus / med sheets, rewards tab) via
  * navigation params — no duplicated action logic. Premium-gated.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator,
-  TextInput, KeyboardAvoidingView, Platform,
+  TextInput, KeyboardAvoidingView,
 } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -35,6 +35,7 @@ import { useDailyVibe } from '../../hooks/useDailyVibe';
 import { useTaskTimeline } from '../../hooks/useTaskTimeline';
 import { TaskTimelineSection } from '../../components/TaskTimelineSection';
 import { useSmartInsights } from '../../hooks/useSmartInsights';
+import { useAutoCoachInsight } from '../../hooks/useAutoCoachInsight';
 import {
   selectInsightFraming,
   type InsightCtaType,
@@ -53,7 +54,7 @@ const PHASE_LOW    = 50;
 export default function ParentInsightsScreen() {
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isSubscribed, hasRealEntitlement } = useSubscription();
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
@@ -83,6 +84,7 @@ export default function ParentInsightsScreen() {
 
   const {
     smartInsight,
+    computedAt,
     parentContext,
     setParentContext,
     generating,
@@ -94,25 +96,20 @@ export default function ParentInsightsScreen() {
     submitVote,
   } = useSmartInsights(childId);
 
-  // Lazy auto-generate (Phase E, option א): the first time an ENTITLED/trial parent
-  // opens Insights with no saved coach insight and enough data, generate ONE — so
-  // the trial's "wow" lands without a manual tap, but no tokens are spent on families
-  // who never open this screen. Guarded per-child + once, and gated on real
-  // entitlement (except web, which is free for the AI coach — see the server's
-  // platform=web bypass) so a non-entitled native viewer never triggers a 402'd call.
-  const autoGenTried = useRef(false);
-  useEffect(() => { autoGenTried.current = false; }, [childId]);
-  useEffect(() => {
-    if (autoGenTried.current) return;
-    if (!childId || smartLoading || generating) return;   // wait for the saved-insight check
-    if (smartInsight) return;                              // already have one
-    if (!hasRealEntitlement && Platform.OS !== 'web') return; // free on web; else don't spend tokens on non-entitled
-    if (generationsLeft <= 0) return;                      // respect the weekly cap
-    if (stats.activeDays < 2) return;                      // need real data (matches activation bar)
-    autoGenTried.current = true;
-    void generateSmartInsight();
-  }, [childId, smartLoading, generating, smartInsight, hasRealEntitlement,
-      generationsLeft, stats.activeDays, generateSmartInsight]);
+  // Lazy auto-generate (Phase E, option א) — shared guards live in
+  // useAutoCoachInsight (also used by the Parent Dashboard card, which is now
+  // the primary surface for the coach insight — pkg/dashboard-ai-insight).
+  useAutoCoachInsight({
+    childId,
+    smartInsight,
+    computedAt,
+    loadingState: smartLoading,
+    generating,
+    generationsLeft,
+    hasRealEntitlement,
+    activeDays: stats.activeDays,
+    generate: generateSmartInsight,
+  });
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
   const sortedPhases = useMemo(
@@ -409,6 +406,18 @@ export default function ParentInsightsScreen() {
               <View style={styles.smartBadge}>
                 <Text style={styles.smartBadgeText}>{t('insights.smart.badge')}</Text>
               </View>
+              {/* "Valid as of" stamp — an insight stays valid until the next one
+                  is computed (D: Adi 2026-07-14), so always say when it was. */}
+              {computedAt && (
+                <Text style={[styles.smartAsOf, { color: T.textMuted }]}>
+                  {t('insights.smart.asOf', {
+                    date: new Date(computedAt).toLocaleDateString(
+                      i18n.language?.startsWith('he') ? 'he-IL' : 'en-US',
+                      { month: 'short', day: 'numeric' },
+                    ),
+                  })}
+                </Text>
+              )}
             </View>
             <Text style={[styles.smartHeadline, { color: '#4C1D95' }]}>{smartInsight.headline}</Text>
             <Text style={[styles.smartMessage,  { color: T.text   }]}>{smartInsight.message}</Text>
@@ -604,7 +613,8 @@ const styles = StyleSheet.create({
 
   // Smart Insight card
   smartCard:        { borderRadius: 16, borderWidth: 1.5, padding: 16, gap: 10 },
-  smartBadgeRow:    { flexDirection: 'row' },
+  smartBadgeRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  smartAsOf:        { fontSize: 11 },
   smartBadge:       { backgroundColor: '#7C3AED', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   smartBadgeText:   { color: '#fff', fontSize: 11, fontWeight: '700' },
   smartHeadline:    { fontSize: 17, fontWeight: '800', lineHeight: 22 },
