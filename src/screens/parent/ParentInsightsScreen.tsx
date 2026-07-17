@@ -426,12 +426,21 @@ export default function ParentInsightsScreen() {
               <Text style={[styles.smartAction, { color: '#6D28D9' }]}>{smartInsight.action}</Text>
             </View>
             {smartInsight.cta_type && smartInsight.cta_type !== 'none' && ctaLabel(smartInsight.cta_type as any) && (
-              <TouchableOpacity
-                style={[styles.cta, { backgroundColor: '#7C3AED', marginTop: 4 }]}
-                onPress={() => runCta(smartInsight.cta_type as any)}
-              >
-                <Text style={styles.ctaText}>{ctaLabel(smartInsight.cta_type as any)}</Text>
-              </TouchableOpacity>
+              // start-conversation has no in-app lever — the IRL talk IS the action.
+              // Render it as quiet text (like the tip card), never as a dead button
+              // (Adi, 2026-07-17: "looks clickable but does nothing").
+              smartInsight.cta_type === 'start-conversation' ? (
+                <Text style={[styles.tipConversation, { color: T.textMuted, marginTop: 4 }]}>
+                  💬 {ctaLabel(smartInsight.cta_type as any)}
+                </Text>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.cta, { backgroundColor: '#7C3AED', marginTop: 4 }]}
+                  onPress={() => runCta(smartInsight.cta_type as any)}
+                >
+                  <Text style={styles.ctaText}>{ctaLabel(smartInsight.cta_type as any)}</Text>
+                </TouchableOpacity>
+              )
             )}
             {/* 👍 👎 feedback row */}
             <View style={styles.voteRow}>
