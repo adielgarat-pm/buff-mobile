@@ -7,7 +7,7 @@
  * FIX 4  — Bonus modal (amount + note → credit_vault + bonus_log)
  *           Send Sticker → Alert placeholder
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput, KeyboardAvoidingView, RefreshControl,
@@ -18,7 +18,7 @@ import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -293,8 +293,14 @@ export default function ParentDashboardScreen() {
   const {
     smartInsight, computedAt, generating: coachGenerating,
     loadingState: coachLoading, generationsLeft,
-    userVote, submitVote, generate: generateCoach,
+    userVote, submitVote, generate: generateCoach, reload: reloadCoach,
   } = useSmartInsights(firstChildId);
+  // Tab screens stay mounted, so a generate/vote on the Insights screen would
+  // leave this card (and its "as of" stamp) stale until an app restart — pull
+  // the latest saved insight every time the dashboard regains focus.
+  useFocusEffect(
+    useCallback(() => { void reloadCoach(); }, [reloadCoach]),
+  );
   useAutoCoachInsight({
     childId: firstChildId,
     smartInsight,
@@ -528,6 +534,7 @@ export default function ParentDashboardScreen() {
         Promise.resolve(refetchSos()),
         Promise.resolve(refetchInsights()),
         Promise.resolve(refetchYesterday()),
+        reloadCoach(),
       ]);
     } finally {
       setRefreshing(false);
