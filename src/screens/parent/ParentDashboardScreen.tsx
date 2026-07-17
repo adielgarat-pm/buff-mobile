@@ -663,7 +663,7 @@ export default function ParentDashboardScreen() {
           {isTrialActive && (
             <Text style={styles.trialRibbon}>
               {trialDaysLeft <= 3
-                ? t('dashboard.trialRibbonEnding', { days: trialDaysLeft })
+                ? t('dashboard.trialRibbonEnding', { count: trialDaysLeft, days: trialDaysLeft })
                 : t('dashboard.trialRibbonActive')}
             </Text>
           )}
@@ -730,7 +730,7 @@ export default function ParentDashboardScreen() {
           {isTrialActive && (
             <Text style={styles.trialRibbon}>
               {trialDaysLeft <= 3
-                ? t('dashboard.trialRibbonEnding', { days: trialDaysLeft })
+                ? t('dashboard.trialRibbonEnding', { count: trialDaysLeft, days: trialDaysLeft })
                 : t('dashboard.trialRibbonActive')}
             </Text>
           )}
