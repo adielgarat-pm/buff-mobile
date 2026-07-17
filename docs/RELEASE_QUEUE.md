@@ -157,6 +157,13 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 >
 > 🚧 **CUT — 1.8.2 (versionCode 68), 2026-07-12.** vc67 (1.8.1) published to Play 2026-07-12 → this table departs. Content = ALL rows above (#350 OTA activation · #352 in-app-update prompt · #353–#359, #361–#362 UX batch 2). **This is the FIRST OTA-capable binary** — after it's live, JS-only fixes ship via `ota:preview`→`ota:prod` (docs/OTA_PLAYBOOK.md); build-time risk = fingerprint runtime resolving clean. Manifest: `docs/releases/68/MANIFEST.md`. Gate 1 ✅ tsc 0 · jest 732/732 (82 suites, 0 skips) · key-check ✅ (on `93b859a`). Build: `EAS Build (Android)` workflow from `origin/main`, autoIncrement → vc68. Rows move to **Shipped (68)** after Adi promotes + "verified, tag it".
 
+**Riding the next train — AFTER the vc68 cut (merged post-cut, NOT in vc68):**
+
+| Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
+|---|---|---|---|---|---|---|
+| 2026-07-14 | #364 / `48336e3` | fix | **Buddy name read/write scoped to the active child everywhere** — no parent-name leak; rename propagates. | Train | yes | Rename buddy → name shown consistently across child screens |
+| 2026-07-15 | #365 / `b1258cf` | feat | **AI coach insight on the Parent Dashboard** (replaces the rule-based %-card as primary): headline/message/action + CTA + 👍👎 vote + "As of {date}" stamp; shared `useAutoCoachInsight` auto-generate guards; rule-based card stays as fallback, free-Android teaser unchanged. Server side already LIVE (edge fn v15: **Gemini primary** + fallback until `GEMINI_API_KEY` secret is set; migration 042 `computed_at`). **JS-only client change → OTA-eligible** once vc68 is the live binary (docs/OTA_PLAYBOOK.md); web lands on Vercel redeploy. | Train | yes | Parent dashboard (entitled/trial or web) → AI coach card renders with date stamp; 👍/👎 persists; tap → Insights screen |
+
 **Note on the version numbers:** EAS auto-incremented past 35/36/37 (parallel builds); build **38** (1.4.1) was cut then canceled; the live build **39** (1.4.1) carries all rows above. The versionCode is just a monotonic counter — content is what matters.
 
 ### 📣 Post-ship notifications — tell the user when it lands
