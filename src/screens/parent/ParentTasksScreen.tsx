@@ -24,17 +24,27 @@ import { PHASES, type Phase } from '../../types/phase';
 import PhilosophyTip from '../../components/PhilosophyTip';
 import { DayScheduleToggles } from '../../components/DayScheduleToggles';
 import { DuplicateToChildModal } from '../../components/parent/DuplicateToChildModal';
-import type { Task } from '../../types/task';
+import type { Task, TaskCategory } from '../../types/task';
 // Platform-split time control ("HH:MM" in/out): native OS picker on Android/iOS,
 // browser <input type="time"> on web — a direct DateTimePicker import renders
 // NOTHING on web, leaving every task stuck at the 16:00 default (dead control).
 import TimeField from '../../components/TimeField';
 import { useRTLStyles } from '../../contexts/LanguageContext';
+import { guardedSheetClose } from '../../utils/sheetDismissGuard';
 import { supabase } from '../../integrations/supabase/client';
 import type { RootStackParamList } from '../../navigation/types';
 import type { AgeGroup, Gender } from '../onboarding/unified/onboardingData';
 
 const STAGE_IDS: Phase[] = ['morning', 'school', 'afternoon', 'evening'];
+
+// Category picker options — labels come from i18n (`category.*`), never hardcoded.
+const CATEGORY_OPTIONS: { key: TaskCategory; emoji: string }[] = [
+  { key: 'learning',       emoji: '📚' },
+  { key: 'organization',   emoji: '🗂️' },
+  { key: 'self-care',      emoji: '🧼' },
+  { key: 'responsibility', emoji: '🏠' },
+  { key: 'movement',       emoji: '⚡' },
+];
 
 const stageForTime = (time: string): Phase => {
   const [h] = time.split(':').map(Number);
@@ -73,7 +83,7 @@ export default function ParentTasksScreen() {
   //  • edit:    opened by tapping an existing task row (editingId set)
   //  • create:  opened from the "+ Add Task" button (both null)
   // The parent always sets time + Buffs so the economy stays in their hands;
-  // category defaults to 'responsibility' and the task runs every day.
+  // category is picked via chips (default 'responsibility') and the task runs every day.
   const [approveOpen, setApproveOpen]       = useState(false);
   const [approvingId, setApprovingId]       = useState<string | null>(null);
   const [editingId, setEditingId]           = useState<string | null>(null);
@@ -81,15 +91,25 @@ export default function ParentTasksScreen() {
   const [approveTime, setApproveTime]       = useState('16:00');
   const [approveCredits, setApproveCredits] = useState('10');
   const [approveDays, setApproveDays]        = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  const [approveCategory, setApproveCategory] = useState<TaskCategory>('responsibility');
   // Set when editing a one-time (dated) task: visibility ignores scheduleDays
   // for dated tasks (isTaskVisibleOn short-circuits on dueDate), so the day
   // chips — and especially the "paused" hint — would lie for them.
   const [editingDueDate, setEditingDueDate]  = useState<string | null>(null);
   const [approveSaving, setApproveSaving]   = useState(false);
+  // Snapshot of the form as it was OPENED (create/approve/edit) — a backdrop
+  // tap on an unchanged form still closes instantly, but once the parent has
+  // typed/edited anything the dismissal asks confirm-discard (sheetDismissGuard).
+  const [openedSnapshot, setOpenedSnapshot] = useState('');
   const [dupTask, setDupTask] = useState<Task | null>(null);
   const { rowDirection } = useRTLStyles();
 
   const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
+  // Canonical string form of the modal's editable fields, used to compare the
+  // current form against the state it opened with (order-stable arrays).
+  const formSnapshot = (title: string, time: string, credits: string, days: number[], category: TaskCategory) =>
+    JSON.stringify([title, time, credits, days, category]);
 
   // Tasks created via the empty-state CTA land back here while this tab is still
   // mounted — useChildData has no focus/realtime refetch, so re-pull on focus.
@@ -114,7 +134,9 @@ export default function ParentTasksScreen() {
     setApproveTime('16:00');
     setApproveCredits('10');
     setApproveDays(ALL_DAYS);
+    setApproveCategory('responsibility');
     setEditingDueDate(null);
+    setOpenedSnapshot(formSnapshot('', '16:00', '10', ALL_DAYS, 'responsibility'));
     setApproveOpen(true);
   };
 
@@ -125,18 +147,23 @@ export default function ParentTasksScreen() {
     setApproveTime('16:00');
     setApproveCredits('10');
     setApproveDays(ALL_DAYS);
+    setApproveCategory('responsibility');
     setEditingDueDate(null);
+    setOpenedSnapshot(formSnapshot(s.title, '16:00', '10', ALL_DAYS, 'responsibility'));
     setApproveOpen(true);
   };
 
-  const handleEditTask = (task: { id: string; title: string; time: string; credits: number; scheduleDays?: number[]; dueDate?: string }) => {
+  const handleEditTask = (task: { id: string; title: string; time: string; credits: number; category?: TaskCategory; scheduleDays?: number[]; dueDate?: string }) => {
+    const days = Array.isArray(task.scheduleDays) ? task.scheduleDays : ALL_DAYS;
     setApprovingId(null);
     setEditingId(task.id);
     setApproveTitle(task.title);
     setApproveTime(task.time);
     setApproveCredits(String(task.credits));
-    setApproveDays(Array.isArray(task.scheduleDays) ? task.scheduleDays : ALL_DAYS);
+    setApproveDays(days);
+    setApproveCategory(task.category ?? 'responsibility');
     setEditingDueDate(task.dueDate ?? null);
+    setOpenedSnapshot(formSnapshot(task.title, task.time, String(task.credits), days, task.category ?? 'responsibility'));
     setApproveOpen(true);
   };
 
@@ -149,6 +176,13 @@ export default function ParentTasksScreen() {
     setApprovingId(null);
     setEditingId(null);
   };
+
+  // Backdrop tap / Android back: instant close when nothing changed, but a
+  // typed/edited form asks confirm-discard instead of silently losing it.
+  const taskModalDirty =
+    formSnapshot(approveTitle, approveTime, approveCredits, approveDays, approveCategory) !== openedSnapshot;
+  const requestCloseTaskModal = () =>
+    guardedSheetClose({ dirty: taskModalDirty, close: closeTaskModal, t });
 
   const handleDeleteTask = () => {
     if (!editingId) return;
@@ -211,8 +245,8 @@ export default function ParentTasksScreen() {
     // chips are hidden in the modal and visibility ignores them anyway).
     if (editingId) {
       await updateTask(editingId, editingDueDate
-        ? { title, time: approveTime, credits }
-        : { title, time: approveTime, credits, scheduleDays: approveDays });
+        ? { title, time: approveTime, credits, category: approveCategory }
+        : { title, time: approveTime, credits, category: approveCategory, scheduleDays: approveDays });
       await refetch();
       setApproveSaving(false);
       closeTaskModal();
@@ -225,7 +259,7 @@ export default function ParentTasksScreen() {
       assigned_to:       selectedChildId,
       title,
       time:              approveTime,
-      category:          'responsibility',
+      category:          approveCategory,
       credits,
       schedule_days:     approveDays,
       proposed_by_child: !!approvingId,
@@ -392,7 +426,7 @@ export default function ParentTasksScreen() {
                         {task.title}
                       </Text>
                       <Text style={[styles.taskMeta, { color: T.textMuted }]}>
-                        {task.time} · {task.credits} Buffs
+                        {t('parentTasks.taskMeta', { time: task.time, credits: task.credits })}
                       </Text>
                     </View>
                     {children.length > 1 && (
@@ -420,13 +454,18 @@ export default function ParentTasksScreen() {
         visible={approveOpen}
         transparent
         animationType="slide"
-        onRequestClose={closeTaskModal}
+        onRequestClose={requestCloseTaskModal}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
           behavior="padding"
         >
-          <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeTaskModal} />
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={requestCloseTaskModal}
+            testID="task-modal-backdrop"
+          />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
             <Text style={[styles.sheetTitle, { color: T.text }]}>
               {editingId
@@ -463,6 +502,30 @@ export default function ParentTasksScreen() {
               maxLength={5}
               selectTextOnFocus
             />
+
+            <Text style={[styles.inputLabel, { color: T.textMuted }]}>{t('parentTasks.categoryLabel')}</Text>
+            <View style={[styles.categoryRow, { flexDirection: rowDirection }]}>
+              {CATEGORY_OPTIONS.map(opt => {
+                const selected = approveCategory === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[
+                      styles.categoryChip,
+                      { backgroundColor: T.bg, borderColor: T.cardBorder },
+                      selected && { backgroundColor: T.accent, borderColor: T.accent },
+                    ]}
+                    onPress={() => setApproveCategory(opt.key)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                  >
+                    <Text style={[styles.categoryChipText, { color: selected ? '#fff' : T.text }]}>
+                      {opt.emoji} {t(`category.${opt.key}`)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             {editingDueDate ? (
               <Text style={[styles.inputLabel, { color: T.textMuted }]}>
@@ -557,6 +620,9 @@ const styles = StyleSheet.create({
   timeRow:       { alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 16 },
   timeValue:     { fontSize: 16, fontWeight: '700', writingDirection: 'ltr' },
   daysPausedHint:{ color: '#B45309', fontSize: 12, fontWeight: '600', marginTop: 8, marginBottom: 8 },
+  categoryRow:      { flexWrap: 'wrap', gap: 6, marginBottom: 16 },
+  categoryChip:     { borderWidth: 1, borderRadius: 16, paddingHorizontal: 10, paddingVertical: 6 },
+  categoryChipText: { fontSize: 12, fontWeight: '600' },
   confirmBtn:    { borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 4 },
   confirmText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
   deleteBtn:     { paddingVertical: 12, alignItems: 'center', marginTop: 8 },

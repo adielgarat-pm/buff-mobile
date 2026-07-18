@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,13 @@ import {
   Platform,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
 import { crossAlert } from '../../platform';
@@ -22,8 +24,11 @@ import AppleSignInButton from '../../components/AppleSignInButton';
 import { PASTEL_MODE as T } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 import { webAuthColumn } from './authLayout';
+import { isNetworkAuthError } from './authErrors';
 
 type Nav = StackNavigationProp<RootStackParamList, 'Login'>;
+
+const LINK_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -32,8 +37,11 @@ export default function LoginScreen() {
 
   const [email,         setEmail]         = useState('');
   const [password,      setPassword]      = useState('');
+  const [showPassword,  setShowPassword]  = useState(false);
   const [loading,       setLoading]       = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  const passwordRef = useRef<TextInput>(null);
 
   // Forgot password state
   const [resetVisible,  setResetVisible]  = useState(false);
@@ -49,14 +57,22 @@ export default function LoginScreen() {
     setLoading(true);
     const { error } = await signIn(email, password);
     setLoading(false);
-    if (error) crossAlert(t('auth.invalidCredentials'));
+    if (error) {
+      // Don't tell a parent on flaky wifi that their password is wrong —
+      // network/server failures get a distinct "try again" message.
+      crossAlert(
+        isNetworkAuthError(error)
+          ? t('auth.networkError')
+          : t('auth.invalidCredentials'),
+      );
+    }
   };
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     const { error } = await signInWithGoogle();
     setGoogleLoading(false);
-    if (error) crossAlert('Google sign-in failed', error.message);
+    if (error) crossAlert(t('auth.googleSignInFailed'), error.message);
   };
 
   const handleSendReset = async () => {
@@ -65,8 +81,13 @@ export default function LoginScreen() {
       return;
     }
     setResetLoading(true);
-    await supabase.auth.resetPasswordForEmail(resetEmail);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail);
     setResetLoading(false);
+    if (error) {
+      // A failed request must not show "check your email" — nothing was sent.
+      crossAlert(t('auth.resetFailed'));
+      return;
+    }
     setResetSent(true);
   };
 
@@ -83,7 +104,10 @@ export default function LoginScreen() {
     >
       <LanguagePicker />
 
-      <View style={[styles.inner, webAuthColumn(400)]}>
+      <ScrollView
+        contentContainerStyle={[styles.inner, webAuthColumn(400)]}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Logo / Title */}
         <View style={styles.logoBlock}>
           <Text style={styles.logo}>BUFF</Text>
@@ -100,22 +124,44 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => passwordRef.current?.focus()}
         />
 
         {/* Password */}
-        <TextInput
-          style={[styles.input, { marginBottom: 8 }]}
-          placeholder={t('auth.password')}
-          placeholderTextColor={T.textMuted}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordWrap}>
+          <TextInput
+            ref={passwordRef}
+            style={[styles.input, styles.passwordInput]}
+            placeholder={t('auth.password')}
+            placeholderTextColor={T.textMuted}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            returnKeyType="go"
+            onSubmitEditing={handleSignIn}
+          />
+          <TouchableOpacity
+            onPress={() => setShowPassword((v) => !v)}
+            style={styles.eyeBtn}
+            hitSlop={LINK_HIT_SLOP}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
+          >
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={22}
+              color={T.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
 
         {/* Forgot password link */}
         <TouchableOpacity
           onPress={() => setResetVisible(true)}
           style={styles.forgotRow}
+          hitSlop={LINK_HIT_SLOP}
         >
           <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
         </TouchableOpacity>
@@ -164,7 +210,7 @@ export default function LoginScreen() {
             <Text style={styles.signupLink}>{t('auth.signup')}</Text>
           </Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {/* ── Forgot Password Modal ─────────────────────────────────────── */}
       <Modal
@@ -191,6 +237,8 @@ export default function LoginScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  returnKeyType="send"
+                  onSubmitEditing={handleSendReset}
                 />
                 <TouchableOpacity
                   onPress={handleSendReset}
@@ -204,7 +252,12 @@ export default function LoginScreen() {
               </>
             )}
 
-            <TouchableOpacity onPress={closeReset} style={styles.modalClose}>
+            <TouchableOpacity
+              onPress={closeReset}
+              style={styles.modalClose}
+              hitSlop={LINK_HIT_SLOP}
+              accessibilityRole="button"
+            >
               <Text style={styles.modalCloseText}>✕</Text>
             </TouchableOpacity>
           </Pressable>
@@ -216,7 +269,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   root:           { flex: 1, backgroundColor: T.canvas },
-  inner:          { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
+  inner:          { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, paddingVertical: 40 },
 
   logoBlock:      { alignItems: 'center', marginBottom: 40 },
   logo:           { color: T.accent, fontSize: 40, fontWeight: 'bold', marginBottom: 8, marginTop: 20 },
@@ -224,7 +277,11 @@ const styles = StyleSheet.create({
 
   input:          { backgroundColor: T.card, color: T.text, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 12, borderWidth: 1, borderColor: T.cardBorder },
 
-  forgotRow:      { alignSelf: 'flex-end', marginBottom: 20 },
+  passwordWrap:   { position: 'relative', marginBottom: 8 },
+  passwordInput:  { marginBottom: 0, paddingEnd: 48 },
+  eyeBtn:         { position: 'absolute', end: 14, top: 0, bottom: 0, justifyContent: 'center' },
+
+  forgotRow:      { alignSelf: 'flex-end', marginTop: 8, marginBottom: 20 },
   forgotText:     { color: T.accent, fontSize: 13 },
 
   primaryBtn:     { backgroundColor: T.accent, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginBottom: 16 },
@@ -243,8 +300,8 @@ const styles = StyleSheet.create({
   signupLink:     { color: T.accent, fontWeight: '600' },
 
   // Modal
-  modalBackdrop:  { flex: 1, backgroundColor: 'rgba(26,22,54,0.45)', justifyContent: 'center', alignItems: 'center' },
-  modalCard:      { backgroundColor: T.card, borderRadius: 20, padding: 28, width: 320, borderWidth: 1, borderColor: T.cardBorder },
+  modalBackdrop:  { flex: 1, backgroundColor: 'rgba(26,22,54,0.45)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20 },
+  modalCard:      { backgroundColor: T.card, borderRadius: 20, padding: 28, width: '100%', maxWidth: 320, borderWidth: 1, borderColor: T.cardBorder },
   modalTitle:     { color: T.text, fontSize: 18, fontWeight: '700', marginBottom: 12, textAlign: 'center' },
   modalPrompt:    { color: T.textMuted, fontSize: 14, marginBottom: 16, textAlign: 'center' },
   modalInput:     { backgroundColor: T.canvas, color: T.text, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, marginBottom: 16, borderWidth: 1, borderColor: T.cardBorder },

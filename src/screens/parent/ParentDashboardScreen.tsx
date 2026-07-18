@@ -7,10 +7,10 @@
  * FIX 4  — Bonus modal (amount + note → credit_vault + bonus_log)
  *           Send Sticker → Alert placeholder
  */
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Modal, TextInput, KeyboardAvoidingView,
+  ActivityIndicator, Modal, TextInput, KeyboardAvoidingView, RefreshControl,
 } from 'react-native';
 import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
@@ -18,7 +18,7 @@ import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
@@ -26,10 +26,15 @@ import { useMode } from '../../contexts/ModeContext';
 import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useParentInsights } from '../../hooks/useParentInsights';
+import { useSmartInsights } from '../../hooks/useSmartInsights';
+import { useAutoCoachInsight } from '../../hooks/useAutoCoachInsight';
+import { useWeeklyStats } from '../../hooks/useWeeklyStats';
 import { useParentRecommendations } from '../../hooks/useParentRecommendations';
 import RecommendationCard from '../../components/parent/RecommendationCard';
 import type { Recommendation } from '../../utils/recommendationEngine';
 import { isActiveDay, successGoal, fuelProgressPct } from '../../utils/successDay';
+import { greetingKeyForHour } from '../../utils/greeting';
+import { guardedSheetClose } from '../../utils/sheetDismissGuard';
 import { useSubscription } from '../../hooks/useSubscription';
 import { useUnlinkedChildren } from '../../hooks/useUnlinkedChildren';
 import { useParentNotifications } from '../../hooks/useParentNotifications';
@@ -54,19 +59,51 @@ type Nav = StackNavigationProp<RootStackParamList>;
 
 const QUICK_AMOUNTS = [10, 20, 50, 100];
 
+/**
+ * ChildDayBadge — the child card's success badge, count-framed (D-2026-06-14).
+ *
+ * Shows "{done}/{goal} ⚡" where goal = successGoal(assigned) — NEVER a % of
+ * the whole list. `done` is capped at the goal (5 done of goal 3 → "3/3 ⚡");
+ * the card's subtitle already shows the real done/total. Below-goal renders in
+ * the card's NEUTRAL muted color, not amber — an unfinished day is progress,
+ * not failure (Pillar 2). Zero-task days (rest days) render nothing: there is
+ * no "0/0" to chase.
+ *
+ * Exported for tests only — rendered exclusively by ParentDashboardScreen.
+ */
+export function ChildDayBadge({ completed, assigned }: { completed: number; assigned: number }) {
+  const goal = successGoal(assigned);
+  if (goal === 0) return null; // rest day — nothing assigned, no badge
+  const atGoal = isActiveDay(completed, assigned);
+  const shown  = Math.min(Math.max(0, completed), goal);
+  return (
+    <View
+      testID="child-day-badge"
+      style={[styles.badge, { backgroundColor: atGoal ? '#ECFDF5' : '#F3F4F6' }]}
+    >
+      <Text
+        testID="child-day-badge-text"
+        style={{ color: atGoal ? T.success : T.textMuted, fontSize: 12, fontWeight: '700' }}
+      >
+        {shown}/{goal} ⚡
+      </Text>
+    </View>
+  );
+}
+
 export default function ParentDashboardScreen() {
   const navigation                         = useNavigation<Nav>();
   const route                              = useRoute<RouteProp<ParentTabsParamList, 'ParentDashboard'>>();
-  const { t }                              = useTranslation();
+  const { t, i18n }                        = useTranslation();
   const { profile, user, familyId, familyShortCode } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
-  const { isSubscribed, insightsUnlocked, isTrialActive, trialDaysLeft } = useSubscription();
+  const { isSubscribed, insightsUnlocked, hasRealEntitlement, isTrialActive, trialDaysLeft } = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
   // Today's parent_sos signals per child — surfaces an inline message +
   // soft dot on the child's card. Auto-clears at midnight (filter is
   // today-only); no manual mark-as-read in v1.
-  const { getSosForChild }                 = useParentNotifications();
+  const { getSosForChild, refetch: refetchSos } = useParentNotifications();
   // Anchor Recovery prompts — pkg/anchor-recovery Phase 2. Surfaces a
   // full-screen modal on first dashboard open of the day (OQ-P2-1 a) if
   // any kid has an unread anchor_recovery notification.
@@ -98,6 +135,7 @@ export default function ParentDashboardScreen() {
     shouldHide:        yesterdayHidden,
     yesterdayDate,
     loading:           yesterdayLoading,
+    refetch:           refetchYesterday,
   } = useYesterdayRecap();
   const [linkTarget, setLinkTarget]        = useState<typeof unlinked[0] | null>(null);
   const autoLinkedRef                      = useRef(false);
@@ -243,8 +281,45 @@ export default function ParentDashboardScreen() {
   // Use first child for insights
   const firstChild    = children[0] ?? null;
   const firstChildId  = firstChild?.childId ?? null;
-  const { insights, loading: insightsLoading } = useParentInsights(firstChildId);
+  const { insights, loading: insightsLoading, refetch: refetchInsights } = useParentInsights(firstChildId);
   const topInsight = insights[0] ?? null;
+
+  // ── AI coach insight — the dashboard card's primary content ─────────────
+  // (pkg/dashboard-ai-insight). Reads the saved insight from child_insights;
+  // useAutoCoachInsight lazily generates one per child per week when the
+  // family is entitled (or on web, where the coach is free) and there is
+  // enough data. The rule-based topInsight above stays as the fallback.
+  const { stats: weeklyStats } = useWeeklyStats(firstChildId);
+  const {
+    smartInsight, computedAt, generating: coachGenerating,
+    loadingState: coachLoading, generationsLeft,
+    userVote, submitVote, generate: generateCoach, reload: reloadCoach,
+  } = useSmartInsights(firstChildId);
+  // Tab screens stay mounted, so a generate/vote on the Insights screen would
+  // leave this card (and its "as of" stamp) stale until an app restart — pull
+  // the latest saved insight every time the dashboard regains focus.
+  useFocusEffect(
+    useCallback(() => { void reloadCoach(); }, [reloadCoach]),
+  );
+  useAutoCoachInsight({
+    childId: firstChildId,
+    smartInsight,
+    computedAt,
+    loadingState: coachLoading,
+    generating:   coachGenerating,
+    generationsLeft,
+    hasRealEntitlement,
+    activeDays: weeklyStats.activeDays,
+    generate:   generateCoach,
+  });
+  // "Valid as of" stamp (D: Adi 2026-07-14 — an insight is valid until the
+  // next one is computed, so the card must say when it was computed).
+  const coachDate = computedAt
+    ? new Date(computedAt).toLocaleDateString(
+        i18n.language?.startsWith('he') ? 'he-IL' : 'en-US',
+        { month: 'short', day: 'numeric' },
+      )
+    : null;
 
   // FIX 1 — detect "not enough data yet" for the insights card
   const daysSinceChildCreated = firstChild?.created_at
@@ -403,6 +478,34 @@ export default function ParentDashboardScreen() {
     }
   };
 
+  // ── AI coach card CTA router — same levers as the Insights screen, but
+  // local (we're already on the dashboard, no navigation bridge needed).
+  const runCoachCta = (ctaType: string) => {
+    if (!firstChildId) return;
+    switch (ctaType) {
+      case 'send-bonus':   openBonus(firstChildId); break;
+      case 'send-sticker': openSticker(firstChildId); break;
+      case 'set-anchor':
+        setMedSheetTarget({ childId: firstChildId, childName: firstChild?.displayName ?? '' });
+        break;
+      case 'open-rewards':
+        navigation.navigate('ParentApp', { screen: 'ParentRewards', params: { childId: firstChildId } });
+        break;
+      case 'start-conversation': // the action is the IRL talk — no lever
+      default:
+        break;
+    }
+  };
+  const coachCtaLabel = (ctaType: string | undefined): string | null => {
+    switch (ctaType) {
+      case 'send-bonus':   return t('insights.weekly.cta.bonus');
+      case 'send-sticker': return t('insights.weekly.cta.sticker');
+      case 'set-anchor':   return t('insights.weekly.cta.anchor');
+      case 'open-rewards': return t('insights.weekly.cta.rewards');
+      default:             return null;
+    }
+  };
+
   // ── Insights-screen CTA bridge ───────────────────────────────────────────
   // The Parent Insights screen routes a CTA back here (openSheet/sheetChildId)
   // to reuse the sticker/bonus/med sheets instead of duplicating their logic.
@@ -418,12 +521,53 @@ export default function ParentDashboardScreen() {
     navigation.setParams({ openSheet: undefined, sheetChildId: undefined } as never);
   }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Pull-to-refresh — "did she do it yet?" is checked many times a day; a
+  // parent shouldn't have to background/foreground the app to get fresh data.
+  // Re-pulls everything this screen renders: child progress cards, SOS
+  // signals, insights, and the Yesterday recap.
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        Promise.resolve(refetch()),
+        Promise.resolve(refetchSos()),
+        Promise.resolve(refetchInsights()),
+        Promise.resolve(refetchYesterday()),
+        reloadCoach(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // ── Dirty-guarded sheet dismissal (backdrop tap / Android back) ──────────
+  // A stray backdrop tap used to discard a typed bonus/sticker note instantly.
+  // Clean sheets still close in one tap; dirty ones ask confirm-discard.
+  const bonusDirty =
+    bonusNote.trim() !== '' || bonusAmount !== '20';
+  const requestCloseBonus = () =>
+    guardedSheetClose({ dirty: bonusDirty, close: () => setBonusChildId(null), t });
+
+  const stickerDirty =
+    stickerNote.trim() !== '' || stickerSelected !== STICKER_CATALOG[0].key;
+  const requestCloseSticker = () =>
+    guardedSheetClose({ dirty: stickerDirty, close: () => setStickerChildId(null), t });
+
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: T.bg }]}
       contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={T.accent}
+          colors={[T.accent]}
+        />
+      }
     >
       {/* ── Pause banner (only renders when paused) ─────────────────────── */}
       <PauseBanner />
@@ -438,7 +582,7 @@ export default function ParentDashboardScreen() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: T.textMuted }]}>
-            {t('dashboard.goodMorning')}
+            {t(greetingKeyForHour(new Date().getHours()))}
           </Text>
           {/* FIX 2B */}
           <Text style={[styles.name, { color: T.text }]}>{firstName} 👋</Text>
@@ -506,6 +650,65 @@ export default function ParentDashboardScreen() {
           onCta={() => handleRecCta(activeRec)}
           onDismiss={() => handleRecDismiss(activeRec)}
         />
+      ) : smartInsight ? (
+        /* ── AI coach insight — the primary card (pkg/dashboard-ai-insight).
+             Coach text only: never a % / failure count of the child (Pillar 2).
+             Tap opens the full Insights screen; CTA + 👍👎 act inline. ── */
+        <TouchableOpacity
+          style={[styles.insightCard, { backgroundColor: T.accent }]}
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          activeOpacity={0.85}
+        >
+          <View style={styles.teaserTagRow}>
+            <Text style={styles.insightTag}>
+              🧠 {t('parent.insights')}{firstChild?.displayName ? ` · ${firstChild.displayName}` : ''}
+            </Text>
+            {coachDate && (
+              <Text style={styles.coachAsOf}>{t('insights.smart.asOf', { date: coachDate })}</Text>
+            )}
+          </View>
+          {isTrialActive && (
+            <Text style={styles.trialRibbon}>
+              {trialDaysLeft <= 3
+                ? t('dashboard.trialRibbonEnding', { count: trialDaysLeft, days: trialDaysLeft })
+                : t('dashboard.trialRibbonActive')}
+            </Text>
+          )}
+          <Text style={styles.coachHeadline}>{smartInsight.headline}</Text>
+          <Text style={styles.coachMessage}>{smartInsight.message}</Text>
+          <Text style={styles.coachAction}>→ {smartInsight.action}</Text>
+          {coachCtaLabel(smartInsight.cta_type) && (
+            <TouchableOpacity style={styles.coachCtaBtn} onPress={() => runCoachCta(smartInsight.cta_type)}>
+              <Text style={styles.coachCtaBtnText}>{coachCtaLabel(smartInsight.cta_type)}</Text>
+            </TouchableOpacity>
+          )}
+          {/* 👍👎 feedback row — synced with the Insights screen (same vote RPC) */}
+          <View style={styles.coachVoteRow}>
+            <Text style={styles.coachVoteLabel}>{t('insights.smart.voteLabel')}</Text>
+            <View style={styles.coachVoteBtns}>
+              <TouchableOpacity
+                onPress={() => submitVote(1)}
+                style={[styles.coachVoteBtn, userVote === 1 && styles.coachVoteBtnActive]}
+              >
+                <Text style={styles.coachVoteEmoji}>👍</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => submitVote(-1)}
+                style={[styles.coachVoteBtn, userVote === -1 && styles.coachVoteBtnActive]}
+              >
+                <Text style={styles.coachVoteEmoji}>👎</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      ) : coachGenerating ? (
+        /* Silent auto-generate in flight — short branded wait, no error surface */
+        <View style={[styles.insightCard, { backgroundColor: T.accent, justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator color="#fff" />
+          <Text style={styles.coachGeneratingText}>
+            {t('dashboard.aiGenerating', { name: firstChild?.displayName ?? '' })}
+          </Text>
+        </View>
       ) : insightsLoading ? (
         <View style={[styles.insightCard, { backgroundColor: T.accent, justifyContent: 'center', alignItems: 'center' }]}>
           <ActivityIndicator color="#fff" />
@@ -534,7 +737,7 @@ export default function ParentDashboardScreen() {
           {isTrialActive && (
             <Text style={styles.trialRibbon}>
               {trialDaysLeft <= 3
-                ? t('dashboard.trialRibbonEnding', { days: trialDaysLeft })
+                ? t('dashboard.trialRibbonEnding', { count: trialDaysLeft, days: trialDaysLeft })
                 : t('dashboard.trialRibbonActive')}
             </Text>
           )}
@@ -699,11 +902,7 @@ export default function ParentDashboardScreen() {
                     {child.tasksCompleted}/{child.tasksTotal} {t('overview.tasks')} · ⚡ {formatNum(child.totalBalance)} {t('parentSettings.buffPoints')}
                   </Text>
                 </View>
-                <View style={[styles.badge, { backgroundColor: atGoal ? '#ECFDF5' : '#FEF3C7' }]}>
-                  <Text style={{ color: atGoal ? T.success : '#D97706', fontSize: 12, fontWeight: '700' }}>
-                    {pct}%
-                  </Text>
-                </View>
+                <ChildDayBadge completed={child.tasksCompleted} assigned={child.tasksTotal} />
               </View>
 
               {/* SOS inline message — sits between header and progress bar.
@@ -718,10 +917,14 @@ export default function ParentDashboardScreen() {
               <View style={[styles.barTrack, { backgroundColor: T.cardBorder }]}>
                 <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: atGoal ? T.success : T.accentLight }]} />
               </View>
-              <View style={styles.goalRow}>
-                <Text style={[styles.goalText, { color: T.textMuted }]}>{t('weeklyGoal.goalCount', { goal })}</Text>
-                <View style={styles.goalMark} />
-              </View>
+              {goal > 0 && (
+                <View style={styles.goalRow}>
+                  <Text style={[styles.goalText, { color: T.textMuted }]}>
+                    {goal === 1 ? t('dashboard.goalLineOne') : t('dashboard.goalLine', { goal })}
+                  </Text>
+                  <View style={styles.goalMark} />
+                </View>
+              )}
 
               {/* Quick actions */}
               <View style={styles.childActions}>
@@ -829,7 +1032,7 @@ export default function ParentDashboardScreen() {
         visible={!!bonusChildId}
         transparent
         animationType="slide"
-        onRequestClose={() => setBonusChildId(null)}
+        onRequestClose={requestCloseBonus}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
@@ -838,7 +1041,7 @@ export default function ParentDashboardScreen() {
           <TouchableOpacity
             style={{ flex: 1 }}
             activeOpacity={1}
-            onPress={() => setBonusChildId(null)}
+            onPress={requestCloseBonus}
           />
           <View style={[styles.bonusSheet, { backgroundColor: T.card }]}>
             {/* Header */}
@@ -921,7 +1124,7 @@ export default function ParentDashboardScreen() {
         visible={!!stickerChildId}
         transparent
         animationType="slide"
-        onRequestClose={() => setStickerChildId(null)}
+        onRequestClose={requestCloseSticker}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
@@ -930,7 +1133,7 @@ export default function ParentDashboardScreen() {
           <TouchableOpacity
             style={{ flex: 1 }}
             activeOpacity={1}
-            onPress={() => setStickerChildId(null)}
+            onPress={requestCloseSticker}
           />
           <View style={[styles.bonusSheet, { backgroundColor: T.card }]}>
             <Text style={[styles.bonusTitle, { color: T.text }]}>
@@ -1028,6 +1231,21 @@ const styles = StyleSheet.create({
   teaserValueNote: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '600', textAlign: 'center', marginTop: 10 },
   insightCtaChevron: { color: '#fff', fontSize: 18, fontWeight: '700', marginTop: -2 },
   insightLockedCta:  { fontSize: 13, fontWeight: '700', marginTop: 10 },
+
+  // AI coach card (pkg/dashboard-ai-insight)
+  coachAsOf:          { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
+  coachHeadline:      { color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 6 },
+  coachMessage:       { color: 'rgba(255,255,255,0.92)', fontSize: 14, lineHeight: 20, marginBottom: 8 },
+  coachAction:        { color: '#fff', fontSize: 13.5, fontWeight: '600', fontStyle: 'italic' },
+  coachCtaBtn:        { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, marginTop: 10 },
+  coachCtaBtnText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  coachVoteRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)' },
+  coachVoteLabel:     { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  coachVoteBtns:      { flexDirection: 'row', gap: 8 },
+  coachVoteBtn:       { borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: 'rgba(255,255,255,0.12)' },
+  coachVoteBtnActive: { backgroundColor: 'rgba(255,255,255,0.35)' },
+  coachVoteEmoji:     { fontSize: 16 },
+  coachGeneratingText:{ color: 'rgba(255,255,255,0.9)', fontSize: 13, marginTop: 8 },
   teaserTagRow:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   premiumPill:       { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   premiumPillText:   { color: '#fff', fontSize: 11, fontWeight: '800' },

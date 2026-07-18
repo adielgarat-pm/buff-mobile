@@ -18,11 +18,13 @@
  */
 import { useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, ActivityIndicator,
+  View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import type { ChildTabsParamList } from '../../navigation/types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useAppSettings } from '../../hooks/useAppSettings';
@@ -53,6 +55,9 @@ export default function GamerMyStatsScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
   const { previewChildId } = useMode();
+  // Sibling-tab navigation (this screen IS the ChildMyStats tab).
+  const navigation = useNavigation<BottomTabNavigationProp<ChildTabsParamList>>();
+  const openSettings = useCallback(() => navigation.navigate('ChildSettings'), [navigation]);
 
   const childId = previewChildId ?? profile?.id ?? null;
   const { relationship, loading: buddyLoading, refetch: refetchBuddy } = useBuddyRelationship(childId);
@@ -79,7 +84,7 @@ export default function GamerMyStatsScreen() {
   if (isPauseActive) {
     return (
       <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
-        <Header t={t} />
+        <Header t={t} onSettingsPress={openSettings} />
         <PauseEmptyState />
         <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
       </ScrollView>
@@ -97,7 +102,7 @@ export default function GamerMyStatsScreen() {
 
   return (
     <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
-      <Header t={t} />
+      <Header t={t} onSettingsPress={openSettings} />
 
       <View style={styles.levelRow}>
         <LevelPill level={level} />
@@ -161,14 +166,23 @@ function progressToNextLevel(
   };
 }
 
-function Header({ t }: { t: (k: string) => string }) {
+function Header({ t, onSettingsPress }: {
+  t: (k: string) => string;
+  onSettingsPress: () => void;
+}) {
   return (
     <View style={styles.headerRow}>
       <Text style={styles.title}>{t('gamerMyStats.title')}</Text>
-      <View style={styles.iconBtn}>
-        {/* Inert placeholder — wired up when Settings screen 07 ships */}
+      <TouchableOpacity
+        style={styles.iconBtn}
+        onPress={onSettingsPress}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={t('tabs.child.menu')}
+        testID="stats-settings-btn"
+      >
         <Ionicons name="settings-outline" size={20} color={COLORS.textMuted} />
-      </View>
+      </TouchableOpacity>
     </View>
   );
 }

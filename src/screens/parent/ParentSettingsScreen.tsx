@@ -155,12 +155,12 @@ export default function ParentSettingsScreen() {
         {
           label: t('settings.rowStatus'),
           value: isLifetimeAccess
-            ? '✅ Lifetime access'
+            ? t('settings.statusLifetime')
             : isGracePeriod
-            ? '✅ Beta (free until May 2026)'
+            ? t('settings.statusBeta')
             : isSubscribed
-            ? '✅ Family plan'
-            : 'Free (1 child)',
+            ? t('settings.statusFamilyPlan')
+            : t('settings.statusFree'),
         },
       ],
     },

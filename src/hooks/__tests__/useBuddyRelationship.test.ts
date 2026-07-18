@@ -52,11 +52,14 @@ function mockSelectReturns(row: BuddyRelationship | null) {
   };
 }
 
-/** Mock an UPDATE…eq with a given final result. */
-function mockUpdateReturns(result: { error: unknown }) {
+/** Mock an UPDATE…eq…select with a given final result. Default: 1 row updated. */
+function mockUpdateReturns(result: { error: unknown; data?: unknown }) {
+  const final = { data: result.data ?? [{ id: 'rel-1' }], error: result.error };
   return {
     update: jest.fn(() => ({
-      eq: jest.fn().mockResolvedValue(result),
+      eq: jest.fn(() => ({
+        select: jest.fn().mockResolvedValue(final),
+      })),
     })),
   };
 }
@@ -151,6 +154,49 @@ describe('useBuddyRelationship', () => {
     });
 
     expect(result.current.relationship?.buddy_name).toBeNull();
+  });
+
+  // Regression guard for the vc68 "renamed to BOBO but באדי came back" bug:
+  // an UPDATE that matches 0 rows (missing relationship row, or RLS silently
+  // filtering it — e.g. a parent in View-as-Child) resolves WITHOUT a
+  // Supabase error. The hook must treat 0 rows as a failure, refetch server
+  // truth, and return an error so the screen can tell the user.
+  test('setBuddyName treats 0 rows updated (RLS/missing row) as an error and restores server truth', async () => {
+    // 1. initial fetch — buddy_name null (server truth)
+    mockedFrom.mockReturnValueOnce(mockSelectReturns(baseRelationship) as never);
+    // 2. update "succeeds" but matches 0 rows
+    mockedFrom.mockReturnValueOnce(mockUpdateReturns({ error: null, data: [] }) as never);
+    // 3. refetch — server still says buddy_name null
+    mockedFrom.mockReturnValueOnce(mockSelectReturns(baseRelationship) as never);
+
+    const { result } = renderHook(() => useBuddyRelationship('child-1'));
+    await waitFor(() => expect(result.current.relationship).not.toBeNull());
+
+    let returnValue: { error: Error | null } | undefined;
+    await act(async () => {
+      returnValue = await result.current.setBuddyName('BOBO');
+    });
+
+    expect(returnValue?.error).toBeInstanceOf(Error);
+    // Optimistic "BOBO" must not survive — server truth (null) wins.
+    await waitFor(() => expect(result.current.relationship?.buddy_name).toBeNull());
+  });
+
+  test('setBuddyVisible treats 0 rows updated as an error', async () => {
+    mockedFrom.mockReturnValueOnce(mockSelectReturns(baseRelationship) as never);
+    mockedFrom.mockReturnValueOnce(mockUpdateReturns({ error: null, data: [] }) as never);
+    mockedFrom.mockReturnValueOnce(mockSelectReturns(baseRelationship) as never);
+
+    const { result } = renderHook(() => useBuddyRelationship('child-1'));
+    await waitFor(() => expect(result.current.relationship).not.toBeNull());
+
+    let returnValue: { error: Error | null } | undefined;
+    await act(async () => {
+      returnValue = await result.current.setBuddyVisible(false);
+    });
+
+    expect(returnValue?.error).toBeInstanceOf(Error);
+    await waitFor(() => expect(result.current.relationship?.buddy_visible).toBe(true));
   });
 
   test('mutators return error if childId is null (no Supabase call)', async () => {

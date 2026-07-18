@@ -45,7 +45,6 @@ import { supabase } from '../../integrations/supabase/client';
 import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { pickI18nColumn } from '../../lib/i18nString';
-import { getCurrencySymbol } from '../../lib/currency';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { useRewardRedemptions } from '../../hooks/useRewardRedemptions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
@@ -77,6 +76,10 @@ const SUGGEST_PALETTE: SuggestPalette = {
   inputBg:    COLORS.surfaceDim,
   border:     COLORS.border,
 };
+
+// Pending-request footer actions render ~16pt of text; this hitSlop lifts the
+// effective touch target to ≥44pt each way (16 + 14 + 14) per safe-zone rule.
+const PENDING_ACTION_HITSLOP = { top: 14, bottom: 14, left: 16, right: 16 };
 
 type TabKey = 'parent' | 'buddy';
 
@@ -179,13 +182,8 @@ export default function GamerRewardsScreen() {
   const handleClaim = async (reward: StoreReward) => {
     const displayTitle = pickI18nColumn(reward, i18n.language);
     if (totalBalance < reward.credits_needed) {
-      crossAlert(
-        t('childRewards.notEnoughTitle'),
-        t('childRewards.notEnoughMsg', {
-          count: reward.credits_needed - totalBalance,
-          title: displayTitle,
-        }),
-      );
+      // Silent no-op: locked cards already show the progress bar + "X to go"
+      // inline, so no blocking alert (impulsive-tap friction — Pillar 1/2).
       return;
     }
     const { error } = await requestRedemption({
@@ -326,17 +324,14 @@ export default function GamerRewardsScreen() {
                         >
                           {pickI18nColumn(reward, i18n.language)}
                         </Text>
+                        {/* Always the Buffs price — never a money tag on the child
+                            side (cash_value stays parent-facing in ParentRewardsScreen). */}
                         <Text style={[
                           styles.cardCost,
                           { color: isUnlocked ? COLORS.lime : COLORS.textMuted },
                         ]}>
                           💎 {reward.credits_needed}
                         </Text>
-                        {reward.cash_value != null && (
-                          <Text style={[styles.cardCost, { color: COLORS.textMuted }]}>
-                            {t('parentRewards.cashBadge', { symbol: getCurrencySymbol(), amount: reward.cash_value })}
-                          </Text>
-                        )}
 
                         {pending ? (
                           <View style={styles.pendingWrap}>
@@ -346,11 +341,19 @@ export default function GamerRewardsScreen() {
                                 : t('childRewards.pendingLabel')}
                             </Text>
                             {pending.status === 'discussing' ? (
-                              <TouchableOpacity onPress={() => handleAcknowledge(reward)} hitSlop={6}>
+                              <TouchableOpacity
+                                onPress={() => handleAcknowledge(reward)}
+                                hitSlop={PENDING_ACTION_HITSLOP}
+                                accessibilityRole="button"
+                              >
                                 <Text style={styles.pendingWithdraw}>{t('childRewards.gotIt')}</Text>
                               </TouchableOpacity>
                             ) : (
-                              <TouchableOpacity onPress={() => handleWithdraw(reward)} hitSlop={6}>
+                              <TouchableOpacity
+                                onPress={() => handleWithdraw(reward)}
+                                hitSlop={PENDING_ACTION_HITSLOP}
+                                accessibilityRole="button"
+                              >
                                 <Text style={styles.pendingWithdraw}>{t('childRewards.cancelRequest')}</Text>
                               </TouchableOpacity>
                             )}
@@ -523,16 +526,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
+  // ≥44pt touch target per safe-zone rule (minHeight + centered content).
   redeemBtn: {
     backgroundColor: COLORS.lime,
     width: '100%',
-    paddingVertical: 8,
+    minHeight: 44,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   redeemBtnText: {
     color: COLORS.canvas,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '900',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
@@ -552,7 +557,7 @@ const styles = StyleSheet.create({
   },
   pendingWithdraw: {
     color: COLORS.textFaint,
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
   },
 

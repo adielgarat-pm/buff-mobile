@@ -6,7 +6,7 @@
  * them invokes the corresponding modal (verified indirectly by checking
  * the rendered DOM updates from the BuddyToggleModal / BuddyNameModal).
  */
-import { render, fireEvent, within } from '@testing-library/react-native';
+import { render, fireEvent, within, waitFor } from '@testing-library/react-native';
 import ChildSettingsScreen from '../ChildSettingsScreen';
 import type { BuddyRelationship } from '../../../types/buddy';
 
@@ -41,10 +41,17 @@ const mockMode = {
   exitChildPreview: jest.fn(),
   viewMode: 'child' as 'child' | 'parent',
   previewChildId: null as string | null,
+  previewChildName: null as string | null,
 };
 jest.mock('../../../contexts/ModeContext', () => ({
   useMode: () => mockMode,
 }));
+
+jest.mock('../../../platform/crossAlert', () => ({
+  crossAlert: jest.fn(),
+}));
+import { crossAlert } from '../../../platform/crossAlert';
+const mockedCrossAlert = crossAlert as jest.MockedFunction<typeof crossAlert>;
 
 jest.mock('../../../contexts/ThemeContext', () => ({
   useTheme: () => ({ themeName: 'gamer', setTheme: jest.fn() }),
@@ -124,7 +131,11 @@ function mockBuddyHook(overrides: Partial<BuddyRelationship> | null = {}) {
 describe('ChildSettingsScreen — Buddy section', () => {
   beforeEach(() => {
     mockedUseBuddy.mockReset();
+    mockedCrossAlert.mockReset();
     mockMode.viewMode = 'child';
+    mockMode.isChildPreview = false;
+    mockMode.previewChildId = null;
+    mockMode.previewChildName = null;
   });
 
   // Guards against regression: if someone removes useFocusEffect from the
@@ -166,20 +177,22 @@ describe('ChildSettingsScreen — Buddy section', () => {
     expect(getByText('Sparky')).toBeTruthy();
   });
 
-  test('falls back to "Buddy" when current_skin_id is unknown', () => {
+  test('falls back to the TRANSLATED default (pet.defaultName) when current_skin_id is unknown', () => {
     mockBuddyHook({ current_skin_id: 'panda', buddy_name: null });
 
-    const { getByTestId } = render(<ChildSettingsScreen />);
-    // Scope to the rename-buddy row to avoid clashing with the "Buddy" section header
-    expect(within(getByTestId('rename-buddy-entry')).getByText('Buddy')).toBeTruthy();
+    const { getByTestId, queryByText } = render(<ChildSettingsScreen />);
+    // Scope to the rename-buddy row; must be the i18n key, not the old
+    // hard-coded English literal 'Buddy' (Hebrew UI showed English).
+    expect(within(getByTestId('rename-buddy-entry')).getByText('pet.defaultName')).toBeTruthy();
+    expect(queryByText('Buddy')).toBeNull();
   });
 
-  test('null relationship (fresh child) renders with default-visible + "Buddy" name', () => {
+  test('null relationship (fresh child) renders with default-visible + translated default name', () => {
     mockBuddyHook(null);
 
     const { getByText, getByTestId } = render(<ChildSettingsScreen />);
     expect(getByText('childSettings.buddyView.statusShown')).toBeTruthy();
-    expect(within(getByTestId('rename-buddy-entry')).getByText('Buddy')).toBeTruthy();
+    expect(within(getByTestId('rename-buddy-entry')).getByText('pet.defaultName')).toBeTruthy();
   });
 
   test('tapping "Buddy view" opens the toggle modal (modal title becomes visible)', () => {
@@ -218,6 +231,64 @@ describe('ChildSettingsScreen — Buddy section', () => {
 
     expect(getByText(/4,242/)).toBeTruthy();
     expect(queryByText(/1,240/)).toBeNull();
+  });
+
+  // ── vc68 bug regressions (pkg/fix-buddy-name-sources) ────────────────────
+
+  // Symptom 1: in View-as-Child the Menu's profile card rendered the PARENT's
+  // display_name ("ADI") next to the pet emoji — read as the buddy's name.
+  // The card must show the ACTIVE child's name, never the parent's.
+  test('View-as-Child: profile card shows the previewed child name, never the parent name', () => {
+    mockBuddyHook({});
+    mockMode.isChildPreview = true;
+    mockMode.previewChildId = 'child-2';
+    mockMode.previewChildName = 'Emi';
+
+    const { getByText, queryByText } = render(<ChildSettingsScreen />);
+
+    expect(getByText('Emi')).toBeTruthy();
+    expect(queryByText('TestKid')).toBeNull(); // parent profile name must not leak
+    // Buddy data must be loaded for the previewed child, not the parent.
+    expect(mockedUseBuddy).toHaveBeenCalledWith('child-2');
+  });
+
+  test('real child (no preview): profile card shows own profile name', () => {
+    mockBuddyHook({});
+
+    const { getByText } = render(<ChildSettingsScreen />);
+    expect(getByText('TestKid')).toBeTruthy();
+  });
+
+  // Symptom 2: a rename whose write is silently dropped (0 rows updated —
+  // RLS in View-as-Child) must surface an alert instead of pretending it
+  // saved and reverting to the default name on the next screen.
+  test('rename failure surfaces the save-error alert', async () => {
+    const { setBuddyName } = mockBuddyHook({});
+    setBuddyName.mockResolvedValue({ error: new Error('no rows updated') });
+
+    const { getByTestId, getByText } = render(<ChildSettingsScreen />);
+
+    fireEvent.press(getByTestId('rename-buddy-entry'));
+    fireEvent.press(getByText('buddy.nameModal.save'));
+
+    await waitFor(() => {
+      expect(mockedCrossAlert).toHaveBeenCalledWith(
+        'childSettings.buddySaveError.title',
+        'childSettings.buddySaveError.body',
+      );
+    });
+  });
+
+  test('successful rename shows no error alert', async () => {
+    const { setBuddyName } = mockBuddyHook({});
+
+    const { getByTestId, getByText } = render(<ChildSettingsScreen />);
+
+    fireEvent.press(getByTestId('rename-buddy-entry'));
+    fireEvent.press(getByText('buddy.nameModal.save'));
+
+    await waitFor(() => expect(setBuddyName).toHaveBeenCalled());
+    expect(mockedCrossAlert).not.toHaveBeenCalled();
   });
 
   // OQ-2(a): language is parent-owned. The picker must not appear to a child

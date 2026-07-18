@@ -12,6 +12,9 @@ export interface SmartInsight {
 
 interface UseSmartInsightsResult {
   smartInsight:     SmartInsight | null;
+  /** ISO timestamp of when the saved insight was computed — powers the
+   *  "valid as of {date}" stamp (D: Adi 2026-07-14). Null until loaded. */
+  computedAt:       string | null;
   parentContext:    string;
   setParentContext: (v: string) => void;
   generating:       boolean;
@@ -21,6 +24,12 @@ interface UseSmartInsightsResult {
   loadingState:     boolean;
   userVote:         1 | -1 | null;
   submitVote:       (vote: 1 | -1) => Promise<void>;
+  /** Silent re-pull of the saved insight + vote (no flicker: state is updated
+   *  in place, not cleared). Screens call this on focus / pull-to-refresh so a
+   *  generate on one screen is reflected on the other (Adi 2026-07-17: the
+   *  dashboard card kept a stale insight + "as of" date after generating on
+   *  the Insights screen — tab screens stay mounted, so mount-load isn't enough). */
+  reload:           () => Promise<void>;
 }
 
 const MAX_CONTEXT_LENGTH = 140;
@@ -39,6 +48,7 @@ function insightHash(insight: SmartInsight): string {
 export function useSmartInsights(childId: string | null): UseSmartInsightsResult {
   const { i18n } = useTranslation();
   const [smartInsight,    setSmartInsight]    = useState<SmartInsight | null>(null);
+  const [computedAt,      setComputedAt]      = useState<string | null>(null);
   const [parentContext,   setParentContextRaw] = useState('');
   const [generating,      setGenerating]       = useState(false);
   const [error,           setError]            = useState<string | null>(null);
@@ -60,6 +70,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     if (!childId) return;
     let cancelled = false;
     setSmartInsight(null);
+    setComputedAt(null);
     setParentContextRaw('');
     setWeeklyCount(0);
     setError(null);
@@ -74,11 +85,40 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
         }
         const row = data[0];
         setSmartInsight((row.smart_insight as SmartInsight) ?? null);
+        setComputedAt((row.computed_at as string | null) ?? null);
         setParentContextRaw(row.parent_context ?? '');
         setWeeklyCount(row.weekly_count ?? 0);
         setLoadingState(false);
       });
     return () => { cancelled = true; };
+  }, [childId]);
+
+  // Silent refresh — update in place (no reset/flicker). Used on screen focus
+  // and pull-to-refresh so both surfaces converge on the latest saved insight.
+  const reload = useCallback(async () => {
+    if (!childId) return;
+    const { data, error: rpcError } = await supabase
+      .rpc('get_smart_insight_state', { p_child_id: childId });
+    if (rpcError || !data || data.length === 0) return;
+    const row = data[0];
+    setSmartInsight((row.smart_insight as SmartInsight) ?? null);
+    setComputedAt((row.computed_at as string | null) ?? null);
+    setWeeklyCount(row.weekly_count ?? 0);
+    // Latest vote for this week too — a vote cast on the other screen should
+    // show as selected here. (parentContext is deliberately NOT overwritten:
+    // the parent may be mid-typing on the Insights screen.)
+    const d = new Date();
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    const monday = d.toISOString().split('T')[0];
+    const { data: voteRow } = await supabase
+      .from('smart_insight_feedback')
+      .select('explicit_vote')
+      .eq('child_id', childId)
+      .gte('window_end', monday)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setUserVote((voteRow?.explicit_vote as 1 | -1 | undefined) ?? null);
   }, [childId]);
 
   // Load existing vote for this week
@@ -143,6 +183,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
 
       const { _weekly_count, ...insight } = raw;
       setSmartInsight(insight as SmartInsight);
+      setComputedAt(new Date().toISOString());
       if (typeof _weekly_count === 'number') setWeeklyCount(_weekly_count);
       else setWeeklyCount(prev => prev + 1);
       setWindowEnd(new Date().toISOString().split('T')[0]);
@@ -167,6 +208,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
 
   return {
     smartInsight,
+    computedAt,
     parentContext,
     setParentContext,
     generating,
@@ -176,5 +218,6 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     loadingState,
     userVote,
     submitVote,
+    reload,
   };
 }

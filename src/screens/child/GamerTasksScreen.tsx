@@ -33,6 +33,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
@@ -105,6 +106,7 @@ function GamerTaskCard({ task, isNextUp, onTap, labelDone, labelTodo }: {
   labelDone: string;
   labelTodo: string;
 }) {
+  const { t } = useTranslation();
   const popScale = useCompletionPop(task.completed);
   return (
     <Animated.View
@@ -157,7 +159,7 @@ function GamerTaskCard({ task, isNextUp, onTap, labelDone, labelTodo }: {
         </Text>
 
         <Text style={[styles.taskCredits, task.completed && { opacity: 0.55 }]}>
-          +{task.credits}
+          {t('gamerTasks.taskCredits', { credits: task.credits })}
         </Text>
       </TouchableOpacity>
     </Animated.View>
@@ -257,8 +259,16 @@ export default function GamerTasksScreen() {
   // `daily_progress` is family-scoped, so the parent's auth session is
   // allowed to commit a completion on the kid's behalf. No preview gate.
   const onTaskTap = (taskId: string, completed: boolean) => {
-    if (completed) uncompleteTask(taskId);
-    else           completeTask(taskId);
+    // Same haptic contract as PhaseTaskCard (Mint): success notification on
+    // complete, light impact on un-complete. Gated by the ChildSettings
+    // haptics toggle; expo-haptics is a no-op on web, so platform-safe.
+    if (completed) {
+      if (hapticsOn) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      uncompleteTask(taskId);
+    } else {
+      if (hapticsOn) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      completeTask(taskId);
+    }
   };
 
   // ── Loading ──────────────────────────────────────────────────────────────
@@ -394,10 +404,6 @@ export default function GamerTasksScreen() {
           palette={SUGGEST_PALETTE}
           onWithdraw={withdraw}
         />
-
-        {/* Haptics flag is read but unused in this screen — kept for future
-            wiring to per-task haptic feedback. */}
-        {hapticsOn ? null : null}
       </ScrollView>
 
       <SuggestModal
