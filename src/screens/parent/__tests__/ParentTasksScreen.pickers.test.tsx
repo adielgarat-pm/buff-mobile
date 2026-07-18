@@ -127,6 +127,7 @@ describe('ParentTasksScreen — time field (platform-split)', () => {
       title: 'Homework',
       time: '09:45',
       credits: 10,
+      category: 'responsibility',
       scheduleDays: [0, 1, 2, 3, 4, 5, 6],
     });
   });
