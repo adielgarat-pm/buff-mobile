@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Parent Guides — ADHD Routines, Transitions &amp; Reward Systems | BUFF</title>
+  <meta name="description" content="Practical, judgment-free guides for parents of ADHD kids: why reward charts stop working, surviving the school-summer transitions, and building routines that last." />
+  <link rel="canonical" href="https://buffadhd.com/guides/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="BUFF Parent Guides — ADHD routines that actually survive" />
+  <meta property="og:description" content="Practical, judgment-free guides for parents of ADHD kids. Bilingual (EN/HE)." />
+  <meta property="og:url" content="https://buffadhd.com/guides/" />
+  <meta name="robots" content="index,follow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --violet-deep: #1a1636; --violet-primary: #8b5cf6; --violet-soft: #A78BFA;
+      --lavender-bg: #F4F0FA; --mint: #D9F2E4; --white: #FFFFFF;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Heebo', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--lavender-bg); color: var(--violet-deep); line-height: 1.65; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 24px 20px 64px; }
+    header.top { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 24px; }
+    .wordmark { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .wordmark img { width: 36px; height: 36px; border-radius: 10px; }
+    .wordmark span { font-weight: 800; font-size: 22px; color: var(--violet-primary); letter-spacing: 0.5px; }
+    .lang-toggle { display: flex; gap: 6px; }
+    .lang-toggle button { font-family: inherit; font-size: 14px; font-weight: 500; border: 1px solid var(--violet-soft); background: var(--white); color: var(--violet-deep); padding: 6px 14px; border-radius: 12px; cursor: pointer; }
+    .lang-toggle button.active { background: var(--violet-primary); border-color: var(--violet-primary); color: var(--white); }
+    .kicker { display: inline-block; background: var(--mint); color: var(--violet-deep); font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 12px; margin-bottom: 14px; }
+    h1 { font-size: 30px; font-weight: 800; line-height: 1.25; margin-bottom: 10px; }
+    .lede { font-size: 17px; color: #4a4460; margin-bottom: 28px; }
+    a.card { display: block; background: var(--white); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(26, 22, 54, 0.06); text-decoration: none; color: inherit; }
+    a.card:hover { box-shadow: 0 3px 8px rgba(26, 22, 54, 0.12); }
+    a.card h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; color: var(--violet-primary); }
+    a.card p { font-size: 15px; color: #4a4460; }
+    footer { margin-top: 44px; text-align: center; font-size: 14px; color: #6b6486; }
+    footer .tagline { font-weight: 700; color: var(--violet-primary); margin-bottom: 6px; }
+    footer a { color: var(--violet-primary); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="wordmark" href="https://buffadhd.com"><img src="/favicon.png" alt="BUFF logo" /><span>BUFF</span></a>
+      <div class="lang-toggle">
+        <button id="btn-en" type="button" onclick="setLang('en')">English</button>
+        <button id="btn-he" type="button" onclick="setLang('he')">עברית</button>
+      </div>
+    </header>
+
+    <main id="lang-en" dir="ltr">
+      <span class="kicker">Parent guides</span>
+      <h1>Guides for parents of ADHD kids</h1>
+      <p class="lede">Practical, judgment-free, written by a mom of two kids with ADHD. Everything here works with an app or with paper.</p>
+      <a class="card" href="/guides/why-adhd-charts-fail/">
+        <h2>Why reward charts stop working (and what survives)</h2>
+        <p>The three deaths every sticker chart dies — and the three rules that make routine systems last.</p>
+      </a>
+      <a class="card" href="/guides/summer/">
+        <h2>From school routine to summer break</h2>
+        <p>7 steps to keep structure over the break, without losing momentum.</p>
+      </a>
+      <a class="card" href="/guides/back-to-school/">
+        <h2>From summer freedom back to school</h2>
+        <p>How to land the new school year without the crash.</p>
+      </a>
+      <footer>
+        <p class="tagline">Until they don't need us.</p>
+        <p><a href="https://buffadhd.com">buffadhd.com</a></p>
+      </footer>
+    </main>
+
+    <main id="lang-he" dir="rtl" hidden>
+      <span class="kicker">מדריכים להורים</span>
+      <h1>מדריכים להורים לילדים עם ADHD</h1>
+      <p class="lede">פרקטיים, בלי שיפוטיות, נכתבו על ידי אמא לשני ילדים עם ADHD. כל מה שכאן עובד עם אפליקציה או עם נייר.</p>
+      <a class="card" href="/guides/why-adhd-charts-fail/#he">
+        <h2>למה טבלאות פרסים מפסיקות לעבוד (ומה כן שורד)</h2>
+        <p>שלושת מקרי המוות של כל טבלת מדבקות — ושלושת הכללים שגורמים למערכת לשרוד.</p>
+      </a>
+      <a class="card" href="/guides/summer/#he">
+        <h2>מעבר משגרת לימודים לחופש הגדול</h2>
+        <p>7 צעדים לשמור על מבנה בחופש, בלי לאבד את הקצב.</p>
+      </a>
+      <a class="card" href="/guides/back-to-school/#he">
+        <h2>מהחופש חזרה לבית הספר</h2>
+        <p>איך לנחות בשנת הלימודים החדשה בלי התרסקות.</p>
+      </a>
+      <footer>
+        <p class="tagline">עד שהם כבר לא יזדקקו לנו.</p>
+        <p><a href="https://buffadhd.com">buffadhd.com</a></p>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function setLang(lang) {
+      document.getElementById('lang-en').hidden = lang !== 'en';
+      document.getElementById('lang-he').hidden = lang !== 'he';
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+      document.getElementById('btn-he').classList.toggle('active', lang === 'he');
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+      if (history.replaceState) history.replaceState(null, '', lang === 'he' ? '#he' : '#en');
+    }
+    (function () {
+      var fromUrl = location.hash === '#he' || /[?&]lang=he/.test(location.search);
+      var fromBrowser = (navigator.language || '').toLowerCase().indexOf('he') === 0;
+      setLang(fromUrl || (location.hash !== '#en' && fromBrowser) ? 'he' : 'en');
+    })();
+  </script>
+</body>
+</html>
