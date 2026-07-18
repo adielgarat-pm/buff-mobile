@@ -65,8 +65,17 @@ export interface TesterFamily {
   parent_name: string | null
   parent_email: string | null
   platform: Platform | null
+  /** Latest premium_until across the family (real paid subscription). */
+  premium_until: string | null
+  /** Any member granted lifetime access (free grant, not a payer). */
+  has_lifetime: boolean
   children: TesterChild[]
 }
+
+/** Billing status derived from premium_until / has_lifetime.
+ *  'paying' = active paid subscription; 'expired' = paid before, lapsed;
+ *  'lifetime' = granted free access; null = free. */
+export type Entitlement = 'paying' | 'expired' | 'lifetime' | null
 
 /** Funnel stage a family has reached (highest one). */
 export type Stage = 'signed_up' | 'activated' | 'engaged' | 'active'
