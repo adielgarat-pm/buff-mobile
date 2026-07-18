@@ -393,6 +393,9 @@ export default function Landing() {
             <Link to="/pricing" className="hover:text-foreground transition-colors">
               {language === 'he' ? 'מחירים' : 'Pricing'}
             </Link>
+            <a href="/guides/" className="hover:text-foreground transition-colors">
+              {language === 'he' ? 'מדריכים' : 'Guides'}
+            </a>
             <Link to="/refund" className="hover:text-foreground transition-colors">
               {language === 'he' ? 'החזרים' : 'Refunds'}
             </Link>
