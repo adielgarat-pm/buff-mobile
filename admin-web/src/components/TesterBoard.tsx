@@ -4,6 +4,8 @@ import {
   childCount,
   childProposedTasks,
   dayInWindow,
+  entitlementCounts,
+  entitlementOf,
   exactStageCounts,
   flagCounts,
   flagOf,
@@ -17,8 +19,8 @@ import {
   totalTasks,
 } from '@/lib/cohort'
 import { challengeLabel } from '@/lib/labels'
-import type { Flag, Stage, TesterFamily } from '@/lib/types'
-import { FlagBadge, PlatformBadge, StageBadge, TestTag } from './badges'
+import type { Entitlement, Flag, Stage, TesterFamily } from '@/lib/types'
+import { EntitlementBadge, FlagBadge, PlatformBadge, StageBadge, TestTag } from './badges'
 import { FamilyModal } from './FamilyModal'
 import { RetentionStrip } from './RetentionStrip'
 
@@ -71,6 +73,45 @@ function FunnelBar({
             </button>
             {i < STAGE_ORDER.length - 1 && <span className="text-gray-300">→</span>}
           </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const ENTITLEMENT_ORDER: { key: Exclude<Entitlement, null>; label: string; icon: string }[] = [
+  { key: 'paying', label: 'Paying', icon: '💳' },
+  { key: 'expired', label: 'Expired', icon: '⏳' },
+  { key: 'lifetime', label: 'Lifetime', icon: '🎁' },
+]
+
+function EntitlementChips({
+  families,
+  filter,
+  onPick,
+}: {
+  families: TesterFamily[]
+  filter: Entitlement
+  onPick: (e: Exclude<Entitlement, null>) => void
+}) {
+  const counts = entitlementCounts(families)
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span className="text-xs text-muted-foreground">Billing:</span>
+      {ENTITLEMENT_ORDER.map((e) => {
+        const selected = filter === e.key
+        return (
+          <button
+            key={e.key}
+            onClick={() => onPick(e.key)}
+            className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+              selected
+                ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                : 'border-input bg-white hover:bg-accent/50'
+            }`}
+          >
+            {e.icon} {e.label} <span className="text-gray-400">({counts[e.key]})</span>
+          </button>
         )
       })}
     </div>
@@ -155,6 +196,7 @@ export function TesterBoardView({
   const [selected, setSelected] = useState<TesterFamily | null>(null)
   const [stageFilter, setStageFilter] = useState<Stage | null>(null)
   const [flagFilter, setFlagFilter] = useState<Flag | null>(null)
+  const [entitlementFilter, setEntitlementFilter] = useState<Entitlement>(null)
 
   // Funnel + flag counts ALWAYS exclude test/dev accounts — they're the real
   // KPIs and test noise would distort them, even when the table shows tests.
@@ -168,15 +210,17 @@ export function TesterBoardView({
       base.filter(
         (f) =>
           (!stageFilter || stageOf(f) === stageFilter) &&
-          (!flagFilter || flagOf(f) === flagFilter),
+          (!flagFilter || flagOf(f) === flagFilter) &&
+          (!entitlementFilter || entitlementOf(f) === entitlementFilter),
       ),
-    [base, stageFilter, flagFilter],
+    [base, stageFilter, flagFilter, entitlementFilter],
   )
 
-  const filterActive = stageFilter !== null || flagFilter !== null
+  const filterActive = stageFilter !== null || flagFilter !== null || entitlementFilter !== null
   const clearFilters = () => {
     setStageFilter(null)
     setFlagFilter(null)
+    setEntitlementFilter(null)
   }
 
   const handleSelect = (f: TesterFamily) => {
@@ -224,6 +268,11 @@ export function TesterBoardView({
           flagFilter={flagFilter}
           onPick={(f) => setFlagFilter((cur) => (cur === f ? null : f))}
         />
+        <EntitlementChips
+          families={real}
+          filter={entitlementFilter}
+          onPick={(e) => setEntitlementFilter((cur) => (cur === e ? null : e))}
+        />
         {filterActive && (
           <button onClick={clearFilters} className="text-xs text-primary underline">
             Clear filter ({families.length} shown)
@@ -264,6 +313,10 @@ export function TesterBoardView({
                   <td className="px-3 py-2">
                     <div className="font-medium text-foreground">
                       {f.parent_name ?? '—'}
+                      <EntitlementBadge
+                        entitlement={entitlementOf(f)}
+                        premiumUntil={f.premium_until}
+                      />
                       {test && <TestTag />}
                     </div>
                     {f.parent_email && (

@@ -1,7 +1,7 @@
 // Pure derivation helpers for the Tester Board. No I/O — everything is computed
 // from the RPC payload so the same logic powers the board and the deep-dive.
 
-import type { Flag, Stage, TesterChild, TesterFamily } from './types'
+import type { Entitlement, Flag, Stage, TesterChild, TesterFamily } from './types'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -189,4 +189,26 @@ export function flagCounts(families: TesterFamily[], now = Date.now()): Record<F
 
 export function childCount(f: TesterFamily): number {
   return f.children.length
+}
+
+// ---- billing / entitlement ------------------------------------------------
+
+/** Paying beats lifetime (a real payment is the stronger signal). */
+export function entitlementOf(f: TesterFamily, now = Date.now()): Entitlement {
+  if (f.premium_until) {
+    return new Date(f.premium_until).getTime() > now ? 'paying' : 'expired'
+  }
+  return f.has_lifetime ? 'lifetime' : null
+}
+
+export function entitlementCounts(
+  families: TesterFamily[],
+  now = Date.now(),
+): Record<'paying' | 'expired' | 'lifetime', number> {
+  const c = { paying: 0, expired: 0, lifetime: 0 }
+  for (const f of families) {
+    const e = entitlementOf(f, now)
+    if (e) c[e]++
+  }
+  return c
 }

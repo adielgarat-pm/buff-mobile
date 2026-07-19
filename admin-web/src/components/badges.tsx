@@ -1,4 +1,4 @@
-import type { Flag, Platform, Stage } from '@/lib/types'
+import type { Entitlement, Flag, Platform, Stage } from '@/lib/types'
 
 const STAGE_META: Record<Stage, { label: string; className: string }> = {
   signed_up: { label: 'Signed up', className: 'bg-gray-100 text-gray-600' },
@@ -53,6 +53,41 @@ export function PlatformBadge({ platform }: { platform: Platform | null }) {
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${m.className}`}
+    >
+      <span>{m.icon}</span>
+      {m.label}
+    </span>
+  )
+}
+
+const ENTITLEMENT_META: Record<
+  Exclude<Entitlement, null>,
+  { label: string; icon: string; className: string }
+> = {
+  paying: { label: 'Paying', icon: '💳', className: 'bg-emerald-100 text-emerald-800' },
+  expired: { label: 'Expired', icon: '💳', className: 'bg-orange-100 text-orange-700' },
+  lifetime: { label: 'Lifetime', icon: '🎁', className: 'bg-violet-100 text-violet-700' },
+}
+
+/** Billing marker: real payers stand out; granted-lifetime testers are
+ *  visually distinct so they're never mistaken for revenue. Free → nothing. */
+export function EntitlementBadge({
+  entitlement,
+  premiumUntil,
+}: {
+  entitlement: Entitlement
+  premiumUntil?: string | null
+}) {
+  if (!entitlement) return null
+  const m = ENTITLEMENT_META[entitlement]
+  const until =
+    premiumUntil && entitlement !== 'lifetime'
+      ? `${entitlement === 'paying' ? 'Premium until' : 'Premium ended'} ${new Date(premiumUntil).toLocaleDateString()}`
+      : 'Granted lifetime access (not a payer)'
+  return (
+    <span
+      title={until}
+      className={`ml-1 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${m.className}`}
     >
       <span>{m.icon}</span>
       {m.label}
