@@ -52,8 +52,7 @@ export interface TesterChild {
   last_active: string | null
 }
 
-/** Last platform a family member opened the app on. Null until a build that
- *  stamps profiles.last_platform runs (forward-filling). */
+/** Canonical signup platform (families.platform, captured once at signup). */
 export type Platform = 'android' | 'ios' | 'web'
 
 export interface TesterFamily {
@@ -65,17 +64,30 @@ export interface TesterFamily {
   parent_name: string | null
   parent_email: string | null
   platform: Platform | null
-  /** Latest premium_until across the family (real paid subscription). */
+  /** ISO 3166-1 alpha-2 device-locale region of the most recently seen family
+   *  member (profiles.last_country, migration 045). Forward-filling: null
+   *  until someone opens a build that stamps it. */
+  country: string | null
+  /** Most recently seen profiles.last_platform in the family — finer-grained
+   *  than `platform` ('android' | 'ios' | 'android-web' | 'ios-web' |
+   *  'desktop-web'). Forward-filling like `country`. */
+  last_platform: string | null
+  /** When the family's automatic 14-day trial started (families.trial_started_at,
+   *  set by the start_trial_on_activation trigger on the 2nd active day). */
+  trial_started_at: string | null
+  /** Latest premium_until across the family. NOTE: also written by the
+   *  auto-trial trigger — use entitlementOf() to tell trial from paying. */
   premium_until: string | null
   /** Any member granted lifetime access (free grant, not a payer). */
   has_lifetime: boolean
   children: TesterChild[]
 }
 
-/** Billing status derived from premium_until / has_lifetime.
- *  'paying' = active paid subscription; 'expired' = paid before, lapsed;
- *  'lifetime' = granted free access; null = free. */
-export type Entitlement = 'paying' | 'expired' | 'lifetime' | null
+/** Billing status derived from premium_until / trial_started_at / has_lifetime.
+ *  'paying' = active paid grant; 'trial' = auto 14-day trial (NOT a payer);
+ *  'expired' = paid before, lapsed; 'lifetime' = granted free access;
+ *  null = free (incl. lapsed trials). */
+export type Entitlement = 'paying' | 'trial' | 'expired' | 'lifetime' | null
 
 /** Funnel stage a family has reached (highest one). */
 export type Stage = 'signed_up' | 'activated' | 'engaged' | 'active'
