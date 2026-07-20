@@ -11,6 +11,7 @@
  */
 
 import * as Notifications from 'expo-notifications';
+import * as Localization from 'expo-localization';
 import { Platform } from 'react-native';
 import { supabase } from '../integrations/supabase/client';
 
@@ -108,15 +109,56 @@ export async function upsertDeviceToken(
 }
 
 /**
+ * ISO 3166-1 alpha-2 region from the DEVICE locale settings (e.g. 'IL', 'US').
+ * Device settings, not IP geolocation — privacy posture for a children's app.
+ * Null when the device exposes no region (some emulators / stripped browsers).
+ */
+function deviceCountry(): string | null {
+  try {
+    const region = Localization.getLocales()[0]?.regionCode;
+    return region && /^[A-Za-z]{2}$/.test(region) ? region.toUpperCase() : null;
+  } catch {
+    // expo-localization unavailable in some Jest / bare environments
+    return null;
+  }
+}
+
+/**
+ * Platform value for profiles.last_platform (web-to-native-cta SPEC §Phase 1):
+ * native = Platform.OS ('android' | 'ios'); web is split by device class so
+ * mobile-web (convertible to native) is distinguishable from desktop-web.
+ * The UA sniff runs ONLY on web — never touches browser globals on native.
+ */
+function currentPlatform(): string {
+  if (Platform.OS !== 'web') return Platform.OS;
+  const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  if (/iPad|iPhone|iPod/.test(ua)) return 'ios-web';
+  if (/Android/i.test(ua)) return 'android-web';
+  return 'desktop-web';
+}
+
+/**
  * Update profiles.last_seen_at for the current profile.
  * Called from usePushRegistration on every app foreground, regardless of
  * whether push registration succeeded — this drives the engagement scheduler
  * (E5, E6) + Edge Function activity-based suppression (IN-2026-05-19-02).
+ *
+ * Same write also stamps last_platform / last_platform_at (admin board
+ * platform column) and last_country (device-locale region, migration 045) —
+ * one heartbeat, both platforms, no extra round-trip.
  */
 export async function bumpLastSeenAt(profileId: string): Promise<boolean> {
+  const now = new Date().toISOString();
+  const update: Record<string, unknown> = {
+    last_seen_at: now,
+    last_platform: currentPlatform(),
+    last_platform_at: now,
+  };
+  const country = deviceCountry();
+  if (country) update.last_country = country; // never overwrite with null
   const { error } = await supabase
     .from('profiles')
-    .update({ last_seen_at: new Date().toISOString() })
+    .update(update)
     .eq('id', profileId);
   if (error) {
     if (__DEV__) console.warn('[pushTokens] bumpLastSeenAt failed:', error.message);

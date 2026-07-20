@@ -20,7 +20,7 @@ import {
 } from '@/lib/cohort'
 import { challengeLabel } from '@/lib/labels'
 import type { Entitlement, Flag, Stage, TesterFamily } from '@/lib/types'
-import { EntitlementBadge, FlagBadge, PlatformBadge, StageBadge, TestTag } from './badges'
+import { CountryBadge, EntitlementBadge, FlagBadge, PlatformBadge, StageBadge, TestTag } from './badges'
 import { FamilyModal } from './FamilyModal'
 import { RetentionStrip } from './RetentionStrip'
 
@@ -349,7 +349,18 @@ export function TesterBoardView({
                     <div className="text-xs text-gray-400">day {dayInWindow(f)}/14</div>
                   </td>
                   <td className="px-3 py-2">
-                    <PlatformBadge platform={f.platform} />
+                    <div className="flex flex-wrap items-center gap-1">
+                      <PlatformBadge platform={f.platform} />
+                      <CountryBadge country={f.country} />
+                    </div>
+                    {f.last_platform && (
+                      <div
+                        className="pt-0.5 text-[10px] text-gray-400"
+                        title="Platform last seen on (profiles.last_platform)"
+                      >
+                        last: {f.last_platform}
+                      </div>
+                    )}
                   </td>
                   <td className="px-3 py-2">
                     <StageBadge stage={stageOf(f)} />

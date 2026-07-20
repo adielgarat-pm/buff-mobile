@@ -52,8 +52,7 @@ export interface TesterChild {
   last_active: string | null
 }
 
-/** Last platform a family member opened the app on. Null until a build that
- *  stamps profiles.last_platform runs (forward-filling). */
+/** Canonical signup platform (families.platform, captured once at signup). */
 export type Platform = 'android' | 'ios' | 'web'
 
 export interface TesterFamily {
@@ -65,6 +64,14 @@ export interface TesterFamily {
   parent_name: string | null
   parent_email: string | null
   platform: Platform | null
+  /** ISO 3166-1 alpha-2 device-locale region of the most recently seen family
+   *  member (profiles.last_country, migration 045). Forward-filling: null
+   *  until someone opens a build that stamps it. */
+  country: string | null
+  /** Most recently seen profiles.last_platform in the family — finer-grained
+   *  than `platform` ('android' | 'ios' | 'android-web' | 'ios-web' |
+   *  'desktop-web'). Forward-filling like `country`. */
+  last_platform: string | null
   /** Latest premium_until across the family (real paid subscription). */
   premium_until: string | null
   /** Any member granted lifetime access (free grant, not a payer). */

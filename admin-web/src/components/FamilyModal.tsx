@@ -2,7 +2,7 @@ import { childRewardRedeemed, relativeTime } from '@/lib/cohort'
 import { challengeLabel, motivatorLabel } from '@/lib/labels'
 import { onboardingDiff } from '@/lib/onboardingDiff'
 import type { TesterChild, TesterFamily } from '@/lib/types'
-import { PlatformBadge } from './badges'
+import { CountryBadge, PlatformBadge } from './badges'
 
 function exportFamilyJson(f: TesterFamily) {
   const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' })
@@ -175,6 +175,7 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
             <div className="flex items-center gap-2">
               <h2 className="text-lg font-bold">{family.parent_name ?? family.name}</h2>
               <PlatformBadge platform={family.platform} />
+              <CountryBadge country={family.country} />
             </div>
             <div className="text-sm text-muted-foreground">
               {family.parent_email && (

@@ -60,6 +60,28 @@ export function PlatformBadge({ platform }: { platform: Platform | null }) {
   )
 }
 
+/** 'IL' → 🇮🇱 via regional-indicator codepoints. Null for bad/missing codes. */
+function countryFlag(code: string): string | null {
+  if (!/^[A-Z]{2}$/.test(code)) return null
+  return String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
+}
+
+/** Device-locale country of the most recently seen family member. Null →
+ *  nothing (the platform badge next to it already fills the cell). */
+export function CountryBadge({ country }: { country: string | null }) {
+  if (!country) return null
+  const flag = countryFlag(country)
+  return (
+    <span
+      title={`Device-locale region: ${country}`}
+      className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700"
+    >
+      {flag && <span>{flag}</span>}
+      {country}
+    </span>
+  )
+}
+
 const ENTITLEMENT_META: Record<
   Exclude<Entitlement, null>,
   { label: string; icon: string; className: string }
