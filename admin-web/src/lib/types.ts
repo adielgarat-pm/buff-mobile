@@ -72,17 +72,22 @@ export interface TesterFamily {
    *  than `platform` ('android' | 'ios' | 'android-web' | 'ios-web' |
    *  'desktop-web'). Forward-filling like `country`. */
   last_platform: string | null
-  /** Latest premium_until across the family (real paid subscription). */
+  /** When the family's automatic 14-day trial started (families.trial_started_at,
+   *  set by the start_trial_on_activation trigger on the 2nd active day). */
+  trial_started_at: string | null
+  /** Latest premium_until across the family. NOTE: also written by the
+   *  auto-trial trigger — use entitlementOf() to tell trial from paying. */
   premium_until: string | null
   /** Any member granted lifetime access (free grant, not a payer). */
   has_lifetime: boolean
   children: TesterChild[]
 }
 
-/** Billing status derived from premium_until / has_lifetime.
- *  'paying' = active paid subscription; 'expired' = paid before, lapsed;
- *  'lifetime' = granted free access; null = free. */
-export type Entitlement = 'paying' | 'expired' | 'lifetime' | null
+/** Billing status derived from premium_until / trial_started_at / has_lifetime.
+ *  'paying' = active paid grant; 'trial' = auto 14-day trial (NOT a payer);
+ *  'expired' = paid before, lapsed; 'lifetime' = granted free access;
+ *  null = free (incl. lapsed trials). */
+export type Entitlement = 'paying' | 'trial' | 'expired' | 'lifetime' | null
 
 /** Funnel stage a family has reached (highest one). */
 export type Stage = 'signed_up' | 'activated' | 'engaged' | 'active'

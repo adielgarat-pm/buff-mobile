@@ -87,6 +87,7 @@ const ENTITLEMENT_META: Record<
   { label: string; icon: string; className: string }
 > = {
   paying: { label: 'Paying', icon: '💳', className: 'bg-emerald-100 text-emerald-800' },
+  trial: { label: 'Trial', icon: '🧪', className: 'bg-sky-100 text-sky-700' },
   expired: { label: 'Expired', icon: '💳', className: 'bg-orange-100 text-orange-700' },
   lifetime: { label: 'Lifetime', icon: '🎁', className: 'bg-violet-100 text-violet-700' },
 }
@@ -103,9 +104,11 @@ export function EntitlementBadge({
   if (!entitlement) return null
   const m = ENTITLEMENT_META[entitlement]
   const until =
-    premiumUntil && entitlement !== 'lifetime'
-      ? `${entitlement === 'paying' ? 'Premium until' : 'Premium ended'} ${new Date(premiumUntil).toLocaleDateString()}`
-      : 'Granted lifetime access (not a payer)'
+    entitlement === 'trial'
+      ? `Auto 14-day trial until ${premiumUntil ? new Date(premiumUntil).toLocaleDateString() : '?'} — NOT a payer`
+      : premiumUntil && entitlement !== 'lifetime'
+        ? `${entitlement === 'paying' ? 'Premium until' : 'Premium ended'} ${new Date(premiumUntil).toLocaleDateString()}`
+        : 'Granted lifetime access (not a payer)'
   return (
     <span
       title={until}

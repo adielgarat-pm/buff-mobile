@@ -81,6 +81,7 @@ function FunnelBar({
 
 const ENTITLEMENT_ORDER: { key: Exclude<Entitlement, null>; label: string; icon: string }[] = [
   { key: 'paying', label: 'Paying', icon: '💳' },
+  { key: 'trial', label: 'Trial', icon: '🧪' },
   { key: 'expired', label: 'Expired', icon: '⏳' },
   { key: 'lifetime', label: 'Lifetime', icon: '🎁' },
 ]
