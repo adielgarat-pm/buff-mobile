@@ -30,7 +30,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import type { CaptureInput, FamilyChild, ParentItem } from '../../types/parentCapture';
 import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCapture';
 import { useCaptureConsent } from '../../hooks/useCaptureConsent';
-import { parseCapture } from '../../lib/parentCapture/parseCapture';
+import { CaptureParseError, parseCapture } from '../../lib/parentCapture/parseCapture';
 import { parsedToParentItem } from '../../lib/parentCapture/captureMapping';
 import { CapturedItemRow, type ReviewEntry } from '../../components/parent/CapturedItemRow';
 import { CaptureConsentGate } from '../../components/parent/CaptureConsentGate';
@@ -39,7 +39,8 @@ type Nav = StackNavigationProp<RootStackParamList>;
 
 export default function CaptureScreen() {
   const navigation = useNavigation<Nav>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isHebrew = i18n.language?.startsWith('he') ?? false;
   const { familyId } = useAuth();
   const { children } = useFamilyChildren();
   const { addItems, transferToChild } = useParentCapture();
@@ -51,6 +52,7 @@ export default function CaptureScreen() {
     null,
   );
   const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<'premium_required' | 'rate_limited' | 'generic' | null>(null);
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -71,11 +73,12 @@ export default function CaptureScreen() {
   async function onRead() {
     if (!canRead || !familyId) return;
     setParsing(true);
+    setParseError(null);
     try {
       const input: CaptureInput = file
         ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
         : { kind: 'text', text };
-      const parsed = await parseCapture(input, familyId);
+      const parsed = await parseCapture(input, familyId, i18n.language);
       const next: ReviewEntry[] = parsed.map((p) => {
         const match = p.childName
           ? children.find((c) => c.displayName === p.childName) ?? null
@@ -92,6 +95,7 @@ export default function CaptureScreen() {
       setStep('review');
     } catch (e) {
       console.error('[CaptureScreen] parse error:', e);
+      setParseError(e instanceof CaptureParseError ? e.code : 'generic');
     } finally {
       setParsing(false);
     }
@@ -163,7 +167,10 @@ export default function CaptureScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {step === 'input' ? (
-          <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.subtitle')}</Text>
+          <>
+            <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.subtitle')}</Text>
+            <Text style={[styles.betaNote, { color: T.textMuted }]}>{t('capture.betaNote')}</Text>
+          </>
         ) : (
           <Text style={[styles.sub, { color: T.textMuted }]}>
             {t('capture.found', { count: entries.filter((e) => !e.discarded).length })}
@@ -179,7 +186,7 @@ export default function CaptureScreen() {
             value={text}
             onChangeText={setText}
             multiline
-            textAlign="right"
+            textAlign={isHebrew ? 'right' : 'left'}
           />
           <View style={styles.actionsRow}>
             <TouchableOpacity
@@ -204,6 +211,17 @@ export default function CaptureScreen() {
               <Text style={styles.primaryText}>{t('capture.readIt')}</Text>
             )}
           </TouchableOpacity>
+          {parseError && (
+            <Text style={[styles.fileHint, { color: T.textMuted }]}>
+              {t(
+                parseError === 'premium_required'
+                  ? 'capture.errorPremium'
+                  : parseError === 'rate_limited'
+                    ? 'capture.errorLimit'
+                    : 'capture.errorGeneric',
+              )}
+            </Text>
+          )}
         </>
       ) : (
         <>
@@ -273,6 +291,7 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingTop: 8, paddingBottom: 40 },
   h1: { fontSize: 22, fontWeight: '800', marginBottom: 4 },
   sub: { fontSize: 14, marginBottom: 18 },
+  betaNote: { fontSize: 12, marginTop: -12, marginBottom: 18, fontStyle: 'italic' },
   input: {
     minHeight: 120,
     borderWidth: 1,

@@ -1,7 +1,14 @@
 # Parent Capture — STATUS
 
-**Branch:** `pkg/parent-capture` (isolated dev home; `main` stays clean & releasable).
-**State:** `Plan Mode — Phase 0 verification done. Build NOT approved (2 gates open).`
+**Branch:** `pkg/parent-capture` (merged to `main` via PR #276, 2026-06-22). Follow-up: `pkg/parent-capture-gemini-align` (PR #380).
+**State:** `BETA LAUNCH approved by Adi 2026-07-21 — FEATURE_PARENT_CAPTURE=true (with in-UI beta disclaimer).`
+
+## 2026-07-21 — Gemini-pattern alignment + beta launch (PR #380)
+- `parse-capture` aligned with the `generate-child-insights` posture: JWT auth + family-membership check, `family_is_entitled` gate (402, web free like the AI coach), 30/day family cap server-side (429), key via `x-goog-api-key` header, `created_by` audit. Deployed v7→v8.
+- English support: bilingual prompt path (Hebrew prompt kept verbatim; English mirror for non-`he`), client passes `i18n.language`, input `textAlign` follows language.
+- Beta disclaimer: "Beta" pill on the dashboard entry card + note line on CaptureScreen (HE+EN, draft copy).
+- Web parity: file reads use fetch+FileReader on web (expo-file-system is native-only); web bundle verified building clean.
+- Verification: typecheck 0 errors · jest parentCapture 28/28 · i18n parity ✅. Auth-gated UI on real devices = Adi manual check.
 
 | Phase | State | Date | Notes |
 |---|---|---|---|

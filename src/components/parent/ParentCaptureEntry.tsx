@@ -33,7 +33,12 @@ export const ParentCaptureEntry: React.FC = () => {
       <View style={styles.row}>
         <Text style={styles.emoji}>🗒️</Text>
         <View style={styles.textCol}>
-          <Text style={[styles.title, { color: T.text }]}>{t('capture.entryTitle')}</Text>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: T.text }]}>{t('capture.entryTitle')}</Text>
+            <View style={[styles.betaPill, { borderColor: T.accent }]}>
+              <Text style={[styles.betaText, { color: T.accent }]}>{t('capture.betaBadge')}</Text>
+            </View>
+          </View>
           <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.entrySub')}</Text>
         </View>
         <Text style={[styles.chevron, { color: T.textMuted }]}>›</Text>
@@ -48,6 +53,9 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 24, marginRight: 12 },
   textCol: { flex: 1 },
   title: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  betaPill: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 1 },
+  betaText: { fontSize: 10, fontWeight: '700' },
   sub: { fontSize: 13 },
   chevron: { fontSize: 22, fontWeight: '700', marginLeft: 8 },
 });

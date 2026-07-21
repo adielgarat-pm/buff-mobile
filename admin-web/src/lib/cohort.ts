@@ -193,10 +193,22 @@ export function childCount(f: TesterFamily): number {
 
 // ---- billing / entitlement ------------------------------------------------
 
-/** Paying beats lifetime (a real payment is the stronger signal). */
+/** Paying beats lifetime (a real payment is the stronger signal).
+ *
+ *  Trial detection: start_trial_on_activation writes premium_until =
+ *  trial_started_at + 14 days for ALL parents in the family. A premium_until
+ *  that lands in that window (±2d tolerance for later re-grants/extensions)
+ *  is the auto-trial, NOT a payment. A real payment pushes premium_until
+ *  beyond the trial window and classifies as 'paying' again. Lapsed trials
+ *  return null (a trial that ended is just a free family, not 'expired'). */
 export function entitlementOf(f: TesterFamily, now = Date.now()): Entitlement {
   if (f.premium_until) {
-    return new Date(f.premium_until).getTime() > now ? 'paying' : 'expired'
+    const until = new Date(f.premium_until).getTime()
+    const trialStart = f.trial_started_at ? new Date(f.trial_started_at).getTime() : null
+    const isTrial =
+      trialStart !== null && Math.abs(until - (trialStart + 14 * DAY)) <= 2 * DAY
+    if (until > now) return isTrial ? 'trial' : 'paying'
+    return isTrial ? null : 'expired'
   }
   return f.has_lifetime ? 'lifetime' : null
 }
@@ -204,8 +216,8 @@ export function entitlementOf(f: TesterFamily, now = Date.now()): Entitlement {
 export function entitlementCounts(
   families: TesterFamily[],
   now = Date.now(),
-): Record<'paying' | 'expired' | 'lifetime', number> {
-  const c = { paying: 0, expired: 0, lifetime: 0 }
+): Record<'paying' | 'trial' | 'expired' | 'lifetime', number> {
+  const c = { paying: 0, trial: 0, expired: 0, lifetime: 0 }
   for (const f of families) {
     const e = entitlementOf(f, now)
     if (e) c[e]++
