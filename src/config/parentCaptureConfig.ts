@@ -1,16 +1,15 @@
 /**
  * Parent Capture — feature config & gate.
  *
- * FEATURE_PARENT_CAPTURE gates EVERY entry point. It MUST stay `false` in
- * production until the feature is approved (Gemini paid key + privacy posture +
- * now-vs-V-next). With it false, no entry point renders and the screens are
- * unreachable, so `main` stays releasable. See docs/sessions/parent-capture/.
+ * FEATURE_PARENT_CAPTURE gates EVERY entry point. Approved by Adi 2026-07-21
+ * (beta launch, with an in-UI beta disclaimer). Server-side cost/entitlement
+ * guards live in the parse-capture Edge Function. See docs/sessions/parent-capture/.
  */
 
 import type { CaptureEventType, TaskCategory } from '../types/parentCapture';
 
-/** Master gate. Flip to `true` only on the feature branch / when approved. */
-export const FEATURE_PARENT_CAPTURE = false;
+/** Master gate. ON since 2026-07-21 (beta). */
+export const FEATURE_PARENT_CAPTURE = true;
 
 export const PARENT_CAPTURE_CONFIG = {
   /** Per-family/day cap (abuse + cost guard, enforced once Gemini is wired). */

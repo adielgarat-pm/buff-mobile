@@ -10,6 +10,11 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+// Cost guard — same posture as generate-child-insights: hard server-side cap
+// so a stuck client / abuse can't burn Gemini tokens. Per family per day.
+const DAILY_CAPTURE_CAP = 30;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -41,7 +46,58 @@ interface RosterChild {
   grade: string | null;
 }
 
-function buildPrompt(roster: RosterChild[], todayISO: string, messageSentAt: string | null): string {
+// The item JSON contract is language-independent; only the instructions and the
+// output language differ. Hebrew keeps the originally-verified prompt verbatim.
+function buildPrompt(
+  roster: RosterChild[],
+  todayISO: string,
+  messageSentAt: string | null,
+  language: string,
+): string {
+  if (!language.startsWith('he')) {
+    const rosterLinesEn =
+      roster.length > 0
+        ? roster
+            .map((c) => `- ${c.name}${c.age != null ? `, age ${c.age}` : ''}${c.grade ? `, grade ${c.grade}` : ''}`)
+            .join('\n')
+        : '- (no children registered)';
+    return `You are an extraction engine for a parent. Input: a WhatsApp message / email / text / file (image/PDF/Word/Excel) — it may be in English or another language.
+Extract ONLY actionable items (task, event, test, assignment, class, performance, something to bring/wear, payment, permission form) or need-to-know info (schedule, policy). Chit-chat/greetings/discussion with no ask → return an empty array. Never invent.
+
+== FAMILY CHILDREN ==
+${rosterLinesEn}
+
+== DATE ANCHORS ==
+- Today: ${todayISO}
+- Message sent: ${messageSentAt ?? 'unknown — use today'}
+Resolve every relative time ("tomorrow", "this Thursday") against the message-sent date.
+
+== CHILD MATCHING ==
+Match by grade/class (e.g. "4th grade" → the child in grade 4). If the item targets a grade no child is in → relevance="no_match". If it cannot be determined → relevance="unknown" and missing includes "child name". When the match is certain, do NOT add "child name" to missing.
+
+Return ONLY JSON shaped as: { "items": [ ... ] }, where each item is:
+{
+  "title": string,                       // short, actionable, in the owner's voice, in the input's language
+  "type": "task"|"event"|"schedule"|"reference",
+  "owner": "parent"|"child",
+  "childName": string|null,
+  "relevance": "matched"|"no_match"|"unknown",
+  "dueDate": "YYYY-MM-DD"|null,
+  "dueTime": "HH:MM"|null,
+  "recurrence": string|null,             // recurring rule in words, else null
+  "dates": ["YYYY-MM-DD", ...],          // for a date series, else []
+  "dateSource": string,                  // the raw text the date was derived from
+  "location": string|null,
+  "bring": [string],
+  "eventType": "performance"|"test"|"homework"|"activity"|"errand"|"payment"|"form"|"other",
+  "forChildToRemember": boolean,
+  "linkedEvent": string|null,            // if an event was split into parent+child parts
+  "confidence": "high"|"medium"|"low",
+  "missing": string|null
+}
+Rules: owner="child" + forChildToRemember=true only when the child can remember/carry it themselves. confidence="low" if vague or guessed. Missing value → goes to missing, never invented. An event with a parent part (attend/drive) and a child part (wear/participate) → split into two items linked via linkedEvent.`;
+  }
+
   const rosterLines =
     roster.length > 0
       ? roster
@@ -120,13 +176,64 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
   if (!GEMINI_API_KEY) return json({ error: 'missing_gemini_key' }, 500);
 
+  // ── Auth — same pattern as generate-child-insights ─────────────────────────
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return json({ error: 'unauthorized' }, 401);
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: authError } = await userClient.auth.getUser();
+  if (authError || !user) {
+    console.error('Auth failed', JSON.stringify(authError));
+    return json({ error: 'unauthorized' }, 401);
+  }
+
   try {
     const body = await req.json();
-    const { kind, text, fileBase64, mimeType, familyId, messageSentAt } = body ?? {};
+    const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform, language } = body ?? {};
     if (!familyId) return json({ error: 'missing_family_id' }, 400);
     if (kind === 'text' && !String(text ?? '').trim()) return json({ items: [] });
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+    // Caller must be a member of the family they're capturing for.
+    const { data: callerProfile, error: callerErr } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('family_id', familyId)
+      .maybeSingle();
+    if (callerErr || !callerProfile) {
+      console.error('caller not in family', user.id, familyId, JSON.stringify(callerErr));
+      return json({ error: 'forbidden' }, 403);
+    }
+
+    // ── Entitlement gate — mirrors generate-child-insights exactly ───────────
+    // No Gemini tokens for FREE families; web stays free while the web build
+    // matures (same intentional divergence as the AI coach). Fail closed on
+    // cost with a 500 (not 402) so a payer sees a retry, not a paywall.
+    const { data: entitled, error: entErr } = await supabase.rpc('family_is_entitled', {
+      p_family_id: familyId,
+    });
+    if (entErr) {
+      console.error('entitlement check failed', JSON.stringify(entErr));
+      return json({ error: 'entitlement_check_failed' }, 500);
+    }
+    if (!entitled && platform !== 'web') {
+      return json({ error: 'premium_required' }, 402);
+    }
+
+    // ── Rate limit — DAILY_CAPTURE_CAP per family, enforced server-side ──────
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    const { count: runsToday, error: capErr } = await supabase
+      .from('capture_runs')
+      .select('id', { count: 'exact', head: true })
+      .eq('family_id', familyId)
+      .gte('created_at', since.toISOString());
+    if (!capErr && (runsToday ?? 0) >= DAILY_CAPTURE_CAP) {
+      return json({ error: 'rate_limited', daily_cap: DAILY_CAPTURE_CAP }, 429);
+    }
     const { data: kids } = await supabase
       .from('profiles')
       .select('display_name, birth_date, grade_level')
@@ -140,18 +247,24 @@ Deno.serve(async (req: Request) => {
     }));
 
     const todayISO = new Date().toISOString().slice(0, 10);
-    const prompt = buildPrompt(roster, todayISO, messageSentAt ?? null);
+    const lang = typeof language === 'string' && language ? language : 'he';
+    const prompt = buildPrompt(roster, todayISO, messageSentAt ?? null, lang);
 
+    const inputLabel = lang.startsWith('he')
+      ? { file: 'הקלט מצורף כקובץ.', text: 'הקלט:' }
+      : { file: 'The input is attached as a file.', text: 'Input:' };
     const parts =
       kind === 'file' && fileBase64
-        ? [{ text: `${prompt}\n\nהקלט מצורף כקובץ.` }, { inline_data: { mime_type: mimeType ?? 'application/octet-stream', data: fileBase64 } }]
-        : [{ text: `${prompt}\n\nהקלט:\n${text ?? ''}` }];
+        ? [{ text: `${prompt}\n\n${inputLabel.file}` }, { inline_data: { mime_type: mimeType ?? 'application/octet-stream', data: fileBase64 } }]
+        : [{ text: `${prompt}\n\n${inputLabel.text}\n${text ?? ''}` }];
 
+    // Key travels in a header, never in the URL (URLs get logged) — same as
+    // generate-child-insights.
     const gemRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
@@ -174,6 +287,7 @@ Deno.serve(async (req: Request) => {
     // Audit (counts only — NO raw input stored).
     await supabase.from('capture_runs').insert({
       family_id: familyId,
+      created_by: callerProfile.id,
       input_kind: kind === 'text' ? 'text' : 'image',
       item_count: items.length,
       model: MODEL,
