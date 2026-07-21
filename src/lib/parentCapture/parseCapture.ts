@@ -20,15 +20,32 @@ export class CaptureParseError extends Error {
   }
 }
 
+/** Read a picked file as base64 — FileSystem on native, fetch+FileReader on web
+ *  (expo-file-system does not implement readAsStringAsync on web). */
+async function readFileBase64(uri: string): Promise<string> {
+  if (Platform.OS !== 'web') {
+    return FileSystem.readAsStringAsync(uri, { encoding: 'base64' as const });
+  }
+  const blob = await (await fetch(uri)).blob();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result ?? '');
+      resolve(dataUrl.slice(dataUrl.indexOf(',') + 1));
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
 export async function parseCapture(
   input: CaptureInput,
   familyId: string,
+  language?: string,
 ): Promise<ParsedItem[]> {
   let body: Record<string, unknown>;
   if (input.kind === 'file' && input.fileUri) {
-    const fileBase64 = await FileSystem.readAsStringAsync(input.fileUri, {
-      encoding: 'base64' as const,
-    });
+    const fileBase64 = await readFileBase64(input.fileUri);
     body = {
       kind: 'file',
       fileBase64,
@@ -36,6 +53,7 @@ export async function parseCapture(
       familyId,
       messageSentAt: input.messageSentAt ?? null,
       platform: Platform.OS,
+      language: language ?? null,
     };
   } else {
     body = {
@@ -44,6 +62,7 @@ export async function parseCapture(
       familyId,
       messageSentAt: input.messageSentAt ?? null,
       platform: Platform.OS,
+      language: language ?? null,
     };
   }
 

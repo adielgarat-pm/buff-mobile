@@ -46,7 +46,58 @@ interface RosterChild {
   grade: string | null;
 }
 
-function buildPrompt(roster: RosterChild[], todayISO: string, messageSentAt: string | null): string {
+// The item JSON contract is language-independent; only the instructions and the
+// output language differ. Hebrew keeps the originally-verified prompt verbatim.
+function buildPrompt(
+  roster: RosterChild[],
+  todayISO: string,
+  messageSentAt: string | null,
+  language: string,
+): string {
+  if (!language.startsWith('he')) {
+    const rosterLinesEn =
+      roster.length > 0
+        ? roster
+            .map((c) => `- ${c.name}${c.age != null ? `, age ${c.age}` : ''}${c.grade ? `, grade ${c.grade}` : ''}`)
+            .join('\n')
+        : '- (no children registered)';
+    return `You are an extraction engine for a parent. Input: a WhatsApp message / email / text / file (image/PDF/Word/Excel) — it may be in English or another language.
+Extract ONLY actionable items (task, event, test, assignment, class, performance, something to bring/wear, payment, permission form) or need-to-know info (schedule, policy). Chit-chat/greetings/discussion with no ask → return an empty array. Never invent.
+
+== FAMILY CHILDREN ==
+${rosterLinesEn}
+
+== DATE ANCHORS ==
+- Today: ${todayISO}
+- Message sent: ${messageSentAt ?? 'unknown — use today'}
+Resolve every relative time ("tomorrow", "this Thursday") against the message-sent date.
+
+== CHILD MATCHING ==
+Match by grade/class (e.g. "4th grade" → the child in grade 4). If the item targets a grade no child is in → relevance="no_match". If it cannot be determined → relevance="unknown" and missing includes "child name". When the match is certain, do NOT add "child name" to missing.
+
+Return ONLY JSON shaped as: { "items": [ ... ] }, where each item is:
+{
+  "title": string,                       // short, actionable, in the owner's voice, in the input's language
+  "type": "task"|"event"|"schedule"|"reference",
+  "owner": "parent"|"child",
+  "childName": string|null,
+  "relevance": "matched"|"no_match"|"unknown",
+  "dueDate": "YYYY-MM-DD"|null,
+  "dueTime": "HH:MM"|null,
+  "recurrence": string|null,             // recurring rule in words, else null
+  "dates": ["YYYY-MM-DD", ...],          // for a date series, else []
+  "dateSource": string,                  // the raw text the date was derived from
+  "location": string|null,
+  "bring": [string],
+  "eventType": "performance"|"test"|"homework"|"activity"|"errand"|"payment"|"form"|"other",
+  "forChildToRemember": boolean,
+  "linkedEvent": string|null,            // if an event was split into parent+child parts
+  "confidence": "high"|"medium"|"low",
+  "missing": string|null
+}
+Rules: owner="child" + forChildToRemember=true only when the child can remember/carry it themselves. confidence="low" if vague or guessed. Missing value → goes to missing, never invented. An event with a parent part (attend/drive) and a child part (wear/participate) → split into two items linked via linkedEvent.`;
+  }
+
   const rosterLines =
     roster.length > 0
       ? roster
@@ -139,7 +190,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform } = body ?? {};
+    const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform, language } = body ?? {};
     if (!familyId) return json({ error: 'missing_family_id' }, 400);
     if (kind === 'text' && !String(text ?? '').trim()) return json({ items: [] });
 
@@ -196,12 +247,16 @@ Deno.serve(async (req: Request) => {
     }));
 
     const todayISO = new Date().toISOString().slice(0, 10);
-    const prompt = buildPrompt(roster, todayISO, messageSentAt ?? null);
+    const lang = typeof language === 'string' && language ? language : 'he';
+    const prompt = buildPrompt(roster, todayISO, messageSentAt ?? null, lang);
 
+    const inputLabel = lang.startsWith('he')
+      ? { file: 'הקלט מצורף כקובץ.', text: 'הקלט:' }
+      : { file: 'The input is attached as a file.', text: 'Input:' };
     const parts =
       kind === 'file' && fileBase64
-        ? [{ text: `${prompt}\n\nהקלט מצורף כקובץ.` }, { inline_data: { mime_type: mimeType ?? 'application/octet-stream', data: fileBase64 } }]
-        : [{ text: `${prompt}\n\nהקלט:\n${text ?? ''}` }];
+        ? [{ text: `${prompt}\n\n${inputLabel.file}` }, { inline_data: { mime_type: mimeType ?? 'application/octet-stream', data: fileBase64 } }]
+        : [{ text: `${prompt}\n\n${inputLabel.text}\n${text ?? ''}` }];
 
     // Key travels in a header, never in the URL (URLs get logged) — same as
     // generate-child-insights.

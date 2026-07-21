@@ -39,7 +39,8 @@ type Nav = StackNavigationProp<RootStackParamList>;
 
 export default function CaptureScreen() {
   const navigation = useNavigation<Nav>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isHebrew = i18n.language?.startsWith('he') ?? false;
   const { familyId } = useAuth();
   const { children } = useFamilyChildren();
   const { addItems, transferToChild } = useParentCapture();
@@ -77,7 +78,7 @@ export default function CaptureScreen() {
       const input: CaptureInput = file
         ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
         : { kind: 'text', text };
-      const parsed = await parseCapture(input, familyId);
+      const parsed = await parseCapture(input, familyId, i18n.language);
       const next: ReviewEntry[] = parsed.map((p) => {
         const match = p.childName
           ? children.find((c) => c.displayName === p.childName) ?? null
@@ -166,7 +167,10 @@ export default function CaptureScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {step === 'input' ? (
-          <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.subtitle')}</Text>
+          <>
+            <Text style={[styles.sub, { color: T.textMuted }]}>{t('capture.subtitle')}</Text>
+            <Text style={[styles.betaNote, { color: T.textMuted }]}>{t('capture.betaNote')}</Text>
+          </>
         ) : (
           <Text style={[styles.sub, { color: T.textMuted }]}>
             {t('capture.found', { count: entries.filter((e) => !e.discarded).length })}
@@ -182,7 +186,7 @@ export default function CaptureScreen() {
             value={text}
             onChangeText={setText}
             multiline
-            textAlign="right"
+            textAlign={isHebrew ? 'right' : 'left'}
           />
           <View style={styles.actionsRow}>
             <TouchableOpacity
@@ -287,6 +291,7 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingTop: 8, paddingBottom: 40 },
   h1: { fontSize: 22, fontWeight: '800', marginBottom: 4 },
   sub: { fontSize: 14, marginBottom: 18 },
+  betaNote: { fontSize: 12, marginTop: -12, marginBottom: 18, fontStyle: 'italic' },
   input: {
     minHeight: 120,
     borderWidth: 1,
