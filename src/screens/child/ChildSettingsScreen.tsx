@@ -225,8 +225,8 @@ export default function ChildSettingsScreen() {
         <Switch
           value={hapticsOn}
           onValueChange={handleHapticsToggle}
-          trackColor={{ false: T.border, true: T.primary }}
-          thumbColor={T.card}
+          trackColor={{ false: T.mutedForeground, true: T.primary }}
+          thumbColor="#FFFFFF"
         />
       </View>
 
