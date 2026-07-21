@@ -207,6 +207,10 @@ export default function UStep5_Preview() {
           // choice survives and ThemeContext's DB fallback can hydrate it.
           child_theme: isTeenAgeGroup(params.ageGroup) ? 'gamer' : 'mint',
           language:   childLang,        // per-child language (parent-editable later)
+          // Mark the language as a machine guess (name-script), NOT a parent
+          // choice — own-device locale binding may override it (resolveChildLang
+          // priority 2), and EditChild upgrades the source to 'parent'.
+          language_source: 'inferred',
           onboarding_data: {
             mainChallenge:        params.mainChallenge,
             additionalChallenges: params.additionalChallenges,

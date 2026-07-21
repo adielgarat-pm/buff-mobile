@@ -31,7 +31,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { LanguageProvider, useLanguage } from './src/contexts/LanguageContext';
+import { LanguageProvider, useLanguage, detectDeviceLanguage } from './src/contexts/LanguageContext';
 import { AuthProvider, useAuth }         from './src/contexts/AuthContext';
 import { ModeProvider }                  from './src/contexts/ModeContext';
 import { ThemeProvider, useTheme }       from './src/contexts/ThemeContext';
@@ -44,6 +44,8 @@ import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { useVersionGate }                 from './src/hooks/useVersionGate';
 import { resolveChildLang }              from './src/lib/i18nString';
+import { retitleStarterTasks }           from './src/lib/starterTaskRetitle';
+import { supabase }                      from './src/integrations/supabase/client';
 import { setupPwa }                      from './src/lib/setupPwa';
 import { captureRefFromUrl }             from './src/lib/referralCapture';
 
@@ -129,7 +131,12 @@ function ChildLanguageBinder() {
   useEffect(() => {
     if (profile?.role !== 'child') return;
 
-    const target = resolveChildLang(profile, language);
+    // ownDevice: this binder only runs for a signed-in child session, so the
+    // device locale is the CHILD's locale — resolveChildLang lets it override
+    // machine-guessed stored values (name-script 'inferred' / prior 'device').
+    // Passing the raw device locale, not `language`: the active app language
+    // is circular here once a previous bind changed it.
+    const target = resolveChildLang(profile, detectDeviceLanguage(), { ownDevice: true });
     const key = `${profile.id}:${target}`;
     if (lastBound.current === key) return;
     lastBound.current = key;
@@ -137,6 +144,27 @@ function ChildLanguageBinder() {
     if (target !== language) {
       setLanguage(target).catch(err =>
         console.warn('[ChildLanguageBinder] setLanguage failed (non-fatal):', err)
+      );
+    }
+
+    // Persist the binding when it changed the stored value, so push
+    // (`preferred_language`), AI insights, and View-as-Child agree with what
+    // the child actually sees (IN-2026-06-25-01: fix BOTH fields). Source
+    // 'device' keeps it machine-guessed — a parent EditChild choice still
+    // wins. Baked starter-task titles follow, best-effort (exact library
+    // matches only; RLS may 0-row from a child session — fine, EditChild or
+    // the next parent-side change heals them).
+    const ps = (profile.pro_settings ?? {}) as Record<string, unknown>;
+    if (ps.language !== target && ps.language_source !== 'parent') {
+      supabase
+        .from('profiles')
+        .update({ pro_settings: { ...ps, language: target, language_source: 'device' }, preferred_language: target })
+        .eq('id', profile.id)
+        .then(({ error }) => {
+          if (error) console.warn('[ChildLanguageBinder] persist failed (non-fatal):', error.message);
+        });
+      retitleStarterTasks(profile.id, target).catch(err =>
+        console.warn('[ChildLanguageBinder] retitle failed (non-fatal):', err)
       );
     }
   }, [profile, language, setLanguage]);

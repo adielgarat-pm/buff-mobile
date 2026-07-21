@@ -72,8 +72,10 @@ function localeToLang(locale: string): SupportedLanguage | null {
   return null;
 }
 
-/** Derive the best initial language from device locales. */
-function detectDeviceLanguage(): SupportedLanguage {
+/** Derive the best initial language from device locales. Exported for
+ *  ChildLanguageBinder (App.tsx), which needs the RAW device locale — the
+ *  active app language is circular there once a previous bind changed it. */
+export function detectDeviceLanguage(): SupportedLanguage {
   try {
     const locales = Localization.getLocales();          // expo-localization v15+
     for (const loc of locales) {

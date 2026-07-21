@@ -155,4 +155,51 @@ describe('resolveChildLang', () => {
   it('defaults the deviceLang fallback to "he" (Israel-first) when omitted', () => {
     expect(resolveChildLang({ display_name: '' })).toBe('he');
   });
+
+  // Own-device semantics (D-2026-07-21): on a child's own device the device
+  // locale beats MACHINE-GUESSED stored values, but never an explicit choice.
+  describe('ownDevice', () => {
+    it('device locale overrides an onboarding-inferred language (the Gur case)', () => {
+      expect(resolveChildLang(
+        { pro_settings: { language: 'en', language_source: 'inferred' }, display_name: 'Gur' },
+        'he', { ownDevice: true },
+      )).toBe('he');
+    });
+
+    it('device locale overrides a previous device-sourced binding (locale changed)', () => {
+      expect(resolveChildLang(
+        { pro_settings: { language: 'he', language_source: 'device' }, display_name: 'Gur' },
+        'en', { ownDevice: true },
+      )).toBe('en');
+    });
+
+    it('an explicit parent choice is NOT overridden by the device locale', () => {
+      expect(resolveChildLang(
+        { pro_settings: { language: 'en', language_source: 'parent' }, display_name: 'דני' },
+        'he', { ownDevice: true },
+      )).toBe('en');
+    });
+
+    it('a legacy stored language with no source is treated as explicit (status quo)', () => {
+      // e.g. Itay — deliberately left English (IN-2026-06-25-01) despite a Hebrew device.
+      expect(resolveChildLang(
+        { pro_settings: { language: 'en' }, display_name: 'Itay' },
+        'he', { ownDevice: true },
+      )).toBe('en');
+    });
+
+    it('no stored language on own device → device locale beats name script', () => {
+      expect(resolveChildLang(
+        { pro_settings: {}, display_name: 'Matan' },
+        'he', { ownDevice: true },
+      )).toBe('he');
+    });
+
+    it('off-device (shared/View-as-Child), an inferred stored language still wins over name script', () => {
+      expect(resolveChildLang(
+        { pro_settings: { language: 'en', language_source: 'inferred' }, display_name: 'דני' },
+        'he',
+      )).toBe('en');
+    });
+  });
 });

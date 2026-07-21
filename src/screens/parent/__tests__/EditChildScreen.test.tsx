@@ -207,6 +207,8 @@ describe('EditChildScreen', () => {
       onboarding_data: { foo: 'bar' },
       // Seeded from the Latin name "Lia" (no stored language) → 'en'.
       language:        'en',
+      // Every EditChild save marks the language as an explicit parent choice.
+      language_source: 'parent',
     });
   });
 
