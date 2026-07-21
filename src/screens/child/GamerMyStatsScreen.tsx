@@ -16,7 +16,7 @@
  * Note: 5B does NOT render a buddy character image — that's 5A's job.
  * 5B is always full-layout regardless of buddy_visible (per SPEC §3.3).
  */
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity,
 } from 'react-native';
@@ -73,7 +73,15 @@ export default function GamerMyStatsScreen() {
     refetchRelationship: refetchBuddy,
   });
 
-  if (buddyLoading || statsLoading || giftsLoading) {
+  // Full-screen loader only on the FIRST load. Focus-triggered refetches
+  // (refetchBuddy above) keep the last-rendered content instead of blanking
+  // the whole screen — on a slow network the blank-screen-with-a-dot state
+  // read as "the Stats tab is broken" (Noa feedback, 2026-07-20).
+  const isLoading = buddyLoading || statsLoading || giftsLoading;
+  const hasLoadedOnceRef = useRef(false);
+  if (!isLoading) hasLoadedOnceRef.current = true;
+
+  if (isLoading && !hasLoadedOnceRef.current) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator size="large" color={COLORS.lime} />
