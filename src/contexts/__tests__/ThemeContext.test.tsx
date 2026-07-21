@@ -11,7 +11,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeProvider, useTheme } from '../ThemeContext';
 
-let mockProfile: { id: string; role: string } | null = null;
+let mockProfile: { id: string; role: string; pro_settings?: Record<string, unknown> } | null = null;
 let mockPreviewChildId: string | null = null;
 
 jest.mock('../AuthContext', () => ({ useAuth: () => ({ profile: mockProfile }) }));
@@ -77,5 +77,14 @@ describe('ThemeContext — per-child isolation', () => {
     mockPreviewChildId = 'gamer-kid';
     const { result } = renderHook(() => useTheme(), { wrapper });
     await waitFor(() => expect(result.current.themeName).toBe('gamer'));
+  });
+
+  // Teen-default-theme: a real child session with no local value hydrates from
+  // the profile's child_theme (seeded 'gamer' for teen age bands) and caches it.
+  it('falls back to profile.pro_settings.child_theme when AsyncStorage is empty', async () => {
+    mockProfile = { id: 'teen-kid', role: 'child', pro_settings: { child_theme: 'gamer' } };
+    const { result } = renderHook(() => useTheme(), { wrapper });
+    await waitFor(() => expect(result.current.themeName).toBe('gamer'));
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith('buff_child_theme:teen-kid', 'gamer');
   });
 });
