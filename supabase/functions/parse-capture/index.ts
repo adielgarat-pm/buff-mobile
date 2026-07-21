@@ -10,6 +10,11 @@ const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+
+// Cost guard — same posture as generate-child-insights: hard server-side cap
+// so a stuck client / abuse can't burn Gemini tokens. Per family per day.
+const DAILY_CAPTURE_CAP = 30;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -120,13 +125,64 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405);
   if (!GEMINI_API_KEY) return json({ error: 'missing_gemini_key' }, 500);
 
+  // ── Auth — same pattern as generate-child-insights ─────────────────────────
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) return json({ error: 'unauthorized' }, 401);
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: authError } = await userClient.auth.getUser();
+  if (authError || !user) {
+    console.error('Auth failed', JSON.stringify(authError));
+    return json({ error: 'unauthorized' }, 401);
+  }
+
   try {
     const body = await req.json();
-    const { kind, text, fileBase64, mimeType, familyId, messageSentAt } = body ?? {};
+    const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform } = body ?? {};
     if (!familyId) return json({ error: 'missing_family_id' }, 400);
     if (kind === 'text' && !String(text ?? '').trim()) return json({ items: [] });
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
+
+    // Caller must be a member of the family they're capturing for.
+    const { data: callerProfile, error: callerErr } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('family_id', familyId)
+      .maybeSingle();
+    if (callerErr || !callerProfile) {
+      console.error('caller not in family', user.id, familyId, JSON.stringify(callerErr));
+      return json({ error: 'forbidden' }, 403);
+    }
+
+    // ── Entitlement gate — mirrors generate-child-insights exactly ───────────
+    // No Gemini tokens for FREE families; web stays free while the web build
+    // matures (same intentional divergence as the AI coach). Fail closed on
+    // cost with a 500 (not 402) so a payer sees a retry, not a paywall.
+    const { data: entitled, error: entErr } = await supabase.rpc('family_is_entitled', {
+      p_family_id: familyId,
+    });
+    if (entErr) {
+      console.error('entitlement check failed', JSON.stringify(entErr));
+      return json({ error: 'entitlement_check_failed' }, 500);
+    }
+    if (!entitled && platform !== 'web') {
+      return json({ error: 'premium_required' }, 402);
+    }
+
+    // ── Rate limit — DAILY_CAPTURE_CAP per family, enforced server-side ──────
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    const { count: runsToday, error: capErr } = await supabase
+      .from('capture_runs')
+      .select('id', { count: 'exact', head: true })
+      .eq('family_id', familyId)
+      .gte('created_at', since.toISOString());
+    if (!capErr && (runsToday ?? 0) >= DAILY_CAPTURE_CAP) {
+      return json({ error: 'rate_limited', daily_cap: DAILY_CAPTURE_CAP }, 429);
+    }
     const { data: kids } = await supabase
       .from('profiles')
       .select('display_name, birth_date, grade_level')
@@ -147,11 +203,13 @@ Deno.serve(async (req: Request) => {
         ? [{ text: `${prompt}\n\nהקלט מצורף כקובץ.` }, { inline_data: { mime_type: mimeType ?? 'application/octet-stream', data: fileBase64 } }]
         : [{ text: `${prompt}\n\nהקלט:\n${text ?? ''}` }];
 
+    // Key travels in a header, never in the URL (URLs get logged) — same as
+    // generate-child-insights.
     const gemRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
         body: JSON.stringify({
           contents: [{ parts }],
           generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
@@ -174,6 +232,7 @@ Deno.serve(async (req: Request) => {
     // Audit (counts only — NO raw input stored).
     await supabase.from('capture_runs').insert({
       family_id: familyId,
+      created_by: callerProfile.id,
       input_kind: kind === 'text' ? 'text' : 'image',
       item_count: items.length,
       model: MODEL,

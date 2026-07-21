@@ -30,7 +30,7 @@ import type { RootStackParamList } from '../../navigation/types';
 import type { CaptureInput, FamilyChild, ParentItem } from '../../types/parentCapture';
 import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCapture';
 import { useCaptureConsent } from '../../hooks/useCaptureConsent';
-import { parseCapture } from '../../lib/parentCapture/parseCapture';
+import { CaptureParseError, parseCapture } from '../../lib/parentCapture/parseCapture';
 import { parsedToParentItem } from '../../lib/parentCapture/captureMapping';
 import { CapturedItemRow, type ReviewEntry } from '../../components/parent/CapturedItemRow';
 import { CaptureConsentGate } from '../../components/parent/CaptureConsentGate';
@@ -51,6 +51,7 @@ export default function CaptureScreen() {
     null,
   );
   const [parsing, setParsing] = useState(false);
+  const [parseError, setParseError] = useState<'premium_required' | 'rate_limited' | 'generic' | null>(null);
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -71,6 +72,7 @@ export default function CaptureScreen() {
   async function onRead() {
     if (!canRead || !familyId) return;
     setParsing(true);
+    setParseError(null);
     try {
       const input: CaptureInput = file
         ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
@@ -92,6 +94,7 @@ export default function CaptureScreen() {
       setStep('review');
     } catch (e) {
       console.error('[CaptureScreen] parse error:', e);
+      setParseError(e instanceof CaptureParseError ? e.code : 'generic');
     } finally {
       setParsing(false);
     }
@@ -204,6 +207,17 @@ export default function CaptureScreen() {
               <Text style={styles.primaryText}>{t('capture.readIt')}</Text>
             )}
           </TouchableOpacity>
+          {parseError && (
+            <Text style={[styles.fileHint, { color: T.textMuted }]}>
+              {t(
+                parseError === 'premium_required'
+                  ? 'capture.errorPremium'
+                  : parseError === 'rate_limited'
+                    ? 'capture.errorLimit'
+                    : 'capture.errorGeneric',
+              )}
+            </Text>
+          )}
         </>
       ) : (
         <>

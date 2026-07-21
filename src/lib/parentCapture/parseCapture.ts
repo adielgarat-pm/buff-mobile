@@ -6,10 +6,19 @@
  * back ParsedItem[]. Gated by FEATURE_PARENT_CAPTURE. See docs/sessions/parent-capture/.
  */
 
+import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 
 import { supabase } from '../../integrations/supabase/client';
 import type { CaptureInput, ParsedItem } from '../../types/parentCapture';
+
+/** Typed failure so the screen can show the right message (paywall vs retry). */
+export class CaptureParseError extends Error {
+  constructor(public code: 'premium_required' | 'rate_limited' | 'generic') {
+    super(code);
+    this.name = 'CaptureParseError';
+  }
+}
 
 export async function parseCapture(
   input: CaptureInput,
@@ -26,6 +35,7 @@ export async function parseCapture(
       mimeType: input.mimeType,
       familyId,
       messageSentAt: input.messageSentAt ?? null,
+      platform: Platform.OS,
     };
   } else {
     body = {
@@ -33,13 +43,18 @@ export async function parseCapture(
       text: input.text ?? '',
       familyId,
       messageSentAt: input.messageSentAt ?? null,
+      platform: Platform.OS,
     };
   }
 
   const { data, error } = await supabase.functions.invoke('parse-capture', { body });
   if (error) {
     console.error('[parseCapture] invoke error:', error.message);
-    throw error;
+    // FunctionsHttpError carries the Response — map the server's typed errors.
+    const status = (error as { context?: { status?: number } }).context?.status;
+    if (status === 402) throw new CaptureParseError('premium_required');
+    if (status === 429) throw new CaptureParseError('rate_limited');
+    throw new CaptureParseError('generic');
   }
   return ((data as { items?: ParsedItem[] } | null)?.items ?? []) as ParsedItem[];
 }
