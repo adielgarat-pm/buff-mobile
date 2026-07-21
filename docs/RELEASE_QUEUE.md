@@ -25,6 +25,7 @@ _Last released: **1.7.6 (versionCode 56)** — built 2026-06-23 from commit `1bb
 
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
+| 2026-07-21 | #380 / `936efd9` | feat | **Parent Capture BETA ON** — paste text/file → Gemini → tasks. parse-capture hardened to insights posture (auth + entitlement + 30/day cap), EN prompt path, beta disclaimer HE/EN, web file-read fix. Edge Fn v8 live. **Production OTA published same day (runtime `e4983c15` = vc68 ✅).** | OTA | yes | Parent dashboard → This Week → Capture → paste → items → confirm → child task |
 | 2026-06-27 | #295 / `2abbc02` | fix | **Pin Supabase `storageKey` — recover sessions lost by the `api.buffadhd.com` (#290) switch.** The custom-domain switch derived the storage key from the URL host, mass-logging-out existing users; this pins it to the old value. ⚠️ Intended to ride the SAME build as #290 — but #290 is in **vc59** and #295 merged after → **#295 is NOT in vc59.** | Train | yes | Sign in → kill/relaunch app → session persists (not logged out) |
 | 2026-06-27 | #296 / `e1c1d78` | fix | **Web onboarding no longer resets to step 1** + UStep4 footer reachable on web PWA. | Train | yes (web) | Onboarding (web) → advance → does not snap to step 1 |
 | 2026-06-27 | #297 / `404cee6` | feat | **Web onboarding reload-safe** — web-only nav-state persistence so a reload resumes the same step. | Train | yes (web) | Onboarding (web) → reload → resumes step |
