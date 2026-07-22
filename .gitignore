@@ -40,9 +40,10 @@ yarn-error.*
 /ios
 /android
   
-# Claude Code — ignore everything inside .claude/ EXCEPT shared skills
+# Claude Code — ignore everything inside .claude/ EXCEPT shared skills + settings.json
 .claude/*
 !.claude/skills/
+!.claude/settings.json
 .claude/skills/*/.cache/
 .claude/settings.local.json
 

@@ -1,0 +1,19 @@
+# Enforces the no-stacked-PRs rule (Retro 2026-07-22).
+name: PR base check
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+  base-must-be-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if base is not main
+        if: github.base_ref != 'main'
+        run: |
+          echo "::error::PR base is '${{ github.base_ref }}' — PRs must target main. Stacked PRs are banned (they strand code when the parent branch merges first; see docs/WORKFLOW.md and the 2026-07-21 #384 incident)."
+          exit 1
+      - name: Base OK
+        if: github.base_ref == 'main'
+        run: echo "Base is main."
