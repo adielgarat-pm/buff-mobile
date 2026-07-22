@@ -1202,6 +1202,20 @@
 
 ## Lessons
 
+### Lesson 2026-07-22 — SDK 54 upgrade silently broke every Android file read (Capture + Timetable)
+
+**Symptom:** Day 1 of the Capture beta, Adi picked a photo on Android → "Something went wrong while reading". Supabase logs showed **zero** `parse-capture` invocations — the failure never left the device.
+
+**Root cause:** Expo SDK 54's `expo-file-system@19` moved the classic API (`readAsStringAsync` etc.) to `expo-file-system/legacy`. The root package still *exports* the old names, typechecks clean, and **throws only at runtime** ("This method will throw in runtime" stubs). The SDK-54 upgrade therefore passed tsc + jest + web verification while every native file read (`parseCapture.ts`, `TimetableScreen.tsx` photo/Excel import) was dead on Android. Web was unaffected (separate FileReader path) — platform-parity verification on web created false confidence for native.
+
+**Fix:** import from `expo-file-system/legacy` (`pkg/capture-fixes`). JS-only, OTA-able. Verified Hat-3 end-to-end on emulator: Hebrew camp-schedule image → 12 items.
+
+**Pattern to watch:** After any Expo SDK bump, grep the release notes for "moved to legacy" APIs and runtime-only deprecations — tsc will NOT catch them (`@deprecated` still type-resolves). A feature whose only native-path proof is "typecheck + web" is unproven on Android; the file-read path needs one on-device (or emulator) exercise per SDK bump. Also: an emulator at >90% disk purges app cache dirs between a DocumentPicker copy and its read (ENOENT) — emulator artifact, keep disk under threshold before blaming code.
+
+**FLAGs opened:** None — fixed in the same package.
+
+---
+
 ### Lesson 2026-05-03 — Snapshot fabrication + recommendation cascade
 
 **Symptom:** CC produced a 6-bullet snapshot containing *"RevenueCat: grace period expired May 1 — payment system needed urgently."* Claude.ai accepted the claim and built a pushback recommending RevenueCat go-live instead of the planned DevEx package.

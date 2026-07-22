@@ -3,6 +3,14 @@
 **Branch:** `pkg/parent-capture` (merged to `main` via PR #276, 2026-06-22). Follow-up: `pkg/parent-capture-gemini-align` (PR #380).
 **State:** `BETA LAUNCH approved by Adi 2026-07-21 — FEATURE_PARENT_CAPTURE=true (with in-UI beta disclaimer).`
 
+## 2026-07-22 — Android file upload broken → fixed (`pkg/capture-fixes`)
+- **Bug (Adi report, day 1 of beta):** picking any file/photo on Android showed "Something went wrong while reading" — zero `parse-capture` invocations in Supabase logs (failure was client-side, before the request left the device).
+- **Root cause:** Expo SDK 54 moved `readAsStringAsync` to `expo-file-system/legacy`; the root export **throws at runtime**. Both `parseCapture.ts` and `TimetableScreen.tsx` (photo/Excel import, 2 call sites) imported from the root → every Android file read threw immediately. Web unaffected (separate fetch+FileReader path). Text paste unaffected.
+- **Fix:** import from `expo-file-system/legacy` in both files. OTA-able (JS-only).
+- **Verification:** typecheck 0 errors · jest 98/98 (parentCapture + timetableParser) · **Hat-3 end-to-end on emulator**: Hebrew camp-schedule image (recreation of Adi's real CamScanner file) → picker → Read it → **12 items extracted** with correct dates + bring-lists, auto-assigned to the matched child.
+- Emulator-only red herring during testing: low disk (93%) made Android purge the DocumentPicker cache copy between pick and read (ENOENT) — not a product bug.
+- **Open (Adi):** feature rename — "לכידה"/"Capture" unclear; candidates: "קריאה חכמה" (recommended), "הוספה חכמה". Separate copy decision, not in this PR.
+
 ## 2026-07-21 — Gemini-pattern alignment + beta launch (PR #380)
 - `parse-capture` aligned with the `generate-child-insights` posture: JWT auth + family-membership check, `family_is_entitled` gate (402, web free like the AI coach), 30/day family cap server-side (429), key via `x-goog-api-key` header, `created_by` audit. Deployed v7→v8.
 - English support: bilingual prompt path (Hebrew prompt kept verbatim; English mirror for non-`he`), client passes `i18n.language`, input `textAlign` follows language.

@@ -20,7 +20,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import * as FileSystem from 'expo-file-system';
+// SDK 54: readAsStringAsync lives in the legacy entry — the root export throws
+// at runtime (broke Android file capture, 2026-07-22).
+import * as FileSystem from 'expo-file-system/legacy';
 import { crossAlert } from '../../platform';
 
 import { PARENT_THEME as T } from '../../theme';
