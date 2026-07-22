@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import * as DocumentPicker from 'expo-document-picker';
+import * as Sentry from '@sentry/react-native';
 
 import { useAuth } from '../../contexts/AuthContext';
 import { PARENT_THEME as T } from '../../theme';
@@ -95,6 +96,12 @@ export default function CaptureScreen() {
       setStep('review');
     } catch (e) {
       console.error('[CaptureScreen] parse error:', e);
+      // PII-safe: error + input shape only — never file content or file name.
+      // Client-side failures here otherwise die silently (Lesson 2026-07-22).
+      Sentry.captureException(e, {
+        tags: { feature: 'parent_capture', input_kind: file ? 'file' : 'text' },
+        extra: { mimeType: file?.mimeType ?? null },
+      });
       setParseError(e instanceof CaptureParseError ? e.code : 'generic');
     } finally {
       setParsing(false);
