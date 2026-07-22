@@ -23,6 +23,7 @@ import { supabase } from '../../integrations/supabase/client';
 import { useAuth } from '../../contexts/AuthContext';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 import { resolveChildLang } from '../../lib/i18nString';
+import { retitleStarterTasks } from '../../lib/starterTaskRetitle';
 import type { SupportedLanguage } from '../../i18n';
 import { PARENT_THEME as T } from '../../theme';
 import OffRoutineCard from '../../components/OffRoutineCard';
@@ -59,6 +60,9 @@ export default function EditChildScreen() {
   const [birth,    setBirth]     = useState<Date | null>(null);
   const [ageGroup, setAgeGroup]  = useState<string | null>(null);
   const [language, setLanguage]  = useState<SupportedLanguage>('he');
+  // Language as loaded — a save with a DIFFERENT language retitles the child's
+  // baked starter tasks (library matches only) to the new language.
+  const [initialLang, setInitialLang] = useState<SupportedLanguage | null>(null);
 
   const [saving,   setSaving]    = useState(false);
   const [saveErr,  setSaveErr]   = useState<string | null>(null);
@@ -100,7 +104,9 @@ export default function EditChildScreen() {
       setAgeGroup(row.pro_settings?.age_group ?? null);
       // Seed the toggle from the stored per-child language, falling back to the
       // name-script default for children onboarded before this field existed.
-      setLanguage(resolveChildLang({ pro_settings: row.pro_settings, display_name: row.display_name }));
+      const resolved = resolveChildLang({ pro_settings: row.pro_settings, display_name: row.display_name });
+      setLanguage(resolved);
+      setInitialLang(resolved);
       setLoading(false);
     })();
     return () => { cancelled = true; };
@@ -134,7 +140,9 @@ export default function EditChildScreen() {
     const prevSettings = ((existing as { pro_settings: Record<string, unknown> | null } | null)
       ?.pro_settings) ?? {};
 
-    const nextSettings = { ...prevSettings, age_group: ageGroup ?? null, language };
+    // language_source 'parent' marks this as an EXPLICIT choice — it can no
+    // longer be overridden by the own-device locale binding or re-inference.
+    const nextSettings = { ...prevSettings, age_group: ageGroup ?? null, language, language_source: 'parent' };
 
     // `.select()` returns the rows actually updated. An RLS-blocked UPDATE
     // returns NO error but ZERO rows — so a silent 0-row result means the save
@@ -148,6 +156,9 @@ export default function EditChildScreen() {
         avatar,
         birth_date:   birth ? toISODate(birth) : null,
         pro_settings: nextSettings,
+        // Keep the push/AI-insights language in sync with the UI language —
+        // they read this separate top-level column (IN-2026-06-25-01).
+        preferred_language: language,
       } as never)
       .eq('id', params.childId)
       .select('id');
@@ -164,6 +175,12 @@ export default function EditChildScreen() {
       setSaveErr(t('editChild.saveError'));
       setSaving(false);
       return;
+    }
+
+    // Language changed → retitle the baked starter tasks (exact library
+    // matches only; the parent's own custom tasks are never touched).
+    if (initialLang && language !== initialLang) {
+      await retitleStarterTasks(params.childId, language);
     }
 
     setSaving(false);
