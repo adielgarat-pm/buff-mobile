@@ -6,9 +6,10 @@
  *   'gamer' — dark, cyan neon, energetic (theme-child-gamer)
  *
  * Persisted to AsyncStorage PER CHILD under 'buff_child_theme:<childId>' so a
- * theme never leaks between siblings on a shared device. Default: 'mint'.
- * (Cross-device persistence — storing on the profile — is a follow-up that needs
- * RLS work for child self-writes; tracked separately.)
+ * theme never leaks between siblings on a shared device. When no local value
+ * exists (first run / reinstall / new device) the profile's
+ * pro_settings.child_theme is the fallback — seeded 'gamer' for teen age bands
+ * (12-14 / 15-18) at child creation, 'mint' otherwise. Default: 'mint'.
  *
  * Set during ChildOnboarding, changeable via ChildCommandCenter (Settings).
  * Parent screens are not affected — they read PARENT_THEME from theme/index.ts.
@@ -214,11 +215,25 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       AsyncStorage.getItem(`${STORAGE_KEY}:${activeChildId}`).then((stored) => {
         if (cancelled) return;
-        setThemeNameState(stored === 'gamer' ? 'gamer' : 'mint');
+        if (stored === 'gamer' || stored === 'mint') {
+          setThemeNameState(stored);
+          return;
+        }
+        // No local value (first run, reinstall, new device): fall back to the
+        // profile's child_theme — seeded 'gamer' for teen age bands at creation
+        // and kept in sync by setTheme. Only cache locally when the DB actually
+        // has a value, so a later DB-side backfill still reaches this device.
+        const dbTheme = (profile?.pro_settings as Record<string, unknown> | null)?.child_theme;
+        if (dbTheme === 'gamer' || dbTheme === 'mint') {
+          setThemeNameState(dbTheme);
+          AsyncStorage.setItem(`${STORAGE_KEY}:${activeChildId}`, dbTheme);
+        } else {
+          setThemeNameState('mint');
+        }
       });
     }
     return () => { cancelled = true; };
-  }, [activeChildId, previewChildId]);
+  }, [activeChildId, previewChildId, profile?.pro_settings]);
 
   const setTheme = useCallback(async (name: ChildThemeName) => {
     setThemeNameState(name);

@@ -30,6 +30,7 @@ import {
 } from './onboardingData';
 import type { AgeGroup } from './onboardingData';
 import { generateStarterTasks } from './starterTasks';
+import { isTeenAgeGroup } from '../../../lib/activities/childMode';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
 import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
@@ -201,6 +202,10 @@ export default function UStep5_Preview() {
           age_group:  params.ageGroup,
           gender:     params.gender    ?? null,
           birth_date: params.birthDate ?? null,
+          // Teen bands (12-14 / 15-18) start in the Gamer theme; the child can
+          // switch in Child Settings. Seeded here (not derived at render) so the
+          // choice survives and ThemeContext's DB fallback can hydrate it.
+          child_theme: isTeenAgeGroup(params.ageGroup) ? 'gamer' : 'mint',
           language:   childLang,        // per-child language (parent-editable later)
           onboarding_data: {
             mainChallenge:        params.mainChallenge,
