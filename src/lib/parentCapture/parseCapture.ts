@@ -7,7 +7,9 @@
  */
 
 import { Platform } from 'react-native';
-import * as FileSystem from 'expo-file-system';
+// SDK 54: readAsStringAsync lives in the legacy entry — the root export throws
+// at runtime (broke Android file capture, 2026-07-22).
+import * as FileSystem from 'expo-file-system/legacy';
 
 import { supabase } from '../../integrations/supabase/client';
 import type { CaptureInput, ParsedItem } from '../../types/parentCapture';
