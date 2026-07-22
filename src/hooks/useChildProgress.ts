@@ -415,7 +415,7 @@ export function useChildData(childId: string | null) {
     ));
 
     const { error } = await supabase.from('daily_progress').upsert(
-      { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: true },
+      { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: true, completed_at: now.toISOString() },
       { onConflict: 'family_id,child_id,date,task_id' }
     );
 
@@ -452,7 +452,7 @@ export function useChildData(childId: string | null) {
     ));
 
     const { error } = await supabase.from('daily_progress').upsert(
-      { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: false },
+      { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: false, completed_at: null },
       { onConflict: 'family_id,child_id,date,task_id' }
     );
 
