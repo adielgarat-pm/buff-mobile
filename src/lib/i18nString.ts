@@ -151,36 +151,51 @@ export function detectLangFromName(name: string | null | undefined): 'he' | 'en'
  * lighter rows fetched by EditChild / ModeContext.
  */
 export type ChildLangSource = {
-  pro_settings?: { language?: unknown } | Record<string, unknown> | null;
+  pro_settings?: { language?: unknown; language_source?: unknown } | Record<string, unknown> | null;
   display_name?: string | null;
 };
 
 /**
  * Resolve the language a single child should see, in priority order:
  *
- *   1. The parent-set per-child language (`pro_settings.language`), when it is
- *      a valid 'he' | 'en'. This is the source of truth once a parent has
- *      chosen — it overrides everything else.
- *   2. The script of the child's display name (`detectLangFromName`) — the
- *      onboarding default, so a Hebrew-named child gets Hebrew and a
- *      Latin-named child gets English without the parent touching anything.
- *   3. `deviceLang` (the app/device language) as the final fallback when there
- *      is no stored preference AND no name to infer from.
- *
- * Note: step 2 (`detectLangFromName`) already defaults undetectable names to
- * 'he', so `deviceLang` only takes effect when the name is empty/missing.
+ *   1. An EXPLICIT stored language (`pro_settings.language`) — one whose
+ *      `pro_settings.language_source` is NOT a machine guess. 'parent'
+ *      (EditChild toggle) is explicit; legacy rows with no source predate the
+ *      field and were either parent-set or deliberately data-fixed
+ *      (IN-2026-06-25-01), so they are treated as explicit too — status quo.
+ *      Machine-guessed values ('inferred' from onboarding name-script,
+ *      'device' from a previous own-device binding) are overridable.
+ *   2. `deviceLang`, when `opts.ownDevice` is set — on a child's OWN device
+ *      the device locale IS the child's locale, the strongest signal we have
+ *      (D-2026-07-21: fixes the Latin-name→English trap for own-device kids
+ *      without reintroducing the parent-device-locale bug of IN-2026-05-29-04).
+ *   3. A machine-guessed stored language (shared device has no device signal,
+ *      so the onboarding guess still beats re-guessing).
+ *   4. The script of the child's display name (`detectLangFromName`).
+ *   5. `deviceLang` as the final fallback (no stored preference, no name).
  *
  * @example
- *   resolveChildLang({ pro_settings: { language: 'en' }, display_name: 'דני' })       // → 'en' (stored wins)
- *   resolveChildLang({ pro_settings: {}, display_name: 'איתי' })                        // → 'he' (name script)
- *   resolveChildLang({ pro_settings: null, display_name: '' }, 'en')                     // → 'en' (device fallback)
+ *   resolveChildLang({ pro_settings: { language: 'en' }, display_name: 'דני' })  // → 'en' (legacy stored wins)
+ *   resolveChildLang(
+ *     { pro_settings: { language: 'en', language_source: 'inferred' }, display_name: 'Gur' },
+ *     'he', { ownDevice: true },
+ *   )                                                                             // → 'he' (own device beats guess)
+ *   resolveChildLang({ pro_settings: {}, display_name: 'איתי' })                  // → 'he' (name script)
+ *   resolveChildLang({ pro_settings: null, display_name: '' }, 'en')              // → 'en' (device fallback)
  */
 export function resolveChildLang(
   child: ChildLangSource,
   deviceLang: 'he' | 'en' = 'he',
+  opts?: { ownDevice?: boolean },
 ): 'he' | 'en' {
-  const stored = (child.pro_settings as { language?: unknown } | null)?.language;
-  if (stored === 'he' || stored === 'en') return stored;
+  const ps = child.pro_settings as { language?: unknown; language_source?: unknown } | null;
+  const stored = ps?.language;
+  const validStored = stored === 'he' || stored === 'en' ? stored : null;
+  const machineGuessed = ps?.language_source === 'inferred' || ps?.language_source === 'device';
+
+  if (validStored && !machineGuessed) return validStored;
+  if (opts?.ownDevice) return deviceLang;
+  if (validStored) return validStored;
 
   const name = child.display_name;
   if (name && name.trim()) return detectLangFromName(name);
