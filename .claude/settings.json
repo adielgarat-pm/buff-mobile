@@ -1,0 +1,51 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__execute_sql",
+      "Bash(git fetch *)",
+      "Bash(git ls-tree *)",
+      "mcp__Claude_Preview__preview_console_logs",
+      "mcp__Claude_Preview__preview_screenshot",
+      "mcp__Claude_Preview__preview_logs",
+      "mcp__Claude_Preview__preview_snapshot",
+      "mcp__Claude_Preview__preview_list",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__get_advisors",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git worktree *)",
+      "Bash(git stash *)",
+      "Bash(git rev-parse *)",
+      "Bash(npm test *)",
+      "Bash(npx jest *)",
+      "Bash(npx tsc *)",
+      "Bash(npx expo *)",
+      "Bash(npx expo-doctor *)",
+      "Bash(node node_modules/jest/bin/jest.js *)",
+      "Bash(mkdir *)",
+      "Bash(export ADB=*)",
+      "Bash(\"$ADB\" *)",
+      "Bash($ADB *)",
+      "Bash(source .claude/skills/buff-testing/helpers.sh)",
+      "Bash(source C:/Users/adiel/buff-mobile/.claude/skills/buff-testing/helpers.sh)",
+      "PowerShell(*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/session-start-check.js",
+            "timeout": 20,
+            "statusMessage": "Checking git/PR reality..."
+          }
+        ]
+      }
+    ]
+  }
+}
