@@ -45,3 +45,21 @@ describe('isTaskVisibleToday', () => {
     for (let d = 0; d <= 6; d++) expect(isTaskVisibleToday(task([]), false, d)).toBe(false);
   });
 });
+
+describe('isTaskVisibleToday — one-time dated tasks (capture transfers)', () => {
+  const dated = (dueDate: string) =>
+    ({ scheduleDays: [], hideOnWeekend: false, dueDate }) as any;
+
+  test('visible ONLY on its due date', () => {
+    expect(isTaskVisibleToday(dated('2026-07-27'), false, 1, '2026-07-27')).toBe(true);
+    expect(isTaskVisibleToday(dated('2026-07-27'), false, 1, '2026-07-26')).toBe(false);
+    expect(isTaskVisibleToday(dated('2026-07-27'), false, 1, '2026-07-28')).toBe(false);
+  });
+  test('dueDate wins over empty scheduleDays (pre-fix: hidden even on the day)', () => {
+    expect(isTaskVisibleToday(dated('2026-08-06'), false, 4, '2026-08-06')).toBe(true);
+  });
+  test('dueDate wins over hideOnWeekend — a dated item is dated', () => {
+    const t = { scheduleDays: [], hideOnWeekend: true, dueDate: '2026-07-25' } as any;
+    expect(isTaskVisibleToday(t, true, 6, '2026-07-25')).toBe(true);
+  });
+});

@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Phase, PHASES, getSmartPhaseForTime } from '../../types/phase';
 import { PhaseView } from '../../components/PhaseView';
+import { TomorrowPreview } from '../../components/child/TomorrowPreview';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
@@ -194,6 +195,12 @@ function PastelChildTasks() {
           onCompleteTask={completeTask}
           onUncompleteTask={uncompleteTask}
           hapticsEnabled={hapticsOn}
+        />
+
+        {/* Tomorrow's dated tasks (camp days, bag prep) — read-only heads-up */}
+        <TomorrowPreview
+          tasks={tasks}
+          colors={{ card: T.card, border: T.border, text: T.foreground, muted: T.mutedForeground }}
         />
 
         {/* Suggest-a-task CTA + the kid's own open ideas */}

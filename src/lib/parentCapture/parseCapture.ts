@@ -44,6 +44,8 @@ export async function parseCapture(
   input: CaptureInput,
   familyId: string,
   language?: string,
+  /** Parent's upfront "who is this about?" pick — biases the server-side match. */
+  childHint?: string | null,
 ): Promise<ParsedItem[]> {
   let body: Record<string, unknown>;
   if (input.kind === 'file' && input.fileUri) {
@@ -53,6 +55,7 @@ export async function parseCapture(
       fileBase64,
       mimeType: input.mimeType,
       familyId,
+      childHint: childHint ?? null,
       messageSentAt: input.messageSentAt ?? null,
       platform: Platform.OS,
       language: language ?? null,
@@ -62,6 +65,7 @@ export async function parseCapture(
       kind: 'text',
       text: input.text ?? '',
       familyId,
+      childHint: childHint ?? null,
       messageSentAt: input.messageSentAt ?? null,
       platform: Platform.OS,
       language: language ?? null,

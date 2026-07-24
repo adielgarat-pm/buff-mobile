@@ -53,6 +53,7 @@ function buildPrompt(
   todayISO: string,
   messageSentAt: string | null,
   language: string,
+  childHint: string | null = null,
 ): string {
   if (!language.startsWith('he')) {
     const rosterLinesEn =
@@ -73,7 +74,7 @@ ${rosterLinesEn}
 Resolve every relative time ("tomorrow", "this Thursday") against the message-sent date.
 
 == CHILD MATCHING ==
-Match by grade/class (e.g. "4th grade" → the child in grade 4). If the item targets a grade no child is in → relevance="no_match". If it cannot be determined → relevance="unknown" and missing includes "child name". When the match is certain, do NOT add "child name" to missing.
+Match by grade/class (e.g. "4th grade" → the child in grade 4). If the item targets a grade no child is in → relevance="no_match". If it cannot be determined → relevance="unknown" and missing includes "child name". When the match is certain, do NOT add "child name" to missing.${childHint ? `\nThe parent says this input is about ${childHint}. Default childName to ${childHint} (relevance="matched") unless the message explicitly names a different child or grade.` : ''}
 
 Return ONLY JSON shaped as: { "items": [ ... ] }, where each item is:
 {
@@ -95,7 +96,9 @@ Return ONLY JSON shaped as: { "items": [ ... ] }, where each item is:
   "confidence": "high"|"medium"|"low",
   "missing": string|null
 }
-Rules: owner="child" + forChildToRemember=true only when the child can remember/carry it themselves. confidence="low" if vague or guessed. Missing value → goes to missing, never invented. An event with a parent part (attend/drive) and a child part (wear/participate) → split into two items linked via linkedEvent.`;
+Rules: owner="child" + forChildToRemember=true only when the child can remember/carry it themselves. confidence="low" if vague or guessed. Missing value → goes to missing, never invented. An event with a parent part (attend/drive) and a child part (wear/participate) → split into two items linked via linkedEvent.
+title must NEVER contain a child's name or a name prefix ("Leia: pack…") — it is a plain action; the assignment lives ONLY in childName.
+A bring/wear item for a DATED event → TWO items: (1) "Pack …" with dueDate = the day BEFORE the event and dueTime "19:00"; (2) "Take …" with dueDate = the event day and dueTime "07:30". A dated event with no stated time → dueTime "08:00".`;
   }
 
   const rosterLines =
@@ -116,7 +119,7 @@ ${rosterLines}
 פתור כל זמן יחסי ("מחר", "יום ה' הקרוב") ביחס לתאריך שליחת ההודעה.
 
 == שיוך לילד ==
-שייך לפי שכבה/כיתה (למשל "שכבת ד" → הילד בכיתה ד). אם הפריט מתייחס לשכבה שאינה של אף ילד → relevance="no_match". אם אי אפשר לקבוע → relevance="unknown" ו-missing יכלול "שם הילד". כשהשיוך ודאי, אל תוסיף "שם הילד" ל-missing.
+שייך לפי שכבה/כיתה (למשל "שכבת ד" → הילד בכיתה ד). אם הפריט מתייחס לשכבה שאינה של אף ילד → relevance="no_match". אם אי אפשר לקבוע → relevance="unknown" ו-missing יכלול "שם הילד". כשהשיוך ודאי, אל תוסיף "שם הילד" ל-missing.${childHint ? `\nההורה ציין שהקלט שייך ל${childHint}. שייך את הפריטים אליו כברירת מחדל (relevance="matched") אלא אם ההודעה מציינת מפורשות ילד או שכבה אחרים.` : ''}
 
 החזר JSON בלבד בצורה: { "items": [ ... ] }, כשכל פריט הוא:
 {
@@ -138,7 +141,9 @@ ${rosterLines}
   "confidence": "high"|"medium"|"low",
   "missing": string|null
 }
-כללים: owner="child" + forChildToRemember=true רק כשזה משהו שהילד יכול לזכור/לשאת בעצמו. confidence="low" אם עורפל או ניחוש. חסר ערך → ל-missing, לא להמציא. אירוע עם חלק-הורה (להגיע/להסיע) וחלק-ילד (ללבוש/להשתתף) → פצל לשני פריטים מקושרים ב-linkedEvent.`;
+כללים: owner="child" + forChildToRemember=true רק כשזה משהו שהילד יכול לזכור/לשאת בעצמו. confidence="low" אם עורפל או ניחוש. חסר ערך → ל-missing, לא להמציא. אירוע עם חלק-הורה (להגיע/להסיע) וחלק-ילד (ללבוש/להשתתף) → פצל לשני פריטים מקושרים ב-linkedEvent.
+אסור ש-title יכיל שם ילד או קידומת שם ("לייא: לארוז…") — הכותרת היא פעולה פשוטה בלבד; השיוך חי אך ורק ב-childName.
+פריט "להביא/ללבוש/לצייד" לאירוע מתוארך → שני פריטים: (1) "לארוז …" עם dueDate של היום שלפני האירוע ו-dueTime "19:00"; (2) "לקחת …" עם dueDate של יום האירוע ו-dueTime "07:30". אירוע מתוארך בלי שעה → dueTime "08:00".`;
 }
 
 const TYPES = ['task', 'event', 'schedule', 'reference'];
@@ -190,7 +195,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform, language } = body ?? {};
+    const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform, language, childHint } = body ?? {};
     if (!familyId) return json({ error: 'missing_family_id' }, 400);
     if (kind === 'text' && !String(text ?? '').trim()) return json({ items: [] });
 
@@ -248,7 +253,8 @@ Deno.serve(async (req: Request) => {
 
     const todayISO = new Date().toISOString().slice(0, 10);
     const lang = typeof language === 'string' && language ? language : 'he';
-    const prompt = buildPrompt(roster, todayISO, messageSentAt ?? null, lang);
+    const hint = typeof childHint === 'string' && childHint.trim() ? childHint.trim().slice(0, 60) : null;
+    const prompt = buildPrompt(roster, todayISO, messageSentAt ?? null, lang, hint);
 
     const inputLabel = lang.startsWith('he')
       ? { file: 'הקלט מצורף כקובץ.', text: 'הקלט:' }

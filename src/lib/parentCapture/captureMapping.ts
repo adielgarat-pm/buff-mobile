@@ -101,6 +101,31 @@ export function groupByBucket(
   }));
 }
 
+// ── Title hygiene ──
+
+/**
+ * Strip a leading child-name prefix Gemini sometimes embeds in titles
+ * ("לייא: לארוז בגד ים" → "לארוז בגד ים"). Kid task copy must be a plain
+ * action — never carry the name (BUFF_VALUES kid-copy rule; Adi 2026-07-24).
+ * Matches any family child's name OR the item's own parsed childName, with
+ * ":" / "-" / "–" separators.
+ */
+export function stripChildNamePrefix(
+  title: string,
+  names: string[],
+): string {
+  const t = title.trim();
+  for (const raw of names) {
+    const name = raw?.trim();
+    if (!name) continue;
+    if (t.length <= name.length || !t.startsWith(name)) continue;
+    const rest = t.slice(name.length);
+    const m = rest.match(/^\s*[:\-–]\s*(.+)$/);
+    if (m?.[1]) return m[1].trim();
+  }
+  return t;
+}
+
 // ── Confirm → stored item ──
 
 let _idCounter = 0;
@@ -191,9 +216,13 @@ export function childTaskFieldsFromParsed(p: ParsedItem): ChildTaskFields {
     scheduleDays = [0, 1, 2, 3, 4, 5, 6];
     dueDate = null;
   }
+  // Dated one-timers without an explicit time default to the MORNING of that
+  // day (bring/wear/prep items are morning acts) — the old blanket 14:00 put a
+  // whole camp schedule "at noon" (Adi, 2026-07-24). Recurring keeps 14:00.
+  const defaultTime = p.dueDate ? '08:00' : '14:00';
   return {
     title: p.title,
-    time: p.dueTime ?? '14:00',
+    time: p.dueTime ?? defaultTime,
     category: EVENT_TYPE_TO_CATEGORY[p.eventType],
     credits: PARENT_CAPTURE_CONFIG.DEFAULT_TASK_CREDITS,
     scheduleDays,

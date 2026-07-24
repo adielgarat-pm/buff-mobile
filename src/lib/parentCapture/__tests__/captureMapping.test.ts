@@ -8,6 +8,7 @@ import {
   isPastDate,
   recencyPartition,
   recurrenceToScheduleDays,
+  stripChildNamePrefix,
   timeBucketFor,
 } from '../captureMapping';
 
@@ -139,7 +140,37 @@ describe('childTaskFieldsFromParsed', () => {
     expect(f.scheduleDays).toEqual([0, 1, 2, 3, 4, 5, 6]);
     expect(f.dueDate).toBeNull();
   });
-  test('time defaults to 14:00 when no dueTime', () => {
+  test('time defaults to 14:00 when no dueTime (recurring)', () => {
     expect(childTaskFieldsFromParsed(parsed({})).time).toBe('14:00');
+  });
+
+  test('dated one-timer without dueTime defaults to the MORNING (08:00)', () => {
+    expect(childTaskFieldsFromParsed(parsed({ dueDate: '2026-07-27' })).time).toBe('08:00');
+  });
+
+  test('explicit dueTime always wins', () => {
+    expect(childTaskFieldsFromParsed(parsed({ dueDate: '2026-07-27', dueTime: '19:00' })).time).toBe('19:00');
+  });
+});
+
+describe('stripChildNamePrefix', () => {
+  const names = ['לייא', 'Emmy'];
+
+  test('strips "<name>: " prefix', () => {
+    expect(stripChildNamePrefix('לייא: לארוז בגד ים ומגבת', names)).toBe('לארוז בגד ים ומגבת');
+    expect(stripChildNamePrefix('Emmy - pack swim bag', names)).toBe('pack swim bag');
+  });
+
+  test('leaves clean titles untouched', () => {
+    expect(stripChildNamePrefix('לארוז בגד ים ומגבת', names)).toBe('לארוז בגד ים ומגבת');
+  });
+
+  test('does not strip a name that merely appears mid-title', () => {
+    expect(stripChildNamePrefix('לקנות מתנה ללייא: עפרונות', ['אמא'])).toBe('לקנות מתנה ללייא: עפרונות');
+  });
+
+  test('ignores empty/undefined names and never empties the title', () => {
+    expect(stripChildNamePrefix('לייא:', names)).toBe('לייא:');
+    expect(stripChildNamePrefix('שיעורי בית', ['', undefined as unknown as string])).toBe('שיעורי בית');
   });
 });
