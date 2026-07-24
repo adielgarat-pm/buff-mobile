@@ -3,8 +3,8 @@
 > Top-level inventory of free / bootstrap-friendly marketing work.
 > Sister to [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) — GTM is the *strategy*, this is the *backlog* of specific tracks under it.
 
-**עודכן:** 2026-05-23
-**מקור:** marketing strategy session 2026-05-13 + scan of brand family (BRAND, PERSONAS, MESSAGING, COMPETITORS, FAQ, FOUNDER_STORY, TESTIMONIALS) + GO_TO_MARKET phase plan. תוספת 2026-05-23: Track G (founder-voice HE FB posts) נוסף לאחר צפייה ב-indirect challenger בעברית (ראי [COMPETITORS §3.8](BUFF_COMPETITORS.md)).
+**עודכן:** 2026-07-24
+**מקור:** marketing strategy session 2026-05-13 + scan of brand family (BRAND, PERSONAS, MESSAGING, COMPETITORS, FAQ, FOUNDER_STORY, TESTIMONIALS) + GO_TO_MARKET phase plan. תוספת 2026-05-23: Track G (founder-voice HE FB posts) נוסף לאחר צפייה ב-indirect challenger בעברית (ראי [COMPETITORS §3.8](BUFF_COMPETITORS.md)). תוספת 2026-07-24: Track H (group reputation + profile-as-landing-page) נוסף לאחר צפייה ב-top-contributor mechanic בקבוצת יעד (ראי [§6.6](#66-track-h--group-reputation--profile-as-landing-page-brief)).
 **שפה:** הסברים בעברית, action items באנגלית.
 
 ---
@@ -32,10 +32,13 @@
 | **E** | `/philosophy` page on buffadhd.com — 3-Principles hero (WHY/WHAT framing) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | ✅ **Wave 1 PR opened 2026-05-14** — `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`. Awaits merge + deploy. |
 | **F** | Clinician / coach / podcast advisor outreach | 2 | [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) | 10-name target list + 3 personalized pitches drafted |
 | **G** | Founder-voice HE FB posts (privacy-first lead hook) | 1 | §6.5 below + [COMPETITORS §3.8](BUFF_COMPETITORS.md) + [FOUNDING_100_KIT](BUFF_FOUNDING_100_KIT.md) | Observation captured 2026-05-23. Kit not started — Adi deferring copy-writing to a dedicated session. |
+| **H** | Group reputation + profile-as-landing-page (FB "top contributor" mechanic) | 1 | §6.6 below | Observation captured 2026-07-24. Two concrete actions defined (profile refurbish + flagship group). |
 
 **Track F (advisor outreach) was previously mapped only as bullet items in [GO_TO_MARKET §2.4–2.5](BUFF_GO_TO_MARKET.md). The kit doc operationalizes it — same pattern as FOUNDING_100_KIT operationalizes Phase 1.**
 
 **Track G (founder-voice HE FB posts) was added 2026-05-23 after Adi observed an indirect competitor (Hebrew chore-tracker, organic FB post, privacy-first lead hook) succeed with a positioning move BUFF holds only defensively. See [§6.5](#65-track-g--founder-voice-he-fb-posts-brief) and [COMPETITORS §3.8](BUFF_COMPETITORS.md).**
+
+**Track H (group reputation + profile-as-landing-page) was added 2026-07-24 after Adi observed a non-ADHD service-seller earn a Facebook "all-star contributor" badge in ~6 weeks inside a target ADHD parenting group, using her profile (not her comments) as the conversion funnel. The mechanic is directly reusable for Track A execution — with authentic standing instead of an extractive one. See [§6.6](#66-track-h--group-reputation--profile-as-landing-page-brief).**
 
 ---
 
@@ -49,7 +52,8 @@
 
 ### Wave 2 — *outreach foundation* (weeks 2–4)
 3. **Track F — Advisor outreach** — start with 3 pitches from kit (Brendan / Penny / Sharon). One per week, not all at once.
-4. **Track A — ADHD groups outreach** — start once you have 1–2 advisor responses you can reference (even informally).
+4. **Track H (step 1) — Profile refurbish** — ~30 min, do this *before* the first Track A reply. Every helpful comment drives profile clicks; the profile must convert. Prerequisite to Track A, not a parallel track.
+5. **Track A + Track H (step 2) — ADHD groups outreach with flagship-group focus** — start once you have 1–2 advisor responses you can reference (even informally). Run Track A cadence, but concentrate on one flagship group to chase the top-contributor badge (see §6.6).
 
 ### Wave 3 — *content compounding* (weeks 4–16)
 5. **Track C — Blog launch burst** — ship 5 launch posts (see [BLOG_CONTENT_MAP §6](BUFF_BLOG_CONTENT_MAP.md) starter set). Then 2/week steady-state.
@@ -174,6 +178,56 @@ Founder voice הוא ייחודי ל-Adi. Brand family מספיק לי כדי ל
 - [BUFF_FAQ.md §E](BUFF_FAQ.md) — תשובות פרטיות ready-to-quote.
 - [BUFF_FOUNDING_100_KIT.md](BUFF_FOUNDING_100_KIT.md) — email-led model להשלמה / השוואה עם DM-led.
 - [BUFF_PERSONAS.md](BUFF_PERSONAS.md) P5, P2.
+
+---
+
+## 6.6 Track H — Group Reputation + Profile-as-Landing-Page (brief)
+
+**Source observation (2026-07-24):** בקבוצת "ADHD Parents Support Group" (אנגלית, קבוצת יעד לפרסונות P1–P3), חברה בשם Desire Ifebuche Uways הצטרפה ב-9 ביוני 2026 וכבר ~6 שבועות אחר-כך נושאת תג **"all-star content contributor"** עם 21,567 נקודות. הנקודה החדה: **היא לא הורה ל-ADHD ולא מוכרת פתרון ל-ADHD.** היא נותנת שירותי כתיבה ("DISTINCT DEE" — ghostwriting / storytelling / audio-to-text / "turn knowledge into income using AI"). הקבוצה היא בשבילה *ערוץ הפצה*: היא תורמת תוכן בעקביות, קטפה את התג, וכל צפייה בפרופיל שלה = דף נחיתה (bio ברור + באנר עם value-prop + CTA + טלפון).
+
+**Why it matters to BUFF:** זו בדיוק ה-Track A mechanic ([§4](#4-track-a--adhd-groups-outreach-brief)) — מבוצעת טוב יותר ממה שאנחנו מריצים כרגע. שני מנופים חינמיים שלא תיעדנו:
+1. **הפרופיל הוא דף הנחיתה — לא התגובה.** המשקל המסחרי מוסט מהתוכן (שנשאר מועיל) אל הפרופיל. זה מה שמאפשר נפח בלי להיבעט ע"י אדמינים — ותואם לחלוטין את [FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md) ("reply first, BUFF as a side note").
+2. **תג "top contributor" כ-social proof חינמי.** פייסבוק מעניקה אותו תוך שבועות למי שמתרים בעקביות. התג הופך כל פוסט עתידי לאמין יותר — בדיוק בקבוצות שבהן חיות הפרסונות שלנו. שייך ל-Phase 2 (Free Authority) אבל מתחיל ב-Phase 1.
+
+### Patterns to ADOPT
+
+1. **Profile-as-funnel** — פרופיל הפייסבוק של Adi צריך לתפקד כדף נחיתה: שורת bio ("Founder, BUFF — the ADHD app your kid outgrows"), באנר עם 3 העמודים + CTA, לינק ל-`/founding-100`. כרגע ה-CTA שלנו חי רק *בתוך* התגובה; שלה חי בפרופיל וזה חזק יותר.
+2. **Consistency > bursts** — תרומה יומית מועילה קונה את התג תוך חודש-חודש וחצי. Track A מוגדר כ-"~3/week per group"; להוסיף **מיקוד בקבוצת דגל אחת** בקצב גבוה יותר כדי לרדוף אחרי התג.
+3. **Value-first, sell-in-bio** — כבר מעוגן ב-[MESSAGING §8.1](BUFF_MESSAGING.md) ("if copy reads like an ad — blocks the action"). ההוכחה החיצונית מחזקת את הכלל: הנפח בטוח *כי* המכירה בפרופיל, לא בתגובה.
+
+### Patterns to AVOID copying
+
+- ❌ **היציבה החולבת (extractive posture).** Desire נכנסת לקהילת הורים כואבת כדי לחלוב אודיינס למשהו לא-קשור. אסור להעתיק — מתנגש עם Pillar 1 (אותנטיות), ובסוף אדמינים בועטים אנשים כאלה. **היתרון שלנו שהיא לא יכולה לזייף:** Adi היא הדבר האמיתי (הורה ל-ADHD + מייסדת + Itay שעיצב את מצב הטין). לאמץ את המכניקה על גבי מעמד אותנטי = הרבה יותר עמיד.
+- ❌ **Volume ללא ערך.** התג בלי תוכן באמת-מועיל הופך לספאם גלוי. הנפח לגיטימי רק כשכל תרומה עומדת בפני עצמה.
+
+### The two concrete actions
+
+| # | Action | Effort | Depends on |
+|---|---|---|---|
+| **H-1** | Refurbish Adi's FB profile as a landing page: bio line, 3-pillars banner + CTA, link to `/founding-100` (or buffadhd.com until landing is live) | ~30 min | `/founding-100` landing (fallback: buffadhd.com) |
+| **H-2** | Pick **one flagship group** from the Track A target list; commit to daily helpful contribution (via [FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md) templates) to chase the top-contributor badge | Ongoing, ~10 min/day | Track A target list (Open Decision §7 #4) |
+
+### Personas to target
+
+- ✅ **P1 / P2 / P3** — כל מי שנמצא בקבוצות ההורים ל-ADHD. התג משרת את כולם (אמינות רוחבית).
+
+### Status / why sequenced this way
+
+- **Observation captured:** 2026-07-24 (this entry).
+- **H-1 (profile refurbish):** ready to execute — quick win, no dependency beyond a live link. Slotted into [§2 Wave 2 step 4](#2-recommended-execution-order) *before* first Track A reply.
+- **H-2 (flagship group):** gated on the Track A target list (Open Decision §7 #4). Once the list exists, pick one group to concentrate on.
+
+### Why founder executes, not Claude
+
+זהה ל-Track G: הפרופיל, הנוכחות בקבוצה, והקול הם של Adi. אני יכול לנסח את שורת ה-bio ואת copy הבאנר לאישורה, אבל התרומה היומית והמעמד האותנטי דורשים את Adi עצמה.
+
+### Cross-links
+
+- [§4 Track A](#4-track-a--adhd-groups-outreach-brief) — same channel; H is the execution upgrade.
+- [BUFF_FOUNDING_100_KIT.md §3](BUFF_FOUNDING_100_KIT.md) — the reply templates H-2 uses.
+- [BUFF_MESSAGING.md §8.1](BUFF_MESSAGING.md) — channel guidelines (value-first rule).
+- [BUFF_VALUES.md Pillar 1](BUFF_VALUES.md) — the authenticity guardrail against the extractive posture.
+- [BUFF_PERSONAS.md](BUFF_PERSONAS.md) P1, P2, P3.
 
 ---
 
