@@ -32,6 +32,18 @@ jobs:
         run: npm run typecheck
       - name: Unit tests
         run: npm test -- --ci
+      # Guards. `check:no-fs-root-import` is invoked DIRECTLY (not via an npm
+      # script) on purpose: @expo/fingerprint hashes package.json `scripts`, so
+      # registering it there would drift the EAS runtimeVersion off the live
+      # binary and silently kill OTA delivery (2026-07-24 dead-OTA incident).
+      # The other guards are already part of the shipped binary's script set,
+      # so running them here is fingerprint-neutral.
+      - name: Guards
+        run: |
+          node scripts/check-no-fs-root-import.js
+          npm run check:no-raw-alert
+          npm run check:i18n-access
+          npm run i18n:check
       - name: Web build (catches RN-Web bundle breaks; produces ./dist)
         run: npm run build:web
 
