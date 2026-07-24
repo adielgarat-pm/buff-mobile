@@ -204,7 +204,7 @@ Founder voice הוא ייחודי ל-Adi. Brand family מספיק לי כדי ל
 
 | # | Action | Effort | Depends on |
 |---|---|---|---|
-| **H-1** | Refurbish Adi's FB profile as a landing page: bio line, 3-pillars banner + CTA, link to `/founding-100` (or buffadhd.com until landing is live) | ~30 min | `/founding-100` landing (fallback: buffadhd.com) |
+| **H-1** | Refurbish Adi's FB profile as a landing page: bio line, cover photo + CTA, link to `/founding-100` (or buffadhd.com until landing is live). Cover asset ready: [`marketing-assets/fb-cover-founder-2026-07-24.png`](marketing-assets/fb-cover-founder-2026-07-24.png). Bio copy drafted 2026-07-24 (in chat, pending Adi's pick). | ~30 min | `/founding-100` landing (fallback: buffadhd.com) |
 | **H-2** | Pick **one flagship group** from the Track A target list; commit to daily helpful contribution (via [FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md) templates) to chase the top-contributor badge | Ongoing, ~10 min/day | Track A target list (Open Decision §7 #4) |
 
 ### Personas to target

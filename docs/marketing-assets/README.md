@@ -31,3 +31,4 @@ Examples:
 | File | Purpose | Used in |
 |---|---|---|
 | `philosophy-hero-2026-05-15.jpg` (pending — Adi to save from chat) | Screenshot of `/philosophy` 3-Principles hero | LinkedIn post 2026-05-15 (planned) |
+| `fb-cover-founder-2026-07-24.png` | Facebook cover photo — deep-violet, mission tagline "Until they don't need us." + real logo. 3280×1248 (2× of 1640×624 FB upload size). Brand-exact (BRAND §7.2 tokens, spaceship-test compliant). | Adi's FB profile refurbish — [MARKETING_BACKLOG Track H / H-1](../BUFF_MARKETING_BACKLOG.md#66-track-h--group-reputation--profile-as-landing-page-brief) |
