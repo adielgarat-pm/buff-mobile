@@ -51,6 +51,7 @@ import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackMo
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 import { formatNum } from '../../lib/uiLocale';
+import { TomorrowPreview } from '../../components/child/TomorrowPreview';
 
 // ─── BUFF brand palette (Gamer mode) ─────────────────────────────────────────
 const COLORS = {
@@ -403,6 +404,12 @@ export default function GamerTasksScreen() {
           kind="task"
           palette={SUGGEST_PALETTE}
           onWithdraw={withdraw}
+        />
+
+        {/* Tomorrow's dated tasks (camp days, bag prep) — read-only heads-up */}
+        <TomorrowPreview
+          tasks={tasks}
+          colors={{ card: COLORS.surface, border: COLORS.border, text: COLORS.text, muted: COLORS.textMuted }}
         />
       </ScrollView>
 

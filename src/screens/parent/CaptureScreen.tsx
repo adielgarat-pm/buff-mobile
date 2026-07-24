@@ -32,7 +32,7 @@ import type { CaptureInput, FamilyChild, ParentItem } from '../../types/parentCa
 import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCapture';
 import { useCaptureConsent } from '../../hooks/useCaptureConsent';
 import { CaptureParseError, parseCapture } from '../../lib/parentCapture/parseCapture';
-import { parsedToParentItem } from '../../lib/parentCapture/captureMapping';
+import { parsedToParentItem, stripChildNamePrefix } from '../../lib/parentCapture/captureMapping';
 import { CapturedItemRow, type ReviewEntry } from '../../components/parent/CapturedItemRow';
 import { CaptureConsentGate } from '../../components/parent/CaptureConsentGate';
 
@@ -52,6 +52,9 @@ export default function CaptureScreen() {
   const [file, setFile] = useState<{ uri: string; name: string; mimeType: string | null } | null>(
     null,
   );
+  // Upfront "who is this about?" — optional; becomes the default assignment
+  // for every item the AI didn't explicitly match (Adi, 2026-07-24).
+  const [hintChildId, setHintChildId] = useState<string | null>(null);
   const [parsing, setParsing] = useState(false);
   const [parseError, setParseError] = useState<'premium_required' | 'rate_limited' | 'generic' | null>(null);
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
@@ -79,15 +82,24 @@ export default function CaptureScreen() {
       const input: CaptureInput = file
         ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
         : { kind: 'text', text };
-      const parsed = await parseCapture(input, familyId, i18n.language);
-      const next: ReviewEntry[] = parsed.map((p) => {
+      const hintChild = children.find((c) => c.id === hintChildId) ?? null;
+      const parsed = await parseCapture(input, familyId, i18n.language, hintChild?.displayName ?? null);
+      const familyNames = children.map((c) => c.displayName);
+      const next: ReviewEntry[] = parsed.map((raw) => {
+        // Kid titles are plain actions — strip any "<name>:" prefix the model
+        // slipped in (belt to the server-side prompt rule).
+        const p = {
+          ...raw,
+          title: stripChildNamePrefix(raw.title, [...familyNames, raw.childName ?? '']),
+        };
         const match = p.childName
           ? children.find((c) => c.displayName === p.childName) ?? null
           : null;
         return {
           parsed: p,
           owner: p.owner,
-          childId: match?.id ?? null,
+          // AI's explicit match wins; otherwise fall back to the parent's pick.
+          childId: match?.id ?? hintChild?.id ?? null,
           // noise (no_match) starts discarded — surfaced collapsed, not lost
           discarded: p.relevance === 'no_match',
         };
@@ -110,6 +122,19 @@ export default function CaptureScreen() {
 
   function updateEntry(idx: number, changes: Partial<Omit<ReviewEntry, 'parsed'>>) {
     setEntries((prev) => prev.map((e, i) => (i === idx ? { ...e, ...changes } : e)));
+  }
+
+  /** Bulk "assign everything to…" — one tap instead of 15 (Adi, 2026-07-24). */
+  function assignAll(childId: string | null) {
+    setEntries((prev) =>
+      prev.map((e) =>
+        e.discarded
+          ? e
+          : childId
+            ? { ...e, owner: 'child' as const, childId }
+            : { ...e, owner: 'parent' as const, childId: null },
+      ),
+    );
   }
 
   async function onConfirm() {
@@ -207,6 +232,30 @@ export default function CaptureScreen() {
           </View>
           <Text style={[styles.fileHint, { color: T.textMuted }]}>{t('capture.fileHint')}</Text>
 
+          {children.length > 0 && (
+            <>
+              <Text style={[styles.whoseLabel, { color: T.text }]}>{t('capture.whose')}</Text>
+              <View style={styles.chipsRow}>
+                {children.map((c) => {
+                  const active = hintChildId === c.id;
+                  return (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={[
+                        styles.chip,
+                        { borderColor: active ? T.accent : T.cardBorder, backgroundColor: active ? T.accent : T.card },
+                      ]}
+                      onPress={() => setHintChildId(active ? null : c.id)}
+                    >
+                      <Text style={[styles.chipText, { color: active ? '#fff' : T.text }]}>{c.displayName}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              <Text style={[styles.fileHint, { color: T.textMuted }]}>{t('capture.whoseHint')}</Text>
+            </>
+          )}
+
           <TouchableOpacity
             style={[styles.primaryBtn, { backgroundColor: canRead ? T.accent : T.cardBorder }]}
             onPress={onRead}
@@ -232,6 +281,28 @@ export default function CaptureScreen() {
         </>
       ) : (
         <>
+          {children.length > 0 && active.length > 1 && (
+            <View style={styles.assignAllRow}>
+              <Text style={[styles.assignAllLabel, { color: T.textMuted }]}>{t('capture.assignAll')}</Text>
+              <View style={styles.chipsRow}>
+                {children.map((c) => (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[styles.chip, { borderColor: T.cardBorder, backgroundColor: T.card }]}
+                    onPress={() => assignAll(c.id)}
+                  >
+                    <Text style={[styles.chipText, { color: T.text }]}>{c.displayName}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity
+                  style={[styles.chip, { borderColor: T.cardBorder, backgroundColor: T.card }]}
+                  onPress={() => assignAll(null)}
+                >
+                  <Text style={[styles.chipText, { color: T.text }]}>{t('capture.owner.me')}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
           {active.map(({ e, i }) => (
             <CapturedItemRow
               key={e.parsed.id}
@@ -311,6 +382,12 @@ const styles = StyleSheet.create({
   secondaryBtn: { borderWidth: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16 },
   secondaryText: { fontSize: 14, fontWeight: '600' },
   fileHint: { fontSize: 12, marginTop: 8 },
+  whoseLabel: { fontSize: 14, fontWeight: '700', marginTop: 18 },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  chip: { borderWidth: 1, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 14 },
+  chipText: { fontSize: 13, fontWeight: '600' },
+  assignAllRow: { marginBottom: 14 },
+  assignAllLabel: { fontSize: 13, fontWeight: '600' },
   primaryBtn: {
     borderRadius: 12,
     paddingVertical: 14,

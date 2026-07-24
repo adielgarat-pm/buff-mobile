@@ -3,6 +3,16 @@
 **Branch:** `pkg/parent-capture` (merged to `main` via PR #276, 2026-06-22). Follow-up: `pkg/parent-capture-gemini-align` (PR #380).
 **State:** `BETA LAUNCH approved by Adi 2026-07-21 — FEATURE_PARENT_CAPTURE=true (with in-UI beta disclaimer).`
 
+## 2026-07-24 — capture-fixes-2: assignment UX + clean titles + child day-view (`pkg/capture-fixes-2`)
+Adi's day-3 beta feedback (real camp-schedule run, 15 items landed on the wrong child with name-prefixed titles, child saw everything "today at noon"):
+- **"Who is this about?"** — optional child chips on the input step; pick becomes the default assignment for every item the AI didn't explicitly match, and is passed as `childHint` to `parse-capture` (v9) to bias matching server-side.
+- **Bulk assign** — "assign everything to…" chips on the confirm screen (one tap instead of 15).
+- **Clean titles** — prompt rule (title must never contain a child name) + client-side `stripChildNamePrefix` belt. Kid-copy rule enforced.
+- **Child day-view** — `isTaskVisibleToday` is now dueDate-aware (dated tasks visible ONLY on their day; before: HQ/dashboards ignored dueDate entirely) + new `TomorrowPreview` strip ("מחר · יום ה'") on both child task screens showing tomorrow's dated tasks (bag prep heads-up). Recurring tasks excluded by design.
+- **Smart times** — prompt: bring-items split into "לארוז" (evening before, 19:00) + "לקחת" (event morning, 07:30); dated event with no time → 08:00. Client fallback for dated tasks: 08:00 (was blanket 14:00).
+- **Data cleanup (prod, same day):** 15 camp tasks stripped of "לייא: " prefix + the one stray Leia task moved to Emmy.
+- Gates: tsc 0 · jest 48/48 (mapping+schedule) · i18n parity ✅ · fs-root-import guard ✅.
+
 ## 2026-07-22 — Android file upload broken → fixed (`pkg/capture-fixes`)
 - **Bug (Adi report, day 1 of beta):** picking any file/photo on Android showed "Something went wrong while reading" — zero `parse-capture` invocations in Supabase logs (failure was client-side, before the request left the device).
 - **Root cause:** Expo SDK 54 moved `readAsStringAsync` to `expo-file-system/legacy`; the root export **throws at runtime**. Both `parseCapture.ts` and `TimetableScreen.tsx` (photo/Excel import, 2 call sites) imported from the root → every Android file read threw immediately. Web unaffected (separate fetch+FileReader path). Text paste unaffected.
