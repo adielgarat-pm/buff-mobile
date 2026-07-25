@@ -38,7 +38,7 @@ grows when you complete tasks — he looked at it for 30 seconds and asked:
 
 He was 12. He was right.
 
-So we built BUFF differently — together. He's 15 now, and he co-designed
+So we built BUFF ADHD differently — together. He's 15 now, and he co-designed
 the teen side himself.
 
 🟣 Real-life rewards your kid actually wants — not virtual coins
@@ -47,7 +47,7 @@ the teen side himself.
 🟣 Built for ages 6–18 — and built to be outgrown. If your kid stops
    needing it, that's the success.
 
-BUFF launches soon on Google Play. Until then I'm opening 100 Founding
+BUFF ADHD launches soon on Google Play. Until then I'm opening 100 Founding
 Member spots — lifetime access for families who want in early and help
 shape it.
 
@@ -74,7 +74,7 @@ swap ADHD-morning war stories — that's welcome too.
 
 הוא היה בן 12. והוא צדק.
 
-אז בנינו את BUFF אחרת — ביחד. היום הוא בן 15, והוא עיצב בעצמו את צד
+אז בנינו את BUFF ADHD אחרת — ביחד. היום הוא בן 15, והוא עיצב בעצמו את צד
 המתבגרים.
 
 🟣 פרסים אמיתיים מהחיים שהילד באמת רוצה — לא מטבעות וירטואליים
@@ -83,7 +83,7 @@ swap ADHD-morning war stories — that's welcome too.
 🟣 בנויה לגילאי 6–18 — ובנויה כדי שיפסיקו להצטרך אותה. אם הילד כבר לא
    צריך אותה — ניצחנו.
 
-BUFF עולה בקרוב ל-Google Play. עד אז אני פותחת 100 מקומות Founding
+BUFF ADHD עולה בקרוב ל-Google Play. עד אז אני פותחת 100 מקומות Founding
 Members — גישה לכל החיים למשפחות שנכנסות מוקדם ומעצבות אותה איתי.
 
 סקרנים? תגיבו או שלחו לי הודעה ואשלח קישור. וגם אם בא לכם רק להחליף
@@ -126,7 +126,7 @@ Every app we'd tried lasted about six weeks. Not because he failed them —
 because they were built to keep him hooked, not to help him need them less.
 
 He's 15 now. We rebuilt the whole thing together, and he designed the teen
-side himself. It's called BUFF, and it's built for one outcome that sounds
+side himself. It's called BUFF ADHD, and it's built for one outcome that sounds
 insane for an app: that your kid stops needing it.
 
 But here's the real reason I'm posting.
@@ -163,7 +163,7 @@ know if it's just us.
 הן בנויות כדי להחזיק אותו בפנים, לא כדי שיצטרך אותן פחות.
 
 היום הוא בן 15. בנינו הכל מחדש ביחד, והוא עיצב בעצמו את צד המתבגרים.
-קוראים לזה BUFF, והוא בנוי לתוצאה אחת שנשמעת מטורפת לאפליקציה: שהילד
+קוראים לזה BUFF ADHD, והוא בנוי לתוצאה אחת שנשמעת מטורפת לאפליקציה: שהילד
 שלכם יפסיק להצטרך אותה.
 
 אבל זאת הסיבה האמיתית שאני מפרסמת.
