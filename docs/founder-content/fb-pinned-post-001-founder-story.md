@@ -13,6 +13,11 @@ Adi's voice makes it authentic. The dialog should stay verbatim.
 HE version for Israeli groups/friends.
 **Created:** 2026-07-25
 
+**Two variants below.** Variant A is conversion-led (explains BUFF, asks for a DM).
+**Variant B is engagement-led and is the recommended one for the pinned slot** —
+it leads with the story and closes with a question, so the comment thread underneath
+becomes the social proof. See "Why B out-engages A" for the reasoning.
+
 ---
 
 ## English (primary)
@@ -86,6 +91,107 @@ Members — גישה לכל החיים למשפחות שנכנסות מוקדם 
 
 — עדי
 ```
+
+---
+
+# Variant B — Engagement-led (RECOMMENDED for the pinned slot)
+
+> Variant A above is conversion-led: it explains BUFF and asks for a DM. Good, but
+> a pinned post's real job is different. Comments *underneath* a pinned post are
+> social proof for every future visitor who clicks Adi's name from a group thread —
+> and comment volume is what earns the top-contributor reputation Track H is chasing.
+> The CTA already lives in the profile's Featured link, so the post itself doesn't
+> have to sell. **Lead with the story, close with a real question.**
+
+## English
+
+```
+My 12-year-old killed my app idea in 30 seconds.
+
+I'd spent ten years building digital products. Then I tried to fix mornings
+at home, with my own son, who has ADHD.
+
+So I built him a prototype. Points. Streaks. A cute pet that grows when you
+finish your tasks. Everything the other apps do.
+
+He looked at it and asked:
+
+"What happens if I miss a day?"
+"You lose your streak."
+"That's stressful. I don't want that."
+
+And that was it. He was right.
+
+Every app we'd tried lasted about six weeks. Not because he failed them —
+because they were built to keep him hooked, not to help him need them less.
+
+He's 15 now. We rebuilt the whole thing together, and he designed the teen
+side himself. It's called BUFF, and it's built for one outcome that sounds
+insane for an app: that your kid stops needing it.
+
+But here's the real reason I'm posting.
+
+What's the app, chart, or system that actually lasted in your house? And how
+long before it stopped working?
+
+I've heard "about six weeks" from more parents than I can count. I want to
+know if it's just us.
+
+— Adi
+```
+
+## Hebrew
+
+```
+הבן שלי בן ה-12 הרג לי את הרעיון תוך 30 שניות.
+
+עשר שנים בניתי מוצרים דיגיטליים. ואז ניסיתי לתקן את הבקרים בבית, עם הבן
+שלי שיש לו ADHD.
+
+אז בניתי לו אב-טיפוס. נקודות. רצפים. חיית מחמד חמודה שגדלה כשמסיימים
+משימות. כל מה שהאפליקציות האחרות עושות.
+
+הוא הסתכל ושאל:
+
+"מה קורה אם אני מפספס יום?"
+"אתה מאבד את הרצף."
+"זה מלחיץ. אני לא רוצה את זה."
+
+וזהו. הוא צדק.
+
+כל אפליקציה שניסינו החזיקה בערך שישה שבועות. לא כי הוא נכשל בהן — אלא כי
+הן בנויות כדי להחזיק אותו בפנים, לא כדי שיצטרך אותן פחות.
+
+היום הוא בן 15. בנינו הכל מחדש ביחד, והוא עיצב בעצמו את צד המתבגרים.
+קוראים לזה BUFF, והוא בנוי לתוצאה אחת שנשמעת מטורפת לאפליקציה: שהילד
+שלכם יפסיק להצטרך אותה.
+
+אבל זאת הסיבה האמיתית שאני מפרסמת.
+
+מה המערכת, הטבלה או האפליקציה שבאמת החזיקה אצלכם בבית? וכמה זמן עבר עד
+שהפסיקה לעבוד?
+
+שמעתי "בערך שישה שבועות" מיותר הורים מכפי שאני יכולה לספור. אני רוצה לדעת
+אם זה רק אצלנו.
+
+— עדי
+```
+
+## Why B out-engages A
+
+| | Variant A | Variant B |
+|---|---|---|
+| Opening line | "Why I'm building an app…" — about her | "My 12-year-old killed my app idea in 30 seconds." — a story with a twist |
+| Product mention | Feature list (4 bullets) | One sentence, mid-post |
+| Close | "DM me and I'll send the link" — asks the reader to *buy* | "How long before it stopped working?" — asks the reader to *talk* |
+| What it produces | Some DMs | Comments, which are visible social proof + algorithmic reach |
+
+The six-weeks question is doing the heavy lifting: it is specific, near-universal in
+this audience, and answerable in one line — the three properties of a comment magnet.
+It also feeds real research back to Adi.
+
+**One rule if B is used:** reply to every comment in the first 48 hours. An unanswered
+comment thread reads as abandoned, and the reply volume is what Facebook rewards.
 
 ---
 
