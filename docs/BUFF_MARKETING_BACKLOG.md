@@ -204,7 +204,7 @@ Founder voice הוא ייחודי ל-Adi. Brand family מספיק לי כדי ל
 
 | # | Action | Effort | Depends on |
 |---|---|---|---|
-| **H-1** | Refurbish Adi's FB profile as a landing page: bio line, cover photo + CTA, link to `/founding-100` (or buffadhd.com until landing is live). Cover asset: [`marketing-assets/fb-cover-founder-2026-07-24.png`](marketing-assets/fb-cover-founder-2026-07-24.png). **Status 2026-07-25: cover uploaded + bio updated by Adi ✅.** Remaining: Featured/pinned link (the actual funnel CTA), Work entry, public-visibility check (View As), enable followers. Profile photo change consciously deferred. | ~30 min | `/founding-100` landing (fallback: buffadhd.com) |
+| **H-1** | Refurbish Adi's FB profile as a landing page: bio line, cover photo + CTA, link to `/founding-100` (or buffadhd.com until landing is live). Cover asset: [`marketing-assets/fb-cover-founder-2026-07-24.png`](marketing-assets/fb-cover-founder-2026-07-24.png). **Status 2026-07-25: cover uploaded + bio updated by Adi ✅.** Remaining: Featured/pinned link (the actual funnel CTA), Work entry, public-visibility check (View As), enable followers. Pinned-post draft ready: [`founder-content/fb-pinned-post-001-founder-story.md`](founder-content/fb-pinned-post-001-founder-story.md) (EN+HE, pending Adi's voice pass). Profile photo change consciously deferred. | ~30 min | `/founding-100` landing (fallback: buffadhd.com) |
 | **H-2** | Pick **one flagship group** from the Track A target list; commit to daily helpful contribution (via [FOUNDING_100_KIT §3](BUFF_FOUNDING_100_KIT.md) templates) to chase the top-contributor badge | Ongoing, ~10 min/day | Track A target list (Open Decision §7 #4) |
 
 ### Personas to target
