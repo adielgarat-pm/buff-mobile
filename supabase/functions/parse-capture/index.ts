@@ -2,6 +2,11 @@
 // items via Gemini (paid tier). Server-side only; the key never leaves here.
 // Privacy: raw input is NOT stored (only a count is logged to capture_runs).
 // pkg/parent-capture Phase 1. Returns the SAME ParsedItem shape the client/stub use.
+//
+// Usage metrics (pkg/capture-usage-metrics, migration 047): EVERY terminal path
+// writes a capture_runs row with an `outcome` — including failures, which used
+// to exist only in Sentry. The run id is returned so the client can attach the
+// parent's confirm summary (kept / discarded / edited) to the same row.
 
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -146,6 +151,55 @@ ${rosterLines}
 פריט "להביא/ללבוש/לצייד" לאירוע מתוארך → שני פריטים: (1) "לארוז …" עם dueDate של היום שלפני האירוע ו-dueTime "19:00"; (2) "לקחת …" עם dueDate של יום האירוע ו-dueTime "07:30". אירוע מתוארך בלי שעה → dueTime "08:00".`;
 }
 
+/** capture_runs outcomes — mirrors the CHECK in migration 047. */
+type RunOutcome =
+  | 'ok'
+  | 'empty'
+  | 'error_premium'
+  | 'error_rate_limited'
+  | 'error_gemini'
+  | 'error_internal';
+
+/**
+ * Audit + usability metric. Counts only — NEVER raw input, file name or content.
+ * Never throws: a failed metric write must not turn a good parse into an error.
+ * Returns the run id so the client can attach its confirm summary.
+ */
+async function logRun(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  row: {
+    familyId: string;
+    createdBy: string | null;
+    kind: unknown;
+    itemCount: number;
+    outcome: RunOutcome;
+  },
+): Promise<string | null> {
+  try {
+    const { data, error } = await db
+      .from('capture_runs')
+      .insert({
+        family_id: row.familyId,
+        created_by: row.createdBy,
+        input_kind: row.kind === 'text' ? 'text' : 'image',
+        item_count: row.itemCount,
+        model: MODEL,
+        outcome: row.outcome,
+      })
+      .select('id')
+      .single();
+    if (error) {
+      console.error('capture_runs insert failed', JSON.stringify(error));
+      return null;
+    }
+    return (data as { id: string } | null)?.id ?? null;
+  } catch (e) {
+    console.error('capture_runs insert threw', String(e));
+    return null;
+  }
+}
+
 const TYPES = ['task', 'event', 'schedule', 'reference'];
 const EVENT_TYPES = ['performance', 'test', 'homework', 'activity', 'errand', 'payment', 'form', 'other'];
 const CONF = ['high', 'medium', 'low'];
@@ -193,10 +247,18 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'unauthorized' }, 401);
   }
 
+  // Hoisted for the catch-all handler — it must still be able to log the failed
+  // run (error_internal) after an unexpected throw.
+  let logFamilyId: string | null = null;
+  let logCreatedBy: string | null = null;
+  let logKind: unknown = null;
+
   try {
     const body = await req.json();
     const { kind, text, fileBase64, mimeType, familyId, messageSentAt, platform, language, childHint } = body ?? {};
     if (!familyId) return json({ error: 'missing_family_id' }, 400);
+    logFamilyId = familyId;
+    logKind = kind;
     if (kind === 'text' && !String(text ?? '').trim()) return json({ items: [] });
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
@@ -212,6 +274,7 @@ Deno.serve(async (req: Request) => {
       console.error('caller not in family', user.id, familyId, JSON.stringify(callerErr));
       return json({ error: 'forbidden' }, 403);
     }
+    logCreatedBy = callerProfile.id;
 
     // ── Entitlement gate — mirrors generate-child-insights exactly ───────────
     // No Gemini tokens for FREE families; web stays free while the web build
@@ -225,18 +288,30 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'entitlement_check_failed' }, 500);
     }
     if (!entitled && platform !== 'web') {
+      // Logged, not silent: blocked-by-paywall attempts are the demand signal
+      // for whether capture is worth paying for.
+      await logRun(supabase, {
+        familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_premium',
+      });
       return json({ error: 'premium_required' }, 402);
     }
 
     // ── Rate limit — DAILY_CAPTURE_CAP per family, enforced server-side ──────
+    // Only billable runs (ok/empty, or pre-047 NULL rows) count toward the cap —
+    // otherwise the new error rows would lock a family out of a feature that
+    // never actually ran for them.
     const since = new Date();
     since.setHours(0, 0, 0, 0);
     const { count: runsToday, error: capErr } = await supabase
       .from('capture_runs')
       .select('id', { count: 'exact', head: true })
       .eq('family_id', familyId)
-      .gte('created_at', since.toISOString());
+      .gte('created_at', since.toISOString())
+      .or('outcome.is.null,outcome.in.(ok,empty)');
     if (!capErr && (runsToday ?? 0) >= DAILY_CAPTURE_CAP) {
+      await logRun(supabase, {
+        familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_rate_limited',
+      });
       return json({ error: 'rate_limited', daily_cap: DAILY_CAPTURE_CAP }, 429);
     }
     const { data: kids } = await supabase
@@ -278,7 +353,12 @@ Deno.serve(async (req: Request) => {
       },
     );
     const gj = await gemRes.json();
-    if (!gemRes.ok) return json({ error: 'gemini_error', status: gemRes.status, detail: gj?.error ?? gj }, 502);
+    if (!gemRes.ok) {
+      await logRun(supabase, {
+        familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_gemini',
+      });
+      return json({ error: 'gemini_error', status: gemRes.status, detail: gj?.error ?? gj }, 502);
+    }
 
     const rawText = gj?.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}';
     let parsed: any;
@@ -290,17 +370,27 @@ Deno.serve(async (req: Request) => {
     const rawItems = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.items) ? parsed.items : [];
     const items = rawItems.map(normalize);
 
-    // Audit (counts only — NO raw input stored).
-    await supabase.from('capture_runs').insert({
-      family_id: familyId,
-      created_by: callerProfile.id,
-      input_kind: kind === 'text' ? 'text' : 'image',
-      item_count: items.length,
-      model: MODEL,
+    // Audit (counts only — NO raw input stored). run_id lets the client attach
+    // the parent's confirm summary to this same row.
+    const runId = await logRun(supabase, {
+      familyId,
+      createdBy: callerProfile.id,
+      kind,
+      itemCount: items.length,
+      outcome: items.length > 0 ? 'ok' : 'empty',
     });
 
-    return json({ items });
+    return json({ items, run_id: runId });
   } catch (e) {
+    if (logFamilyId) {
+      await logRun(createClient(SUPABASE_URL, SERVICE_ROLE), {
+        familyId: logFamilyId,
+        createdBy: logCreatedBy,
+        kind: logKind,
+        itemCount: 0,
+        outcome: 'error_internal',
+      });
+    }
     return json({ error: 'internal', detail: String(e) }, 500);
   }
 });

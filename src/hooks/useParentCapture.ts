@@ -21,7 +21,7 @@ import {
 import type { FamilyChild, ParentItem, ParsedItem } from '../types/parentCapture';
 
 const SELECT_COLS =
-  'id, family_id, created_by, title, type, owner, child_id, child_name, child_task_id, due_date, due_time, recurrence, location, bring, event_type, status, reminder_opt_in, confidence, created_at';
+  'id, family_id, created_by, title, type, owner, child_id, child_name, child_task_id, capture_run_id, due_date, due_time, recurrence, location, bring, event_type, status, reminder_opt_in, confidence, created_at';
 
 function rowToItem(r: Record<string, any>): ParentItem {
   return {
@@ -42,6 +42,7 @@ function rowToItem(r: Record<string, any>): ParentItem {
     reminderOptIn: !!r.reminder_opt_in,
     confidence: r.confidence,
     childTaskId: r.child_task_id ?? null,
+    captureRunId: r.capture_run_id ?? null,
     createdAt: r.created_at,
   };
 }
@@ -56,6 +57,7 @@ function itemToInsert(it: ParentItem, familyId: string, createdBy: string | null
     child_id: it.childId,
     child_name: it.childName,
     child_task_id: it.childTaskId ?? null,
+    capture_run_id: it.captureRunId ?? null,
     due_date: it.dueDate,
     due_time: it.dueTime,
     recurrence: it.recurrence,

@@ -14,6 +14,17 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../../integrations/supabase/client';
 import type { CaptureInput, ParsedItem } from '../../types/parentCapture';
 
+/**
+ * Parse result. `runId` is the capture_runs row the Edge Function wrote for this
+ * call — the screen attaches the parent's confirm summary to it (usability
+ * metric, migration 047). Null when the server could not log the run; the parse
+ * itself is unaffected.
+ */
+export interface CaptureParseResult {
+  items: ParsedItem[];
+  runId: string | null;
+}
+
 /** Typed failure so the screen can show the right message (paywall vs retry). */
 export class CaptureParseError extends Error {
   constructor(public code: 'premium_required' | 'rate_limited' | 'generic') {
@@ -46,7 +57,7 @@ export async function parseCapture(
   language?: string,
   /** Parent's upfront "who is this about?" pick — biases the server-side match. */
   childHint?: string | null,
-): Promise<ParsedItem[]> {
+): Promise<CaptureParseResult> {
   let body: Record<string, unknown>;
   if (input.kind === 'file' && input.fileUri) {
     const fileBase64 = await readFileBase64(input.fileUri);
@@ -81,5 +92,9 @@ export async function parseCapture(
     if (status === 429) throw new CaptureParseError('rate_limited');
     throw new CaptureParseError('generic');
   }
-  return ((data as { items?: ParsedItem[] } | null)?.items ?? []) as ParsedItem[];
+  const payload = data as { items?: ParsedItem[]; run_id?: string | null } | null;
+  return {
+    items: (payload?.items ?? []) as ParsedItem[],
+    runId: payload?.run_id ?? null,
+  };
 }

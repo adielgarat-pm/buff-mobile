@@ -9,7 +9,7 @@
  * NOTE: all copy is DRAFT (Hebrew-first) pending Adi's review (CLAUDE.md).
  */
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -33,6 +33,13 @@ import { useFamilyChildren, useParentCapture } from '../../hooks/useParentCaptur
 import { useCaptureConsent } from '../../hooks/useCaptureConsent';
 import { CaptureParseError, parseCapture } from '../../lib/parentCapture/parseCapture';
 import { parsedToParentItem, stripChildNamePrefix } from '../../lib/parentCapture/captureMapping';
+import {
+  baselineFromEntries,
+  logCaptureConfirm,
+  summarizeReview,
+  type ReviewBaseline,
+} from '../../lib/parentCapture/captureMetrics';
+import { logOnboardingEvent } from '../../lib/onboardingFunnel';
 import { CapturedItemRow, type ReviewEntry } from '../../components/parent/CapturedItemRow';
 import { CaptureConsentGate } from '../../components/parent/CaptureConsentGate';
 
@@ -59,8 +66,30 @@ export default function CaptureScreen() {
   const [parseError, setParseError] = useState<'premium_required' | 'rate_limited' | 'generic' | null>(null);
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [saving, setSaving] = useState(false);
+  // Usability metric: the run row to attach the confirm summary to, plus what
+  // the AI proposed before the parent touched anything (migration 047).
+  const [runId, setRunId] = useState<string | null>(null);
+  const [baseline, setBaseline] = useState<Record<string, ReviewBaseline>>({});
 
   const canRead = text.trim().length > 0 || !!file;
+
+  // Open→run drop-off: a parent who lands here and never taps "read it" is
+  // invisible in capture_runs. Logged once per screen visit.
+  const loggedOpen = useRef(false);
+  useEffect(() => {
+    if (loggedOpen.current || !familyId || consented !== true) return;
+    loggedOpen.current = true;
+    logOnboardingEvent({ familyId, eventType: 'capture_opened', source: 'parent_capture' });
+  }, [familyId, consented]);
+
+  const onGrantConsent = useCallback(async () => {
+    await grant();
+    logOnboardingEvent({
+      familyId,
+      eventType: 'capture_consent_granted',
+      source: 'parent_capture',
+    });
+  }, [familyId, grant]);
 
   async function pickFile() {
     // Any file: PDF, Word, Excel, image, etc.
@@ -83,7 +112,13 @@ export default function CaptureScreen() {
         ? { kind: 'file', fileUri: file.uri, fileName: file.name, mimeType: file.mimeType ?? undefined }
         : { kind: 'text', text };
       const hintChild = children.find((c) => c.id === hintChildId) ?? null;
-      const parsed = await parseCapture(input, familyId, i18n.language, hintChild?.displayName ?? null);
+      const { items: parsed, runId: newRunId } = await parseCapture(
+        input,
+        familyId,
+        i18n.language,
+        hintChild?.displayName ?? null,
+      );
+      setRunId(newRunId);
       const familyNames = children.map((c) => c.displayName);
       const next: ReviewEntry[] = parsed.map((raw) => {
         // Kid titles are plain actions — strip any "<name>:" prefix the model
@@ -105,6 +140,9 @@ export default function CaptureScreen() {
         };
       });
       setEntries(next);
+      // Snapshot BEFORE the parent edits, so "edited" means "the AI got the
+      // assignment wrong", not "the parent touched the card".
+      setBaseline(baselineFromEntries(next));
       setStep('review');
     } catch (e) {
       console.error('[CaptureScreen] parse error:', e);
@@ -147,6 +185,7 @@ export default function CaptureScreen() {
         const child: FamilyChild | null =
           e.owner === 'child' ? children.find((c) => c.id === e.childId) ?? null : null;
         const item = parsedToParentItem(e.parsed, familyId, e.owner, child);
+        item.captureRunId = runId;
         // Transfer child-owned actionable items into the child's task loop.
         const transferable = e.parsed.type === 'task' || e.parsed.type === 'event';
         if (e.owner === 'child' && child && transferable) {
@@ -159,6 +198,8 @@ export default function CaptureScreen() {
         items.push(item);
       }
       await addItems(items);
+      // Trust Rate / Edit Rate — how much of the AI's output survived review.
+      await logCaptureConfirm(runId, summarizeReview(entries, baseline));
       navigation.navigate('ParentThisWeek');
     } finally {
       setSaving(false);
@@ -173,7 +214,7 @@ export default function CaptureScreen() {
     return (
       <CaptureConsentGate
         loading={consented === null}
-        onContinue={grant}
+        onContinue={onGrantConsent}
         onClose={() => navigation.goBack()}
       />
     );

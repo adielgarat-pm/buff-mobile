@@ -3,6 +3,28 @@
 **Branch:** `pkg/parent-capture` (merged to `main` via PR #276, 2026-06-22). Follow-up: `pkg/parent-capture-gemini-align` (PR #380).
 **State:** `BETA LAUNCH approved by Adi 2026-07-21 — FEATURE_PARENT_CAPTURE=true (with in-UI beta disclaimer).`
 
+## 2026-07-27 — usability metric (`pkg/capture-usage-metrics`)
+Adi's ask: a usability measure for the capture beta (+ a rename, still open — see below).
+
+**What was blind.** `capture_runs` logged how many items the AI *returned*; nothing recorded what the parent then *did* with them. Discards left no trace (`parent_items` stores only kept items), failed runs returned before the insert and existed only in Sentry, and no link tied a run to the items it produced.
+
+**Metric set** (`scripts/capture-usage.sql`, 5 blocks):
+- **North Star — Repeat Capture Rate (7d):** of families that ran once, how many came back within a week. In a beta it is the only honest usability signal.
+- **Trust Rate** = kept / returned · **Edit Rate** = edited / kept (AI assigned the wrong child) · **Zero-yield** = runs returning 0 items · **Error Rate** = paywall / cap / Gemini failures · **Abandon Rate** = reviewed, never confirmed · **Reach-through** = transferred items the child actually completed.
+
+**Instrumentation** (`047_capture_usage_metrics.sql`, applied 2026-07-27 — additive + nullable, zero impact on builds in the field):
+- `capture_runs` + `outcome` (CHECK: ok/empty/error_premium/error_rate_limited/error_gemini/error_internal), `kept_count`, `discarded_count`, `edited_count`, `confirmed_at`; 5 pre-047 rows backfilled to ok/empty (historically a row was written only on success).
+- `parent_items` + `capture_run_id`.
+- `parse-capture` **v10**: every terminal path writes a run row (failures included) and returns `run_id`. The daily cap now counts only billable runs (`ok`/`empty`) so error rows can't lock a family out.
+- Client: `lib/parentCapture/captureMetrics.ts` (pure `summarizeReview` + fire-and-forget `logCaptureConfirm`); `CaptureScreen` snapshots the AI's proposal **before** the parent edits, so "edited" means the AI was wrong, not that the card was touched. `capture_opened` / `capture_consent_granted` go to `onboarding_events` with `source='parent_capture'` (no second event log).
+- Privacy posture unchanged: counts only — no titles, no raw input.
+
+**Baseline at build time (prod):** 5 runs · 2 families (Adi's + one test) · 49 items returned · **15/15 transferred items, 0 completed by a child** → reach-through 0%. That is the number to watch, not run volume.
+
+**Verification:** tsc 0 · jest **85 suites / 771 tests** green (7 new metric tests) · all 5 report blocks run against prod · new columns + CHECK exercised with a temp row (inserted → updated → deleted, table back to 5 rows) · rejected `outcome='bogus_outcome'` as expected. Two report bugs found and fixed while verifying: `count(*)` over a `LEFT JOIN` inflating empty windows, and an abandon rate reading 100% because pre-instrumentation rows have no `confirmed_at` (now discovered from the first confirmed run instead of hardcoded).
+**Rename — DONE (Adi approved 2026-07-27), same PR.** "לכידה"/"Capture" → **"מארגן חכם" / "Smart Organizer"**; subtitle is now the descriptor "מהודעה או קובץ → משימות התארגנות לילדים"; CTA "קראי את זה" → **"תעשה לי סדר" / "Organize it for me"**; `thisWeek.capture` → "+ מארגן חכם"; consent point 3, the three error strings and the empty-state line de-"read"-ed to match. Hub title stays **"השבוע"**. i18n values only — every `capture.*` / `thisWeek.*` **key is unchanged**, so nothing else in the app moved. Adi's reasoning for rejecting plain "Smart Read": it names the middle step (reading), not what the feature delivers (organizing).
+**Not built (out of approved scope):** admin-board strip for these numbers, and an `is_admin()` read policy on `capture_runs` / `parent_items` that such a strip would need.
+
 ## 2026-07-24 — capture-fixes-2: assignment UX + clean titles + child day-view (`pkg/capture-fixes-2`)
 Adi's day-3 beta feedback (real camp-schedule run, 15 items landed on the wrong child with name-prefixed titles, child saw everything "today at noon"):
 - **"Who is this about?"** — optional child chips on the input step; pick becomes the default assignment for every item the AI didn't explicitly match, and is passed as `childHint` to `parse-capture` (v9) to bias matching server-side.
