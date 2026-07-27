@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../contexts/AuthContext';
+import { openCommunity, COMMUNITY_LINK_KEY } from '../../lib/community';
 
 // ── Design tokens (same as WelcomeScreen) ─────────────────────────────────────
 const BG           = '#ede8ff';
@@ -54,8 +56,17 @@ const PRINCIPLES = [
 export default function PhilosophyScreen() {
   const navigation = useNavigation();
   const { t }      = useTranslation();
+  const { profile } = useAuth();
   const isRTL      = I18nManager.isRTL;
   const textAlign  = isRTL ? ('right' as const) : ('left' as const);
+
+  const handleCommunityPress = () => {
+    openCommunity({
+      url:       t(COMMUNITY_LINK_KEY),
+      placement: 'philosophy',
+      familyId:  profile?.family_id,
+    });
+  };
 
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
@@ -160,6 +171,29 @@ export default function PhilosophyScreen() {
         {/* ── Closing quote ───────────────────────────────────────────── */}
         <View style={styles.quoteCard}>
           <Text style={styles.quoteText}>{t('philosophy.quote')}</Text>
+        </View>
+
+        {/* ── Community ───────────────────────────────────────────────────
+            The `philosophy.community.*` copy was written for this screen and
+            translated in both languages, but was never rendered — so nothing
+            in the app ever pointed a parent at the WhatsApp group. */}
+        <View style={styles.communityCard}>
+          <Text style={[styles.communityTitle, { textAlign }]}>
+            {t('philosophy.community.title')}
+          </Text>
+          <Text style={[styles.communityInsight, { textAlign }]}>
+            {t('philosophy.community.insight')}
+          </Text>
+          <TouchableOpacity
+            style={styles.communityBtn}
+            onPress={handleCommunityPress}
+            accessibilityRole="button"
+            accessibilityLabel={t('philosophy.community.buttonText')}
+          >
+            <Text style={styles.communityBtnText}>
+              {t('philosophy.community.buttonText')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
@@ -340,6 +374,39 @@ const styles = StyleSheet.create({
     padding:         24,
     marginTop:       8,
     alignItems:      'center',
+  },
+
+  // ── Community card ────────────────────────────────────────────────────────
+  communityCard: {
+    backgroundColor: CARD_BG,
+    borderRadius:    14,
+    borderWidth:     1.5,
+    borderColor:     CARD_BORDER,
+    padding:         18,
+    marginTop:       20,
+  },
+  communityTitle: {
+    color:        TEXT_DARK,
+    fontSize:     16,
+    fontWeight:   '800',
+    marginBottom: 6,
+  },
+  communityInsight: {
+    color:        TEXT_MUTED,
+    fontSize:     14,
+    lineHeight:   21,
+    marginBottom: 14,
+  },
+  communityBtn: {
+    backgroundColor: ACCENT,
+    borderRadius:    12,
+    paddingVertical: 13,
+    alignItems:      'center',
+  },
+  communityBtnText: {
+    color:      '#f5f0ff',
+    fontSize:   15,
+    fontWeight: '700',
   },
   quoteText: {
     color:      '#f5f0ff',

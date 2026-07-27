@@ -27,7 +27,9 @@ export type OnboardingEventType =
   | 'first_task_complete'
   | 'first_task_write_failed'
   | 'onboarding_resumed'
-  | 'onboarding_abandoned_at_step';
+  | 'onboarding_abandoned_at_step'
+  /** Parent tapped through to the WhatsApp community; `source` = placement. */
+  | 'community_link_clicked';
 
 /** How the parent tried to hand BUFF to the child's device. */
 export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';

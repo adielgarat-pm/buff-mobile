@@ -16,6 +16,9 @@
  *
  * Members:
  *   - crossAlert / AlertHost — Alert.alert replacement (RN-Web Alert is a no-op)
+ *   - openExternalUrl        — leave the app for an external URL (RN-Web's
+ *                              Linking.openURL gets popup-blocked on web)
  */
 export { crossAlert, AlertHost } from './crossAlert';
 export type { AlertButton, AlertButtonStyle, AlertOptions } from './crossAlert';
+export { openExternalUrl } from './openExternalUrl';

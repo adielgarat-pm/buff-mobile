@@ -28,6 +28,10 @@ import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
 import { captureRefFromUrl, getRefCode, clearRefCode } from '../../../lib/referralCapture';
+import {
+  openCommunity, COMMUNITY_LINK_KEY,
+  hasSeenCommunityInvite, markCommunityInviteSeen,
+} from '../../../lib/community';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep8_Complete'>;
 type Route = RouteProp<RootStackParamList, 'UStep8_Complete'>;
@@ -46,7 +50,7 @@ export default function UStep8_Complete() {
   const { params }              = useRoute<Route>();
   const { t }                   = useTranslation();
   const { isRTL }               = useRTLStyles();
-  const { user, familyShortCode, refreshProfile } = useAuth();
+  const { user, profile, familyShortCode, refreshProfile } = useAuth();
 
   const [saving,      setSaving]      = useState(false);
   const [saved,       setSaved]       = useState(false);
@@ -54,6 +58,12 @@ export default function UStep8_Complete() {
   const [refState,    setRefState]    = useState<RefState>('idle');
   const [manualCode,  setManualCode]  = useState('');
   const [manualError, setManualError] = useState<string | null>(null);
+  // Community invite (Surface C): first-time onboarding only, once per device.
+  // `addChildFlow` is decided from pro_settings.onboarding_complete as it was
+  // BEFORE this screen flips it — the add-child path reuses this same screen
+  // with an already-onboarded parent, and must not re-pitch the community.
+  const [addChildFlow,   setAddChildFlow]   = useState(false);
+  const [communitySeen,  setCommunitySeen]  = useState(true);
   const hasSaved = useRef(false);
 
   // On web: capture ref from URL into sessionStorage; then check storage for either path
@@ -123,6 +133,10 @@ export default function UStep8_Complete() {
 
       const prevSettings =
         ((existing as { pro_settings: Record<string, unknown> | null } | null)?.pro_settings) ?? {};
+
+      // Pre-save truth: already onboarded here = this is the add-child flow.
+      setAddChildFlow(prevSettings.onboarding_complete === true);
+      setCommunitySeen(await hasSeenCommunityInvite());
 
       const { error: updateErr } = await supabase
         .from('profiles')
@@ -198,6 +212,20 @@ export default function UStep8_Complete() {
           setManualError(t('referral.onboardingErrorGeneric')); break;
       }
     }
+  };
+
+  // Quiet text link, never a button, and always the last thing on the screen —
+  // "Go to Dashboard" must stay the single dominant action here.
+  const showCommunityInvite = saved && !addChildFlow && !communitySeen;
+
+  const handleCommunityPress = () => {
+    void markCommunityInviteSeen();
+    setCommunitySeen(true);
+    openCommunity({
+      url:       t(COMMUNITY_LINK_KEY),
+      placement: 'onboarding_complete',
+      familyId:  profile?.family_id,
+    });
   };
 
   const showSuccessBanner  = saved && (refState === 'auto_success' || refState === 'manual_success');
@@ -328,6 +356,22 @@ export default function UStep8_Complete() {
             {manualError && <Text style={styles.refManualError}>{manualError}</Text>}
           </View>
         )}
+
+        {/* Community invite — last on the screen, quiet on purpose. */}
+        {showCommunityInvite && (
+          <View style={styles.communityWrap}>
+            <Text style={styles.communityLine}>{t('onboarding.complete.communityLine')}</Text>
+            <TouchableOpacity
+              testID="onb8-community"
+              onPress={handleCommunityPress}
+              accessibilityRole="link"
+              accessibilityLabel={t('onboarding.complete.communityCta')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.communityCta}>{t('onboarding.complete.communityCta')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -387,4 +431,8 @@ const styles = StyleSheet.create({
   refManualError:       { color: '#DC2626', fontSize: 12, marginTop: 6, textAlign: 'center' },
   rowReverse:           { flexDirection: 'row-reverse' },
   textRight:            { textAlign: 'right' },
+
+  communityWrap:        { marginTop: 28, alignItems: 'center', paddingHorizontal: 8 },
+  communityLine:        { color: T.textMuted, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  communityCta:         { color: T.accent, fontSize: 14, fontWeight: '700', marginTop: 6, textAlign: 'center' },
 });
