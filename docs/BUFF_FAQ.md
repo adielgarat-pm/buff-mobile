@@ -28,7 +28,7 @@
 
 **HE Short:** *BUFF היא אפליקציית אימון משפחתית לילדים ובני נוער עם ADHD (6–18), שמקשרת בין שגרה יומיומית לפרסים אמיתיים מהחיים שהילד בוחר.*
 
-**Long:** *BUFF replaces the daily nagging cycle with a coaching system. Kids see their tasks, complete them at their own pace, and earn toward real-life rewards they chose themselves (a concert ticket, a day trip, a new gadget). Built on positive coaching principles, it has two modes — a buddy-led one for ages 6–12 and a dashboard-style one for 13–18, co-designed by a teen with ADHD. The explicit goal: kids outgrow the app.*
+**Long:** *BUFF replaces the daily reminder loop with a coaching system. Kids see their tasks, complete them at their own pace, and earn toward real-life rewards they chose themselves (a concert ticket, a day trip, a new gadget). Built on positive coaching principles, it has two modes — a buddy-led one for ages 6–12 and a dashboard-style one for 13–18, co-designed by a teen with ADHD. The explicit goal: kids outgrow the app.*
 
 ---
 

@@ -10,7 +10,7 @@
 
 | # | Screen (short) | Overlay EN | Overlay HE |
 |---|---|---|---|
-| 1 | Parent Dashboard | Mornings without the nagging | בקרים בלי נדנודים |
+| 1 | Parent Dashboard | Mornings that run themselves | בקרים שמתנהלים לבד |
 | 2 | Child Dashboard + BUDDY | A kid who feels capable | ילד שמרגיש מסוגל |
 | 3 | Child Rewards (real-world) | Working toward what they really want | מתקדמים למה שבאמת רוצים |
 | 4 | Vibe Check | Starts with how they feel | מתחילים מאיך שמרגישים |

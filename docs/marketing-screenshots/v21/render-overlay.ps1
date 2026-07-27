@@ -13,9 +13,9 @@
 
   Usage:
     .\render-overlay.ps1 -In raw\01.png -Out final\EN\01-parent-dashboard.png `
-        -Text "Mornings without the nagging" -Placement top
+        -Text "Mornings that run themselves" -Placement top
     .\render-overlay.ps1 -In raw\01.png -Out final\HE\01-parent-dashboard.png `
-        -Text "בקרים בלי נדנודים" -Placement top -Rtl -KeyFeature
+        -Text "בקרים שמתנהלים לבד" -Placement top -Rtl -KeyFeature
 #>
 param(
   [Parameter(Mandatory)][string]$In,

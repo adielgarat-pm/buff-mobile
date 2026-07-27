@@ -55,7 +55,7 @@ Overlay strings are verbatim from `OVERLAY_COPY.md`. Placement from `SHOT_LIST.m
 
 | Shot | raw → | final EN | final HE | Overlay EN | Overlay HE | Placement | Key (lime) | Dims | Deviation |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | _pending_ | `final/EN/01-parent-dashboard.png` | `final/HE/01-parent-dashboard.png` | Mornings without the nagging | בקרים בלי נדנודים | top | no | — | — |
+| 1 | _pending_ | `final/EN/01-parent-dashboard.png` | `final/HE/01-parent-dashboard.png` | Mornings that run themselves | בקרים שמתנהלים לבד | top | no | — | — |
 | 2 | _pending_ | `final/EN/02-child-dashboard-buddy.png` | `final/HE/02-child-dashboard-buddy.png` | A kid who feels capable | ילד שמרגיש מסוגל | bottom | no | — | — |
 | 3 | _pending_ | `final/EN/03-child-rewards.png` | `final/HE/03-child-rewards.png` | Working toward what they really want | מתקדמים למה שבאמת רוצים | top | yes | — | — |
 | 4 | _pending_ | `final/EN/04-vibe-check.png` | `final/HE/04-vibe-check.png` | Starts with how they feel | מתחילים מאיך שמרגישים | bottom | yes | — | — |

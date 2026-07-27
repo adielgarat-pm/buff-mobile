@@ -32,7 +32,7 @@
 
 ### 1.3 One-paragraph (Play Store short description, podcast intro)
 **EN:**
-> *BUFF helps families of kids with ADHD (ages 6–18) end the daily nagging cycle. Built on positive coaching principles, BUFF scaffolds independence so that over time, kids no longer need the app. Unlike Joon — which uses virtual pet coins and stops at age 12 — BUFF builds intrinsic motivation through real-life rewards the child chooses, with a separate teen interface co-designed by an actual teen with ADHD. Free tier supports 1 child and 5 tasks. No ads, ever.*
+> *BUFF helps families of kids with ADHD (ages 6–18) end the daily reminder loop. Built on positive coaching principles, BUFF scaffolds independence so that over time, kids no longer need the app. Unlike Joon — which uses virtual pet coins and stops at age 12 — BUFF builds intrinsic motivation through real-life rewards the child chooses, with a separate teen interface co-designed by an actual teen with ADHD. Free tier supports 1 child and 5 tasks. No ads, ever.*
 
 **HE:**
 > *BUFF עוזרת למשפחות של ילדים עם ADHD (גילים 6–18) לסיים את מעגל הנדנודים היומיומי. בנויה על עקרונות coaching חיובי, BUFF בונה עצמאות כך שעם הזמן הילדים לא צריכים אותה יותר. בניגוד ל-Joon — שמשתמשת במטבעות וירטואליים לחיית מחמד ועוצרת בגיל 12 — BUFF בונה מוטיבציה פנימית דרך פרסים אמיתיים מהחיים שהילד בחר, עם ממשק נפרד למתבגרים שעוצב יחד עם נער עם ADHD. שכבת חינם עם ילד 1 ועד 5 משימות. ללא פרסומות. לעולם.*
@@ -140,7 +140,7 @@
 | "What if my kid never becomes independent?" | Scaffold-that-fades, outgrow the app | H6, H9 |
 | "I don't want to medicate my kid as the only option" | Non-pharma support system | H2, H7 |
 | "I can't keep up with every routine" | App holds the structure | H1, H3 |
-| "Mornings are a war zone" | Calm replaces nagging | H1, H10 |
+| "Mornings are a war zone" | Calm replaces the reminder loop | H1, H10 |
 | "Bedtime is a war zone" | Same system, evening routine | H5 |
 
 ---

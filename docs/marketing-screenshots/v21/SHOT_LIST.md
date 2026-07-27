@@ -70,8 +70,8 @@ numbering below is the **listing order**, not the capture order.
     card should show the Sparky buddy face.
 - **Why this shot**: First impression — one calm place where a parent sees the whole
   family at a glance, instead of nagging each kid separately.
-- **Overlay EN**: Mornings without the nagging
-- **Overlay HE**: בקרים בלי נדנודים
+- **Overlay EN**: Mornings that run themselves
+- **Overlay HE**: בקרים שמתנהלים לבד
 - **Placement**: **top** (below the status bar, above the greeting band) — keep the
   child cards fully visible.
 - **Dev-artifact watchlist**:

@@ -60,7 +60,7 @@ Ask me which **persona** and **channel** the post is for if I didn't say.
 
 # PART B — What BUFF is
 
-- **One line:** BUFF helps families of kids with ADHD (ages 6–18) end the daily nagging cycle and build real independence.
+- **One line:** BUFF helps families of kids with ADHD (ages 6–18) end the daily reminder loop and build real independence.
 - **The promise no competitor can make:** success = a kid who no longer needs us. (Joon stops at 12, Goally is hardware, Tiimo is for adults.)
 - **How it's different, in one breath:** real-life rewards the kid chose (not virtual coins), two purpose-built interfaces (a buddy-led one for 6–12, a dashboard-style "Gamer Mode" for teens co-designed by a 15-year-old with ADHD), and a Pause button for when life gets hard — built so kids outgrow it.
 

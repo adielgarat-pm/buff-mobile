@@ -75,3 +75,27 @@ This is now a usable, persistent demo family. **Flag for Adi:** if `ReminderTest
 
 ## Lovable Publish reminder
 N/A — Play Console + repo docs only; no Lovable surface touched.
+
+---
+
+## ⚠ Pending re-render — shot 1 overlay (added 2026-07-25)
+
+The 6 finals above are the record of what was produced on 2026-06-17 and are left
+as-is. One string is now **retired**: shot 1's `Mornings without the nagging`.
+
+**Why:** `BUFF_COMPETITORS.md` L71 documents an iron rule — Joon owns the word
+"nagging" (their line: *"No more nagging, we do the reminding"*). Leading our own
+listing with it echoes them. Retired across the forward-looking copy specs on
+2026-07-25.
+
+**New string:** EN `Mornings that run themselves` · HE `בקרים שמתנהלים לבד`
+
+**Action (Adi, Windows — needs Segoe UI Bold, so it can't be re-rendered on Linux):**
+
+```powershell
+cd docs/marketing-screenshots/v1.6.2
+./render-overlay.ps1 -In raw/01-parent-dashboard.png -Out final/EN/01-parent-dashboard.png -Text "Mornings that run themselves" -Placement top
+./render-overlay.ps1 -In raw/01-parent-dashboard.png -Out final/HE/01-parent-dashboard.png -Text "בקרים שמתנהלים לבד" -Placement top -Rtl
+```
+
+Shots 2–6 are unaffected. After re-rendering, re-upload shot 1 to the Play Console listing.
