@@ -73,6 +73,8 @@ export interface ParentItem {
   confidence: CaptureConfidence;
   /** When transferred to a child, the id of the created `tasks` row. */
   childTaskId?: string | null;
+  /** The capture_runs row this item came from (usability metric, migration 047). */
+  captureRunId?: string | null;
   createdAt: string; // ISO
 }
 
