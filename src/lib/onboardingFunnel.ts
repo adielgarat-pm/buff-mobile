@@ -32,7 +32,9 @@ export type OnboardingEventType =
   // rather than adding a second event log — same family scope, same RLS, same
   // admin read policy. Tagged with source='parent_capture'.
   | 'capture_opened'
-  | 'capture_consent_granted';
+  | 'capture_consent_granted'
+  /** Parent tapped through to the WhatsApp community; `source` = placement. */
+  | 'community_link_clicked';
 
 /** How the parent tried to hand BUFF to the child's device. */
 export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';

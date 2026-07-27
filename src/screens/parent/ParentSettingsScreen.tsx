@@ -26,6 +26,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import ReferralSheet from '../../components/ReferralSheet';
 import RateBuffSheet from '../../components/rate/RateBuffSheet';
+import { openCommunity, COMMUNITY_LINK_KEY } from '../../lib/community';
 
 interface SettingsRow {
   label: string;
@@ -60,6 +61,16 @@ export default function ParentSettingsScreen() {
   // never fires the native In-App Review API (its opaque quota could show nothing).
   const handleRatePress = () => {
     setRateOpen(true);
+  };
+
+  // The WhatsApp parent community. Which group opens (HE or EN) is decided by
+  // the resolved i18n value, not by a locale check here — see lib/community.ts.
+  const handleCommunityPress = () => {
+    openCommunity({
+      url:       t(COMMUNITY_LINK_KEY),
+      placement: 'settings',
+      familyId:  profile?.family_id,
+    });
   };
 
   // Real version of the *installed build*, not app.json — so a tester always
@@ -190,6 +201,12 @@ export default function ParentSettingsScreen() {
     {
       title: t('settings.sectionAbout'),
       rows: [
+        {
+          label:   t('settings.rowCommunity'),
+          value:   t('philosophy.community.insight'),
+          icon:    'chatbubbles-outline' as const,
+          onPress: handleCommunityPress,
+        },
         {
           label:   t('settings.rowPhilosophy'),
           icon:    'information-circle-outline' as const,
