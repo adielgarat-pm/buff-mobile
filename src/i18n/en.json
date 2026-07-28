@@ -16,6 +16,8 @@
   "capture.errorPremium": "Smart Organizer is available for subscribers. You can add items manually in the meantime.",
   "capture.errorLimit": "You've reached today's limit. Try again tomorrow.",
   "capture.errorGeneric": "Something went wrong. Try again in a moment.",
+  "capture.errorTimeout": "This took too long, so we stopped it. Try again in a moment.",
+  "capture.workingHint": "Reading and organizing… this can take up to a minute — you can stay on this screen.",
   "capture.confirm": "Confirm {{count}}",
   "capture.startOver": "Start over",
   "capture.filtered": "Not for your kids ({{count}})",

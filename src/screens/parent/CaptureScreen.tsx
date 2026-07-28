@@ -63,7 +63,7 @@ export default function CaptureScreen() {
   // for every item the AI didn't explicitly match (Adi, 2026-07-24).
   const [hintChildId, setHintChildId] = useState<string | null>(null);
   const [parsing, setParsing] = useState(false);
-  const [parseError, setParseError] = useState<'premium_required' | 'rate_limited' | 'generic' | null>(null);
+  const [parseError, setParseError] = useState<'premium_required' | 'rate_limited' | 'timeout' | 'generic' | null>(null);
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [saving, setSaving] = useState(false);
   // Usability metric: the run row to attach the confirm summary to, plus what
@@ -308,6 +308,13 @@ export default function CaptureScreen() {
               <Text style={styles.primaryText}>{t('capture.readIt')}</Text>
             )}
           </TouchableOpacity>
+          {parsing && (
+            // A real parse takes up to ~1.5 min (Gemini) — say so, or the wait
+            // reads as "stuck" and parents abandon the screen (2026-07-28).
+            <Text style={[styles.workingHint, { color: T.textMuted }]}>
+              {t('capture.workingHint')}
+            </Text>
+          )}
           {parseError && (
             <Text style={[styles.fileHint, { color: T.textMuted }]}>
               {t(
@@ -315,7 +322,9 @@ export default function CaptureScreen() {
                   ? 'capture.errorPremium'
                   : parseError === 'rate_limited'
                     ? 'capture.errorLimit'
-                    : 'capture.errorGeneric',
+                    : parseError === 'timeout'
+                      ? 'capture.errorTimeout'
+                      : 'capture.errorGeneric',
               )}
             </Text>
           )}
@@ -423,6 +432,7 @@ const styles = StyleSheet.create({
   secondaryBtn: { borderWidth: 1, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16 },
   secondaryText: { fontSize: 14, fontWeight: '600' },
   fileHint: { fontSize: 12, marginTop: 8 },
+  workingHint: { fontSize: 12, marginTop: 8, textAlign: 'center' },
   whoseLabel: { fontSize: 14, fontWeight: '700', marginTop: 18 },
   chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   chip: { borderWidth: 1, borderRadius: 16, paddingVertical: 7, paddingHorizontal: 14 },

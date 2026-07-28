@@ -1211,6 +1211,20 @@
 
 ## Lessons
 
+### Lesson 2026-07-28 — "Broken after the update" was a 60-90s Gemini parse with no timeout on either side
+
+**Symptom:** Minutes after the 06:06 production OTA (#394+#395), Adi reported the Smart Organizer "not working after the version update" — the submit button spun indefinitely on a pasted text.
+
+**Root cause:** Not a regression. `capture_runs` showed both of that morning's parses **succeeded server-side** (`outcome=ok`, 5 items each) — they just took **60-90 seconds** (measured against the `capture_opened` events and the screenshot timestamp). Neither side had a timeout: RN's `fetch` waits forever, the Edge Function's Gemini call was unbounded, and the screen showed a bare spinner with no "this takes a while" copy. The parent reasonably abandoned the screen before the response landed; the arriving result then had nowhere to go. The OTA's only role was temporal — it renamed the feature minutes before the slow parse, so the update took the blame.
+
+**Fix (`claude/version-update-bug-check-qdbwk7`):** two-sided timeout with a deliberate ordering — server `AbortSignal.timeout(100s)` on the Gemini fetch (typed 504 + `error_gemini` run row, `gemini_ms` logged per call), client 120s `withTimeout` race + abort, both ABOVE the measured 60-90s so a slow success stays a success; plus honest in-progress copy (`capture.workingHint`) and a typed timeout error string. `parse-capture` v11 deployed same day.
+
+**Pattern to watch:** (1) Any user report of "broken after update X" needs the timeline checked against server data before assuming the delta is guilty — `capture_runs`/`onboarding_events` answered this in two queries. (2) Every upstream AI call needs an explicit timeout ABOVE its real measured latency, and every spinner longer than a few seconds needs copy that says so — `generate-child-insights` has the same unbounded-fetch shape and should get the same treatment (flag below). (3) Requests arriving via `api.buffadhd.com` don't show in the Supabase edge-function log view the MCP tool returns; the `capture_runs`/DB audit rows were the ground truth.
+
+**FLAGs opened:** 🚩 `generate-child-insights` has no Gemini timeout (same pattern, lower stakes — its UI is not a blocking spinner). 🚩 Parse latency itself (60-90s) is the real UX cost — model/thinking-budget decision is Adi's. 🚩 A parse result that arrives after the parent left CaptureScreen is still lost (state lives in the screen).
+
+---
+
 ### Lesson 2026-07-22 — SDK 54 upgrade silently broke every Android file read (Capture + Timetable)
 
 **Symptom:** Day 1 of the Capture beta, Adi picked a photo on Android → "Something went wrong while reading". Supabase logs showed **zero** `parse-capture` invocations — the failure never left the device.

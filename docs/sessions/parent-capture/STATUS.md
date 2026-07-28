@@ -3,6 +3,21 @@
 **Branch:** `pkg/parent-capture` (merged to `main` via PR #276, 2026-06-22). Follow-up: `pkg/parent-capture-gemini-align` (PR #380).
 **State:** `BETA LAUNCH approved by Adi 2026-07-21 — FEATURE_PARENT_CAPTURE=true (with in-UI beta disclaimer).`
 
+## 2026-07-28 — "stuck spinner" after the OTA → two-sided parse timeout (`claude/version-update-bug-check-qdbwk7`)
+Adi's report (screenshot 06:16, minutes after the 06:06 production OTA landed): tapped "תעשה לי סדר" on a pasted text and the button spun with no end. Framed as "broken after the version update".
+
+**What the data showed (not a code regression).** `capture_runs` had TWO successful runs that morning (06:17:07 and 06:18:31 IL, both `outcome=ok`, 5 items each) with `confirmed_at` NULL, and `onboarding_events` had two `capture_opened` rows (06:15:38, 06:15:58) — i.e. the screen was opened twice, both parses **succeeded server-side after ~60-90s**, and the parent had already abandoned the screen before the response arrived. Full delta since the last known-good OTA (#394 client + #395 + `parse-capture` v10) was reviewed line-by-line: no hanging path. Root cause: **a real Gemini parse takes 60-90s, and there was no timeout, no progress copy, and no recovery on either side** — RN `fetch` waits forever, so any slow/lost response reads as a dead feature.
+
+**Fix (this branch):**
+- Client `parseCapture.ts`: `withTimeout` race (120s backstop, `PARSE_TIMEOUT_MS`) + `AbortController` passed as `signal` to `functions.invoke`; new typed `CaptureParseError('timeout')`; server 504 mapped to it.
+- `CaptureScreen`: while parsing, shows `capture.workingHint` ("…זה יכול לקחת עד דקה") so the wait is announced, not silent; `capture.errorTimeout` for the timeout case. (Copy = draft, Adi to review.)
+- `parse-capture` **v11 (deployed 2026-07-28, verified: unauth'd body probe returns the function's own 401 via pg_net)**: `AbortSignal.timeout(100_000)` on the Gemini fetch → typed 504 `gemini_timeout` + `error_gemini` run row instead of holding the connection until the runtime wall clock kills it; logs `gemini_ms` per call for latency observability.
+- Timeout ordering: server 100s < client 120s, both above the measured 60-90s — a slow success stays a success.
+
+**Verification:** tsc 0 · jest 86 suites / 790 tests green (new `parseCapture.test.ts`: withTimeout semantics, 402/429/504/500 mapping, dead-connection abort) · i18n parity ✅.
+
+**Known follow-ups (not in this fix, need Adi's call):** (1) latency itself — 60-90s is the real UX problem; options include a Gemini `thinkingBudget` cap or a faster model, both quality tradeoffs; (2) a response that arrives after the parent left the screen is still lost (needs state lifted out of the screen); (3) RELEASE_QUEUE row + OTA dispatch for the client half on merge.
+
 ## 2026-07-27 — usability metric (`pkg/capture-usage-metrics`)
 Adi's ask: a usability measure for the capture beta (+ a rename, still open — see below).
 
