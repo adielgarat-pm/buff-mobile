@@ -12,7 +12,10 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type',
+  // supabase-js functions.invoke() sends authorization/apikey/x-client-info;
+  // allowing only content-type made the browser fail the preflight and drop
+  // EVERY event (the client swallows the error by design) — allow them all.
+  'Access-Control-Allow-Headers': 'authorization, apikey, x-client-info, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 

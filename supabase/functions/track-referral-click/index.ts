@@ -10,7 +10,10 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'content-type',
+  // Same CORS-preflight foot-gun as track-install-cta: allow the headers
+  // supabase-js sends so any future functions.invoke() caller isn't dropped.
+  // (The landing beacon itself is text/plain — a simple request, no preflight.)
+  'Access-Control-Allow-Headers': 'authorization, apikey, x-client-info, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
