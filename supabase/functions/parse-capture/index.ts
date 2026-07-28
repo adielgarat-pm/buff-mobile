@@ -21,6 +21,13 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 // so a stuck client / abuse can't burn Gemini tokens. Per family per day.
 const DAILY_CAPTURE_CAP = 30;
 
+// Gemini latency ceiling. Real parses have been measured at 60-90s in prod
+// (2026-07-28), so this must sit ABOVE that — it exists to convert a hung
+// upstream call into a typed 504 (client shows "took too long, retry") instead
+// of holding the connection until the edge-runtime wall clock kills it.
+// Must stay below the runtime wall-clock limit; the client backstop is 120s.
+const GEMINI_TIMEOUT_MS = 100_000;
+
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -341,18 +348,35 @@ Deno.serve(async (req: Request) => {
 
     // Key travels in a header, never in the URL (URLs get logged) — same as
     // generate-child-insights.
-    const gemRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
-        }),
-      },
-    );
-    const gj = await gemRes.json();
+    const gemStart = Date.now();
+    let gemRes: Response;
+    let gj: any;
+    try {
+      gemRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
+          }),
+          signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+        },
+      );
+      gj = await gemRes.json();
+    } catch (gemErr) {
+      // Timeout/abort or network failure toward Gemini. 504 is the typed
+      // "took too long" the client maps to its retry copy.
+      console.error('gemini fetch failed', String(gemErr), 'after_ms', Date.now() - gemStart);
+      await logRun(supabase, {
+        familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_gemini',
+      });
+      return json({ error: 'gemini_timeout' }, 504);
+    }
+    // Latency observability (no PII): production parses were measured at
+    // 60-90s on 2026-07-28 — track whether that regresses or recovers.
+    console.log('gemini_ms', Date.now() - gemStart, 'kind', kind === 'text' ? 'text' : 'file');
     if (!gemRes.ok) {
       await logRun(supabase, {
         familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_gemini',

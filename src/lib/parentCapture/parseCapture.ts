@@ -27,10 +27,49 @@ export interface CaptureParseResult {
 
 /** Typed failure so the screen can show the right message (paywall vs retry). */
 export class CaptureParseError extends Error {
-  constructor(public code: 'premium_required' | 'rate_limited' | 'generic') {
+  constructor(public code: 'premium_required' | 'rate_limited' | 'timeout' | 'generic') {
     super(code);
     this.name = 'CaptureParseError';
   }
+}
+
+/**
+ * Client-side ceiling on the whole parse round-trip. A real Gemini parse has
+ * been measured at 60-90s in production (2026-07-28), so this is a BACKSTOP
+ * against a dead connection — not a UX budget. It sits above the server's own
+ * Gemini timeout (100s), which is the layer that should normally fire first.
+ * RN's fetch has NO default timeout: without this, a lost response means the
+ * spinner runs forever and the feature reads as broken.
+ */
+export const PARSE_TIMEOUT_MS = 120_000;
+
+/**
+ * Reject with CaptureParseError('timeout') if `promise` doesn't settle in time.
+ * `onTimeout` lets the caller abort the underlying request so it doesn't keep
+ * the radio open. The race (not the signal alone) guarantees the UI recovers
+ * even if some fetch layer ignores AbortSignal.
+ */
+export function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  onTimeout?: () => void,
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      onTimeout?.();
+      reject(new CaptureParseError('timeout'));
+    }, ms);
+    promise.then(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      },
+    );
+  });
 }
 
 /** Read a picked file as base64 — FileSystem on native, fetch+FileReader on web
@@ -83,13 +122,19 @@ export async function parseCapture(
     };
   }
 
-  const { data, error } = await supabase.functions.invoke('parse-capture', { body });
+  const controller = new AbortController();
+  const { data, error } = await withTimeout(
+    supabase.functions.invoke('parse-capture', { body, signal: controller.signal }),
+    PARSE_TIMEOUT_MS,
+    () => controller.abort(),
+  );
   if (error) {
     console.error('[parseCapture] invoke error:', error.message);
     // FunctionsHttpError carries the Response — map the server's typed errors.
     const status = (error as { context?: { status?: number } }).context?.status;
     if (status === 402) throw new CaptureParseError('premium_required');
     if (status === 429) throw new CaptureParseError('rate_limited');
+    if (status === 504) throw new CaptureParseError('timeout'); // server-side Gemini timeout
     throw new CaptureParseError('generic');
   }
   const payload = data as { items?: ParsedItem[]; run_id?: string | null } | null;

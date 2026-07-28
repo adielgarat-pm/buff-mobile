@@ -16,6 +16,8 @@
   "capture.errorPremium": "המארגן החכם זמין למנויים. אפשר להוסיף את הפריטים ידנית בינתיים.",
   "capture.errorLimit": "הגעתם למכסה היומית. אפשר לנסות שוב מחר.",
   "capture.errorGeneric": "משהו השתבש. שווה לנסות שוב עוד רגע.",
+  "capture.errorTimeout": "זה לקח יותר מדי זמן, אז עצרנו. שווה לנסות שוב עוד רגע.",
+  "capture.workingHint": "קורא ומארגן… זה יכול לקחת עד דקה — אפשר להישאר במסך.",
   "capture.confirm": "אישור {{count}}",
   "capture.startOver": "מהתחלה",
   "capture.filtered": "לא לילדים שלך ({{count}})",
