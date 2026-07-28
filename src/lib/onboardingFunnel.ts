@@ -34,7 +34,15 @@ export type OnboardingEventType =
   | 'capture_opened'
   | 'capture_consent_granted'
   /** Parent tapped through to the WhatsApp community; `source` = placement. */
-  | 'community_link_clicked';
+  | 'community_link_clicked'
+  // AI coach insight funnel. These two are the ONLY parts of insight usage that
+  // cannot be derived after the fact from table state (see scripts/insight-usage.sql):
+  // a render and a tap leave no other trace. `source` = placement
+  // ('dashboard' | 'insights_screen') on both.
+  /** The AI insight card was actually rendered; `variant` = insight computed_at date. */
+  | 'insight_viewed'
+  /** The insight's CTA button was tapped; `variant` = cta_type. */
+  | 'insight_cta_clicked';
 
 /** How the parent tried to hand BUFF to the child's device. */
 export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';

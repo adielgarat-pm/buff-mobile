@@ -30,6 +30,8 @@ import { useMarketingConsentAsk } from '../../hooks/useMarketingConsentAsk';
 import { useParentInsights } from '../../hooks/useParentInsights';
 import { useSmartInsights } from '../../hooks/useSmartInsights';
 import { useAutoCoachInsight } from '../../hooks/useAutoCoachInsight';
+import { useInsightViewLog } from '../../hooks/useInsightViewLog';
+import { logOnboardingEvent } from '../../lib/onboardingFunnel';
 import { useWeeklyStats } from '../../hooks/useWeeklyStats';
 import { useParentRecommendations } from '../../hooks/useParentRecommendations';
 import RecommendationCard from '../../components/parent/RecommendationCard';
@@ -354,6 +356,18 @@ export default function ParentDashboardScreen() {
     ? recommendation
     : null;
 
+  // Delivery ≠ View: an insight can be generated and never rendered (the card
+  // sits behind insightsUnlocked and loses to activeRec when both are present).
+  // Log the render itself so the two can be told apart. `visible` mirrors the
+  // JSX condition below exactly — keep them in sync.
+  useInsightViewLog({
+    familyId,
+    childId:    firstChildId,
+    computedAt,
+    visible:    insightsUnlocked && !activeRec && !!smartInsight,
+    placement:  'dashboard',
+  });
+
   const handleRecCta = (rec: Recommendation) => {
     switch (rec.ctaType) {
       case 'send-sticker': openSticker(rec.childId); break;
@@ -487,6 +501,15 @@ export default function ParentDashboardScreen() {
   // local (we're already on the dashboard, no navigation bridge needed).
   const runCoachCta = (ctaType: string) => {
     if (!firstChildId) return;
+    // A tap leaves no trace in any table — without this, "the parent acted on
+    // the insight" can only ever be inferred, never observed.
+    void logOnboardingEvent({
+      familyId,
+      childId:   firstChildId,
+      eventType: 'insight_cta_clicked',
+      source:    'dashboard',
+      variant:   ctaType,
+    });
     switch (ctaType) {
       case 'send-bonus':   openBonus(firstChildId); break;
       case 'send-sticker': openSticker(firstChildId); break;
