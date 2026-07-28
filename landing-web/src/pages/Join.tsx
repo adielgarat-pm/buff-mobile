@@ -33,12 +33,16 @@ function sanitiseRef(raw: string | null): string | null {
 function trackClick(code: string): void {
   try {
     const payload = JSON.stringify({ code });
-    const blob = new Blob([payload], { type: 'application/json' });
     // sendBeacon survives the imminent navigation; fall back to fetch keepalive.
+    // The Blob type MUST be CORS-safelisted (text/plain): an application/json
+    // beacon needs a CORS preflight, which Chrome silently drops while STILL
+    // returning true — so every click was lost and the fallback never ran.
+    // The edge function's req.json() parses the body regardless of the header.
+    const blob = new Blob([payload], { type: 'text/plain' });
     if (navigator.sendBeacon?.(TRACK_CLICK_URL, blob)) return;
     void fetch(TRACK_CLICK_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: payload,
       keepalive: true,
     }).catch(() => { /* non-fatal — tracking must never block the redirect */ });
