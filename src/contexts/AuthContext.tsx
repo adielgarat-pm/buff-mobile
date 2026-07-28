@@ -42,6 +42,11 @@ export interface Profile {
   founding_member_number: number | null;
   pro_settings: Record<string, unknown>;
   premium_until: string | null;
+  /** Parent opt-in for lifecycle/marketing email. Google-OAuth signups are
+   *  created with `false` (they never see the signup checkbox) and get asked
+   *  once via `useMarketingConsentAsk`. Nullable for rows that predate the
+   *  column. Already fetched — the profile query selects `*`. */
+  marketing_consent: boolean | null;
 }
 
 // Discriminated result for a profile fetch. Distinguishing "no row exists"

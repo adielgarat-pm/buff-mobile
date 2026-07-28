@@ -17,6 +17,7 @@ import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import InviteChildCard from '../../components/parent/InviteChildCard';
+import MarketingConsentSheet from '../../components/parent/MarketingConsentSheet';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
 import { useNavigation, useRoute, useFocusEffect, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -25,6 +26,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { PARENT_THEME as T } from '../../theme';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
+import { useMarketingConsentAsk } from '../../hooks/useMarketingConsentAsk';
 import { useParentInsights } from '../../hooks/useParentInsights';
 import { useSmartInsights } from '../../hooks/useSmartInsights';
 import { useAutoCoachInsight } from '../../hooks/useAutoCoachInsight';
@@ -98,6 +100,9 @@ export default function ParentDashboardScreen() {
   const { profile, user, familyId, familyShortCode } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
+  // One-time email opt-in ask. Suppressed in View-as-Child: that session runs
+  // as the parent, so the sheet would otherwise pop over the child's screen.
+  const consentAsk = useMarketingConsentAsk();
   const { isSubscribed, insightsUnlocked, hasRealEntitlement, isTrialActive, trialDaysLeft } = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
   // Today's parent_sos signals per child — surfaces an inline message +
@@ -986,6 +991,13 @@ export default function ParentDashboardScreen() {
       })()}
 
       <DisclaimerFooter variant="short" />
+
+      {/* ── One-time email opt-in ask (pkg/lifecycle-emails Phase 2) ─── */}
+      <MarketingConsentSheet
+        visible={consentAsk.shouldAsk && !isChildPreview}
+        onAnswer={(consented) => { void consentAsk.answer(consented); }}
+        saving={consentAsk.saving}
+      />
 
       {/* ── Anchor Recovery prompt (pkg/anchor-recovery Phase 2/3) ───── */}
       <AnchorRecoveryPromptModal
