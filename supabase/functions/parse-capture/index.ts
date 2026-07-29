@@ -300,7 +300,11 @@ Deno.serve(async (req: Request) => {
       console.error('entitlement check failed', JSON.stringify(entErr));
       return json({ error: 'entitlement_check_failed' }, 500);
     }
-    if (!entitled && platform !== 'web') {
+    // Platform-uniform gate (mirrors generate-child-insights): `platform` is
+    // client-supplied and therefore TELEMETRY ONLY — the old web-free bypass
+    // (D-2026-07-04-01) was spoofable by any Android client sending 'web' and
+    // was superseded 2026-07-29; the taste gate below is the free tier now.
+    if (!entitled) {
       // ── Taste-then-gate (pkg/ai-taste-gate, red team F1) ───────────────────
       // The first FREE_CAPTURE_RUNS are free for EVERY family. The paywall then
       // lands at the highest-intent moment this product has: a parent standing
@@ -326,7 +330,7 @@ Deno.serve(async (req: Request) => {
         });
         return json({ error: 'premium_required', free_runs: FREE_CAPTURE_RUNS }, 402);
       }
-      console.log(`free taste run ${(freeUsed ?? 0) + 1}/${FREE_CAPTURE_RUNS} for family ${familyId}`);
+      console.log(`free taste run ${(freeUsed ?? 0) + 1}/${FREE_CAPTURE_RUNS} for family ${familyId} (platform=${platform ?? 'unknown'})`);
     }
 
     // ── Rate limit — DAILY_CAPTURE_CAP per family, enforced server-side ──────

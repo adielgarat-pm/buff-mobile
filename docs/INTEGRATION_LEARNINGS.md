@@ -1211,6 +1211,20 @@
 
 ## Lessons
 
+### Lesson 2026-07-29 — A client-supplied gate field is never "minor", and every SECURITY DEFINER RPC needs a membership check
+
+**Symptom:** The parent-surface panel flagged that the AI 402 gate skipped for `platform==='web'` — a body field any Android client can set. Scoping the fix (with an adversarial Fable review) turned one known-minor spoof into four bigger holes: `parse-schedule` accepted the **public anon key** (verify_jwt passes for it) with no gate and no cap — unlimited Sonnet-vision on our Anthropic key, open to strangers; `upsert_smart_insight` was EXECUTE-granted to `authenticated` with no membership check — cross-family insight writes + counter inflation; `get_smart_insight_state` leaked `parent_context` for any child UUID; and `capture_runs` RLS was FOR ALL, so a parent could DELETE their rows and reset the taste/daily counters forever.
+
+**Root cause:** Three recurring shapes. (1) `verify_jwt: true` feels like auth but the anon key satisfies it — real auth starts at `auth.getUser()`. (2) `CREATE FUNCTION` grants EXECUTE to PUBLIC by default; a SECURITY DEFINER RPC without an `auth.uid()` membership check is an open door regardless of table RLS. (3) A counter used for gating must not be client-deletable — RLS write access to the counting table IS the gate.
+
+**Fix (PR #410 + migration 049, functions v18/v14/v11 deployed):** platform is telemetry-only everywhere; entitlement comes solely from `family_is_entitled`; parse-schedule got auth + server-derived family_id + 10/day cap; RPC grants revoked/membership-checked; capture_runs → SELECT-only. Client flags aligned in the same PR so web UI can't drift from the server (web Paywall now routes to Play Store — no payment path on web).
+
+**Pattern to watch:** For every new edge function ask: does it call `auth.getUser()`? does it derive family from the caller, not the body? is every LLM call behind a server-side counter the client can't write? For every new RPC: `REVOKE ... FROM PUBLIC` unless clients need it, and if they do — membership check inside. Also learned: all auth-linked profiles match via `user_id`; a policy comparing `profiles.id = auth.uid()` matches nobody (the `child_insights` SELECT policy has exactly this bug — harmless today, reads go through the RPC).
+
+**FLAGs opened:** 🚩 `families` RLS is `UPDATE/SELECT true` for all authenticated users — any logged-in user can read/modify any family row. Separate package. 🚩 deployed `parse-schedule-v2` is a 410 tombstone with no repo source — delete for hygiene.
+
+---
+
 ### Lesson 2026-07-28 — "Broken after the update" was a 60-90s Gemini parse with no timeout on either side
 
 **Symptom:** Minutes after the 06:06 production OTA (#394+#395), Adi reported the Smart Organizer "not working after the version update" — the submit button spun indefinitely on a pasted text.

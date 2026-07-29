@@ -172,7 +172,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
             child_id:       childId,
             parent_context: parentContext.trim() || undefined,
             language:       i18n.language,
-            platform:       Platform.OS,   // 'web' bypasses the server entitlement gate (web is free)
+            platform:       Platform.OS,   // telemetry only — the server gates on family_is_entitled, never on this
           },
         },
       );

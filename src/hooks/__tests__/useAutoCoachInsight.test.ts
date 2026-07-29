@@ -66,9 +66,12 @@ describe('useAutoCoachInsight — free-taste gate', () => {
     expect(run(opts({ hasRealEntitlement: true, totalCount: 99 }))).toHaveBeenCalled();
   });
 
-  it('still generates on web past the free taste (web is free by design)', () => {
+  it('does NOT generate on web past the free taste (platform-uniform gate, 2026-07-29)', () => {
+    // The old web-free branch (D-2026-07-04-01) mirrored a server bypass keyed
+    // on a client-supplied platform field — spoofable, superseded by the taste
+    // gate. Web now follows the exact same rules as Android.
     Platform.OS = 'web';
-    expect(run(opts({ hasRealEntitlement: false, totalCount: 99 }))).toHaveBeenCalled();
+    expect(run(opts({ hasRealEntitlement: false, totalCount: 99 }))).not.toHaveBeenCalled();
   });
 });
 

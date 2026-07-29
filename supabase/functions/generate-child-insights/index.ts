@@ -325,6 +325,9 @@ Deno.serve(async (req: Request) => {
   let body: { child_id: string; parent_context?: string };
   try { body = await req.json(); }
   catch { return new Response('Bad request', { status: 400, headers: corsHeaders }); }
+  // `platform` is accepted as TELEMETRY ONLY — it is client-supplied and must
+  // never influence gating (an Android client can send 'web'; see the removed
+  // D-2026-07-04-01 bypass, superseded 2026-07-29).
   const { child_id, parent_context, language: bodyLanguage, platform } = body as { child_id: string; parent_context?: string; language?: string; platform?: string };
   if (!child_id) return new Response('child_id required', { status: 400, headers: corsHeaders });
 
@@ -369,13 +372,11 @@ Deno.serve(async (req: Request) => {
     console.error('entitlement check failed', JSON.stringify(entErr));
     return new Response('Entitlement check failed', { status: 500, headers: corsHeaders });
   }
-  // Web is intentionally FREE for the AI coach while the web build matures — no
-  // trial, no 14-day cutoff. The client sends platform:'web'; native (Android/iOS)
-  // keeps the entitlement/trial gate. Bounded by the WEEKLY_LIMIT rate-limit below,
-  // so even a spoofed platform flag can burn at most 3 calls/child/week. Logged as
-  // an intentional platform divergence (BUFF_DECISIONS_LOG; mirrors the client's
-  // insightsUnlocked in useSubscription).
-  if (!entitled && platform !== 'web') {
+  // Platform-uniform gate: web gets the same taste-then-gate as Android. The old
+  // web-free bypass (D-2026-07-04-01) keyed on the CLIENT-SUPPLIED platform field
+  // — any Android client sending platform:'web' got free generations — and was
+  // superseded once the taste gate (#404) gave every family a real free taste.
+  if (!entitled) {
     // ── Taste-then-gate (pkg/ai-taste-gate, red team F1) ──────────────────────
     // The first FREE_INSIGHTS_PER_CHILD are generated for EVERY family, paid or
     // not. Nobody pays for a capability they have never felt, and before this the
@@ -402,7 +403,7 @@ Deno.serve(async (req: Request) => {
         { status: 402, headers: { ...corsHeaders, 'content-type': 'application/json' } },
       );
     }
-    console.log(`free taste insight ${used + 1}/${FREE_INSIGHTS_PER_CHILD} for child ${child_id}`);
+    console.log(`free taste insight ${used + 1}/${FREE_INSIGHTS_PER_CHILD} for child ${child_id} (platform=${platform ?? 'unknown'})`);
   }
 
   // Rate limit check — 3 generations per child per week

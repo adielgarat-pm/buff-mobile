@@ -1,4 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
+
+// ── Abuse guard (2026-07-29 security hardening) ──────────────────────────────
+// Before this, the function ran with verify_jwt only — which the public anon
+// key satisfies — so ANY holder of the anon key (it ships in the web bundle)
+// got unlimited Sonnet-vision calls on our Anthropic key. Now: a real user
+// session is required, family_id is derived SERVER-SIDE from the caller's
+// profile (never from the body — deployed clients don't send it and a body
+// value would just be one more client-supplied field to distrust), and runs
+// are capped per family per day via schedule_parse_runs (migration 049).
+// Deliberately NO entitlement gate (D: Adi 2026-07-29) — timetable import
+// stays free core onboarding; this only closes the anonymous/unbounded hole.
+const DAILY_SCHEDULE_PARSE_CAP = 10;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -359,12 +372,77 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // ── Auth: a real user session, not just the anon key ─────────────────────
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+    const userClient = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY") ?? "", {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) {
+      console.error("Auth failed", JSON.stringify(authError));
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Family: derived from the caller's PARENT profile, never the body ─────
+    const svc = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+    const { data: callerProfiles, error: callerErr } = await svc
+      .from("profiles")
+      .select("id, family_id")
+      .eq("user_id", user.id)
+      .eq("role", "parent")
+      .limit(1);
+    const caller = callerProfiles?.[0];
+    if (callerErr || !caller?.family_id) {
+      // No parent profile = a child session or an anon-key probe. Timetable
+      // import is a parent-only surface (TimetableScreen).
+      console.error("caller has no parent profile", user.id, JSON.stringify(callerErr));
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Rate limit: DAILY_SCHEDULE_PARSE_CAP per family per day ──────────────
+    // The run row is inserted BEFORE the LLM call so failed parses also count —
+    // a failure still burns Anthropic tokens, and the cap is generous enough
+    // (imports are a setup-time action) that real retries never hit it.
+    // Fail CLOSED: an unreadable counter must not become unlimited free calls.
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const { count: runsToday, error: capErr } = await svc
+      .from("schedule_parse_runs")
+      .select("id", { count: "exact", head: true })
+      .eq("family_id", caller.family_id)
+      .gte("created_at", todayStart.toISOString());
+    if (capErr) {
+      console.error("rate-limit read failed", JSON.stringify(capErr));
+      return new Response(JSON.stringify({ error: "rate_check_failed" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if ((runsToday ?? 0) >= DAILY_SCHEDULE_PARSE_CAP) {
+      return new Response(JSON.stringify({ error: "rate_limited", daily_cap: DAILY_SCHEDULE_PARSE_CAP }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { imageBase64, excelData, fileType, extractedText } = await req.json();
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
     if (!ANTHROPIC_API_KEY) {
       throw new Error("ANTHROPIC_API_KEY is not configured");
     }
+
+    const { error: runErr } = await svc.from("schedule_parse_runs").insert({
+      family_id: caller.family_id, created_by: caller.id, mode: String(fileType ?? "unknown"),
+    });
+    if (runErr) console.error("run log insert failed (non-fatal)", JSON.stringify(runErr));
 
     const config = await loadParseConfig();
     const modelFor  = (m: string) => config.models?.[m]  || DEFAULT_MODELS[m];
