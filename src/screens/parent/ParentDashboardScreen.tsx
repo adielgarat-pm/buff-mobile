@@ -625,8 +625,8 @@ export default function ParentDashboardScreen() {
       <ParentCaptureEntry />
 
       {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ──
-           Gate on insightsUnlocked (real entitlement + iOS beta, NOT web) so the card can't
-           diverge from the server 402 gate. isSubscribed still governs the child-limit paywall.
+           Gate on insightsUnlocked (real entitlement only, every platform — 2026-07-29) so the
+           card can't diverge from the server 402 gate. isSubscribed still governs the child-limit paywall.
 
            EXCEPT when a real AI insight exists (`&& !smartInsight`): a free family that spent
            its one free taste (pkg/ai-taste-gate) has a genuine insight about their own child,

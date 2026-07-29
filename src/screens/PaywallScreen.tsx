@@ -15,7 +15,9 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Linking, } from 'react-native';
+  StyleSheet, ActivityIndicator, Linking, Platform, } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { BUFF_URLS } from '../lib/buffConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/types';
@@ -44,8 +46,16 @@ const FEATURES = [
 
 function PaywallScreenContent({ childName = '' }: { childName?: string }) {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const { purchaseMonthly, purchaseYearly, restorePurchases } = useSubscription();
+
+  // Web has NO payment path (RevenueCat is never configured there; Paddle is
+  // parked) — purchase taps would just error. Since the platform-uniform AI
+  // gate (2026-07-29, supersedes D-2026-07-04-01) web free users DO reach this
+  // screen, so it must route them to the Android app instead of a dead end
+  // (web-to-native CTA pattern, #316).
+  const isWeb = Platform.OS === 'web';
 
   // ── Role guard (Pillar 1) — children never see purchase screens ────────────
   const isChild = profile?.role === 'child';
@@ -61,6 +71,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
 
   // ── Fetch real prices from RevenueCat ──────────────────────────────────────
   useEffect(() => {
+    if (isWeb) return; // RC not configured on web — nothing to fetch
     getOfferings().then(offerings => {
       const monthly = offerings?.current?.monthly;
       const yearly  = offerings?.current?.annual;
@@ -160,6 +171,28 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
           </View>
         )}
 
+        {isWeb ? (
+          /* ── Web: no payment path → route to the Android app (never a dead
+                end after the free taste is spent). Opens synchronously in the
+                click handler so the popup isn't blocked (GetTheAppCta.web). */
+          <View style={styles.webPanel}>
+            <Text style={styles.webPanelTitle}>{t('paywall.webTitle')}</Text>
+            <Text style={styles.webPanelBody}>{t('paywall.webBody')}</Text>
+            <TouchableOpacity
+              style={styles.webPanelBtn}
+              accessibilityRole="button"
+              onPress={() => {
+                try {
+                  const w = window.open(BUFF_URLS.playStoreInstall, '_blank', 'noopener,noreferrer');
+                  if (!w) window.location.href = BUFF_URLS.playStoreInstall;
+                } catch { /* noop */ }
+              }}
+            >
+              <Text style={styles.webPanelBtnText}>{t('install.getApp.playButton')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+        <>
         {/* Founding 100 CTA — only shown while spots are available.
             See FoundingHundredScreen for the full offer + live counter. */}
         <TouchableOpacity
@@ -220,17 +253,23 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
         <Text style={styles.finePrint}>
           Subscriptions auto-renew. Cancel any time in your App Store / Play Store settings.
         </Text>
+        </>
+        )}
 
         {/* Footer links */}
         <View style={styles.footerRow}>
-          <TouchableOpacity onPress={handleRestore} disabled={isBusy}>
-            {purchasing === 'restore' ? (
-              <ActivityIndicator color={T.textMuted} size="small" />
-            ) : (
-              <Text style={styles.footerLink}>Restore purchases</Text>
-            )}
-          </TouchableOpacity>
-          <Text style={styles.footerDivider}>|</Text>
+          {!isWeb && (
+            <>
+              <TouchableOpacity onPress={handleRestore} disabled={isBusy}>
+                {purchasing === 'restore' ? (
+                  <ActivityIndicator color={T.textMuted} size="small" />
+                ) : (
+                  <Text style={styles.footerLink}>Restore purchases</Text>
+                )}
+              </TouchableOpacity>
+              <Text style={styles.footerDivider}>|</Text>
+            </>
+          )}
           <TouchableOpacity
             onPress={() => { void Linking.openURL(PRIVACY_POLICY_URL); }}
             accessibilityRole="link"
@@ -337,6 +376,16 @@ const styles = StyleSheet.create({
     color: T.textMuted, fontSize: 11, textAlign: 'center',
     lineHeight: 16, marginTop: 4, marginBottom: 20,
   },
+
+  webPanel: {
+    width: '100%', backgroundColor: T.card, borderRadius: 16,
+    padding: 20, marginBottom: 20, borderWidth: 1, borderColor: T.cardBorder,
+    alignItems: 'center',
+  },
+  webPanelTitle:   { color: T.text, fontSize: 16, fontWeight: '800', textAlign: 'center', marginBottom: 6 },
+  webPanelBody:    { color: T.textMuted, fontSize: 13.5, lineHeight: 19, textAlign: 'center', marginBottom: 14 },
+  webPanelBtn:     { backgroundColor: T.accent, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 22 },
+  webPanelBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
   footerRow:     { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: 'center' },
   footerLink:    { color: T.textMuted, fontSize: 12, textDecorationLine: 'underline' },

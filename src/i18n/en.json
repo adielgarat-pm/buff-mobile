@@ -2180,6 +2180,8 @@
   "install.getApp.dashboardText": "Get reminders that actually reach your kid",
   "install.getApp.installShort": "Install",
   "install.getApp.playButton": "Get it on Google Play",
+  "paywall.webTitle": "Subscribe in the BUFF app",
+  "paywall.webBody": "Premium is purchased in the Android app — your account and everything you set up here come with you.",
   "install.getApp.openButton": "Open BUFF",
   "install.getApp.keepBrowsing": "Keep going in the browser",
   "install.getApp.inAppTitle": "Open BUFF in Google Play — your account is saved",

@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
 
 /**
  * Lazy auto-generate for the AI coach insight (pkg/dashboard-ai-insight).
  *
  * Extracted from ParentInsightsScreen's Phase E effect so the Parent Dashboard
  * and the Insights screen share ONE set of cost guards instead of two copies:
- *  - entitled (or web, where the coach is free) — never trigger a 402'd call
+ *  - entitled (or an unspent free taste) — never trigger a 402'd call
  *  - enough real data (activeDays >= 2, matches the activation bar)
  *  - respect the server's weekly cap (generationsLeft)
  *  - a saved insight from the CURRENT week is reused, never regenerated;
@@ -74,7 +73,7 @@ export function useAutoCoachInsight(opts: AutoCoachInsightOpts): void {
     // generate-child-insights; the server is the authority, this only avoids a
     // call we know would 402.
     const hasFreeTaste = totalCount < FREE_INSIGHTS_PER_CHILD;
-    if (!hasRealEntitlement && Platform.OS !== 'web' && !hasFreeTaste) return;
+    if (!hasRealEntitlement && !hasFreeTaste) return;
     if (generationsLeft <= 0) return;                    // respect the weekly cap
     if (activeDays < 2) return;                          // need real data
     const key = `${childId}|${monday}`;

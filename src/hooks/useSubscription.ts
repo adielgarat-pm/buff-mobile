@@ -130,16 +130,16 @@ export function useSubscription() {
   const hasRealEntitlement =
     isLifetimeAccess || familyHasEntitlement || isReferralPremium || rcSubscribed || rcFounding;
 
-  // A live time-boxed grant that isn't a permanent plan = trial (or referral-
-  // extended trial) → show a countdown ribbon. Populated by the Phase B activation
-  // trigger (premium_until) and Phase C referrals.
-  // The insights-card / LLM gate. Real entitlement OR iOS beta OR web. Web is
-  // DELIBERATELY free for the AI coach (no trial, no 14-day cutoff) while the web
-  // build matures — the server mirrors this by skipping the 402 for platform=web
-  // (see generate-child-insights). Android keeps the entitlement/trial gate.
-  // Intentional, logged platform divergence (BUFF_DECISIONS_LOG). Distinct from
-  // isSubscribed so the card matches the server's platform-aware gate.
-  const insightsUnlocked = hasRealEntitlement || Platform.OS === 'ios' || Platform.OS === 'web';
+  // The insights-card / LLM gate — REAL entitlement only, on every platform.
+  // The old web/iOS branches (D-2026-07-04-01) are gone: the server gate in
+  // generate-child-insights never exempted iOS at all, and its web exemption
+  // keyed on a client-supplied platform field (spoofable) — both superseded
+  // 2026-07-29 by the platform-uniform taste-then-gate (#404). Free families
+  // now reach the AI via the taste path (totalCount < FREE_INSIGHTS_PER_CHILD
+  // in useAutoCoachInsight), not via a platform flag. Distinct from
+  // isSubscribed (which still carries the web/iOS paywall-hiding for
+  // child-limit gating) so this card matches the server's 402 exactly.
+  const insightsUnlocked = hasRealEntitlement;
 
   const isTrialActive = isReferralPremium && !isLifetimeAccess && !isFoundingMember && !rcSubscribed;
   const trialDaysLeft = isTrialActive && referralPremiumUntil
