@@ -293,13 +293,25 @@ export default function CaptureScreen() {
         <Text style={[styles.modalTitle, { color: T.text }]}>
           {step === 'input' ? t('capture.title') : t('capture.confirmTitle')}
         </Text>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.closeBtn, { backgroundColor: '#F1F1F4' }]}
-          accessibilityLabel={t('capture.close')}
-        >
-          <Text style={[styles.closeX, { color: T.textMuted }]}>✕</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          {/* The dashboard card now opens this screen directly instead of the
+              "This Week" hub, so the hub needs a door here — otherwise a parent
+              who captured last week has no way back to her list. */}
+          {step === 'input' && (
+            <TouchableOpacity onPress={() => navigation.navigate('ParentThisWeek')}>
+              <Text style={[styles.thisWeekLink, { color: T.accent }]}>
+                {t('capture.thisWeekLink')}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.closeBtn, { backgroundColor: '#F1F1F4' }]}
+            accessibilityLabel={t('capture.close')}
+          >
+            <Text style={[styles.closeX, { color: T.textMuted }]}>✕</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <ScrollView
         style={[styles.container, { backgroundColor: T.bg }]}
@@ -480,6 +492,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   modalTitle: { fontSize: 20, fontWeight: '800' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  thisWeekLink: { fontSize: 14, fontWeight: '700' },
   closeBtn: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   closeX: { fontSize: 15, fontWeight: '700' },
   container: { flex: 1 },

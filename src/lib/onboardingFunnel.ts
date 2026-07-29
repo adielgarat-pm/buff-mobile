@@ -33,6 +33,14 @@ export type OnboardingEventType =
   // admin read policy. Tagged with source='parent_capture'.
   | 'capture_opened'
   | 'capture_consent_granted'
+  // Discovery half of the same funnel (2026-07-29). Production showed that no
+  // real family had ever run a capture, and we could not tell whether parents
+  // never saw the entry card or saw it and were not convinced — opposite fixes.
+  // These two make the difference visible. `source` = placement ('dashboard').
+  /** The entry card actually rendered on the dashboard; deduped per app session. */
+  | 'capture_entry_seen'
+  /** The entry card was tapped. */
+  | 'capture_entry_tapped'
   /** Parent tapped through to the WhatsApp community; `source` = placement. */
   | 'community_link_clicked'
   // AI coach insight funnel. These two are the ONLY parts of insight usage that
