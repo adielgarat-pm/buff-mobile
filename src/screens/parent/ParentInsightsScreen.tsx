@@ -36,6 +36,9 @@ import { useTaskTimeline } from '../../hooks/useTaskTimeline';
 import { TaskTimelineSection } from '../../components/TaskTimelineSection';
 import { useSmartInsights } from '../../hooks/useSmartInsights';
 import { useAutoCoachInsight } from '../../hooks/useAutoCoachInsight';
+import { useInsightViewLog } from '../../hooks/useInsightViewLog';
+import { useAuth } from '../../contexts/AuthContext';
+import { logOnboardingEvent } from '../../lib/onboardingFunnel';
 import {
   selectInsightFraming,
   type InsightCtaType,
@@ -109,6 +112,17 @@ export default function ParentInsightsScreen() {
     hasRealEntitlement,
     activeDays: stats.activeDays,
     generate: generateSmartInsight,
+  });
+
+  // Same render-vs-generate distinction as the dashboard card. `visible` mirrors
+  // the `{smartInsight && (...)}` JSX guard below — keep them in sync.
+  const { familyId } = useAuth();
+  useInsightViewLog({
+    familyId,
+    childId,
+    computedAt,
+    visible:   !!smartInsight,
+    placement: 'insights_screen',
   });
 
   // ── Highlights (Layer D) ───────────────────────────────────────────────────
@@ -436,7 +450,18 @@ export default function ParentInsightsScreen() {
               ) : (
                 <TouchableOpacity
                   style={[styles.cta, { backgroundColor: '#7C3AED', marginTop: 4 }]}
-                  onPress={() => runCta(smartInsight.cta_type as any)}
+                  onPress={() => {
+                    // Logged here, not inside runCta — runCta is shared with the
+                    // rule-based weekly/tip cards, which are not AI insights.
+                    void logOnboardingEvent({
+                      familyId,
+                      childId,
+                      eventType: 'insight_cta_clicked',
+                      source:    'insights_screen',
+                      variant:   smartInsight.cta_type,
+                    });
+                    runCta(smartInsight.cta_type as any);
+                  }}
                 >
                   <Text style={styles.ctaText}>{ctaLabel(smartInsight.cta_type as any)}</Text>
                 </TouchableOpacity>
