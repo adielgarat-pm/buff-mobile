@@ -299,7 +299,7 @@ export default function ParentDashboardScreen() {
   const { stats: weeklyStats } = useWeeklyStats(firstChildId);
   const {
     smartInsight, computedAt, generating: coachGenerating,
-    loadingState: coachLoading, generationsLeft,
+    loadingState: coachLoading, generationsLeft, totalCount: coachTotalCount,
     userVote, submitVote, generate: generateCoach, reload: reloadCoach,
   } = useSmartInsights(firstChildId);
   // Tab screens stay mounted, so a generate/vote on the Insights screen would
@@ -317,6 +317,7 @@ export default function ParentDashboardScreen() {
     generationsLeft,
     hasRealEntitlement,
     activeDays: weeklyStats.activeDays,
+    totalCount: coachTotalCount,
     generate:   generateCoach,
   });
   // "Valid as of" stamp (D: Adi 2026-07-14 — an insight is valid until the
@@ -364,7 +365,9 @@ export default function ParentDashboardScreen() {
     familyId,
     childId:    firstChildId,
     computedAt,
-    visible:    insightsUnlocked && !activeRec && !!smartInsight,
+    // Mirrors the JSX below: once a smartInsight exists the card renders whether
+    // or not the family is entitled (taste gate), losing only to activeRec.
+    visible:    !activeRec && !!smartInsight,
     placement:  'dashboard',
   });
 
@@ -623,8 +626,13 @@ export default function ParentDashboardScreen() {
 
       {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ──
            Gate on insightsUnlocked (real entitlement + iOS beta, NOT web) so the card can't
-           diverge from the server 402 gate. isSubscribed still governs the child-limit paywall. */}
-      {!insightsUnlocked ? (
+           diverge from the server 402 gate. isSubscribed still governs the child-limit paywall.
+
+           EXCEPT when a real AI insight exists (`&& !smartInsight`): a free family that spent
+           its one free taste (pkg/ai-taste-gate) has a genuine insight about their own child,
+           and showing them the generic 📊 lock card instead would defeat the entire point of
+           generating it. The lock then moves to the NEXT insight, inside the card below. */}
+      {!insightsUnlocked && !smartInsight ? (
         topInsight && !showLockedInsights ? (
           /* FREE TEASER — show ONE real insight (value-first); the depth (trends,
              weekly map, tips, action levers) is gated → tap opens the Paywall.
@@ -684,7 +692,12 @@ export default function ParentDashboardScreen() {
              Tap opens the full Insights screen; CTA + 👍👎 act inline. ── */
         <TouchableOpacity
           style={[styles.insightCard, { backgroundColor: T.accent }]}
-          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
+          onPress={() => insightsUnlocked
+            // A free family reached this card through the taste gate; the Insights
+            // screen would early-return its own lock screen for them, so send them
+            // to the Paywall directly instead of through a dead end.
+            ? navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })
+            : navigation.navigate('Paywall', { childName: firstChild?.displayName ?? undefined })}
           activeOpacity={0.85}
         >
           <View style={styles.teaserTagRow}>
@@ -708,6 +721,18 @@ export default function ParentDashboardScreen() {
           {coachCtaLabel(smartInsight.cta_type) && (
             <TouchableOpacity style={styles.coachCtaBtn} onPress={() => runCoachCta(smartInsight.cta_type)}>
               <Text style={styles.coachCtaBtnText}>{coachCtaLabel(smartInsight.cta_type)}</Text>
+            </TouchableOpacity>
+          )}
+          {/* Taste gate: this family read a real insight for free. The upsell is for
+              the NEXT one — a qualified ask, made after the value landed, not before. */}
+          {!insightsUnlocked && (
+            <TouchableOpacity
+              style={styles.coachUpsellBtn}
+              onPress={() => navigation.navigate('Paywall', { childName: firstChild?.displayName ?? undefined })}
+            >
+              <Text style={styles.coachUpsellText}>
+                {t('dashboard.coachNextLocked', { name: firstChild?.displayName ?? '' })}
+              </Text>
             </TouchableOpacity>
           )}
           {/* 👍👎 feedback row — synced with the Insights screen (same vote RPC) */}
@@ -1274,6 +1299,10 @@ const styles = StyleSheet.create({
   coachAction:        { color: '#fff', fontSize: 13.5, fontWeight: '600', fontStyle: 'italic' },
   coachCtaBtn:        { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, marginTop: 10 },
   coachCtaBtnText:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  // Quieter than coachCtaBtn on purpose: the insight's own action is the point,
+  // the upgrade ask sits under it rather than competing with it.
+  coachUpsellBtn:     { alignSelf: 'flex-start', marginTop: 10 },
+  coachUpsellText:    { color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '600', textDecorationLine: 'underline' },
   coachVoteRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.25)' },
   coachVoteLabel:     { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
   coachVoteBtns:      { flexDirection: 'row', gap: 8 },

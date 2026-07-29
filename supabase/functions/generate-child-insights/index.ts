@@ -15,6 +15,14 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const WEEKLY_LIMIT = 3;
 
+/**
+ * Free "taste" insights per child, for families with NO entitlement (red team
+ * F1, Adi approved 2026-07-28). Lifetime, not weekly — see migration 048.
+ * Raising this raises token spend on non-payers linearly, so treat it as a
+ * pricing decision, not a tuning knob.
+ */
+const FREE_INSIGHTS_PER_CHILD = 1;
+
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -368,10 +376,33 @@ Deno.serve(async (req: Request) => {
   // an intentional platform divergence (BUFF_DECISIONS_LOG; mirrors the client's
   // insightsUnlocked in useSubscription).
   if (!entitled && platform !== 'web') {
-    return new Response(
-      JSON.stringify({ error: 'premium_required' }),
-      { status: 402, headers: { ...corsHeaders, 'content-type': 'application/json' } },
-    );
+    // ── Taste-then-gate (pkg/ai-taste-gate, red team F1) ──────────────────────
+    // The first FREE_INSIGHTS_PER_CHILD are generated for EVERY family, paid or
+    // not. Nobody pays for a capability they have never felt, and before this the
+    // AI coach was visible almost exclusively to families holding a lifetime
+    // GRANT — i.e. to people who can never convert. A free parent who has read one
+    // real insight about their own child is a qualified lead; one looking at a
+    // generic lock card is not.
+    //
+    // Cost is bounded by construction: one call per child, once, ever. The
+    // counter is the lifetime one (migration 048) precisely because
+    // smart_insight_weekly_count resets and would hand out a fresh freebie every
+    // week. Fail CLOSED on a read error — an unreadable counter must not become
+    // unlimited free generations.
+    const { data: taste, error: tasteErr } = await svc
+      .from('child_insights')
+      .select('smart_insight_total_count')
+      .eq('child_id', child_id)
+      .maybeSingle();
+    const used = taste?.smart_insight_total_count ?? 0;
+    if (tasteErr || used >= FREE_INSIGHTS_PER_CHILD) {
+      if (tasteErr) console.error('taste counter read failed', JSON.stringify(tasteErr));
+      return new Response(
+        JSON.stringify({ error: 'premium_required', free_insights: FREE_INSIGHTS_PER_CHILD }),
+        { status: 402, headers: { ...corsHeaders, 'content-type': 'application/json' } },
+      );
+    }
+    console.log(`free taste insight ${used + 1}/${FREE_INSIGHTS_PER_CHILD} for child ${child_id}`);
   }
 
   // Rate limit check — 3 generations per child per week

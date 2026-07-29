@@ -17,6 +17,13 @@ import { Platform } from 'react-native';
  *    every dashboard visit
  */
 
+/**
+ * Free "taste" insights per child for a family with no entitlement. MUST match
+ * FREE_INSIGHTS_PER_CHILD in supabase/functions/generate-child-insights — the
+ * server is the authority; a mismatch here only costs a wasted 402.
+ */
+export const FREE_INSIGHTS_PER_CHILD = 1;
+
 /** Monday (local) of the current week as YYYY-MM-DD — mirrors the server's week window. */
 function currentWeekMonday(): string {
   const d = new Date();
@@ -37,6 +44,13 @@ export interface AutoCoachInsightOpts {
   generationsLeft:    number;
   hasRealEntitlement: boolean;
   activeDays:         number;
+  /**
+   * Lifetime insights already generated for this child (migration 048).
+   * Below FREE_INSIGHTS_PER_CHILD the entitlement gate is skipped — see the
+   * taste-gate note above. Defaults to "already used" so a caller that has not
+   * loaded it yet cannot accidentally spend a free generation.
+   */
+  totalCount?:        number;
   generate:           () => Promise<void>;
 }
 
@@ -44,6 +58,7 @@ export function useAutoCoachInsight(opts: AutoCoachInsightOpts): void {
   const {
     childId, smartInsight, computedAt, loadingState, generating,
     generationsLeft, hasRealEntitlement, activeDays, generate,
+    totalCount = FREE_INSIGHTS_PER_CHILD,
   } = opts;
 
   useEffect(() => {
@@ -52,7 +67,14 @@ export function useAutoCoachInsight(opts: AutoCoachInsightOpts): void {
     // A current-week insight is fresh — reuse it. A previous-week one stays on
     // screen (with its date stamp) but is eligible for a weekly refresh.
     if (smartInsight && (!computedAt || computedAt.slice(0, 10) >= monday)) return;
-    if (!hasRealEntitlement && Platform.OS !== 'web') return; // free on web; else don't spend tokens
+    // Taste-then-gate: the first FREE_INSIGHTS_PER_CHILD are generated for every
+    // family, entitled or not (red team F1 — before this, a free Android parent
+    // could never see the AI at all, so we were asking people to pay for a thing
+    // they had never experienced). Mirrors the server gate in
+    // generate-child-insights; the server is the authority, this only avoids a
+    // call we know would 402.
+    const hasFreeTaste = totalCount < FREE_INSIGHTS_PER_CHILD;
+    if (!hasRealEntitlement && Platform.OS !== 'web' && !hasFreeTaste) return;
     if (generationsLeft <= 0) return;                    // respect the weekly cap
     if (activeDays < 2) return;                          // need real data
     const key = `${childId}|${monday}`;
