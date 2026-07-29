@@ -11,6 +11,18 @@
 module.exports = {
   preset: 'jest-expo',
   setupFiles: ['<rootDir>/jest-setup.ts'],
+  // Full-suite runs were flaky ONLY under parallel load: Jest's default
+  // maxWorkers (= logical cores - 1 → 15 here) spawns more jsdom/RN worker
+  // processes than this machine's free RAM supports, so heavy screen suites
+  // get starved and their waitFor-driven tests blow the 5s default timeout —
+  // while passing instantly in isolation. Cap workers to half the cores and
+  // give component tests a timeout that tolerates a loaded machine; passing
+  // tests are event-driven so the higher ceiling costs nothing.
+  maxWorkers: '50%',
+  testTimeout: 30000,
+  // Recycle workers whose heap balloons (jest-expo workers accumulate memory
+  // across suites), so late-scheduled suites don't inherit a paging process.
+  workerIdleMemoryLimit: '512MB',
   // Use `roots` + relative testMatch so the glob doesn't have to interpolate
   // <rootDir> — which mangles paths that contain `.` segments (like git
   // worktrees rooted under `.claude/`).
