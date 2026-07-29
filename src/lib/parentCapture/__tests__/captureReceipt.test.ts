@@ -10,7 +10,7 @@
  *     exactly the case where the child's screen looks unchanged (red team F6);
  *   - undated batches degrade gracefully instead of inventing a date.
  */
-import { summarizeConfirm, isPayoffDeferred } from '../captureReceipt';
+import { summarizeConfirm, isPayoffDeferred, formatDueDate } from '../captureReceipt';
 import type { ParentItem } from '../../../types/parentCapture';
 
 function item(over: Partial<ParentItem> = {}): ParentItem {
@@ -118,5 +118,38 @@ describe('isPayoffDeferred', () => {
   it('is false when nothing is dated', () => {
     const r = summarizeConfirm([item({ dueDate: null })]);
     expect(isPayoffDeferred(r, '2026-07-29')).toBe(false);
+  });
+});
+
+describe('formatDueDate', () => {
+  // The receipt shipped printing the raw ISO string. A parent plans by weekday,
+  // so the weekday is the part that has to be there.
+  it('renders the weekday in Hebrew', () => {
+    // 2026-08-02 is a Sunday.
+    expect(formatDueDate('2026-08-02', 'he')).toContain('יום ראשון');
+  });
+
+  it('renders the weekday in English', () => {
+    expect(formatDueDate('2026-08-02', 'en')).toContain('Sunday');
+  });
+
+  // The regression that matters: `new Date('2026-08-02')` is UTC midnight, which
+  // renders as Saturday 8/1 for anyone west of Greenwich. Building the date from
+  // its parts keeps the weekday stable everywhere — same failure class as #403.
+  it('does not shift the day the way UTC parsing would', () => {
+    // The trap, made explicit: `new Date('2026-08-02')` is UTC midnight, which is
+    // still Saturday in Los Angeles. Anyone west of Greenwich would be shown the
+    // wrong weekday.
+    const utcParsed = new Date('2026-08-02').toLocaleDateString('en-US', {
+      weekday: 'long', timeZone: 'America/Los_Angeles',
+    });
+    expect(utcParsed).toBe('Saturday');
+    // Ours builds the date from its parts, so the weekday is whatever was written.
+    expect(formatDueDate('2026-08-02', 'en')).toContain('Sunday');
+  });
+
+  it('falls back to the raw value rather than printing "Invalid Date"', () => {
+    expect(formatDueDate('not-a-date', 'he')).toBe('not-a-date');
+    expect(formatDueDate('', 'en')).toBe('');
   });
 });

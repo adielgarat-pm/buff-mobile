@@ -104,3 +104,28 @@ export function summarizeConfirm(items: ReadonlyArray<ParentItem>): CaptureRecei
 export function isPayoffDeferred(receipt: CaptureReceipt, todayISO: string): boolean {
   return !!receipt.firstDue && receipt.firstDue.date > todayISO;
 }
+
+/**
+ * Render a due date the way a parent reads a calendar — weekday first.
+ *
+ * The receipt shipped showing the raw `2026-08-02`, which answers a database's
+ * question, not the parent's ("is that tomorrow, or after the weekend?"). The
+ * weekday is the part that lands.
+ *
+ * The date is built from its parts as a LOCAL date on purpose. `new Date(iso)`
+ * parses YYYY-MM-DD as UTC midnight, so anyone west of Greenwich would be shown
+ * the previous day — the same off-by-one class as the weekday bug fixed in #403.
+ */
+export function formatDueDate(iso: string, language: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  if (!m) return iso;
+
+  const date = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  if (Number.isNaN(date.getTime())) return iso;
+
+  return date.toLocaleDateString(language.startsWith('he') ? 'he-IL' : 'en-US', {
+    weekday: 'long',
+    day:     'numeric',
+    month:   'numeric',
+  });
+}

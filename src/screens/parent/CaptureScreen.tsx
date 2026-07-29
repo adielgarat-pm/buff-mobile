@@ -36,6 +36,7 @@ import { parsedToParentItem, stripChildNamePrefix } from '../../lib/parentCaptur
 import {
   summarizeConfirm,
   isPayoffDeferred,
+  formatDueDate,
   type CaptureReceipt,
 } from '../../lib/parentCapture/captureReceipt';
 import {
@@ -255,17 +256,20 @@ export default function CaptureScreen() {
         <ScrollView style={[styles.container, { backgroundColor: T.bg }]} contentContainerStyle={styles.content}>
           {receipt.perChild.map((line) => (
             <Text key={line.childId} style={[styles.receiptLine, { color: T.text }]}>
-              ✅ {t('capture.receiptForChild', { n: line.count, name: nameFor(line) })}
+              ✅ {t('capture.receiptForChild', { count: line.count, n: line.count, name: nameFor(line) })}
             </Text>
           ))}
           {receipt.parentCount > 0 && (
             <Text style={[styles.receiptLine, { color: T.text }]}>
-              ✅ {t('capture.receiptParent', { n: receipt.parentCount })}
+              ✅ {t('capture.receiptParent', { count: receipt.parentCount, n: receipt.parentCount })}
             </Text>
           )}
           {receipt.firstDue && (
             <Text style={[styles.receiptFirst, { color: T.text }]}>
-              📅 {t('capture.receiptFirst', { title: receipt.firstDue.title, date: receipt.firstDue.date })}
+              📅 {t('capture.receiptFirst', {
+                title: receipt.firstDue.title,
+                date:  formatDueDate(receipt.firstDue.date, i18n.language),
+              })}
             </Text>
           )}
           {/* The line that pre-empts "I checked my kid's screen and nothing changed". */}
