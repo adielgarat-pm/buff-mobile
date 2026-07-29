@@ -11,7 +11,7 @@
   "capture.receiptParent_one": "1 task for you",
   "capture.receiptParent_other": "{{count}} tasks for you",
   "capture.receiptFirst": "First up: {{title}} · {{date}}",
-  "capture.receiptDeferred": "Each task shows up on your child's screen on its own day — nothing to do until then.",
+  "capture.receiptDeferred": "Each task reaches your child on its day, so today doesn't pile up. Until then, we remember it for you.",
   "capture.receiptCta": "See the week",
   "capture.subtitle": "From a message or file → organizing tasks for your kids",
   "capture.placeholder": "Paste a message from a class or activity group…",

@@ -13,7 +13,7 @@
   "capture.receiptParent_two": "שתי משימות שלך",
   "capture.receiptParent_other": "{{count}} משימות שלך",
   "capture.receiptFirst": "המשימה הקרובה: {{title}} · {{date}}",
-  "capture.receiptDeferred": "כל משימה תופיע אצל הילדים ביום שלה — אין מה לעשות עד אז.",
+  "capture.receiptDeferred": "כל משימה תגיע לילדים ביום שלה, כדי לא להעמיס עליהם היום. עד אז אנחנו זוכרים במקומך.",
   "capture.receiptCta": "לצפייה בשבוע",
   "capture.subtitle": "מהודעה או קובץ → משימות התארגנות לילדים",
   "capture.placeholder": "הדביקי הודעה מקבוצת כיתה או חוג…",
