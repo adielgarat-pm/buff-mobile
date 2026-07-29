@@ -543,18 +543,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (shortCodeRegex.test(trimmedCode)) {
         console.log('[signUp] Looking up family with code:', JSON.stringify(familyCode));
-        const { data: family, error: lookupError } = await supabase
-          .from('families')
-          .select('id')
-          .ilike('short_code', trimmedCode)
-          .single();
+        // RPC instead of a direct SELECT: the freshly signed-up child is not a
+        // family member yet, so once families RLS is member-scoped (migration
+        // 050/051) a direct read returns nothing. The definer RPC resolves an
+        // exact code to an id without exposing the table.
+        const { data: lookedUpId, error: lookupError } = await supabase.rpc(
+          'lookup_family_by_code',
+          { p_short_code: trimmedCode }
+        );
 
-        console.log('[signUp] family lookup result:', JSON.stringify({ family, lookupError }));
+        console.log('[signUp] family lookup result:', JSON.stringify({ lookedUpId, lookupError }));
 
-        if (lookupError || !family) {
+        if (lookupError || !lookedUpId) {
           return { error: new Error(i18n.t('auth.codeNotFound')) };
         }
-        familyId = family.id;
+        familyId = lookedUpId as string;
       } else {
         return { error: new Error(i18n.t('auth.invalidCode')) };
       }
