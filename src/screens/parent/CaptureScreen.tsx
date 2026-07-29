@@ -34,6 +34,11 @@ import { useCaptureConsent } from '../../hooks/useCaptureConsent';
 import { CaptureParseError, parseCapture } from '../../lib/parentCapture/parseCapture';
 import { parsedToParentItem, stripChildNamePrefix } from '../../lib/parentCapture/captureMapping';
 import {
+  summarizeConfirm,
+  isPayoffDeferred,
+  type CaptureReceipt,
+} from '../../lib/parentCapture/captureReceipt';
+import {
   baselineFromEntries,
   logCaptureConfirm,
   summarizeReview,
@@ -54,7 +59,10 @@ export default function CaptureScreen() {
   const { addItems, transferToChild } = useParentCapture();
   const { consented, grant } = useCaptureConsent();
 
-  const [step, setStep] = useState<'input' | 'review'>('input');
+  const [step, setStep] = useState<'input' | 'review' | 'done'>('input');
+  // The receipt the parent sees after confirming — see captureReceipt.ts for why
+  // landing straight on a list was the problem (red team F6).
+  const [receipt, setReceipt] = useState<CaptureReceipt | null>(null);
   const [text, setText] = useState('');
   const [file, setFile] = useState<{ uri: string; name: string; mimeType: string | null } | null>(
     null,
@@ -200,7 +208,12 @@ export default function CaptureScreen() {
       await addItems(items);
       // Trust Rate / Edit Rate — how much of the AI's output survived review.
       await logCaptureConfirm(runId, summarizeReview(entries, baseline));
-      navigation.navigate('ParentThisWeek');
+      // Show what was just built instead of dropping the parent on a list. The
+      // items are dated up to two weeks out and the child's screen shows each one
+      // only on its day, so without this the parent's work has no visible effect
+      // at all (red team F6 — the likeliest cause of a 0% repeat rate).
+      setReceipt(summarizeConfirm(items));
+      setStep('done');
     } finally {
       setSaving(false);
     }
@@ -217,6 +230,56 @@ export default function CaptureScreen() {
         onContinue={onGrantConsent}
         onClose={() => navigation.goBack()}
       />
+    );
+  }
+
+  // ── Receipt — the parent's proof that confirming did something ──────────────
+  if (step === 'done' && receipt) {
+    const todayISO = new Date().toISOString().slice(0, 10);
+    // Fall back to the live roster when the item carried no child name, so a row
+    // never renders with an empty label.
+    const nameFor = (line: { childId: string; childName: string }) =>
+      line.childName || children.find((c) => c.id === line.childId)?.displayName || '';
+    return (
+      <View style={[styles.root, { backgroundColor: T.bg }]}>
+        <View style={styles.modalHeader}>
+          <Text style={[styles.modalTitle, { color: T.text }]}>{t('capture.receiptTitle')}</Text>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.closeBtn, { backgroundColor: '#F1F1F4' }]}
+            accessibilityLabel={t('capture.close')}
+          >
+            <Text style={[styles.closeX, { color: T.textMuted }]}>✕</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView style={[styles.container, { backgroundColor: T.bg }]} contentContainerStyle={styles.content}>
+          {receipt.perChild.map((line) => (
+            <Text key={line.childId} style={[styles.receiptLine, { color: T.text }]}>
+              ✅ {t('capture.receiptForChild', { n: line.count, name: nameFor(line) })}
+            </Text>
+          ))}
+          {receipt.parentCount > 0 && (
+            <Text style={[styles.receiptLine, { color: T.text }]}>
+              ✅ {t('capture.receiptParent', { n: receipt.parentCount })}
+            </Text>
+          )}
+          {receipt.firstDue && (
+            <Text style={[styles.receiptFirst, { color: T.text }]}>
+              📅 {t('capture.receiptFirst', { title: receipt.firstDue.title, date: receipt.firstDue.date })}
+            </Text>
+          )}
+          {/* The line that pre-empts "I checked my kid's screen and nothing changed". */}
+          {isPayoffDeferred(receipt, todayISO) && (
+            <Text style={[styles.receiptNote, { color: T.textMuted }]}>{t('capture.receiptDeferred')}</Text>
+          )}
+          <TouchableOpacity
+            style={[styles.receiptCta, { backgroundColor: T.accent }]}
+            onPress={() => navigation.navigate('ParentThisWeek')}
+          >
+            <Text style={styles.receiptCtaText}>{t('capture.receiptCta')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
     );
   }
 
@@ -420,6 +483,12 @@ const styles = StyleSheet.create({
   h1: { fontSize: 22, fontWeight: '800', marginBottom: 4 },
   sub: { fontSize: 14, marginBottom: 18 },
   betaNote: { fontSize: 12, marginTop: -12, marginBottom: 18, fontStyle: 'italic' },
+  // Receipt (red team F6) — the confirm payoff, deliberately calm and short.
+  receiptLine:    { fontSize: 16, fontWeight: '600', marginBottom: 10 },
+  receiptFirst:   { fontSize: 15, marginTop: 8, marginBottom: 4 },
+  receiptNote:    { fontSize: 13, lineHeight: 19, marginTop: 8 },
+  receiptCta:     { borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 28 },
+  receiptCtaText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   input: {
     minHeight: 120,
     borderWidth: 1,
