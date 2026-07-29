@@ -11,6 +11,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
+// Weekday arithmetic is done here, never by the model — see dateAnchors.ts for
+// the 2026-07-28 off-by-one that motivated it.
+import { buildDateAnchors } from './dateAnchors.ts';
+
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 const MODEL = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.5-flash';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
@@ -80,10 +84,7 @@ Extract ONLY actionable items (task, event, test, assignment, class, performance
 == FAMILY CHILDREN ==
 ${rosterLinesEn}
 
-== DATE ANCHORS ==
-- Today: ${todayISO}
-- Message sent: ${messageSentAt ?? 'unknown — use today'}
-Resolve every relative time ("tomorrow", "this Thursday") against the message-sent date.
+${buildDateAnchors(todayISO, messageSentAt, false)}
 
 == CHILD MATCHING ==
 Match by grade/class (e.g. "4th grade" → the child in grade 4). If the item targets a grade no child is in → relevance="no_match". If it cannot be determined → relevance="unknown" and missing includes "child name". When the match is certain, do NOT add "child name" to missing.${childHint ? `\nThe parent says this input is about ${childHint}. Default childName to ${childHint} (relevance="matched") unless the message explicitly names a different child or grade.` : ''}
@@ -125,10 +126,7 @@ A bring/wear item for a DATED event → TWO items: (1) "Pack …" with dueDate =
 == ילדי המשפחה ==
 ${rosterLines}
 
-== עוגני תאריך ==
-- היום: ${todayISO}
-- ההודעה נשלחה: ${messageSentAt ?? 'לא ידוע — השתמש בהיום'}
-פתור כל זמן יחסי ("מחר", "יום ה' הקרוב") ביחס לתאריך שליחת ההודעה.
+${buildDateAnchors(todayISO, messageSentAt, true)}
 
 == שיוך לילד ==
 שייך לפי שכבה/כיתה (למשל "שכבת ד" → הילד בכיתה ד). אם הפריט מתייחס לשכבה שאינה של אף ילד → relevance="no_match". אם אי אפשר לקבוע → relevance="unknown" ו-missing יכלול "שם הילד". כשהשיוך ודאי, אל תוסיף "שם הילד" ל-missing.${childHint ? `\nההורה ציין שהקלט שייך ל${childHint}. שייך את הפריטים אליו כברירת מחדל (relevance="matched") אלא אם ההודעה מציינת מפורשות ילד או שכבה אחרים.` : ''}
