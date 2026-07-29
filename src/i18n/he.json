@@ -256,6 +256,7 @@
   "dashboard.trialRibbonEnding_two": "✨ נותרו יומיים לליווי ה-AI",
   "dashboard.trialRibbonEnding_other": "✨ נותרו {{count}} ימי ליווי AI",
   "dashboard.lockedCoach": "🔒 פתחו את מאמן ה-AI האישי שלכם",
+  "dashboard.coachNextLocked": "🔒 התובנה הבאה על {{name}} — פתחו עם פרימיום",
   "dashboard.insightsTeaserCta": "כולל מגמות, מפה שבועית ועוד",
   "dashboard.insightsPremiumBadge": "פרימיום",
   "dashboard.insightsPremiumTitle": "תובנות — פיצ'ר פרימיום",

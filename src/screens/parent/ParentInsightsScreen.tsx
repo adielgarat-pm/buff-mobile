@@ -94,6 +94,7 @@ export default function ParentInsightsScreen() {
     generate: generateSmartInsight,
     error: smartError,
     generationsLeft,
+    totalCount: coachTotalCount,
     loadingState: smartLoading,
     userVote,
     submitVote,
@@ -111,17 +112,20 @@ export default function ParentInsightsScreen() {
     generationsLeft,
     hasRealEntitlement,
     activeDays: stats.activeDays,
+    totalCount: coachTotalCount,
     generate: generateSmartInsight,
   });
 
-  // Same render-vs-generate distinction as the dashboard card. `visible` mirrors
-  // the `{smartInsight && (...)}` JSX guard below — keep them in sync.
+  // Same render-vs-generate distinction as the dashboard card. `visible` must
+  // mirror what actually reaches the screen: this component early-returns a
+  // locked view for a non-subscriber (below), so a free parent with a taste
+  // insight never sees the card here — counting it would inflate View Rate.
   const { familyId } = useAuth();
   useInsightViewLog({
     familyId,
     childId,
     computedAt,
-    visible:   !!smartInsight,
+    visible:   isSubscribed && !!smartInsight,
     placement: 'insights_screen',
   });
 

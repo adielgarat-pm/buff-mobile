@@ -21,6 +21,14 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
 // so a stuck client / abuse can't burn Gemini tokens. Per family per day.
 const DAILY_CAPTURE_CAP = 30;
 
+/**
+ * Free "taste" runs per family before the paywall, for families with NO
+ * entitlement (red team F1, Adi approved 2026-07-28). Lifetime, not daily.
+ * Raising this raises token spend on non-payers linearly, so treat it as a
+ * pricing decision, not a tuning knob.
+ */
+const FREE_CAPTURE_RUNS = 3;
+
 // Gemini latency ceiling. Real parses have been measured at 60-90s in prod
 // (2026-07-28), so this must sit ABOVE that — it exists to convert a hung
 // upstream call into a typed 504 (client shows "took too long, retry") instead
@@ -295,12 +303,32 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'entitlement_check_failed' }, 500);
     }
     if (!entitled && platform !== 'web') {
-      // Logged, not silent: blocked-by-paywall attempts are the demand signal
-      // for whether capture is worth paying for.
-      await logRun(supabase, {
-        familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_premium',
-      });
-      return json({ error: 'premium_required' }, 402);
+      // ── Taste-then-gate (pkg/ai-taste-gate, red team F1) ───────────────────
+      // The first FREE_CAPTURE_RUNS are free for EVERY family. The paywall then
+      // lands at the highest-intent moment this product has: a parent standing
+      // there holding a camp schedule they do not want to retype. Note
+      // error_premium had never fired even once before this change — the paywall
+      // was not the constraint; nobody got far enough to reach it.
+      //
+      // Counts the same "billable" set as the daily cap (ok/empty, plus pre-047
+      // NULL rows) but all-time, so failed runs never burn a free try. Fail
+      // CLOSED on a read error: an unreadable counter must not become unlimited
+      // free Gemini calls.
+      const { count: freeUsed, error: freeErr } = await supabase
+        .from('capture_runs')
+        .select('id', { count: 'exact', head: true })
+        .eq('family_id', familyId)
+        .or('outcome.is.null,outcome.in.(ok,empty)');
+      if (freeErr || (freeUsed ?? 0) >= FREE_CAPTURE_RUNS) {
+        if (freeErr) console.error('free-run counter read failed', JSON.stringify(freeErr));
+        // Logged, not silent: blocked-by-paywall attempts are the demand signal
+        // for whether capture is worth paying for.
+        await logRun(supabase, {
+          familyId, createdBy: callerProfile.id, kind, itemCount: 0, outcome: 'error_premium',
+        });
+        return json({ error: 'premium_required', free_runs: FREE_CAPTURE_RUNS }, 402);
+      }
+      console.log(`free taste run ${(freeUsed ?? 0) + 1}/${FREE_CAPTURE_RUNS} for family ${familyId}`);
     }
 
     // ── Rate limit — DAILY_CAPTURE_CAP per family, enforced server-side ──────

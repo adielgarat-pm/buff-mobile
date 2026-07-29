@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../integrations/supabase/client';
+import { FREE_INSIGHTS_PER_CHILD } from './useAutoCoachInsight';
 
 export interface SmartInsight {
   headline:  string;
@@ -21,6 +22,9 @@ interface UseSmartInsightsResult {
   generate:         () => Promise<void>;
   error:            string | null;
   generationsLeft:  number;
+  /** Lifetime insights generated for this child (migration 048) — drives the
+   *  free-taste gate. 0 means this child has never had one. */
+  totalCount:       number;
   loadingState:     boolean;
   userVote:         1 | -1 | null;
   submitVote:       (vote: 1 | -1) => Promise<void>;
@@ -53,6 +57,9 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
   const [generating,      setGenerating]       = useState(false);
   const [error,           setError]            = useState<string | null>(null);
   const [weeklyCount,     setWeeklyCount]      = useState(0);
+  // Defaults to "taste already used" so a child whose state has not loaded yet
+  // can never spend a free generation on a render race.
+  const [totalCount,      setTotalCount]       = useState(FREE_INSIGHTS_PER_CHILD);
   const [loadingState,    setLoadingState]     = useState(false);
   const [userVote,        setUserVote]         = useState<1 | -1 | null>(null);
   const [windowEnd,       setWindowEnd]        = useState<string>('');
@@ -73,6 +80,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     setComputedAt(null);
     setParentContextRaw('');
     setWeeklyCount(0);
+    setTotalCount(FREE_INSIGHTS_PER_CHILD);
     setError(null);
     setLoadingState(true);
     supabase
@@ -88,6 +96,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
         setComputedAt((row.computed_at as string | null) ?? null);
         setParentContextRaw(row.parent_context ?? '');
         setWeeklyCount(row.weekly_count ?? 0);
+        setTotalCount(row.total_count ?? 0);
         setLoadingState(false);
       });
     return () => { cancelled = true; };
@@ -104,6 +113,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     setSmartInsight((row.smart_insight as SmartInsight) ?? null);
     setComputedAt((row.computed_at as string | null) ?? null);
     setWeeklyCount(row.weekly_count ?? 0);
+    setTotalCount(row.total_count ?? 0);
     // Latest vote for this week too — a vote cast on the other screen should
     // show as selected here. (parentContext is deliberately NOT overwritten:
     // the parent may be mid-typing on the Insights screen.)
@@ -186,6 +196,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
       setComputedAt(new Date().toISOString());
       if (typeof _weekly_count === 'number') setWeeklyCount(_weekly_count);
       else setWeeklyCount(prev => prev + 1);
+      setTotalCount(prev => prev + 1);   // a free taste, once spent, is spent
       setWindowEnd(new Date().toISOString().split('T')[0]);
     } catch (e) {
       console.error('useSmartInsights error', e);
@@ -215,6 +226,7 @@ export function useSmartInsights(childId: string | null): UseSmartInsightsResult
     generate,
     error,
     generationsLeft: Math.max(0, WEEKLY_LIMIT - weeklyCount),
+    totalCount,
     loadingState,
     userVote,
     submitVote,
