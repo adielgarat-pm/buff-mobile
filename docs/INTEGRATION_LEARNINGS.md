@@ -14,6 +14,14 @@
 
 ## Implementation Notes
 
+### IN-2026-07-30-01: acquisition attribution — the "#345 capture is live" belief was false (0/87 events), and native-tagged install attribution is DEFERRED
+Prompted by our first US user (`dida.ginete@gmail.com`, 2026-07-29) whose arrival we could not attribute from our own data. Review (plan `zesty-dreaming-whisper`) found `onboarding_events.acquisition` + `logOnboardingEvent({acquisition})` existed and typechecked, but **no caller ever fired `family_created` or populated `acquisition`** — 0 of 87 events. Lesson: a typed, plumbed hook with no producer reads as "done" but is dead; the guard is a success metric (% families with non-null `acquisition_source`), now in the SPEC.
+
+Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acquisition/acquisition_country` (migration 052), capture on both signup paths (email/pw + Google OAuth), web first-touch module (`src/lib/acquisitionCapture.*`), admin board Source column + badge (migration 053). Verified: 12 jsdom unit tests + typecheck (app + admin-web) + SQL column/grant checks.
+
+- 🚩 **DEFERRED — native-tagged install attribution.** Native-ORGANIC is covered (platform + device-region + null-utm, the Dida case). Attributing OUR OWN native-destined tagged links (FB→Play) needs the **Google Play Install Referrer** → new dependency `react-native-play-install-referrer` + finishing branch `pkg/smart-join-link` (#301). Adi dependency-approval + Hat-3 Android evidence required before any flag-on (WORKFLOW rule 12). Only worth doing once we actually run a native-destined tagged campaign.
+- 🚩 **UNVERIFIED — real-browser signup e2e.** The web capture logic is unit-proven, but a live signup writing `family_created` + `families.acquisition_*` in a real browser was NOT run (the in-app preview browser can't reach `localhost`, and a real signup pollutes prod). Needs one manual web signup from a `?utm_source=fb` URL asserting the row lands, + the native-organic equivalent on Android (Hat-3).
+
 ### IN-2026-07-29-01: "0% מההורים חוזרים" היה מסגור שגוי של "0% מההורים התחילו" — 9 הרצות הלכידה בפרודקשן היו 8 של Adi ואחת של חשבון בדיקה, ואף אחד לא שאל *מי* הריץ אותן
 
 - **תאריך:** 2026-07-29

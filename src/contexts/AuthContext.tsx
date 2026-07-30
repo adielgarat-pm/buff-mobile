@@ -14,6 +14,8 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
 import { clearOnboardingSnapshot } from '../navigation/onboardingPersistence';
+import { resolveAcquisition } from '../lib/acquisitionCapture';
+import { logOnboardingEvent } from '../lib/onboardingFunnel';
 import i18n from '../i18n';
 
 // Required for expo-web-browser OAuth completion
@@ -536,6 +538,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!authData.user) return { error: new Error('Signup failed') };
 
     let familyId: string | null = null;
+    // Acquisition signal for a NEW family (parent path only). Resolved before the
+    // family INSERT so it can ride the same insert; reused for the family_created
+    // event once the profile exists.
+    let acquisition: Awaited<ReturnType<typeof resolveAcquisition>> | null = null;
 
     if (familyCode && role === 'child') {
       const trimmedCode = familyCode.trim().toUpperCase();
@@ -565,9 +571,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!familyId && role === 'parent') {
       const familyName = `${displayName}'s Family`;
+      acquisition = await resolveAcquisition();
       const { data: newFamily, error: familyError } = await supabase
         .from('families')
-        .insert({ name: familyName, preferred_language: 'en', platform: Platform.OS } as never)
+        .insert({
+          name: familyName,
+          preferred_language: 'en',
+          platform: Platform.OS,
+          acquisition_source: acquisition.source,
+          acquisition: acquisition.raw,
+          acquisition_country: acquisition.country,
+        } as never)
         .select()
         .single();
 
@@ -606,6 +620,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (familyId && role === 'parent') {
       await supabase.from('app_settings').insert({ family_id: familyId } as never);
+    }
+
+    // family_created — the first funnel event + durable acquisition record.
+    // Fired AFTER the profile exists so onboarding_events RLS
+    // (family_id = get_my_family_id()) passes. Fire-and-forget; never blocks signup.
+    if (familyId && role === 'parent' && acquisition) {
+      void logOnboardingEvent({
+        familyId,
+        eventType: 'family_created',
+        source: acquisition.source,
+        acquisition: {
+          ...(acquisition.raw ?? {}),
+          source: acquisition.source,
+          country: acquisition.country,
+        },
+      });
     }
 
     await refreshProfile(authData.user.id);

@@ -48,6 +48,7 @@ import { retitleStarterTasks }           from './src/lib/starterTaskRetitle';
 import { supabase }                      from './src/integrations/supabase/client';
 import { setupPwa }                      from './src/lib/setupPwa';
 import { captureRefFromUrl }             from './src/lib/referralCapture';
+import { captureAcquisitionFromUrl }     from './src/lib/acquisitionCapture';
 
 // Make the web build installable as a PWA (inject manifest + apple-* meta tags
 // and register the service worker). No-op on native (the native app is the
@@ -59,6 +60,13 @@ setupPwa();
 // the code is lost. UStep8_Complete reads it back to auto-redeem. No-op on
 // native (referralCapture.android — code is entered manually in onboarding).
 void captureRefFromUrl();
+
+// Acquisition first-touch (web): read utm_* + document.referrer from the entry
+// URL into sessionStorage NOW, at module load — same reason as referral above,
+// before React Navigation rewrites the URL. resolveAcquisition() reads it back
+// at family_created. No-op on native (organic install; utm-tagged native
+// installs are deferred to the Play Install Referrer / #301).
+void captureAcquisitionFromUrl();
 
 // Sentry crash + error monitoring.
 // DSN is only set in production/preview EAS profiles (eas.json env), keeping

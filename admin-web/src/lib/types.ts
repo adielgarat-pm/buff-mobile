@@ -80,6 +80,13 @@ export interface TesterFamily {
   premium_until: string | null
   /** Any member granted lifetime access (free grant, not a payer). */
   has_lifetime: boolean
+  /** Normalized channel the family arrived from, captured once at family_created
+   *  (families.acquisition_source, migration 052). null for pre-052 families. */
+  acquisition_source: string | null
+  /** ISO 3166-1 alpha-2 device-locale region captured AT signup
+   *  (families.acquisition_country). Unlike `country` (mutable last_country),
+   *  this is fixed at family_created. null for pre-052 families. */
+  acquisition_country: string | null
   children: TesterChild[]
 }
 
