@@ -98,7 +98,11 @@ export default function SignupScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: T.canvas }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      // Android already resizes the window for the keyboard (adjustResize, Expo
+      // default). Layering behavior="height" double-adjusts: dismissing the
+      // keyboard by tapping the marketing checkbox snapped the centered form
+      // back up, making the ✓ look like it reverted. Let native resize handle it.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <LanguagePicker />
       <ScrollView contentContainerStyle={[styles.scroll, webAuthColumn(400)]} keyboardShouldPersistTaps="handled">
