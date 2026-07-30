@@ -20,7 +20,7 @@ import {
 } from '@/lib/cohort'
 import { challengeLabel } from '@/lib/labels'
 import type { Entitlement, Flag, Stage, TesterFamily } from '@/lib/types'
-import { CountryBadge, EntitlementBadge, FlagBadge, PlatformBadge, StageBadge, TestTag } from './badges'
+import { CountryBadge, EntitlementBadge, FlagBadge, PlatformBadge, SourceBadge, StageBadge, TestTag } from './badges'
 import { FamilyModal } from './FamilyModal'
 import { RetentionStrip } from './RetentionStrip'
 
@@ -288,6 +288,7 @@ export function TesterBoardView({
               <th className="px-3 py-2 font-medium">Parent / Children</th>
               <th className="px-3 py-2 font-medium">Signed up</th>
               <th className="px-3 py-2 font-medium">Platform</th>
+              <th className="px-3 py-2 font-medium">Source</th>
               <th className="px-3 py-2 font-medium">Stage</th>
               <th className="px-3 py-2 font-medium">Challenge</th>
               <th className="px-3 py-2 font-medium">Tasks</th>
@@ -362,6 +363,9 @@ export function TesterBoardView({
                         last: {f.last_platform}
                       </div>
                     )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <SourceBadge source={f.acquisition_source} />
                   </td>
                   <td className="px-3 py-2">
                     <StageBadge stage={stageOf(f)} />

@@ -2,7 +2,7 @@ import { childRewardRedeemed, relativeTime } from '@/lib/cohort'
 import { challengeLabel, motivatorLabel } from '@/lib/labels'
 import { onboardingDiff } from '@/lib/onboardingDiff'
 import type { TesterChild, TesterFamily } from '@/lib/types'
-import { CountryBadge, PlatformBadge } from './badges'
+import { CountryBadge, PlatformBadge, SourceBadge } from './badges'
 
 function exportFamilyJson(f: TesterFamily) {
   const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' })
@@ -176,6 +176,7 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
               <h2 className="text-lg font-bold">{family.parent_name ?? family.name}</h2>
               <PlatformBadge platform={family.platform} />
               <CountryBadge country={family.country} />
+              <SourceBadge source={family.acquisition_source} />
             </div>
             <div className="text-sm text-muted-foreground">
               {family.parent_email && (
@@ -188,6 +189,11 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
               )}
               {family.children.length} {family.children.length === 1 ? 'child' : 'children'} · joined{' '}
               {relativeTime(family.created_at)}
+              {family.acquisition_country && (
+                <span title="Device-locale region captured at signup (fixed, unlike last_country)">
+                  {' '}· signup region {family.acquisition_country}
+                </span>
+              )}
               {family.short_code && <span> · code {family.short_code}</span>}
             </div>
           </div>

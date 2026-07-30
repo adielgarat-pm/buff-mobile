@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { crossAlert } from '../../platform';
 import { supabase } from '../../integrations/supabase/client';
+import { resolveAcquisition } from '../../lib/acquisitionCapture';
+import { logOnboardingEvent } from '../../lib/onboardingFunnel';
 import { PASTEL_MODE as T } from '../../theme/modes';
 // Web-only native-install CTA. Metro resolves the native stub (renders null) on
 // Android/iOS, so this import is inert in the native bundle. This branch is the
@@ -33,6 +35,8 @@ export default function AuthCallbackScreen() {
 
     try {
       let familyId: string | null = profile?.family_id ?? null;
+      // Acquisition signal for a NEW family only; reused for family_created below.
+      let acquisition: Awaited<ReturnType<typeof resolveAcquisition>> | null = null;
 
       // Duplicate-family guard (IN-2026-05-14-03). The in-memory profile.family_id
       // can be stale/unpropagated — e.g. a web user who already set up a family,
@@ -54,9 +58,17 @@ export default function AuthCallbackScreen() {
         // Seed the family language from the active app locale rather than a hardcoded
         // 'en', so a Hebrew signup doesn't silently default the whole family to English.
         const familyLang = i18n.language?.startsWith('he') ? 'he' : 'en';
+        acquisition = await resolveAcquisition();
         const { data: newFamily, error: familyError } = await supabase
           .from('families')
-          .insert({ name: `${displayName}'s Family`, preferred_language: familyLang, platform: Platform.OS } as never)
+          .insert({
+            name: `${displayName}'s Family`,
+            preferred_language: familyLang,
+            platform: Platform.OS,
+            acquisition_source: acquisition.source,
+            acquisition: acquisition.raw,
+            acquisition_country: acquisition.country,
+          } as never)
           .select()
           .single();
 
@@ -101,6 +113,23 @@ export default function AuthCallbackScreen() {
 
       if (familyId && role === 'parent') {
         await supabase.from('app_settings').insert({ family_id: familyId } as never);
+      }
+
+      // family_created — first funnel event + durable acquisition record, only
+      // for a genuinely NEW family (acquisition stays null for a returning parent
+      // reusing an existing family_id). Fired after the profile exists so
+      // onboarding_events RLS passes. Fire-and-forget.
+      if (familyId && role === 'parent' && acquisition) {
+        void logOnboardingEvent({
+          familyId,
+          eventType: 'family_created',
+          source: acquisition.source,
+          acquisition: {
+            ...(acquisition.raw ?? {}),
+            source: acquisition.source,
+            country: acquisition.country,
+          },
+        });
       }
 
       await refreshProfile(user.id);

@@ -82,6 +82,41 @@ export function CountryBadge({ country }: { country: string | null }) {
   )
 }
 
+const SOURCE_META: Record<string, { label: string; icon: string; className: string }> = {
+  organic: { label: 'Organic', icon: '🌱', className: 'bg-gray-100 text-gray-600' },
+  winback: { label: 'Win-back', icon: '↩️', className: 'bg-amber-100 text-amber-700' },
+  guide: { label: 'Guide/SEO', icon: '📄', className: 'bg-teal-100 text-teal-700' },
+  fb: { label: 'Facebook', icon: '📘', className: 'bg-blue-100 text-blue-700' },
+  reels: { label: 'Reels', icon: '🎬', className: 'bg-fuchsia-100 text-fuchsia-700' },
+  referral: { label: 'Referral', icon: '🔗', className: 'bg-indigo-100 text-indigo-700' },
+  play_ads: { label: 'Play Ads', icon: '📢', className: 'bg-lime-100 text-lime-700' },
+  unknown: { label: 'Unknown', icon: '❓', className: 'bg-gray-100 text-gray-500' },
+}
+
+/** Acquisition channel a family arrived from (families.acquisition_source, set
+ *  once at family_created). `null` → pre-052 family, no capture; rendered as a
+ *  muted dash so the field never looks broken. An unmapped value still renders
+ *  via its raw label. */
+export function SourceBadge({ source }: { source: string | null }) {
+  if (!source) {
+    return (
+      <span className="text-xs text-gray-400" title="No acquisition source recorded (pre-052 family)">
+        —
+      </span>
+    )
+  }
+  const m = SOURCE_META[source] ?? { label: source, icon: '❓', className: 'bg-gray-100 text-gray-500' }
+  return (
+    <span
+      title={`Acquisition source: ${source}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${m.className}`}
+    >
+      <span>{m.icon}</span>
+      {m.label}
+    </span>
+  )
+}
+
 const ENTITLEMENT_META: Record<
   Exclude<Entitlement, null>,
   { label: string; icon: string; className: string }
