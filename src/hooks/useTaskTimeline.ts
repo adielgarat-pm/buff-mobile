@@ -119,7 +119,8 @@ export function useTaskTimeline(
         .select('id, title, time, category, schedule_days, hide_on_weekend, assigned_to')
         .eq('family_id', familyId)
         .or(`assigned_to.is.null,assigned_to.eq.${childId}`)
-        .eq('is_off_routine', false),
+        .eq('is_off_routine', false)
+        .is('due_date', null),   // exclude one-time (dated) tasks — the timeline is for recurring routine only
       supabase
         .from('daily_progress')
         .select('task_id, date, completed')
