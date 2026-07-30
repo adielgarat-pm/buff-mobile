@@ -50,17 +50,26 @@ export type OnboardingEventType =
   /** The AI insight card was actually rendered; `variant` = insight computed_at date. */
   | 'insight_viewed'
   /** The insight's CTA button was tapped; `variant` = cta_type. */
-  | 'insight_cta_clicked';
+  | 'insight_cta_clicked'
+  // Parent navigation audit (pkg/parent-ia-and-aha Phase 1) — "who are our
+  // active parents and where do they go". `source` = tab route name (verbatim,
+  // so it survives the tab rename), `method` = TabViewMethod, `variant` =
+  // "{navSessionId}:{seq}" for per-session ordering. child_id is always null
+  // (parent-surface telemetry only, never per-child — Pillar 2).
+  | 'parent_tab_viewed';
 
 /** How the parent tried to hand BUFF to the child's device. */
 export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';
+
+/** How a parent tab came into focus, for the navigation audit. */
+export type TabViewMethod = 'initial' | 'tab_press' | 'deep_link';
 
 interface LogArgs {
   /** Required for RLS scope; the event is skipped if null/undefined. */
   familyId: string | null | undefined;
   eventType: OnboardingEventType;
   childId?: string | null;
-  method?: InviteMethod | null;
+  method?: InviteMethod | TabViewMethod | null;
   /** For first_task_complete: 'onboarding_first_task' (seed) vs 'child_authored'. */
   source?: string | null;
   /** Feature-flag / A-B cohort. */

@@ -300,8 +300,12 @@ export default function UStep5_Preview() {
           throw new Error(tasksErr.message);
         }
         console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
-        // Funnel: starter tasks generated for this child.
-        void logOnboardingEvent({ familyId, eventType: 'tasks_generated', childId: id });
+        // Funnel: starter tasks generated for this child. `variant` carries the
+        // stated pain (pkg/parent-ia-and-aha Phase 1) so the AHA trophy-task
+        // mapping is queryable from the event log directly — the profile keeps
+        // it in pro_settings.onboarding_data, but the existingChildId reuse path
+        // (line 178) skips that write, so log it here where it always fires.
+        void logOnboardingEvent({ familyId, eventType: 'tasks_generated', childId: id, variant: params.mainChallenge });
       }
 
       // ── 3. INSERT store_rewards ──────────────────────────────────────────

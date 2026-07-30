@@ -4,6 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { ParentTabsParamList } from './types';
 import { PARENT_THEME } from '../theme';
+import { useAuth } from '../contexts/AuthContext';
+import { logOnboardingEvent } from '../lib/onboardingFunnel';
+
+// Parent navigation audit (pkg/parent-ia-and-aha Phase 1). One nav-session id
+// per JS launch + a monotonic sequence, so the tab-visit order and first-tab-
+// of-session are reconstructable from onboarding_events with no schema. Module
+// scope so they survive ParentTabs remounts within one launch.
+const NAV_SESSION_ID = Math.random().toString(36).slice(2, 10);
+let navSeq = 0;
 
 import ParentDashboardScreen from '../screens/parent/ParentDashboardScreen';
 import ParentTasksScreen from '../screens/parent/ParentTasksScreen';
@@ -29,9 +38,22 @@ const TAB_CONFIG: Record<
 export default function ParentTabs() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { familyId } = useAuth();
 
   return (
     <Tab.Navigator
+      screenListeners={({ route }) => ({
+        focus: () => {
+          const seq = navSeq++;
+          void logOnboardingEvent({
+            familyId,
+            eventType: 'parent_tab_viewed',
+            source:    route.name,   // verbatim — survives the tab rename
+            method:    seq === 0 ? 'initial' : 'tab_press',
+            variant:   `${NAV_SESSION_ID}:${seq}`,
+          });
+        },
+      })}
       screenOptions={({ route }) => {
         const cfg = TAB_CONFIG[route.name as keyof ParentTabsParamList];
         return {

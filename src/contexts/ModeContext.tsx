@@ -33,7 +33,11 @@ interface ModeContextType {
   exitChildPreview: () => void;
 }
 
-const ModeContext = createContext<ModeContextType | undefined>(undefined);
+// Exported so hooks that may render OUTSIDE a ModeProvider (e.g. useChildProgress
+// in unit tests) can read it null-safely via useContext instead of useMode(),
+// which throws. A completion recorded with no ModeProvider is, by definition,
+// not view-as-child.
+export const ModeContext = createContext<ModeContextType | undefined>(undefined);
 
 export function ModeProvider({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
