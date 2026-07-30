@@ -265,12 +265,22 @@ export function useParentInsights(childId: string | null) {
           completionRate: Math.round(hwTasks.reduce((s, t) => s + t.completionRate, 0) / hwTasks.length) });
       }
 
-      // Positive streak
+      // Positive streak — VALENCE FIX (pkg/parent-ia-and-aha Phase 0).
+      // Before: the positive card only fired when NO coaching card existed
+      // (`generated.length === 0`) and was pushed LAST, so `topInsight`
+      // (= insights[0], the dashboard hero) was a failure percentage whenever
+      // any single category dipped low. A guilt-loaded parent's first sight was
+      // a failing grade on their child (BUFF_VALUES Pillar 2 — the rule the app
+      // already honors for the child via ChildDayBadge, violated for the parent).
+      // Now: when the overall rate is healthy, the positive card is UNSHIFTED to
+      // the front so it leads as the hero; the low-category coaching cards still
+      // follow beneath it. (The <70% neutral-lead / silence case is a copy
+      // decision surfaced to Adi — no neutral template exists yet.)
       const overallRate = taskInsights.length > 0
         ? taskInsights.reduce((s, t) => s + t.completionRate, 0) / taskInsights.length
         : 0;
-      if (overallRate >= 70 && generated.length === 0) {
-        generated.push({ ...INSIGHT_TEMPLATES['positive-streak'], id: 'insight-positive', completionRate: Math.round(overallRate) });
+      if (overallRate >= 70) {
+        generated.unshift({ ...INSIGHT_TEMPLATES['positive-streak'], id: 'insight-positive', completionRate: Math.round(overallRate) });
       }
 
       setInsights(generated.slice(0, 5));

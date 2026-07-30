@@ -1,7 +1,8 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback, useContext } from 'react';
 import { AppState } from 'react-native';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
+import { ModeContext } from '../contexts/ModeContext';
 import { Task } from '../types/task';
 import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils';
 import { applyTaskCompletionToPet } from './usePetState';
@@ -190,7 +191,11 @@ export function useChildProgress() {
 // ג”€ג”€ג”€ useChildData ג€” full task/timetable/rewards data for one child ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
 export function useChildData(childId: string | null) {
-  const { familyId } = useAuth();
+  const { familyId, profile } = useAuth();
+  // Read the mode null-safely (useMode() throws outside a provider; some unit
+  // tests render child screens without one). Drives daily_progress.source in
+  // completeTask below.
+  const isChildPreview = useContext(ModeContext)?.isChildPreview ?? false;
   const [tasks,               setTasks]               = useState<Task[]>([]);
   const [totalBalance,        setTotalBalance]         = useState(0);
   const [dailyGoal,           setDailyGoal]            = useState(100);
@@ -414,8 +419,19 @@ export function useChildData(childId: string | null) {
       t.id === taskId ? { ...t, completed: true, completedAt: now } : t
     ));
 
+    // Actor attribution (pkg/parent-ia-and-aha Phase 1) — the AHA proxy needs to
+    // know WHO completed the task. 'child_device' = an authenticated child on
+    // their own device (the only value that counts as unprompted); 'view_as_child'
+    // = a parent driving the child screens (never counts); 'parent' = a parent
+    // marking on a parent surface. Written on completion only, never on
+    // uncomplete, so an undo can't clobber the original completer's source.
+    const source =
+      profile?.role === 'child' ? 'child_device'
+      : isChildPreview          ? 'view_as_child'
+      : 'parent';
+
     const { error } = await supabase.from('daily_progress').upsert(
-      { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: true, completed_at: now.toISOString() },
+      { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: true, completed_at: now.toISOString(), source },
       { onConflict: 'family_id,child_id,date,task_id' }
     );
 
@@ -430,7 +446,7 @@ export function useChildData(childId: string | null) {
       // "did something today" and accrues the minimum XP floor.
       await applyTaskCompletionToPet(task?.credits ?? 0);
     }
-  }, [familyId, childId, todayKey, tasks, adjustBalance]);
+  }, [familyId, childId, todayKey, tasks, adjustBalance, profile?.role, isChildPreview]);
 
   const uncompleteTask = useCallback(async (taskId: string) => {
     if (!familyId || !childId) return;
