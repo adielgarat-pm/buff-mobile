@@ -371,8 +371,13 @@ export default function ParentRewardsScreen() {
       if (cashMode) {
         updates.cash_value = cashValue;
       } else {
-        updates.title = title;
-        updates.size  = newSize;
+        updates.title    = title;
+        // Collapse to the typed value (matches the custom-reward INSERT, which
+        // only writes `title`). A Hebrew UI renders `title_he` via
+        // pickI18nColumn, so leaving a stale `title_he` on an edited row hid the
+        // edit and read as "it didn't save". See i18nString.ts IN-2026-05-27-04.
+        updates.title_he = null;
+        updates.size     = newSize;
       }
       const { error: updErr } = await supabase
         .from('store_rewards').update(updates as never).eq('id', editingId);
