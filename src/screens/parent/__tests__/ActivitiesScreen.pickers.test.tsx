@@ -35,16 +35,19 @@ jest.mock('../../../contexts/AuthContext', () => ({
 jest.mock('@expo/vector-icons', () => ({ Ionicons: () => null }));
 
 // Children roster query: profiles → one child.
+// Chain: .from().select().eq(family_id).eq(role).eq(is_deleted).order()
 jest.mock('../../../integrations/supabase/client', () => ({
   supabase: {
     from: jest.fn(() => ({
       select: jest.fn(() => ({
         eq: jest.fn(() => ({
           eq: jest.fn(() => ({
-            order: jest.fn().mockResolvedValue({
-              data: [{ id: 'child-1', display_name: 'Emi', avatar: '🚀', created_at: '2026-01-01' }],
-              error: null,
-            }),
+            eq: jest.fn(() => ({
+              order: jest.fn().mockResolvedValue({
+                data: [{ id: 'child-1', display_name: 'Emi', avatar: '🚀', created_at: '2026-01-01' }],
+                error: null,
+              }),
+            })),
           })),
         })),
       })),

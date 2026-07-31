@@ -61,6 +61,7 @@ export default function ActivitiesScreen() {
         .select('id, display_name, avatar, created_at')
         .eq('family_id', familyId)
         .eq('role', 'child')
+        .eq('is_deleted', false)   // exclude soft-deleted children (mirror ManageChildrenScreen)
         .order('created_at', { ascending: true });
       if (cancelled) return;
       if (error) { console.warn('[Activities] children fetch:', error.message); setChildren([]); }
