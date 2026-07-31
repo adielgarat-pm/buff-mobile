@@ -36,6 +36,7 @@ import {
   upsertDeviceToken,
 } from '../lib/pushTokens';
 import { registerWebPush } from '../lib/webPushRegistration';
+import { logPushStep } from '../lib/pushTelemetry';
 
 export type PermissionState = 'unknown' | 'granted' | 'denied' | 'unsupported';
 export type TokenStatus = 'idle' | 'registering' | 'registered' | 'error';
@@ -50,6 +51,7 @@ interface UsePushRegistrationResult {
 export function usePushRegistration(): UsePushRegistrationResult {
   const { profile } = useAuth();
   const profileId = profile?.id ?? null;
+  const role = profile?.role;
   const familyId = (profile as { family_id?: string } | null)?.family_id ?? undefined;
 
   const [permission, setPermission] = useState<PermissionState>('unknown');
@@ -97,6 +99,7 @@ export function usePushRegistration(): UsePushRegistrationResult {
       setTokenStatus('registering');
       try {
         const result = await registerWebPush(profileId, familyId);
+        logPushStep('web_register', { role, platform: 'web', status: result.status });
         if (result.status === 'registered') {
           setPermission('granted');
           setTokenStatus('registered');
@@ -121,6 +124,7 @@ export function usePushRegistration(): UsePushRegistrationResult {
     setTokenStatus('registering');
     try {
       const granted = await requestNotificationPermission();
+      logPushStep('permission_result', { role, platform: Platform.OS, status: granted ? 'granted' : 'denied' });
       if (!granted) {
         setPermission('denied');
         setTokenStatus('idle');

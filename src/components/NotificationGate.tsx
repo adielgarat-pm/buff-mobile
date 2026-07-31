@@ -29,6 +29,7 @@ import { usePushRegistration } from '../hooks/usePushRegistration';
 import { usePushPromptDismiss } from '../hooks/usePushPromptDismiss';
 import { useKidLocalNotifications } from '../hooks/useKidLocalNotifications';
 import { setupNotifications } from '../lib/notificationHandler';
+import { logPushStep } from '../lib/pushTelemetry';
 import { PushPermissionPrePrompt } from '../screens/onboarding/PushPermissionPrePrompt';
 import { PARENT_THEME as T } from '../theme';
 
@@ -75,7 +76,10 @@ export const NotificationGate: React.FC = () => {
     }
     if (permission === 'unknown') {
       // Small delay so the dashboard renders first
-      const timer = setTimeout(() => setPromptVisible(true), 1200);
+      const timer = setTimeout(() => {
+        setPromptVisible(true);
+        logPushStep('preprompt_shown', { role: profile.role });
+      }, 1200);
       return () => clearTimeout(timer);
     }
     setPromptVisible(false);
@@ -83,6 +87,7 @@ export const NotificationGate: React.FC = () => {
 
   const handleAccept = async () => {
     setPromptVisible(false);
+    logPushStep('preprompt_accepted', { role: profile?.role });
     // Mark dismissed BEFORE register(): on web a failed register() leaves
     // permission 'unknown', and without this the effect would re-pop the modal
     // 1.2s later in a loop. Re-ask is governed by the hook's interval.
@@ -92,6 +97,7 @@ export const NotificationGate: React.FC = () => {
 
   const handleDecline = () => {
     setPromptVisible(false);
+    logPushStep('preprompt_declined', { role: profile?.role });
     void markDismissed();
   };
 
