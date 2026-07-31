@@ -39,12 +39,40 @@ export const ACTIVITY_WEEKDAY_LABELS: Record<ActivityWeekday, { he: string; en: 
 
 /**
  * When an activity happens.
- * - `recurring` — every `weekday` (e.g. a חוג).
+ * - `recurring` — every day in `weekdays` (e.g. a חוג that meets Sun+Tue+Thu).
+ *                 Non-empty, deduped, in `ACTIVITY_WEEKDAYS` (Sun→Sat) order.
  * - `oneoff`    — a single calendar `date` (YYYY-MM-DD, e.g. a pool day).
  */
 export type ActivitySchedule =
-  | { kind: 'recurring'; weekday: ActivityWeekday }
+  | { kind: 'recurring'; weekdays: ActivityWeekday[] }
   | { kind: 'oneoff'; date: string };
+
+/** Membership set for O(1) token validation of untrusted input. */
+const ACTIVITY_WEEKDAY_SET: ReadonlySet<string> = new Set(ACTIVITY_WEEKDAYS);
+
+/**
+ * Canonicalize a weekday list: dedupe + sort into `ACTIVITY_WEEKDAYS` order,
+ * so labels and equality are stable regardless of tap order. Filtering the
+ * canonical order by membership dedupes and sorts in a single pass.
+ */
+export function normalizeWeekdays(days: readonly ActivityWeekday[]): ActivityWeekday[] {
+  return ACTIVITY_WEEKDAYS.filter((d) => days.includes(d));
+}
+
+/**
+ * Coerce an untrusted `weekdays` value (jsonb from the DB — could be a scalar,
+ * object, or array of anything) into a canonical weekday array. Returns `null`
+ * (not `[]`) when the value is missing / not an array / has no valid tokens, so
+ * callers can fall back to the legacy single `weekday` column.
+ */
+export function coerceWeekdays(raw: unknown): ActivityWeekday[] | null {
+  if (!Array.isArray(raw)) return null;
+  const valid = raw.filter(
+    (x): x is ActivityWeekday => typeof x === 'string' && ACTIVITY_WEEKDAY_SET.has(x),
+  );
+  const normalized = normalizeWeekdays(valid);
+  return normalized.length > 0 ? normalized : null;
+}
 
 export type ActivityStatus = 'active' | 'archived' | 'proposed';
 

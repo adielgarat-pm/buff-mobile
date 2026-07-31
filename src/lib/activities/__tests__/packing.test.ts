@@ -17,7 +17,7 @@ function make(partial: Partial<Activity>): Activity {
     childId: partial.childId !== undefined ? partial.childId : 'kid1',
     title: partial.title ?? 'Activity',
     templateId: partial.templateId ?? null,
-    schedule: partial.schedule ?? { kind: 'recurring', weekday: 'tuesday' },
+    schedule: partial.schedule ?? { kind: 'recurring', weekdays: ['tuesday'] },
     time: partial.time !== undefined ? partial.time : null,
     equipment: partial.equipment ?? ['thing'],
     status: partial.status ?? 'active',
@@ -41,9 +41,26 @@ describe('weekdayOf', () => {
 
 describe('activeOnDate', () => {
   it('matches a recurring activity on its weekday only', () => {
-    const a = make({ schedule: { kind: 'recurring', weekday: 'tuesday' } });
+    const a = make({ schedule: { kind: 'recurring', weekdays: ['tuesday'] } });
     expect(activeOnDate(a, TUESDAY)).toBe(true);
     expect(activeOnDate(a, SUNDAY)).toBe(false);
+  });
+
+  it('matches a multi-day recurring activity on each of its days, not others', () => {
+    // A חוג meeting Sun + Tue + Thu. Reference week of 2026-06-14 (Sun).
+    const a = make({ schedule: { kind: 'recurring', weekdays: ['sunday', 'tuesday', 'thursday'] } });
+    const byDay: Record<string, boolean> = {
+      '2026-06-14': true,  // Sunday    ✓
+      '2026-06-15': false, // Monday
+      '2026-06-16': true,  // Tuesday   ✓
+      '2026-06-17': false, // Wednesday
+      '2026-06-18': true,  // Thursday  ✓
+      '2026-06-19': false, // Friday
+      '2026-06-20': false, // Saturday
+    };
+    for (const [date, expected] of Object.entries(byDay)) {
+      expect(activeOnDate(a, date)).toBe(expected);
+    }
   });
 
   it('matches a one-off activity on its exact date only', () => {
@@ -53,8 +70,15 @@ describe('activeOnDate', () => {
   });
 
   it('never matches an archived activity', () => {
-    const a = make({ status: 'archived', schedule: { kind: 'recurring', weekday: 'tuesday' } });
+    const a = make({ status: 'archived', schedule: { kind: 'recurring', weekdays: ['tuesday'] } });
     expect(activeOnDate(a, TUESDAY)).toBe(false);
+  });
+
+  it('an empty weekdays array (malformed row) matches no day — fails safe', () => {
+    const a = make({ schedule: { kind: 'recurring', weekdays: [] } });
+    for (const date of ['2026-06-14', '2026-06-16', '2026-06-18', '2026-06-20']) {
+      expect(activeOnDate(a, date)).toBe(false);
+    }
   });
 });
 
@@ -73,22 +97,22 @@ describe('appliesToChild', () => {
 describe('buildPackingGroups', () => {
   it('includes only today + this child, with equipment', () => {
     const acts: Activity[] = [
-      make({ id: 'football', title: 'Football', schedule: { kind: 'recurring', weekday: 'tuesday' }, time: '17:00', equipment: ['ball'] }),
-      make({ id: 'guitar', title: 'Guitar', schedule: { kind: 'recurring', weekday: 'sunday' }, equipment: ['guitar'] }), // wrong day
+      make({ id: 'football', title: 'Football', schedule: { kind: 'recurring', weekdays: ['tuesday'] }, time: '17:00', equipment: ['ball'] }),
+      make({ id: 'guitar', title: 'Guitar', schedule: { kind: 'recurring', weekdays: ['sunday'] }, equipment: ['guitar'] }), // wrong day
       make({ id: 'pool', title: 'Pool', schedule: { kind: 'oneoff', date: TUESDAY }, equipment: ['swimsuit'] }),
-      make({ id: 'otherkid', childId: 'kid2', schedule: { kind: 'recurring', weekday: 'tuesday' }, equipment: ['x'] }), // other child
+      make({ id: 'otherkid', childId: 'kid2', schedule: { kind: 'recurring', weekdays: ['tuesday'] }, equipment: ['x'] }), // other child
     ];
     const groups = buildPackingGroups(acts, 'kid1', TUESDAY);
     expect(groups.map((g) => g.title)).toEqual(['Football', 'Pool']); // timed (17:00) before untimed
   });
 
   it('drops activities with no equipment', () => {
-    const acts = [make({ id: 'empty', equipment: [], schedule: { kind: 'recurring', weekday: 'tuesday' } })];
+    const acts = [make({ id: 'empty', equipment: [], schedule: { kind: 'recurring', weekdays: ['tuesday'] } })];
     expect(buildPackingGroups(acts, 'kid1', TUESDAY)).toEqual([]);
   });
 
   it('includes family-wide activities for the child', () => {
-    const acts = [make({ id: 'fam', childId: null, schedule: { kind: 'recurring', weekday: 'tuesday' }, equipment: ['shared'] })];
+    const acts = [make({ id: 'fam', childId: null, schedule: { kind: 'recurring', weekdays: ['tuesday'] }, equipment: ['shared'] })];
     const groups = buildPackingGroups(acts, 'kid1', TUESDAY);
     expect(groups).toHaveLength(1);
     expect(groups[0].items).toEqual(['shared']);

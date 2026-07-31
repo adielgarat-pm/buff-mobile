@@ -108,7 +108,7 @@ export default function ActivitiesScreen() {
     setTitle(a.title);
     setTemplateId(a.templateId);
     setScheduleKind(a.schedule.kind);
-    if (a.schedule.kind === 'recurring') setWeekday(a.schedule.weekday);
+    if (a.schedule.kind === 'recurring') setWeekday(a.schedule.weekdays[0] ?? 'sunday'); // Phase 1 bridge — multi-select in Phase 2
     else setDate(new Date(`${a.schedule.date}T12:00:00`));
     setTime(a.time);
     setGear(a.equipment.map((label, i) => ({ key: `e${i}`, label, checked: true })));
@@ -138,7 +138,7 @@ export default function ActivitiesScreen() {
 
   const buildSchedule = (): NewActivity['schedule'] =>
     scheduleKind === 'recurring'
-      ? { kind: 'recurring', weekday }
+      ? { kind: 'recurring', weekdays: [weekday] } // Phase 1 bridge — multi-select in Phase 2
       : { kind: 'oneoff', date: toISODate(date ?? new Date()) };
 
   const canSave = title.trim().length > 0 && (scheduleKind === 'recurring' || !!date);
@@ -171,7 +171,9 @@ export default function ActivitiesScreen() {
   // ── Render helpers ──────────────────────────────────────────────────────────
   const scheduleLabel = (a: Activity): string => {
     if (a.schedule.kind === 'recurring') {
-      const day = ACTIVITY_WEEKDAY_LABELS[a.schedule.weekday][lang.startsWith('he') ? 'he' : 'en'];
+      // Phase 1 bridge — shows the first day only; full multi-day label in Phase 2.
+      const first = a.schedule.weekdays[0] ?? 'sunday';
+      const day = ACTIVITY_WEEKDAY_LABELS[first][lang.startsWith('he') ? 'he' : 'en'];
       return `${t('activities.recurringEvery', { day })}${a.time ? ` · ${a.time}` : ''}`;
     }
     return `${a.schedule.date}${a.time ? ` · ${a.time}` : ''}`;
