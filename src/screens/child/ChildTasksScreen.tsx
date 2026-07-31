@@ -206,12 +206,15 @@ function PastelChildTasks() {
         {/* Suggest-a-task CTA + the kid's own open ideas */}
         <View style={styles.suggestRow}>
           <TouchableOpacity
-            style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.border }]}
+            style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.accent }]}
             onPress={() => setSuggestOpen(true)}
             activeOpacity={0.7}
           >
-            <Ionicons name="add" size={18} color={T.primary} />
-            <Text style={[styles.suggestText, { color: T.primary }]}>{t('childSuggest.task.cta')}</Text>
+            {/* Use accent (not primary): in the Mint theme `primary` is a very pale
+                lavender that reads as disabled on the white card. accent is the
+                visible interactive purple. */}
+            <Ionicons name="add" size={18} color={T.accent} />
+            <Text style={[styles.suggestText, { color: T.accent }]}>{t('childSuggest.task.cta')}</Text>
           </TouchableOpacity>
         </View>
 

@@ -1257,7 +1257,12 @@ const styles = StyleSheet.create({
                    paddingVertical: 14, alignItems: 'center', marginTop: 4 },
   addLessonText: { fontSize: 14, fontWeight: '600' },
   copyDayHint:   { fontSize: 9, marginTop: 2 },
-  copyDayConfirm:{ marginTop: 16 },
+  // NB: confirmBtn carries `flex: 1` (it's shared with the row-footer Save
+  // button). Inside this modal *column* that flex made the button's <Text>
+  // collapse to zero width on re-render (Android/Yoga), so the label vanished
+  // the moment a day was selected. Neutralise the flex here and stretch to the
+  // modal width instead.
+  copyDayConfirm:{ marginTop: 16, flex: 0, alignSelf: 'stretch' },
 
   groupBadge:    { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,
                    paddingVertical: 2, borderRadius: 8, backgroundColor: '#E0E7FF',
