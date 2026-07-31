@@ -74,7 +74,7 @@ export default function ChildAddActivityScreen() {
       title: title.trim(),
       templateId: null,
       schedule: scheduleKind === 'recurring'
-        ? { kind: 'recurring', weekday }
+        ? { kind: 'recurring', weekdays: [weekday] } // child stays single-select
         : { kind: 'oneoff', date: toISODate(date ?? new Date()) },
       time,
       equipment: gear,

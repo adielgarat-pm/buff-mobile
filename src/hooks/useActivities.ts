@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
-import type { Activity, ActivityWeekday, NewActivity } from '../types/activities';
+import { coerceWeekdays, type Activity, type ActivityWeekday, type NewActivity } from '../types/activities';
 
 // ─── Row mapping ──────────────────────────────────────────────────────────────
 
@@ -12,7 +12,8 @@ interface ActivityRow {
   title: string;
   template_id: string | null;
   schedule_kind: 'recurring' | 'oneoff';
-  weekday: string | null;
+  weekday: string | null;   // legacy single day — kept one release for old builds
+  weekdays: unknown;        // jsonb array of weekday tokens (054+); source of truth
   on_date: string | null;
   at_time: string | null;
   equipment: unknown;
@@ -24,7 +25,9 @@ interface ActivityRow {
 function rowToActivity(r: ActivityRow): Activity {
   const schedule: Activity['schedule'] =
     r.schedule_kind === 'recurring'
-      ? { kind: 'recurring', weekday: r.weekday as ActivityWeekday }
+      // Read the 054 array; fall back to the legacy single `weekday` for any
+      // un-backfilled / old-build-inserted row (weekdays IS NULL).
+      ? { kind: 'recurring', weekdays: coerceWeekdays(r.weekdays) ?? (r.weekday ? [r.weekday as ActivityWeekday] : []) }
       : { kind: 'oneoff', date: r.on_date as string };
   return {
     id: r.id,
@@ -41,11 +44,21 @@ function rowToActivity(r: ActivityRow): Activity {
   };
 }
 
-/** Maps the discriminated schedule back to flat columns for insert/update. */
+/**
+ * Maps the discriminated schedule back to flat columns for insert/update.
+ * Recurring rows dual-write the legacy `weekday = weekdays[0]` for one release
+ * so a pre-OTA client still reading only `weekday` shows at least the first day
+ * of a multi-day activity rather than a blank. One-off rows null both.
+ */
 function scheduleColumns(schedule: NewActivity['schedule']) {
   return schedule.kind === 'recurring'
-    ? { schedule_kind: 'recurring', weekday: schedule.weekday, on_date: null }
-    : { schedule_kind: 'oneoff', weekday: null, on_date: schedule.date };
+    ? {
+        schedule_kind: 'recurring',
+        weekdays: schedule.weekdays,
+        weekday: schedule.weekdays[0] ?? null,
+        on_date: null,
+      }
+    : { schedule_kind: 'oneoff', weekdays: null, weekday: null, on_date: schedule.date };
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────

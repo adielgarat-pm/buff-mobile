@@ -19,7 +19,7 @@ import { PARENT_THEME as T } from '../../theme';
 import { pickLang } from '../../lib/i18nString';
 import { useActivities } from '../../hooks/useActivities';
 import {
-  ACTIVITY_WEEKDAYS, ACTIVITY_WEEKDAY_LABELS,
+  ACTIVITY_WEEKDAYS, ACTIVITY_WEEKDAY_LABELS, normalizeWeekdays,
   type ActivityWeekday, type Activity, type NewActivity,
 } from '../../types/activities';
 import { PACKING_TEMPLATE_LIBRARY, TEMPLATE_BY_ID } from '../../lib/packingTemplates/catalog';
@@ -88,7 +88,7 @@ export default function ActivitiesScreen() {
   const [title, setTitle] = useState('');
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [scheduleKind, setScheduleKind] = useState<'recurring' | 'oneoff'>('recurring');
-  const [weekday, setWeekday] = useState<ActivityWeekday>('sunday');
+  const [weekdays, setWeekdays] = useState<ActivityWeekday[]>(['sunday']);
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState<string | null>(null);
   const [gear, setGear] = useState<GearItem[]>([]);
@@ -97,7 +97,7 @@ export default function ActivitiesScreen() {
 
   const resetForm = () => {
     setEditing(null); setStep('template'); setTitle(''); setTemplateId(null);
-    setScheduleKind('recurring'); setWeekday('sunday'); setDate(null); setTime(null);
+    setScheduleKind('recurring'); setWeekdays(['sunday']); setDate(null); setTime(null);
     setGear([]); setNewItem('');
   };
 
@@ -108,7 +108,7 @@ export default function ActivitiesScreen() {
     setTitle(a.title);
     setTemplateId(a.templateId);
     setScheduleKind(a.schedule.kind);
-    if (a.schedule.kind === 'recurring') setWeekday(a.schedule.weekday);
+    if (a.schedule.kind === 'recurring') setWeekdays(a.schedule.weekdays.length ? a.schedule.weekdays : ['sunday']);
     else setDate(new Date(`${a.schedule.date}T12:00:00`));
     setTime(a.time);
     setGear(a.equipment.map((label, i) => ({ key: `e${i}`, label, checked: true })));
@@ -138,10 +138,18 @@ export default function ActivitiesScreen() {
 
   const buildSchedule = (): NewActivity['schedule'] =>
     scheduleKind === 'recurring'
-      ? { kind: 'recurring', weekday }
+      ? { kind: 'recurring', weekdays }
       : { kind: 'oneoff', date: toISODate(date ?? new Date()) };
 
-  const canSave = title.trim().length > 0 && (scheduleKind === 'recurring' || !!date);
+  /** Toggle a day in/out; the last selected day can't be removed (min-1 guard). */
+  const toggleWeekday = (d: ActivityWeekday) =>
+    setWeekdays((cur) =>
+      cur.includes(d)
+        ? (cur.length > 1 ? cur.filter((x) => x !== d) : cur) // keep at least one
+        : normalizeWeekdays([...cur, d]));
+
+  const canSave = title.trim().length > 0
+    && (scheduleKind === 'recurring' ? weekdays.length > 0 : !!date);
 
   const onSave = async () => {
     if (!selectedChild || !canSave) return;
@@ -170,11 +178,22 @@ export default function ActivitiesScreen() {
 
   // ── Render helpers ──────────────────────────────────────────────────────────
   const scheduleLabel = (a: Activity): string => {
+    const timeSuffix = a.time ? ` · ${a.time}` : '';
     if (a.schedule.kind === 'recurring') {
-      const day = ACTIVITY_WEEKDAY_LABELS[a.schedule.weekday][lang.startsWith('he') ? 'he' : 'en'];
-      return `${t('activities.recurringEvery', { day })}${a.time ? ` · ${a.time}` : ''}`;
+      const he = lang.startsWith('he');
+      const days = a.schedule.weekdays;
+      const dayLabel = (d: ActivityWeekday) => ACTIVITY_WEEKDAY_LABELS[d][he ? 'he' : 'en'];
+      let label: string;
+      if (days.length >= ACTIVITY_WEEKDAYS.length) {
+        label = t('activities.recurringEveryDay');                              // all 7 → "Every day"
+      } else if (days.length === 1) {
+        label = t('activities.recurringEvery', { day: dayLabel(days[0]) });      // "Every Sunday"
+      } else {
+        label = t('activities.recurringDays', { days: days.map(dayLabel).join(', ') }); // "Every Sun, Tue, Thu"
+      }
+      return `${label}${timeSuffix}`;
     }
-    return `${a.schedule.date}${a.time ? ` · ${a.time}` : ''}`;
+    return `${a.schedule.date}${timeSuffix}`;
   };
   const iconFor = (a: Activity) =>
     (a.templateId && TEMPLATE_BY_ID[a.templateId]?.icon) || ICON_FALLBACK;
@@ -350,22 +369,27 @@ export default function ActivitiesScreen() {
                   </View>
 
                   {scheduleKind === 'recurring' ? (
-                    <View style={[styles.dayRow, { flexDirection: rowDirection }]}>
-                      {ACTIVITY_WEEKDAYS.map((d) => {
-                        const on = d === weekday;
-                        return (
-                          <TouchableOpacity
-                            key={d}
-                            style={[styles.dayPill, { backgroundColor: on ? T.accent : T.card, borderColor: on ? T.accent : T.cardBorder }]}
-                            onPress={() => setWeekday(d)}
-                          >
-                            <Text style={[styles.dayPillText, { color: on ? '#fff' : T.text }]}>
-                              {ACTIVITY_WEEKDAY_LABELS[d][lang.startsWith('he') ? 'he' : 'en']}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
+                    <>
+                      <View style={[styles.dayRow, { flexDirection: rowDirection }]}>
+                        {ACTIVITY_WEEKDAYS.map((d) => {
+                          const on = weekdays.includes(d);
+                          return (
+                            <TouchableOpacity
+                              key={d}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected: on }}
+                              style={[styles.dayPill, { backgroundColor: on ? T.accent : T.card, borderColor: on ? T.accent : T.cardBorder }]}
+                              onPress={() => toggleWeekday(d)}
+                            >
+                              <Text style={[styles.dayPillText, { color: on ? '#fff' : T.text }]}>
+                                {ACTIVITY_WEEKDAY_LABELS[d][lang.startsWith('he') ? 'he' : 'en']}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                      <Text style={[styles.daysHint, { color: T.textMuted, textAlign }]}>{t('activities.daysHint')}</Text>
+                    </>
                   ) : (
                     <DateField
                       value={date}
@@ -500,8 +524,9 @@ const styles = StyleSheet.create({
   toggle: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 10, borderWidth: 1 },
   toggleText: { fontSize: 13, fontWeight: '600' },
   dayRow: { flexWrap: 'wrap', gap: 6, marginTop: 10 },
-  dayPill: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1 },
+  dayPill: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1 },
   dayPillText: { fontSize: 12, fontWeight: '600' },
+  daysHint: { fontSize: 11, marginTop: 6 },
   gearRow: { alignItems: 'center', gap: 10, paddingVertical: 8 },
   gearLabel: { flex: 1, fontSize: 14 },
   addItemRow: { alignItems: 'center', gap: 8, marginTop: 8 },

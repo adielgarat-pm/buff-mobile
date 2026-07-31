@@ -30,15 +30,17 @@ export function weekdayOf(dateStr: string): ActivityWeekday | null {
 
 /**
  * Is this activity scheduled on `dateStr`?
- * - recurring → the date's weekday equals the activity's weekday
+ * - recurring → the date's weekday is one of the activity's `weekdays`
  * - oneoff    → the date equals the activity's date
- * Archived activities never match.
+ * Archived activities never match. An empty `weekdays` (malformed row) matches
+ * no day — fails safe (the activity just doesn't show) rather than every day.
  */
 export function activeOnDate(activity: Activity, dateStr: string): boolean {
   if (activity.status !== 'active') return false;
   const { schedule } = activity;
   if (schedule.kind === 'recurring') {
-    return weekdayOf(dateStr) === schedule.weekday;
+    const wd = weekdayOf(dateStr);
+    return wd !== null && schedule.weekdays.includes(wd);
   }
   return schedule.date === dateStr;
 }
