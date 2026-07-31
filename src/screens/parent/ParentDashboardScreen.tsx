@@ -16,6 +16,7 @@ import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
+import { ParentActivitiesEntry } from '../../components/parent/ParentActivitiesEntry';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import MarketingConsentSheet from '../../components/parent/MarketingConsentSheet';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
@@ -806,6 +807,12 @@ export default function ParentDashboardScreen() {
           </View>
         </TouchableOpacity>
       )}
+
+      {/* ── Activities & gear entry — quiet doorway to "פעילויות וציוד" ────
+          Sits BELOW the insight card (never above): the insight→conversion job
+          stays primary. Unconditional render — the feature is already live in
+          Settings; this just makes it findable. See pkg/activities-discoverability. */}
+      <ParentActivitiesEntry />
 
       {/* ── Unlinked children banner ───────────────────────────────────── */}
       {/* Only show the "join family" banners when there's actually a profile
