@@ -41,6 +41,16 @@ export type OnboardingEventType =
   | 'capture_entry_seen'
   /** The entry card was tapped. */
   | 'capture_entry_tapped'
+  // Activities-discoverability funnel (2026-07-31). The "פעילויות וציוד" feature
+  // was reachable only from a Settings row, so parents never found it. A quiet
+  // dashboard entry card surfaces it; these two split "never saw the card" from
+  // "saw it and did not tap" — same as the capture pair above, keyed on a
+  // separate session Set so the two exposures do not cross-cancel. `source` =
+  // placement ('dashboard'). event_type is free text in the DB — no migration.
+  /** The Activities entry card actually rendered on the dashboard; deduped per app session. */
+  | 'activities_entry_seen'
+  /** The Activities entry card was tapped. */
+  | 'activities_entry_tapped'
   /** Parent tapped through to the WhatsApp community; `source` = placement. */
   | 'community_link_clicked'
   // AI coach insight funnel. These two are the ONLY parts of insight usage that
