@@ -46,6 +46,16 @@ jest.mock('react-native-purchases', () => ({
   LOG_LEVEL: { DEBUG: 'DEBUG', INFO: 'INFO', WARN: 'WARN', ERROR: 'ERROR' },
 }));
 
+// Mock Sentry — no native module / no DSN in tests. Telemetry helpers
+// (pushTelemetry, buffCatchTelemetry) call these; tests that want to assert
+// on them import the mocked module and read the jest.fn() call args.
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+  captureMessage: jest.fn(),
+  captureException: jest.fn(),
+  init: jest.fn(),
+}));
+
 // Silence the act() warning for state updates in async hooks during tests.
 // (We accept the noise from tests that don't wrap async setState calls.)
 const originalError = console.error;

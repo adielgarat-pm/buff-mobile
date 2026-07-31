@@ -14,6 +14,7 @@ import * as Notifications from 'expo-notifications';
 import * as Localization from 'expo-localization';
 import { Platform } from 'react-native';
 import { supabase } from '../integrations/supabase/client';
+import { logPushStep } from './pushTelemetry';
 
 export type TokenType = 'fcm-android' | 'fcm-ios' | 'fcm-web';
 
@@ -70,8 +71,17 @@ export async function requestNotificationPermission(): Promise<boolean> {
 export async function getPushToken(): Promise<string | null> {
   try {
     const tokenResult = await Notifications.getExpoPushTokenAsync();
-    return tokenResult.data ?? null;
+    const token = tokenResult.data ?? null;
+    // Telemetry: a null token here is an otherwise-silent funnel drop (permission
+    // granted but no token minted). See pushTelemetry.ts / SPEC.
+    logPushStep('get_token', { platform: Platform.OS, status: token ? 'success' : 'null' });
+    return token;
   } catch (err) {
+    logPushStep('get_token', {
+      platform: Platform.OS,
+      status: 'error',
+      reason: err instanceof Error ? err.message : String(err),
+    });
     if (__DEV__) console.warn('[pushTokens] getPushToken failed:', err);
     return null;
   }
@@ -102,9 +112,11 @@ export async function upsertDeviceToken(
       { onConflict: 'token' },
     );
   if (error) {
+    logPushStep('upsert_token', { platform: Platform.OS, status: 'error', reason: error.message });
     if (__DEV__) console.warn('[pushTokens] upsertDeviceToken failed:', error.message);
     return false;
   }
+  logPushStep('upsert_token', { platform: Platform.OS, status: 'success' });
   return true;
 }
 
