@@ -289,7 +289,7 @@ export default function ActivitiesScreen() {
                 <Text style={[styles.chevron, { color: T.text }]}>{isRTL ? '›' : '‹'}</Text>
               </TouchableOpacity>
               <Text style={[styles.sheetTitle, { color: T.text }]}>
-                {step === 'template' ? t('activities.step.template') : t('activities.step.gear')}
+                {step === 'template' ? t('activities.step.template') : t('activities.step.details')}
               </Text>
               <Text style={[styles.stepDots, { color: T.textMuted }]}>{step === 'template' ? '1/2' : '2/2'}</Text>
             </View>
