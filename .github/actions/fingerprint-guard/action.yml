@@ -1,0 +1,66 @@
+name: 'Fingerprint drift guard'
+description: >
+  Compares the current project's Android production fingerprint against the
+  runtimeVersion of the latest FINISHED production Android build (the live
+  binary in Play). Drift means an OTA published now would target a runtime no
+  shipped binary has — it installs to ZERO devices, silently. This is the
+  guard that turns the 2026-07 dead-OTA class of incident (IN-2026-07-17 /
+  2026-07-24) from an invisible failure into a loud one. See docs/OTA_PLAYBOOK.md.
+  Requires: node + `npm ci` already run, `eas` on PATH (expo/expo-github-action),
+  and EXPO_TOKEN in the job env.
+
+inputs:
+  fail-on-drift:
+    description: 'Fail the step on drift (true) or only annotate a warning (false).'
+    default: 'true'
+
+outputs:
+  drift:
+    description: 'true when the project fingerprint differs from the live binary runtime.'
+    value: ${{ steps.compare.outputs.drift }}
+  project-fingerprint:
+    description: 'The current project Android/production fingerprint hash.'
+    value: ${{ steps.compare.outputs.project }}
+  binary-runtime:
+    description: 'The runtimeVersion of the latest finished production Android build.'
+    value: ${{ steps.compare.outputs.binary }}
+
+runs:
+  using: composite
+  steps:
+    - id: compare
+      shell: bash
+      run: |
+        set -uo pipefail
+
+        echo "Computing current project fingerprint (android / production profile)…"
+        PROJECT=$(eas fingerprint:generate --platform android --build-profile production --json --non-interactive \
+          | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);process.stdout.write(j.hash||j.fingerprintHash||"")}catch(e){process.stdout.write("")}})')
+
+        echo "Reading live binary runtimeVersion (latest FINISHED production android build)…"
+        BINARY=$(eas build:list --platform android --profile production --status finished --limit 1 --json --non-interactive \
+          | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const arr=Array.isArray(j)?j:(j.builds||[]);const b=arr[0]||{};process.stdout.write(b.runtimeVersion||"")}catch(e){process.stdout.write("")}})')
+
+        echo "project fingerprint : ${PROJECT:-<empty>}"
+        echo "live binary runtime : ${BINARY:-<empty>}"
+        echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
+        echo "binary=$BINARY"   >> "$GITHUB_OUTPUT"
+
+        if [ -z "$PROJECT" ] || [ -z "$BINARY" ]; then
+          echo "::error::Could not resolve a fingerprint (project='$PROJECT' binary='$BINARY'). Refusing to guess."
+          echo "drift=unknown" >> "$GITHUB_OUTPUT"
+          exit 1
+        fi
+
+        if [ "$PROJECT" = "$BINARY" ]; then
+          echo "drift=false" >> "$GITHUB_OUTPUT"
+          echo "✅ Fingerprints match — an OTA to production will reach the live binary."
+          exit 0
+        fi
+
+        echo "drift=true" >> "$GITHUB_OUTPUT"
+        echo "::warning::Fingerprint DRIFT — project=$PROJECT != live binary=$BINARY. An OTA now would reach ZERO devices. Cut a new production Android build (versionCode bump) before relying on OTA. See docs/OTA_PLAYBOOK.md."
+        if [ "${{ inputs.fail-on-drift }}" = "true" ]; then
+          echo "::error::Blocking on fingerprint drift — a published OTA would not reach any device."
+          exit 1
+        fi
