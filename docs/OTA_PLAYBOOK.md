@@ -84,6 +84,32 @@ Publish OTA **from `main`** after merge (same discipline as binary builds — se
 
 ---
 
+## Automated delivery (CI) — the freshness pipeline
+
+The manual `npm run ota:prod` above is the fallback. The default is automated, so a
+merged JS fix reaches devices without anyone remembering to publish (the gap that let
+several PRs sit unshipped for days):
+
+- **`.github/workflows/ota-auto.yml`** — triggered by `workflow_run` after the **CI**
+  workflow succeeds on `main`. If (and only if) CI is green — typecheck + jest + guards +
+  web build — it publishes a production OTA. **The green CI run is the compensating control:
+  nothing auto-ships unless the automated test suite passed first.** Docs/assets/`.md`-only
+  commits are skipped (no JS bundle change).
+- **Fingerprint drift guard** (`.github/actions/fingerprint-guard`) runs immediately before
+  the publish. It compares the project's Android/production fingerprint to the runtimeVersion
+  of the latest finished production build (the live binary). **On drift it BLOCKS the publish**
+  — a drifted OTA would target a runtime no shipped binary has and reach zero devices. Drift
+  means: cut a new binary; OTA cannot deliver this change.
+- **`.github/workflows/fingerprint-drift.yml`** — the same guard on a daily schedule (+ manual),
+  so drift is caught **even when no merge happens**. A red run = "time to cut a new production
+  build." This is the early-warning the 2026-07 dead-OTA incidents lacked.
+
+Rule unchanged: production OTAs publish **from `main` only**. Local publishing is banned
+(local `node_modules` drift produces a mismatched fingerprint → silent dead OTA — the CI
+environment is the only trusted source of the fingerprint). See `IN-2026-07-17`.
+
+---
+
 ## What is NOT covered by OTA (complementary work)
 
 - **New-binary discoverability** — telling users a newer *binary* exists (the Noa case).

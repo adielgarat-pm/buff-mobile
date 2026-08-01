@@ -1,0 +1,92 @@
+name: OTA auto (production — gated on CI)
+
+# Publishes a production OTA AUTOMATICALLY, but only after the CI workflow has
+# passed on main. This is the automated safety gate that replaces the human
+# "remember to publish the OTA" step (which let #425/#426/#427 sit unshipped
+# for two days):
+#
+#   push to main  ->  CI (typecheck + jest + guards + web build)
+#                 ->  if CI is green: this workflow runs
+#                 ->  fingerprint drift guard (refuse a dead OTA)
+#                 ->  eas update --branch production
+#
+# The CI green light is the compensating control: nothing reaches production
+# devices unless the automated test suite passed first.
+#
+# Production OTAs publish from main only (docs/OTA_PLAYBOOK.md). Because this is
+# triggered by `workflow_run`, the workflow file must live on the default branch
+# to take effect. Requires repo secret: EXPO_TOKEN (same as the build workflow).
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: eas-update
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    # Only when CI actually succeeded on that commit.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Guard — require EXPO_TOKEN
+        run: |
+          if [ -z "${EXPO_TOKEN}" ]; then
+            echo "::error::EXPO_TOKEN secret is not set. Add it in Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 2
+
+      - name: Decide whether there is app code to ship
+        id: scope
+        run: |
+          SHA='${{ github.event.workflow_run.head_sha }}'
+          CHANGED=$(git diff --name-only "${SHA}^1" "${SHA}" 2>/dev/null || git show --name-only --pretty=format: "${SHA}")
+          echo "changed files:"; echo "$CHANGED"
+          # docs/, assets/, *.md and .github/ never change the JS bundle -> nothing to OTA.
+          CODE=$(echo "$CHANGED" | grep -Ev '^(docs/|assets/|\.github/)' | grep -Ev '\.md$' || true)
+          if [ -z "$CODE" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "No app-code changes in this commit — skipping OTA."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "App-code changes present — will publish after the drift guard."
+          fi
+
+      - uses: actions/setup-node@v4
+        if: ${{ steps.scope.outputs.publish == 'true' }}
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+        if: ${{ steps.scope.outputs.publish == 'true' }}
+
+      - uses: expo/expo-github-action@v8
+        if: ${{ steps.scope.outputs.publish == 'true' }}
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Fingerprint drift guard (refuse a dead OTA)
+        if: ${{ steps.scope.outputs.publish == 'true' }}
+        uses: ./.github/actions/fingerprint-guard
+        with:
+          fail-on-drift: 'true'
+
+      - name: Publish production OTA
+        if: ${{ steps.scope.outputs.publish == 'true' }}
+        run: |
+          MSG=$(git log -1 --pretty=%s "${{ github.event.workflow_run.head_sha }}")
+          echo "Publishing production OTA for: $MSG"
+          eas update --branch production --message "auto: $MSG" --non-interactive

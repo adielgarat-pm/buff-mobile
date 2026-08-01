@@ -1,0 +1,55 @@
+name: Fingerprint drift (daily early warning)
+
+# Standalone early-warning for the dead-OTA class of failure. Runs the same
+# fingerprint-guard as ota-auto.yml, but on a schedule (and on demand) so that
+# drift is caught EVEN WHEN NO MERGE HAPPENS — the exact gap that let the
+# 2026-07 dead-OTA incidents go unnoticed until they were found by accident.
+#
+# A red X here means: the project's Android/production fingerprint has moved off
+# the live binary in Play. Time to cut a new production build (versionCode bump);
+# until then OTAs cannot reach devices. See docs/OTA_PLAYBOOK.md.
+#
+# Requires repo secret: EXPO_TOKEN.
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # 05:00 UTC daily
+  workflow_dispatch:
+
+concurrency:
+  group: fingerprint-drift
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Guard — require EXPO_TOKEN
+        run: |
+          if [ -z "${EXPO_TOKEN}" ]; then
+            echo "::error::EXPO_TOKEN secret is not set."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Fingerprint drift guard (loud on drift)
+        uses: ./.github/actions/fingerprint-guard
+        with:
+          fail-on-drift: 'true'
