@@ -26,7 +26,7 @@ import './src/i18n';
 import * as Sentry from '@sentry/react-native';
 
 import { useEffect, useRef } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import { View, Platform, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -40,9 +40,11 @@ import RootNavigator                     from './src/navigation/RootNavigator';
 import { GlobalConfetti }                from './src/components/GlobalConfetti';
 import { GlobalRewardPop }               from './src/components/GlobalRewardPop';
 import { AlertHost }                     from './src/platform';
+import { OtaRestartToast }               from './src/components/OtaRestartToast';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { useVersionGate }                 from './src/hooks/useVersionGate';
+import { useFirstLaunchFreshness }        from './src/hooks/useFirstLaunchFreshness';
 import { resolveChildLang }              from './src/lib/i18nString';
 import { retitleStarterTasks }           from './src/lib/starterTaskRetitle';
 import { supabase }                      from './src/integrations/supabase/client';
@@ -194,13 +196,23 @@ function AppContent() {
   // unconditionally, before the isHydrating early-return, per rules-of-hooks.
   useVersionGate();
 
-  if (isHydrating) {
-    // Blank screen during the ~1 AsyncStorage read.
-    // Keeps the native splash visible (Expo splashscreen will still overlay
-    // until the first render completes). Lavender (Pastel home base) instead of
-    // the old cold #0F0F1A — the app's first painted surface (auth/onboarding) is
-    // LIGHT, so this avoids a dark flash on launch (color-consolidation).
-    return <View style={{ flex: 1, backgroundColor: LAVENDER_BG }} />;
+  // Layer 1: on a FRESH install's first launch, briefly hold the splash while a
+  // newer OTA downloads, so session 1 runs current JS. No-op on web/dev and for
+  // every non-first launch (returns pending:false immediately). Fail-open +
+  // wall-clock bounded — see useFirstLaunchFreshness.
+  const { pending: freshnessPending } = useFirstLaunchFreshness();
+
+  if (freshnessPending || isHydrating) {
+    // Blank lavender screen during hydration and/or the first-launch freshness
+    // wait (Expo's native splash still overlays until first render). Lavender
+    // (Pastel home base) avoids a dark flash — the first painted surface is
+    // LIGHT (color-consolidation). A subtle spinner reads as "loading", never
+    // "stuck", during the (bounded) first-launch wait.
+    return (
+      <View style={styles.splash}>
+        <ActivityIndicator size="small" color="#6D28D9" />
+      </View>
+    );
   }
 
   return (
@@ -211,6 +223,9 @@ function AppContent() {
       <GlobalRewardPop />
       {/* Web: renders crossAlert() dialogs (RN-Web Alert is a no-op). Native: null. */}
       <AlertHost />
+      {/* Layer 3: gentle "a fresh version is ready" toast when an OTA downloads
+          this session, on a safe parent surface. Renders null otherwise. */}
+      <OtaRestartToast />
     </>
   );
 }
@@ -253,6 +268,7 @@ const styles = StyleSheet.create({
   shell: Platform.OS === 'web'
     ? { flex: 1, width: '100%', maxWidth: WEB_MAX_WIDTH }
     : { flex: 1 },
+  splash: { flex: 1, backgroundColor: LAVENDER_BG, alignItems: 'center', justifyContent: 'center' },
 });
 
 export default Sentry.wrap(App);

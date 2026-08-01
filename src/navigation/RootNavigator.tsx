@@ -18,6 +18,7 @@ import { useChildrenDashboard } from '../hooks/useChildrenDashboard';
 import type { RootStackParamList } from './types';
 import { linking } from './linking';
 import { isOnboardingRoute, type OnboardingSnapshot } from './onboardingRoutes';
+import { setCurrentRoute } from '../lib/currentRoute';
 import {
   ONBOARDING_PERSISTENCE_ENABLED,
   loadOnboardingSnapshot,
@@ -94,8 +95,13 @@ export default function RootNavigator() {
   // Snapshot the focused route as the parent advances through onboarding; drop
   // the snapshot once they leave the flow for the real app. No-op on native.
   const onNavStateChange = useCallback((state: NavigationState | undefined) => {
-    if (!ONBOARDING_PERSISTENCE_ENABLED || !state) return;
+    if (!state) return;
     const route = state.routes[state.index];
+    // Publish the top-level focused route so the OTA restart toast (Layer 3) can
+    // tell it is on the stable parent shell vs. over a modal/editor/paywall/child
+    // surface. All platforms; independent of the web-only onboarding snapshot.
+    setCurrentRoute(route?.name ?? null);
+    if (!ONBOARDING_PERSISTENCE_ENABLED) return;
     if (route && isOnboardingRoute(route.name)) {
       saveOnboardingSnapshot({
         route:  route.name,
