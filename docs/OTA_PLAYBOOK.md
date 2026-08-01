@@ -32,6 +32,13 @@ Stop sending every change through the slowest door. Route by what the change tou
   runtime — so an OTA can **never** be delivered to an incompatible binary. Change a native
   dep → the fingerprint changes → that OTA simply won't reach old binaries (they wait for the
   new binary). This is what keeps the native/JS boundary safe.
+- **`fingerprint.config.js`** stabilizes the fingerprint against *non-native* inputs. By
+  default `@expo/fingerprint` also hashes `.gitignore` and every `package.json` script, so a
+  cosmetic edit there silently moved the runtime off the live binary and killed OTA delivery
+  (2026-07-24 dead-OTA incident: `.gitignore` #390, an npm script #389). The config's
+  `sourceSkips` (`GitIgnore | PackageJsonScriptsAll`) drop exactly those, so tooling edits no
+  longer break OTA. Adopting the config shifts the fingerprint **once** → it rides the next
+  binary (vc69), never an OTA.
 - **Channels** (`eas.json`): `production` build → `production` channel; `preview` build →
   `preview` channel. `eas update --branch <b>` publishes to the branch linked to that channel.
 - **Silent apply, no app code (v1):** `checkAutomatically: ON_LOAD` + `fallbackToCacheTimeout: 0`
