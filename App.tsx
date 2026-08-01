@@ -40,6 +40,7 @@ import RootNavigator                     from './src/navigation/RootNavigator';
 import { GlobalConfetti }                from './src/components/GlobalConfetti';
 import { GlobalRewardPop }               from './src/components/GlobalRewardPop';
 import { AlertHost }                     from './src/platform';
+import { OtaRestartToast }               from './src/components/OtaRestartToast';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { useVersionGate }                 from './src/hooks/useVersionGate';
@@ -211,6 +212,9 @@ function AppContent() {
       <GlobalRewardPop />
       {/* Web: renders crossAlert() dialogs (RN-Web Alert is a no-op). Native: null. */}
       <AlertHost />
+      {/* Layer 3: gentle "a fresh version is ready" toast when an OTA downloads
+          this session, on a safe parent surface. Renders null otherwise. */}
+      <OtaRestartToast />
     </>
   );
 }
