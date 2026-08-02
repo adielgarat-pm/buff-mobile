@@ -43,7 +43,7 @@ export default function ParentSettingsScreen() {
   const navigation   = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { profile, familyShortCode, signOut, deleteAccount } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
-  const { children } = useChildrenDashboard();
+  const { children, loading: childrenLoading } = useChildrenDashboard();
   const { isSubscribed, isLifetimeAccess, isGracePeriod } = useSubscription();
   const [codeCopied, setCodeCopied] = useState(false);
   const { language } = useLanguage();
@@ -271,8 +271,11 @@ export default function ParentSettingsScreen() {
         />
       </View>
 
-      {/* Join an existing family — second parent / partner (co-parent-join) */}
-      <JoinFamilyCard />
+      {/* Join an existing family — second parent / partner (co-parent-join).
+          Only shown to a parent whose family has no children yet: an established
+          parent is already "connected", and switching a family that owns children
+          would orphan them (see co-parent-join SPEC Open Question re: owner switch). */}
+      {!childrenLoading && children.length === 0 && <JoinFamilyCard />}
 
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>
