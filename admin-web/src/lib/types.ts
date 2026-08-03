@@ -42,6 +42,17 @@ export interface TesterChild {
   gender: string | null
   language: string | null
   created_at: string
+  /** Platform this child's profile was last seen on (profiles.last_platform).
+   *  Null until a stamping build runs on their device. */
+  last_platform: string | null
+  last_seen_at: string | null
+  /** auth.users.last_sign_in_at when the child has their own login (server
+   *  truth, unlike client-stamped last_seen_at). Null on shared-device kids. */
+  last_sign_in_at: string | null
+  /** True when the child profile has its own auth user (own-device login,
+   *  e.g. joined with the family code on their phone). False = shared device
+   *  via the parent's View-as-Child. */
+  own_device: boolean
   onboarding: OnboardingData | null
   balance: number
   tasks: TesterTask[]
@@ -55,14 +66,35 @@ export interface TesterChild {
 /** Canonical signup platform (families.platform, captured once at signup). */
 export type Platform = 'android' | 'ios' | 'web'
 
+/** One parent profile in a family (get_admin_tester_board `parents`, migration
+ *  055). Unlike the legacy parent_name/parent_email pair (first parent only),
+ *  this covers every non-deleted parent — co-parent families show both. */
+export interface TesterParent {
+  id: string
+  name: string | null
+  email: string | null
+  /** profiles.last_platform — client-stamped; null until a stamping build
+   *  runs on their device (web currently doesn't stamp it). */
+  last_platform: string | null
+  last_seen_at: string | null
+  /** auth.users.last_sign_in_at — server truth for "did they log in",
+   *  independent of client telemetry. */
+  last_sign_in_at: string | null
+  last_country: string | null
+  created_at: string
+}
+
 export interface TesterFamily {
   id: string
   name: string
   created_at: string
   preferred_language: string | null
   short_code: string | null
+  /** Legacy: first parent only (kept for back-compat). Prefer `parents`. */
   parent_name: string | null
   parent_email: string | null
+  /** Every non-deleted parent profile, oldest first (migration 055). */
+  parents: TesterParent[]
   platform: Platform | null
   /** ISO 3166-1 alpha-2 device-locale region of the most recently seen family
    *  member (profiles.last_country, migration 045). Forward-filling: null

@@ -20,7 +20,7 @@ import {
 } from '@/lib/cohort'
 import { challengeLabel } from '@/lib/labels'
 import type { Entitlement, Flag, Stage, TesterFamily } from '@/lib/types'
-import { CountryBadge, EntitlementBadge, FlagBadge, PlatformBadge, SourceBadge, StageBadge, TestTag } from './badges'
+import { CountryBadge, EntitlementBadge, FlagBadge, platformIcon, PlatformBadge, SourceBadge, StageBadge, TestTag } from './badges'
 import { FamilyModal } from './FamilyModal'
 import { RetentionStrip } from './RetentionStrip'
 
@@ -314,7 +314,18 @@ export function TesterBoardView({
                 >
                   <td className="px-3 py-2">
                     <div className="font-medium text-foreground">
-                      {f.parent_name ?? '—'}
+                      {f.parents && f.parents.length > 1 ? (
+                        <span className="inline-flex flex-wrap items-center gap-x-2">
+                          {f.parents.map((p) => (
+                            <span key={p.id} title={p.last_platform ?? 'platform unknown'}>
+                              {p.name ?? '—'}{' '}
+                              <span className="text-xs">{platformIcon(p.last_platform)}</span>
+                            </span>
+                          ))}
+                        </span>
+                      ) : (
+                        (f.parent_name ?? '—')
+                      )}
                       <EntitlementBadge
                         entitlement={entitlementOf(f)}
                         premiumUntil={f.premium_until}
@@ -338,8 +349,9 @@ export function TesterBoardView({
                           <span
                             key={c.id}
                             className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-700"
+                            title={c.own_device ? 'Own device' : 'Shared device (View-as-Child)'}
                           >
-                            👤 {c.name}{' '}
+                            {c.own_device ? '📱' : '👤'} {c.name}{' '}
                             <span className="text-gray-400">{c.age_group ?? '?'}</span>
                           </span>
                         ))}
