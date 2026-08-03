@@ -39,6 +39,21 @@ const PLATFORM_META: Record<Platform, { label: string; icon: string; className: 
   web: { label: 'Web', icon: '🌐', className: 'bg-sky-100 text-sky-700' },
 }
 
+/** Map fine-grained profiles.last_platform values ('android-web',
+ *  'desktop-web', …) onto the canonical three-way badge. Unknown → null. */
+export function normalizePlatform(p: string | null): Platform | null {
+  if (!p) return null
+  if (p === 'android' || p === 'ios' || p === 'web') return p
+  if (p.includes('web')) return 'web'
+  return null
+}
+
+/** Tiny inline icon for per-person platform in dense cells. Null → '·'. */
+export function platformIcon(p: string | null): string {
+  const n = normalizePlatform(p)
+  return n ? PLATFORM_META[n].icon : '·'
+}
+
 /** Platform a family last opened the app on. `null` → unknown (no stamped
  *  build yet); rendered as a muted dash so the column never looks empty. */
 export function PlatformBadge({ platform }: { platform: Platform | null }) {

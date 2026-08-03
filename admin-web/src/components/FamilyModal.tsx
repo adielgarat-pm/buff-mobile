@@ -1,8 +1,8 @@
 import { childRewardRedeemed, relativeTime } from '@/lib/cohort'
 import { challengeLabel, motivatorLabel } from '@/lib/labels'
 import { onboardingDiff } from '@/lib/onboardingDiff'
-import type { TesterChild, TesterFamily } from '@/lib/types'
-import { CountryBadge, PlatformBadge, SourceBadge } from './badges'
+import type { TesterChild, TesterFamily, TesterParent } from '@/lib/types'
+import { CountryBadge, normalizePlatform, PlatformBadge, SourceBadge } from './badges'
 
 function exportFamilyJson(f: TesterFamily) {
   const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' })
@@ -18,6 +18,41 @@ function exportFamilyJson(f: TesterFamily) {
 function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{children}</span>
+  )
+}
+
+function ParentRow({ parent }: { parent: TesterParent }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-semibold">{parent.name ?? '—'}</span>
+        <PlatformBadge platform={normalizePlatform(parent.last_platform)} />
+        <CountryBadge country={parent.last_country} />
+        {parent.email && (
+          <a href={`mailto:${parent.email}`} className="text-xs text-blue-600 hover:underline">
+            {parent.email}
+          </a>
+        )}
+      </div>
+      <div className="text-xs text-muted-foreground">
+        {parent.last_sign_in_at ? (
+          <span title="auth.users.last_sign_in_at — server-side login truth">
+            last login {relativeTime(parent.last_sign_in_at)}
+          </span>
+        ) : (
+          <span>never logged in</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ChildDeviceChips({ child }: { child: TesterChild }) {
+  return (
+    <>
+      <Chip>{child.own_device ? '📱 own device' : '🤝 shared device'}</Chip>
+      <PlatformBadge platform={normalizePlatform(child.last_platform)} />
+    </>
   )
 }
 
@@ -76,6 +111,7 @@ function ChildSection({ child }: { child: TesterChild }) {
           <Chip>{child.age_group ?? '?'}</Chip>
           {child.gender && <Chip>{child.gender}</Chip>}
           <Chip>💰 {child.balance} BUFFs</Chip>
+          <ChildDeviceChips child={child} />
         </div>
         <div className="text-xs text-muted-foreground">
           {child.completions_total} completions · last {relativeTime(child.last_active)}
@@ -215,6 +251,18 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
 
         {/* Body */}
         <div className="space-y-3 p-5">
+          {family.parents && family.parents.length > 0 && (
+            <div>
+              <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Parents ({family.parents.length})
+              </div>
+              <div className="space-y-1.5">
+                {family.parents.map((p) => (
+                  <ParentRow key={p.id} parent={p} />
+                ))}
+              </div>
+            </div>
+          )}
           {family.children.map((c) => (
             <ChildSection key={c.id} child={c} />
           ))}
