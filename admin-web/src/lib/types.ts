@@ -81,6 +81,10 @@ export interface TesterParent {
    *  independent of client telemetry. */
   last_sign_in_at: string | null
   last_country: string | null
+  /** This parent created the family (families.created_by, migration 050+).
+   *  Lets the UI fall back to families.platform when telemetry never stamped
+   *  last_platform (web doesn't stamp it). False for pre-050 families. */
+  is_creator: boolean
   created_at: string
 }
 

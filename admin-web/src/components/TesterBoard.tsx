@@ -20,7 +20,7 @@ import {
 } from '@/lib/cohort'
 import { challengeLabel } from '@/lib/labels'
 import type { Entitlement, Flag, Stage, TesterFamily } from '@/lib/types'
-import { CountryBadge, EntitlementBadge, FlagBadge, platformIcon, PlatformBadge, SourceBadge, StageBadge, TestTag } from './badges'
+import { CountryBadge, EntitlementBadge, familyPlatforms, FlagBadge, parentPlatform, platformIcon, PlatformBadge, SourceBadge, StageBadge, TestTag } from './badges'
 import { FamilyModal } from './FamilyModal'
 import { RetentionStrip } from './RetentionStrip'
 
@@ -317,9 +317,9 @@ export function TesterBoardView({
                       {f.parents && f.parents.length > 1 ? (
                         <span className="inline-flex flex-wrap items-center gap-x-2">
                           {f.parents.map((p) => (
-                            <span key={p.id} title={p.last_platform ?? 'platform unknown'}>
+                            <span key={p.id} title={p.last_platform ?? (p.is_creator ? `signup platform: ${f.platform}` : 'platform unknown')}>
                               {p.name ?? '—'}{' '}
-                              <span className="text-xs">{platformIcon(p.last_platform)}</span>
+                              <span className="text-xs">{platformIcon(parentPlatform(p, f.platform))}</span>
                             </span>
                           ))}
                         </span>
@@ -364,7 +364,11 @@ export function TesterBoardView({
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap items-center gap-1">
-                      <PlatformBadge platform={f.platform} />
+                      {familyPlatforms(f).length > 0 ? (
+                        familyPlatforms(f).map((pl) => <PlatformBadge key={pl} platform={pl} />)
+                      ) : (
+                        <PlatformBadge platform={f.platform} />
+                      )}
                       <CountryBadge country={f.country} />
                     </div>
                     {f.last_platform && (
