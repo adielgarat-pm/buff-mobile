@@ -101,11 +101,19 @@ function RateNudgeBanner({ onDismiss }: BannerProps) {
 interface RateNudgeOptions {
   /** False during view-as-child preview → never fire a store review for a kid. */
   enabled?: boolean;
+  /**
+   * The happy-moment signal (pkg/rate-happy-moment): true when the parent is
+   * looking at evidence of a winning yesterday (hasWinningYesterday). The ask
+   * fires ONLY while this is true — never on a neutral or bad day. Loads async
+   * with the recaps, so the native effect reacts to it turning true.
+   */
+  positiveMoment?: boolean;
 }
 
 /**
  * Wire the rate prompt from the parent dashboard. Pass `enabled: !isChildPreview`
- * so the native auto-prompt never fires while a parent is viewing as the child.
+ * so the native auto-prompt never fires while a parent is viewing as the child,
+ * and `positiveMoment` (hasWinningYesterday) so it only fires on a genuine win.
  * The onDismiss callback only matters on web (it suppresses the banner slot).
  */
 export function useRateNudgeRegistration(
@@ -116,16 +124,30 @@ export function useRateNudgeRegistration(
   onDismissRef.current = onDismiss;
   const enabledRef = useRef(opts.enabled ?? true);
   enabledRef.current = opts.enabled ?? true;
+  const positiveMoment = opts.positiveMoment ?? false;
+  const positiveMomentRef = useRef(positiveMoment);
+  positiveMomentRef.current = positiveMoment;
+  // The session counter must bump once per mount regardless of what kind of
+  // day yesterday was — the retention clock is independent of the happy gate.
+  const seenRecordedRef = useRef(false);
+  // At most one native invoke per mount, even if positiveMoment flickers.
+  const nativeFiredRef = useRef(false);
 
-  // ── Native: auto-fire the OS review card once per dashboard mount ──
+  // ── Native: fire the OS review card when the happy moment arrives ──
   useEffect(() => {
     if (Platform.OS === 'web') return;
     let cancelled = false;
     (async () => {
       if (!enabledRef.current) return; // view-as-child → don't ask a kid to rate
-      await recordRateNudgeSeen(Date.now());
+      if (!seenRecordedRef.current) {
+        seenRecordedRef.current = true;
+        await recordRateNudgeSeen(Date.now());
+      }
+      // Recaps load async; this effect re-runs when positiveMoment turns true.
+      if (!positiveMoment || nativeFiredRef.current || cancelled) return;
       const eligible = await evaluateRateEligible();
       if (!eligible || cancelled) return;
+      nativeFiredRef.current = true;
       const fired = await requestNativeReview();
       // We can't observe whether the OS actually showed the card (quota is
       // opaque). Starting the 90-day cooldown on a successful invoke is the
@@ -135,7 +157,7 @@ export function useRateNudgeRegistration(
     return () => {
       cancelled = true;
     };
-  }, []); // once per mount
+  }, [positiveMoment]);
 
   // ── Web: register the passive banner with the Nudge Manager ──
   useEffect(() => {
@@ -144,7 +166,9 @@ export function useRateNudgeRegistration(
     registerNudge({
       id: 'rate',
       priority: NUDGE_PRIORITY.rate,
-      eligible: evaluateRateEligible,
+      // Same unified signal as native, split action (Parity rule): the banner
+      // only competes for the slot on a winning morning-after.
+      eligible: async () => positiveMomentRef.current && (await evaluateRateEligible()),
       render: () => <RateNudgeBanner onDismiss={() => onDismissRef.current()} />,
     });
   }, []); // once per mount

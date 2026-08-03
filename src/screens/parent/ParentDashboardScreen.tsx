@@ -57,6 +57,7 @@ import { STICKER_CATALOG } from '../../lib/stickerCatalog';
 import { formatNum } from '../../lib/uiLocale';
 import { useInstallNudgeRegistration } from '../../components/install/InstallNudge';
 import { useRateNudgeRegistration } from '../../components/rate/RateNudge';
+import { hasWinningYesterday } from '../../lib/rateBuff/happyMoment';
 import { useActiveNudge } from '../../lib/nudges/nudgeManager';
 import type { RootStackParamList, ParentTabsParamList } from '../../navigation/types';
 
@@ -122,12 +123,28 @@ export default function ParentDashboardScreen() {
     loading:    anchorDismissLoading,
   } = useAnchorRecoveryDismiss(familyId ?? null);
   const [anchorModalVisible, setAnchorModalVisible] = useState(false);
+  // Yesterday's task completion per child — read-only section below "Today."
+  // Beta-driven (Shani 2026-05-21); SPEC at docs/sessions/yesterday-recap/.
+  // Declared above the nudge slot: the rate registration's happy-moment gate
+  // reads the recaps (pkg/rate-happy-moment).
+  const {
+    recapByChildId:    yesterdayRecaps,
+    shouldHide:        yesterdayHidden,
+    yesterdayDate,
+    loading:           yesterdayLoading,
+    refetch:           refetchYesterday,
+  } = useYesterdayRecap();
   // Passive nudge slot — install banner (pkg/pwa-install-nudge) or rate banner
   // (pkg/rate-us-port). One slot, one winner via the Nudge Manager: install
   // (priority 20) beats rate (10), and a 7-day global cooldown stops stacking.
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   useInstallNudgeRegistration(() => setNudgeDismissed(true));
-  useRateNudgeRegistration(() => setNudgeDismissed(true), { enabled: !isChildPreview });
+  useRateNudgeRegistration(() => setNudgeDismissed(true), {
+    enabled: !isChildPreview,
+    // Happy-moment gate (pkg/rate-happy-moment): only ask while the parent is
+    // looking at evidence of a winning yesterday.
+    positiveMoment: hasWinningYesterday(yesterdayRecaps),
+  });
   const activeNudge = useActiveNudge({ suppressed: isChildPreview || nudgeDismissed });
   // Phase 3 — Med reminder sheet, opened over the anchor modal from its meds
   // CTA. Stacked (anchor modal stays mounted underneath) so cancelling the
@@ -136,15 +153,6 @@ export default function ParentDashboardScreen() {
   // Per-child set of kids who already have a standalone meds task — hides the
   // meds CTA for them (OQ7). Reconciled heuristic: see the query effect below.
   const [medsExistingFor, setMedsExistingFor] = useState<Set<string>>(new Set());
-  // Yesterday's task completion per child — read-only section below "Today."
-  // Beta-driven (Shani 2026-05-21); SPEC at docs/sessions/yesterday-recap/.
-  const {
-    recapByChildId:    yesterdayRecaps,
-    shouldHide:        yesterdayHidden,
-    yesterdayDate,
-    loading:           yesterdayLoading,
-    refetch:           refetchYesterday,
-  } = useYesterdayRecap();
   const [linkTarget, setLinkTarget]        = useState<typeof unlinked[0] | null>(null);
   const autoLinkedRef                      = useRef(false);
 
