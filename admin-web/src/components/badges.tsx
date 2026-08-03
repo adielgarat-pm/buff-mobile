@@ -1,4 +1,4 @@
-import type { Entitlement, Flag, Platform, Stage } from '@/lib/types'
+import type { Entitlement, Flag, Platform, Stage, TesterFamily, TesterParent } from '@/lib/types'
 
 const STAGE_META: Record<Stage, { label: string; className: string }> = {
   signed_up: { label: 'Signed up', className: 'bg-gray-100 text-gray-600' },
@@ -52,6 +52,31 @@ export function normalizePlatform(p: string | null): Platform | null {
 export function platformIcon(p: string | null): string {
   const n = normalizePlatform(p)
   return n ? PLATFORM_META[n].icon : '·'
+}
+
+/** Best-known device for a parent: client-stamped last_platform first, else
+ *  the family signup platform when this parent created the family (web
+ *  clients never stamp last_platform, so creators would otherwise show
+ *  nothing — the Kiriati case, 2026-08-03). */
+export function parentPlatform(p: TesterParent, familyPlatform: Platform | null): Platform | null {
+  return normalizePlatform(p.last_platform) ?? (p.is_creator ? familyPlatform : null)
+}
+
+/** Distinct devices seen across the whole family (parents + children), for
+ *  the table's Platform column — a co-parent family on Android + web shows
+ *  BOTH badges instead of only the signup platform. */
+export function familyPlatforms(f: TesterFamily): Platform[] {
+  const set = new Set<Platform>()
+  for (const p of f.parents ?? []) {
+    const v = parentPlatform(p, f.platform)
+    if (v) set.add(v)
+  }
+  for (const c of f.children) {
+    const v = normalizePlatform(c.last_platform)
+    if (v) set.add(v)
+  }
+  if (set.size === 0 && f.platform) set.add(f.platform)
+  return [...set]
 }
 
 /** Platform a family last opened the app on. `null` → unknown (no stamped

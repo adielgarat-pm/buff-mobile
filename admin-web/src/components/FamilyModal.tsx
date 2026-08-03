@@ -2,7 +2,7 @@ import { childRewardRedeemed, relativeTime } from '@/lib/cohort'
 import { challengeLabel, motivatorLabel } from '@/lib/labels'
 import { onboardingDiff } from '@/lib/onboardingDiff'
 import type { TesterChild, TesterFamily, TesterParent } from '@/lib/types'
-import { CountryBadge, normalizePlatform, PlatformBadge, SourceBadge } from './badges'
+import { CountryBadge, normalizePlatform, parentPlatform, PlatformBadge, SourceBadge } from './badges'
 
 function exportFamilyJson(f: TesterFamily) {
   const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' })
@@ -21,12 +21,12 @@ function Chip({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ParentRow({ parent }: { parent: TesterParent }) {
+function ParentRow({ parent, family }: { parent: TesterParent; family: TesterFamily }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-white px-3 py-2">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-semibold">{parent.name ?? '—'}</span>
-        <PlatformBadge platform={normalizePlatform(parent.last_platform)} />
+        <PlatformBadge platform={parentPlatform(parent, family.platform)} />
         <CountryBadge country={parent.last_country} />
         {parent.email && (
           <a href={`mailto:${parent.email}`} className="text-xs text-blue-600 hover:underline">
@@ -258,7 +258,7 @@ export function FamilyModal({ family, onClose }: { family: TesterFamily; onClose
               </div>
               <div className="space-y-1.5">
                 {family.parents.map((p) => (
-                  <ParentRow key={p.id} parent={p} />
+                  <ParentRow key={p.id} parent={p} family={family} />
                 ))}
               </div>
             </div>
