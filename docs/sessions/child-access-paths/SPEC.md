@@ -160,7 +160,7 @@ alter table public.profiles add column day1_push_optout boolean not null default
 - **New:** deep-link route למסך הגישה (יעד הפוש); שיגור View-as-Child מתוך onboarding; כרטיס דשבורד "הרגע של {child}" (shared_device, יום 2+); התראה מקומית מתוזמנת (expo-notifications, קיים — לא dep חדש).
 - **Reuse:** `shareInvite`, resume banner, View-as-Child, ערוץ notifications קיים.
 
-## UI / Copy Table (EN + HE — טעון אישור שורה-שורה של Adi לפני merge)
+## UI / Copy Table (EN + HE — ✅ אושר שורה-שורה ע"י Adi 2026-08-04, כולל סינתזת Gemini; כותרת = "נשתמש")
 
 | מקום | EN | HE | הערה |
 |---|---|---|---|
@@ -171,10 +171,10 @@ alter table public.profiles add column day1_push_optout boolean not null default
 | כרטיס 2 | "On a computer or tablet at home" | "במחשב או טאבלט בבית" | — |
 | כרטיס 2 sub | "Open it together tonight — here's your family code" | "פותחים יחד הערב — עם קוד המשפחה שלכם" | בלי הבטחת לינק עד אימות E2E |
 | כרטיס 3 | "Right here, on my device" | "כאן, אצלי במכשיר" | מודגש ב-native |
-| כרטיס 3 sub | "Their moment on your phone — they tap it themselves" | "הרגע שלו על הטלפון שלך — הוא מסמן בעצמו" (הטיה לפי מגדר) | ההקשה משגרת View-as-Child |
+| כרטיס 3 sub | "Their moment on your phone — they tap it themselves" | "הרגע שלו על המכשיר שלך — הוא מסמן בעצמו" (הטיה לפי מגדר) | ההקשה משגרת View-as-Child. טלפון→מכשיר לעקביות עם כותרת הכרטיס (סינתזת Gemini) |
 | אישור share | "The link is ready to send" | "הלינק מוכן לשליחה" | כן; "✓ נשלח" רק ב-join מאומת (Phase 3) |
 | כרטיס דשבורד יום-2 (shared) | "{child}'s moment" | "הרגע של {child}" | הקשה אחת ל-View-as-Child |
-| כרטיס דשבורד (abandon) | "How will {child} use BUFF?" | "איך {child} ישתמש ב-BUFF?" | re-entry למסך |
+| כרטיס דשבורד (abandon) | "{child} — how will we use BUFF?" | "‏{child} — איך נשתמש ב-BUFF?" | re-entry למסך; מבנה bidi-safe זהה לכותרת (תוקן אחרי סינתזת Gemini — היה "איך {child} ישתמש" עם סיכון bidi) |
 | **פוש יום-1 (ניסוח Adi)** | "How would you like {child} to try BUFF for the first time? Their own phone, the family computer, or right on your device 🌱" | "איך תרצו ש{child} ינסה את BUFF בפעם הראשונה? בטלפון שלו, במחשב בבית, או אצלכם במכשיר 🌱" | הורה ברבים-ניטרלי; ילד לפי מגדר; deep-link למסך הגישה |
 | opt-out | "Stop reminding me about this" | "הפסיקו להזכיר לי את זה" | בפוש + במסך הנחיתה |
 
