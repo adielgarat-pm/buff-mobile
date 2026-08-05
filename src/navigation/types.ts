@@ -97,7 +97,10 @@ export type RootStackParamList = {
 export type ParentTabsParamList = {
   // openSheet/sheetChildId: the Parent Insights screen routes a CTA back to the
   // dashboard to reuse its existing sticker/bonus/med sheets (no duplicated logic).
-  ParentDashboard: { openSheet?: 'sticker' | 'bonus' | 'med'; sheetChildId?: string } | undefined;
+  // previewChildId: child-access-paths shared-device handoff. UStep8_Complete
+  // resets here with it so the dashboard enters View-as-Child immediately —
+  // the "right here, on my device" tap becomes the handoff ritual.
+  ParentDashboard: { openSheet?: 'sticker' | 'bonus' | 'med'; sheetChildId?: string; previewChildId?: string } | undefined;
   ParentTasks:     undefined;
   // childId: deep-link from a reward-redemption notification → pre-select that child.
   ParentRewards:   { childId?: string } | undefined;

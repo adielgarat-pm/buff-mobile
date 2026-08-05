@@ -1617,6 +1617,7 @@
   "onboarding.complete.coachRole": "You're the coach — BUFF is the manager.",
   "onboarding.complete.redirecting": "Taking you to your dashboard…",
   "onboarding.complete.cta": "Go to Dashboard 🏠",
+  "onboarding.complete.startTogether": "Let's start with {{name}} 🌱",
   "onboarding.complete.saveError": "Something went wrong saving the profile. Please try again.",
   "onboarding.complete.communityLine": "There's a quiet WhatsApp group for parents — questions, tips, and people who know the journey.",
   "onboarding.complete.communityCta": "Join the community →",

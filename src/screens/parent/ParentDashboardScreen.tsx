@@ -561,6 +561,20 @@ export default function ParentDashboardScreen() {
     navigation.setParams({ openSheet: undefined, sheetChildId: undefined } as never);
   }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── ChildAccessStep shared-device bridge ──────────────────────────────────
+  // Onboarding's "right here, on my device" path resets here with previewChildId.
+  // Enter View-as-Child immediately (reuses the same entry as the per-child
+  // preview button) so the tap on the access card becomes the handoff ritual.
+  // The navigator is now settled on ParentApp, so the viewMode tree-swap is safe.
+  useEffect(() => {
+    const previewChildId = route.params?.previewChildId;
+    if (!previewChildId) return;
+    const child = children.find(c => c.childId === previewChildId);
+    enterChildPreview(previewChildId, child?.displayName);
+    // Clear so re-focusing the tab doesn't re-enter preview.
+    navigation.setParams({ previewChildId: undefined } as never);
+  }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Pull-to-refresh — "did she do it yet?" is checked many times a day; a
   // parent shouldn't have to background/foreground the app to get fresh data.
   // Re-pulls everything this screen renders: child progress cards, SOS

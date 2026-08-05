@@ -1617,6 +1617,7 @@
   "onboarding.complete.coachRole": "אתה/את המאמן/ת — BUFF הוא המנהל.",
   "onboarding.complete.redirecting": "מעביר/ה אותך לדשבורד…",
   "onboarding.complete.cta": "עבור/י לדשבורד 🏠",
+  "onboarding.complete.startTogether": "בואו נתחיל עם {{name}} 🌱",
   "onboarding.complete.saveError": "משהו השתבש בשמירת הפרופיל. אנא נסה/נסי שוב.",
   "onboarding.complete.communityLine": "יש לנו קבוצת הורים שקטה בוואטסאפ — שאלות, טיפים, והורים שמכירים את המסע.",
   "onboarding.complete.communityCta": "להצטרפות לקהילה ←",
