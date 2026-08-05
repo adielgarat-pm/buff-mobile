@@ -1,5 +1,6 @@
 /**
- * UStep4_Motivator — multi-select motivators (max 2), then Continue.
+ * UStep4_Motivator — multi-select motivators (unlimited), then Continue.
+ * A rich pick drives a richer, child-chosen reward menu downstream (Pillar 1).
  */
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
@@ -16,7 +17,6 @@ type Nav   = StackNavigationProp<RootStackParamList, 'UStep4_Motivator'>;
 type Route = RouteProp<RootStackParamList, 'UStep4_Motivator'>;
 
 const STEP = 3; const TOTAL = 6;
-const MAX_PICKS = 2;
 
 export default function UStep4_Motivator() {
   const navigation = useNavigation<Nav>();
@@ -29,11 +29,9 @@ export default function UStep4_Motivator() {
   const progress = (STEP + 1) / (TOTAL + 1);
 
   const toggle = (id: string) => {
-    setSelected(prev => {
-      if (prev.includes(id)) return prev.filter(x => x !== id);
-      if (prev.length >= MAX_PICKS) return prev; // cap at 2
-      return [...prev, id];
-    });
+    setSelected(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
   };
 
   const canProceed = selected.length >= 1;
@@ -80,15 +78,12 @@ export default function UStep4_Motivator() {
         {/* Pick hint */}
         <Text style={[styles.pickHint, isRTL && styles.textRight]}>
           {selected.length === 0
-            ? t('onboarding.step4.pickHint', 'Pick up to 2')
-            : selected.length === MAX_PICKS
-              ? t('onboarding.step4.pickMax', 'Max 2 selected')
-              : t('onboarding.step4.pickOne', '1 selected — pick one more or continue')}
+            ? t('onboarding.step4.pickHint')
+            : t('onboarding.step4.pickCount', { count: selected.length })}
         </Text>
 
         {MOTIVATORS.map((mot) => {
           const isSelected = selected.includes(mot.id);
-          const isDisabled = !isSelected && selected.length >= MAX_PICKS;
           return (
             <TouchableOpacity
               key={mot.id}
@@ -97,12 +92,11 @@ export default function UStep4_Motivator() {
                 styles.card,
                 isRTL && styles.rowReverse,
                 isSelected && styles.cardSelected,
-                isDisabled && styles.cardDisabled,
               ]}
               onPress={() => toggle(mot.id)}
               activeOpacity={0.75}
               accessibilityRole="checkbox"
-              accessibilityState={{ checked: isSelected, disabled: isDisabled }}
+              accessibilityState={{ checked: isSelected }}
               accessibilityLabel={t(mot.labelKey)}
             >
               <Text style={styles.cardEmoji}>{mot.emoji}</Text>
@@ -153,7 +147,6 @@ const styles = StyleSheet.create({
   pickHint:          { color: T.accent, fontSize: 13, fontWeight: '600', marginBottom: 16 },
   card:              { backgroundColor: T.card, borderRadius: 14, padding: 18, marginBottom: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: T.cardBorder },
   cardSelected:      { borderColor: T.accent, backgroundColor: '#F5F3FF' },
-  cardDisabled:      { opacity: 0.4 },
   cardEmoji:         { fontSize: 26, marginRight: 14, width: 34 },
   cardLabel:         { flex: 1, color: T.text, fontSize: 16, fontWeight: '600' },
   cardLabelSelected: { color: T.accent },

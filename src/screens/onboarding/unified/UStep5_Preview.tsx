@@ -79,19 +79,38 @@ export default function UStep5_Preview() {
     additionalChallenges: params.additionalChallenges,
   });
 
-  // motivators is an array (1 or 2). Pick rewards from each motivator's list,
-  // one per motivator, so the selection feels personal.
+  // motivators can be any length. Seed rewards from EVERY selected motivator's
+  // list (both the small + large pick), so the menu scales with — and reflects —
+  // everything the child chose (Pillar 1: a rich menu of real, child-chosen
+  // rewards, always close to a win). No cap: Adi's spec is "redeem as many as
+  // possible". This only INSERTS seed rewards; it never touches balances/ledger.
   const buildRewards = () => {
     const motivators = params.motivators ?? [];
-    if (motivators.length === 0) return FALLBACK_REWARDS.slice(0, ONBOARDING_CONFIG.DEFAULT_REWARDS_COUNT);
 
-    const perMotivator = Math.ceil(ONBOARDING_CONFIG.DEFAULT_REWARDS_COUNT / motivators.length);
-    const combined = motivators.flatMap(motivatorId => {
-      const picks = (REWARD_PICKS[motivatorId] as Record<AgeGroup, typeof FALLBACK_REWARDS> | undefined)
-        ?.[params.ageGroup] ?? FALLBACK_REWARDS;
-      return picks.slice(0, perMotivator);
+    const combined = motivators.flatMap(motivatorId =>
+      (REWARD_PICKS[motivatorId] as Record<AgeGroup, typeof FALLBACK_REWARDS> | undefined)
+        ?.[params.ageGroup] ?? []
+    );
+
+    // Dedupe by English title, NOT id: the picks lists reuse the same reward
+    // under different ids across motivators (e.g. gaming + sports both include
+    // "Game Night" / "Special sports outing"), so id-dedupe would leave visible
+    // duplicates + duplicate rows. store_rewards has no unique constraint, so
+    // this is a UX/data-cleanliness guard. Surviving titles carry unique ids,
+    // keeping the `key={reward.id}` render collision-free.
+    const seen = new Set<string>();
+    const deduped = combined.filter(r => {
+      if (seen.has(r.title.en)) return false;
+      seen.add(r.title.en);
+      return true;
     });
-    return combined.slice(0, ONBOARDING_CONFIG.DEFAULT_REWARDS_COUNT);
+
+    // Empty when no motivators were picked, or only "money" was — money is
+    // intentionally absent from REWARD_PICKS (real cash is never auto-seeded,
+    // Pillar 1); the parent adds it deliberately from the Rewards screen.
+    return deduped.length > 0
+      ? deduped
+      : FALLBACK_REWARDS.slice(0, ONBOARDING_CONFIG.DEFAULT_REWARDS_COUNT);
   };
   const rewards = buildRewards();
 
