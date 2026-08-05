@@ -20,6 +20,9 @@ export interface ChildSummary {
   tasksCompleted: number;
   tasksTotal:     number;
   totalBalance:   number;
+  // child-access-paths: how this child accesses BUFF (own_phone|home_device|
+  // shared_device|null). Drives the dashboard "moment" re-entry card.
+  accessMode:     string | null;
 }
 
 const getTodayKey = () => new Date().toISOString().split('T')[0];
@@ -54,7 +57,7 @@ export function useChildrenDashboard() {
 
       const { data: profiles, error: profilesErr } = await supabase
         .from('profiles')
-        .select('id, display_name, avatar, created_at, off_routine_until')
+        .select('id, display_name, avatar, created_at, off_routine_until, access_mode')
         .eq('family_id', familyId)
         .eq('role', 'child')
         .eq('is_deleted', false); // hide children a parent has removed (soft delete)
@@ -112,6 +115,7 @@ export function useChildrenDashboard() {
             tasksTotal:     visibleTasks.length,
             tasksCompleted: visibleTasks.filter(t => completedIds.has(t.id)).length,
             totalBalance:   vault?.total_balance ?? 0,
+            accessMode:     (child as { access_mode?: string | null }).access_mode ?? null,
           };
         })
       );
