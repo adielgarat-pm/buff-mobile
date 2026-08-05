@@ -66,10 +66,31 @@ export type OnboardingEventType =
   // so it survives the tab rename), `method` = TabViewMethod, `variant` =
   // "{navSessionId}:{seq}" for per-session ordering. child_id is always null
   // (parent-surface telemetry only, never per-child — Pillar 2).
-  | 'parent_tab_viewed';
+  | 'parent_tab_viewed'
+  // child-access-paths funnel. Replaces the old "does the child have a phone?"
+  // step. `method` = AccessMode on access_mode_selected. access_step_abandoned
+  // fires when the parent leaves the screen without choosing (Keren's signature:
+  // opened the invite screen 3× and never tapped). The day1_push_* trio is the
+  // Phase-2 evening reminder's own delivery telemetry (descriptive, not a lift
+  // claim — no valid control group at this N).
+  /** Parent chose an access path; `method` = AccessMode. */
+  | 'access_mode_selected'
+  /** Parent left the access screen without choosing → day-1 push cohort. */
+  | 'access_step_abandoned'
+  | 'day1_push_scheduled'
+  | 'day1_push_sent'
+  | 'day1_push_opened';
 
 /** How the parent tried to hand BUFF to the child's device. */
 export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';
+
+/**
+ * How the child accesses BUFF, chosen on ChildAccessStep. Persisted on the
+ * child profile (profiles.access_mode) as current-state and logged as history.
+ * Replaces the old boolean `hasPhone`: own_phone → true, else → false for any
+ * legacy reader.
+ */
+export type AccessMode = 'own_phone' | 'home_device' | 'shared_device';
 
 /** How a parent tab came into focus, for the navigation audit. */
 export type TabViewMethod = 'initial' | 'tab_press' | 'deep_link';
@@ -79,7 +100,7 @@ interface LogArgs {
   familyId: string | null | undefined;
   eventType: OnboardingEventType;
   childId?: string | null;
-  method?: InviteMethod | TabViewMethod | null;
+  method?: InviteMethod | TabViewMethod | AccessMode | null;
   /** For first_task_complete: 'onboarding_first_task' (seed) vs 'child_authored'. */
   source?: string | null;
   /** Feature-flag / A-B cohort. */
