@@ -48,11 +48,9 @@ export type RootStackParamList = {
   ULoadingScreen:      UWithMotivator;
   UStep5_Preview:      UWithMotivator;   // saves child profile + tasks + rewards; produces childProfileId
   UStep6_FirstTask:    UWithPreview;     // "first mission together" — writes the seed daily_progress row
-  // child-access-paths: this screen is replaced by ChildAccessStep (3 access
-  // paths) in Chunk 2; the route key is renamed there together with all its
-  // consumers so the build stays green between chunks. Param shape already
-  // carries the target (childProfileId in, accessMode out).
-  UStep7_Phone:        UWithPreview;     // receives childProfileId from Preview
+  // child-access-paths: "how will {child} use BUFF?" — 3 equal access paths,
+  // replaced the old "does the child have a phone?" step (UStep7_Phone).
+  ChildAccessStep:     UWithPreview;     // receives childProfileId from Preview
   UStep8_Complete:     UWithAccess;      // only updates parent profile + refreshes auth (does not read accessMode)
 
   // ── Main app (nested navigators) ─────────────────────────────────────

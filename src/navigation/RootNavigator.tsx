@@ -43,7 +43,7 @@ import UStep4_Motivator    from '../screens/onboarding/unified/UStep4_Motivator'
 import ULoadingScreen      from '../screens/onboarding/unified/ULoadingScreen';
 import UStep5_Preview      from '../screens/onboarding/unified/UStep5_Preview';
 import UStep6_FirstTask    from '../screens/onboarding/unified/UStep6_FirstTask';
-import UStep7_Phone        from '../screens/onboarding/unified/UStep7_Phone';
+import ChildAccessStep     from '../screens/onboarding/unified/ChildAccessStep';
 import UStep8_Complete     from '../screens/onboarding/unified/UStep8_Complete';
 
 // ── Main app tab navigators ───────────────────────────────────────────────────
@@ -290,7 +290,7 @@ export default function RootNavigator() {
               <Stack.Screen name="ULoadingScreen"    component={ULoadingScreen} />
               <Stack.Screen name="UStep5_Preview"    component={UStep5_Preview} />
               <Stack.Screen name="UStep6_FirstTask"  component={UStep6_FirstTask} />
-              <Stack.Screen name="UStep7_Phone"      component={UStep7_Phone} />
+              <Stack.Screen name="ChildAccessStep"   component={ChildAccessStep} />
               <Stack.Screen name="UStep8_Complete"   component={UStep8_Complete} />
             </Stack.Group>
           </>
@@ -306,7 +306,7 @@ export default function RootNavigator() {
             <Stack.Screen name="ULoadingScreen"    component={ULoadingScreen} />
             <Stack.Screen name="UStep5_Preview"    component={UStep5_Preview} />
             <Stack.Screen name="UStep6_FirstTask"  component={UStep6_FirstTask} />
-            <Stack.Screen name="UStep7_Phone"      component={UStep7_Phone} />
+            <Stack.Screen name="ChildAccessStep"   component={ChildAccessStep} />
             <Stack.Screen name="UStep8_Complete"   component={UStep8_Complete} />
           </>
         )}
