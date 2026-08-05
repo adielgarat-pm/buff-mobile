@@ -1461,6 +1461,22 @@ CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: 
 
 ---
 
+### Lesson 2026-08-05 — Onboarding reward picks reuse rewards under different ids across motivators (IN-2026-08-05-01)
+
+**Context:** `pkg/unlimited-motivators` removed the 2-motivator cap in onboarding (UStep4) and made `UStep5_Preview.buildRewards()` seed rewards from *every* selected motivator instead of slicing to a fixed count.
+
+**Surprise:** the obvious dedupe key — the reward `id` — is **wrong**. `REWARD_PICKS` (onboardingData.ts) deliberately lists the *same* reward under *different* ids across motivators: at age 6-8, `gaming` = [`gm_1` "Game Night", `gm_2` "Special sports outing"] and `sports` = [`sp_1` "Special sports outing", `sp_2` "Game Night"]. Picking both would render "Game Night" and "Special sports outing" twice each (and insert duplicate `store_rewards` rows). The old code never hit this because it took one pick per motivator and capped at 2.
+
+**Fix:** dedupe by `title.en` (canonical), not `id`. Since every shared id always carries the same title in the data, title-dedupe is a superset of id-dedupe and also keeps the surviving ids unique → `key={reward.id}` stays collision-free.
+
+**Also confirmed (live DB):** `store_rewards` has **no** `UNIQUE(child_id, title)` — only a `size` CHECK + FKs + PK(id). So duplicate titles wouldn't crash the insert (and that insert is warn-only / non-fatal anyway); the dedupe is a UX/data-cleanliness guard, not a DB-integrity one.
+
+**Pattern to watch:** any fan-out over `REWARD_PICKS` (or similar hand-authored option tables that reuse content under different ids) must dedupe on the *content*, not the synthetic id.
+
+**FLAGs opened:** None.
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
