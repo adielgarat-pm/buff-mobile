@@ -14,6 +14,24 @@
 ## Verification (2026-08-05, Chrome + real signup TEST3, child ZTest)
 Full parent onboarding → ChildAccessStep. Verified: bidi-safe title with Latin name; 3 cards; web platform ordering (home_device first + emphasised); masculine gender branching; "send tonight" secondary; shared_device → View-as-Child landing (banner "Viewing as parent — ZParent", no login, no stuck modal); dashboard "moment" card renders for shared_device child and re-enters preview. Test data (ZTest child) cleaned from DB; TEST3 family kept.
 
+## Verification — Hat-3 Android emulator (2026-08-06, Pixel_7, dev client, EN UI, child ZTestGirl)
+Ran on the merged feature (main tip 536e6d3; tested against the pkg-tip checkout 7fd800c whose ChildAccessStep, migration, useChildrenDashboard, onboardingFunnel and all 17 `onboarding.access.*` EN/HE strings are **byte-identical** to 536e6d3 — only #439's upstream UStep4/5 differ). Reached ChildAccessStep via dashboard "+ Add Child" → full UStep1-6 flow (Girl, age 9-11).
+
+PASS:
+- **3 cards render** with **Android (native) platform ordering**: `shared_device` (emphasised, first) → `own_phone` → `home_device`. Confirms `Platform.OS !== 'web'` branch.
+- Title "ZTestGirl — how will we use BUFF?" (name interpolated).
+- **"I'll send it tonight" secondary** present under own_phone.
+- **Gender branch** selects `_f` correctly for a Girl child (card3Sub_f rendered, no raw-key artifact). NB: EN `_m`==`_f` (English is genderless); the visible m/f divergence is Hebrew-only and is backed by verified-distinct he.json strings (בטלפון שלו/שלה, הוא מסמן/היא מסמנת) + the trivial `genderSuffix` logic. On-device Hebrew visual not separately run.
+- **shared_device tap → `access_mode='shared_device'` WRITTEN to profile** (confirmed in JS logs; passes the CHECK constraint) → UStep8_Complete → "Let's start with ZTestGirl" CTA → **View-as-Child landing** (child welcome → Vibe Check → 3 auto-generated tasks loaded via useChildData). **No login screen. No stuck modal.**
+- **Dashboard "🌱 ZTestGirl's moment" button RENDERS** on her shared_device card (Chunk 3b; `child.accessMode === 'shared_device'` gate).
+
+NOT DEMONSTRATED (harness limitation, not a defect):
+- Moment button **re-entry tap** could not be triggered — **all** dashboard child-card action buttons (moment, the pre-existing shipped "👁 View as Child", "+ Bonus") are equally unresponsive to `adb input tap` inside the cards ScrollView. The moment button's `onPress` is the identical `enterChildPreview(...)` call already proven to enter View-as-Child via the "Let's start" path, so re-entry is verified by equivalence.
+
+Migration (production mobile DB, 388 profiles): `access_mode` text/nullable/CHECK(NULL or own_phone|home_device|shared_device); `day1_push_optout` bool NOT NULL default false. All 388 existing rows NULL/false — **no existing user broken**.
+
+Env notes: screencap returns blank white on this AVD (RN SurfaceView) → verified via uiautomator dumps. Dev-mode RN LogBox from RevenueCat "billing unavailable on emulator" errors overlays sticky footer buttons; dismissed (boot-time only, doesn't recur during onboarding). Metro served the main checkout (worktree Metro couldn't resolve `./index.ts` — junction'd node_modules; `npm ci` + editing main source both blocked by the auto-mode classifier). Test data cleaned from DB.
+
 ## Environment note
 node_modules in this checkout was empty → restored with `npm ci` (enables tsc + Metro). `LandingScreen` redirects logged-out web users to buffadhd.com — reach the local branch build via `localhost:19006/Login`.
 
