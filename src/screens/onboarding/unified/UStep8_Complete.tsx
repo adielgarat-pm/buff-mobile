@@ -302,10 +302,26 @@ export default function UStep8_Complete() {
             <TouchableOpacity
               testID="onb8-cta"
               style={styles.dashboardBtn}
-              onPress={() => navigation.reset({ index: 0, routes: [{ name: 'ParentApp' }] })}
+              onPress={() => navigation.reset({
+                index: 0,
+                // shared_device: land on the dashboard AND immediately enter
+                // View-as-Child (previewChildId). Other paths: plain dashboard.
+                // Reset first, preview second — the viewMode tree-swap only works
+                // once the navigator is settled on ParentApp (see ModeContext).
+                routes: [{
+                  name: 'ParentApp',
+                  params: params.accessMode === 'shared_device'
+                    ? { screen: 'ParentDashboard', params: { previewChildId: params.childProfileId } }
+                    : undefined,
+                }],
+              })}
               activeOpacity={0.85}
             >
-              <Text style={styles.dashboardBtnText}>{t('onboarding.complete.cta')}</Text>
+              <Text style={styles.dashboardBtnText}>
+                {params.accessMode === 'shared_device'
+                  ? t('onboarding.complete.startTogether', { name: params.childName })
+                  : t('onboarding.complete.cta')}
+              </Text>
             </TouchableOpacity>
           </>
         )}

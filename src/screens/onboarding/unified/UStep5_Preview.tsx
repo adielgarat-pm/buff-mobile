@@ -7,7 +7,7 @@
  *   3. INSERT rewards into store_rewards using childProfileId
  *      (non-fatal if table doesn't exist yet)
  *
- * Both CTA and Skip navigate to UStep7_Phone, carrying childProfileId forward.
+ * Both CTA and Skip navigate to ChildAccessStep, carrying childProfileId forward.
  */
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -389,7 +389,7 @@ export default function UStep5_Preview() {
       return;
     }
     // Empty-state re-entry: tasks are now attached to the existing child, so
-    // return straight to the parent app (Tasks tab). Skips UStep7_Phone (the
+    // return straight to the parent app (Tasks tab). Skips ChildAccessStep (the
     // child already exists) and UStep8_Complete (which would overwrite the
     // already-onboarded parent's pro_settings).
     if (params.existingChildId) {

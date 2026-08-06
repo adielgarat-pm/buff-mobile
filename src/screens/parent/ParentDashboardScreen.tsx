@@ -561,6 +561,20 @@ export default function ParentDashboardScreen() {
     navigation.setParams({ openSheet: undefined, sheetChildId: undefined } as never);
   }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── ChildAccessStep shared-device bridge ──────────────────────────────────
+  // Onboarding's "right here, on my device" path resets here with previewChildId.
+  // Enter View-as-Child immediately (reuses the same entry as the per-child
+  // preview button) so the tap on the access card becomes the handoff ritual.
+  // The navigator is now settled on ParentApp, so the viewMode tree-swap is safe.
+  useEffect(() => {
+    const previewChildId = route.params?.previewChildId;
+    if (!previewChildId) return;
+    const child = children.find(c => c.childId === previewChildId);
+    enterChildPreview(previewChildId, child?.displayName);
+    // Clear so re-focusing the tab doesn't re-enter preview.
+    navigation.setParams({ previewChildId: undefined } as never);
+  }, [route.params, children]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Pull-to-refresh — "did she do it yet?" is checked many times a day; a
   // parent shouldn't have to background/foreground the app to get fresh data.
   // Re-pulls everything this screen renders: child progress cards, SOS
@@ -972,6 +986,23 @@ export default function ParentDashboardScreen() {
                 </View>
                 <ChildDayBadge completed={child.tasksCompleted} assigned={child.tasksTotal} />
               </View>
+
+              {/* child-access-paths: "moment" re-entry for shared-device families.
+                  Prominent one-tap into View-as-Child so the child's turn on the
+                  parent's phone stays easy to reach after onboarding (the tap that
+                  was the handoff ritual). Only for children who chose shared_device;
+                  other access modes already have their own surface. */}
+              {child.accessMode === 'shared_device' && (
+                <TouchableOpacity
+                  style={[styles.momentBtn, { backgroundColor: T.accent }]}
+                  onPress={() => enterChildPreview(child.childId, child.displayName)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.momentBtnText}>
+                    🌱 {t('onboarding.access.dashMoment', { name: child.displayName })}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               {/* SOS inline message — sits between header and progress bar.
                   No tap-to-dismiss in v1 (Adi-locked); rolls off at midnight. */}
@@ -1395,6 +1426,9 @@ const styles = StyleSheet.create({
   childActions: { flexDirection: 'row', gap: 10 },
   actionBtn:    { flex: 1, borderWidth: 1, borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
   actionBtnText: { fontSize: 13, fontWeight: '600' },
+  // child-access-paths: shared-device "moment" re-entry button (accent bg applied inline).
+  momentBtn:     { borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 12 },
+  momentBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
   // Shared modal overlay
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },

@@ -3,6 +3,7 @@
 
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { AgeGroup, Gender } from '../screens/onboarding/unified/onboardingData';
+import type { AccessMode } from '../lib/onboardingFunnel';
 
 // ── Shared accumulated onboarding data ───────────────────────────────────────
 // Each step extends the previous by adding its own field(s).
@@ -22,7 +23,10 @@ type UWithGoal        = UBase           & { mainChallenge: string };
 type UWithChallenges  = UWithGoal       & { additionalChallenges: string[] };
 type UWithMotivator   = UWithChallenges & { motivators: string[] };
 type UWithPreview     = UWithMotivator  & { childProfileId: string };  // set after Preview saves
-type UWithPhone       = UWithPreview    & { hasPhone: boolean };
+// child-access-paths: replaces the old { hasPhone: boolean }. accessMode is
+// optional because the parent can leave ChildAccessStep without choosing
+// (abandon path). UStep8_Complete does not read it — see mapping note below.
+type UWithAccess      = UWithPreview    & { accessMode?: AccessMode };
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -44,8 +48,10 @@ export type RootStackParamList = {
   ULoadingScreen:      UWithMotivator;
   UStep5_Preview:      UWithMotivator;   // saves child profile + tasks + rewards; produces childProfileId
   UStep6_FirstTask:    UWithPreview;     // "first mission together" — writes the seed daily_progress row
-  UStep7_Phone:        UWithPreview;     // receives childProfileId from Preview
-  UStep8_Complete:     UWithPhone;       // only updates parent profile + refreshes auth
+  // child-access-paths: "how will {child} use BUFF?" — 3 equal access paths,
+  // replaced the old "does the child have a phone?" step (UStep7_Phone).
+  ChildAccessStep:     UWithPreview;     // receives childProfileId from Preview
+  UStep8_Complete:     UWithAccess;      // only updates parent profile + refreshes auth (does not read accessMode)
 
   // ── Main app (nested navigators) ─────────────────────────────────────
   ParentApp: NavigatorScreenParams<ParentTabsParamList> | undefined;
@@ -91,7 +97,10 @@ export type RootStackParamList = {
 export type ParentTabsParamList = {
   // openSheet/sheetChildId: the Parent Insights screen routes a CTA back to the
   // dashboard to reuse its existing sticker/bonus/med sheets (no duplicated logic).
-  ParentDashboard: { openSheet?: 'sticker' | 'bonus' | 'med'; sheetChildId?: string } | undefined;
+  // previewChildId: child-access-paths shared-device handoff. UStep8_Complete
+  // resets here with it so the dashboard enters View-as-Child immediately —
+  // the "right here, on my device" tap becomes the handoff ritual.
+  ParentDashboard: { openSheet?: 'sticker' | 'bonus' | 'med'; sheetChildId?: string; previewChildId?: string } | undefined;
   ParentTasks:     undefined;
   // childId: deep-link from a reward-redemption notification → pre-select that child.
   ParentRewards:   { childId?: string } | undefined;

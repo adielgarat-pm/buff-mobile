@@ -16,7 +16,7 @@ export const ONBOARDING_ROUTES = [
   'UStep4_Motivator',
   'ULoadingScreen',
   'UStep5_Preview',
-  'UStep7_Phone',
+  'ChildAccessStep',
   'UStep8_Complete',
 ] as const;
 

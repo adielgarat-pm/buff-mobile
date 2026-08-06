@@ -15,7 +15,7 @@
  *   - The seed row is tagged source='onboarding_first_task' so it is excluded
  *     from the real-activation metric (it's a UX milestone, not organic usage).
  *
- * Flows to UStep7_Phone (handoff) in all cases.
+ * Flows to ChildAccessStep (handoff) in all cases.
  */
 import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
@@ -44,7 +44,7 @@ export default function UStep6_FirstTask() {
   const [task, setTask]   = useState<{ id: string; title: string } | null>(null);
   const [busy, setBusy]   = useState(false);
 
-  const goHandoff = () => navigation.navigate('UStep7_Phone', params);
+  const goHandoff = () => navigation.navigate('ChildAccessStep', params);
 
   // "Not right now" → skip the together-moment, write nothing.
   const skip = () => goHandoff();
