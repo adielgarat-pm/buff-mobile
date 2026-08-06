@@ -19,7 +19,7 @@ import { useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { PARENT_THEME as T } from '../theme';
-import { BUFF_URLS } from '../lib/buffConfig';
+import { BUFF_URLS, buildJoinUrl } from '../lib/buffConfig';
 import { shareInvite } from '../lib/shareInvite';
 import { logOnboardingEvent } from '../lib/onboardingFunnel';
 import { useAuth } from '../contexts/AuthContext';
@@ -96,6 +96,7 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
     const message = t('resumeHandoff.shareMessage', {
       childName: child.displayName,
       code: familyShortCode,
+      joinUrl: buildJoinUrl(familyShortCode),
       installUrl: BUFF_URLS.playStoreInstall,
     });
     // Cross-platform share (OS sheet on native, Web Share API / WhatsApp on web).

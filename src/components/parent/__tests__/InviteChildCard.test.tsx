@@ -19,7 +19,7 @@ import * as Clipboard from 'expo-clipboard';
 import InviteChildCard from '../InviteChildCard';
 import { shareInvite } from '../../../lib/shareInvite';
 import { crossAlert } from '../../../platform';
-import { BUFF_URLS } from '../../../lib/buffConfig';
+import { BUFF_URLS, buildJoinUrl } from '../../../lib/buffConfig';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 // Echo the key plus any interpolation vars as `key(var=val)` — lets assertions
@@ -54,7 +54,7 @@ const mockedCrossAlert  = crossAlert as jest.MockedFunction<typeof crossAlert>;
 const mockedSetString   = Clipboard.setStringAsync as jest.MockedFunction<typeof Clipboard.setStringAsync>;
 
 const CODE = 'ABC123';
-const EXPECTED_MESSAGE = `inviteCard.shareMessage(code=${CODE},installUrl=${BUFF_URLS.playStoreInstall})`;
+const EXPECTED_MESSAGE = `inviteCard.shareMessage(code=${CODE},joinUrl=${buildJoinUrl(CODE)},installUrl=${BUFF_URLS.playStoreInstall})`;
 
 describe('InviteChildCard', () => {
   beforeEach(() => {

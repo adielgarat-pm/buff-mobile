@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.buffapp.mobile",
+      "sha256_cert_fingerprints": [
+        "95:5A:BE:F9:29:C2:6B:AA:93:42:9B:99:F1:52:41:5A:A2:F6:AE:8D:02:D9:7E:B3:15:8E:A4:83:9F:0A:C9:E0"
+      ]
+    }
+  }
+]

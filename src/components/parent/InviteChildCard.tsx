@@ -18,7 +18,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Clipboard from 'expo-clipboard';
 import { PARENT_THEME as T } from '../../theme';
-import { BUFF_URLS } from '../../lib/buffConfig';
+import { BUFF_URLS, buildJoinUrl } from '../../lib/buffConfig';
 import { shareInvite } from '../../lib/shareInvite';
 import { crossAlert } from '../../platform';
 
@@ -34,6 +34,7 @@ export default function InviteChildCard({ familyShortCode }: Props) {
   const handleShare = async () => {
     const message = t('inviteCard.shareMessage', {
       code: familyShortCode,
+      joinUrl: buildJoinUrl(familyShortCode),
       installUrl: BUFF_URLS.playStoreInstall,
     });
     // Cross-platform share. Never throws; resolves false only when no share

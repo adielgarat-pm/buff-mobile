@@ -28,7 +28,7 @@ import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
-import { BUFF_URLS, buildJoinDeepLink } from '../../../lib/buffConfig';
+import { BUFF_URLS, buildJoinUrl } from '../../../lib/buffConfig';
 import { shareInvite } from '../../../lib/shareInvite';
 import { logOnboardingEvent, type AccessMode } from '../../../lib/onboardingFunnel';
 import { crossAlert } from '../../../platform/crossAlert';
@@ -100,8 +100,8 @@ export default function ChildAccessStep() {
     const message = t('onboarding.access.inviteMessage', {
       name: params.childName,
       code,
-      installUrl:   BUFF_URLS.playStoreInstall,
-      joinDeepLink: buildJoinDeepLink(code),
+      installUrl: BUFF_URLS.playStoreInstall,
+      joinUrl:    buildJoinUrl(code),
     });
     await shareInvite(message);   // never throws; OS sheet completion isn't reliably reported
     void logOnboardingEvent({
