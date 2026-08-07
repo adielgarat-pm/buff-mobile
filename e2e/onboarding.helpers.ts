@@ -21,7 +21,7 @@ export const TID = {
   // Step 3 — challenges (multi, optional)
   challenge: (id: string) => `onb3-challenge-${id}`,
   step3Next:       'onb3-next',
-  // Step 4 — motivators (max 2)
+  // Step 4 — motivators (unlimited picks since PR #439)
   motivator: (id: string) => `onb4-motivator-${id}`,
   step4Continue:   'onb4-continue',
   // Step 5 — preview / save
@@ -80,7 +80,7 @@ export async function completeStep3(page: Page, challengeIds: string[] = []) {
   await t(page, TID.step3Next).click();
 }
 
-/** Step 4 — pick motivators (max 2), then Continue. */
+/** Step 4 — pick motivators (unlimited since PR #439), then Continue. */
 export async function completeStep4(page: Page, motivatorIds: string[]) {
   await expect(t(page, TID.step4Continue)).toBeVisible();
   for (const id of motivatorIds) await t(page, TID.motivator(id)).click();

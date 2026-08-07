@@ -75,19 +75,25 @@ test.describe('BUFF onboarding (web)', () => {
     await expect(t(page, TID.childName)).toHaveCount(0);
   });
 
-  test('caps motivator selection at 2', async ({ page }) => {
+  test('does NOT cap motivator selection (PR #439 removed the 2-pick limit)', async ({ page }) => {
     await completeStep1(page, { childName: 'Gal', age: AGE });
     await completeStep2(page, GOAL);
     await completeStep3(page, []);
 
+    // Before #439 a third pick was disabled (accessibilityState.disabled →
+    // aria-disabled) and did not check. Now every motivator stays selectable: no
+    // card is disabled no matter how many are already chosen. (react-native-web
+    // renders selection as the visual "N selected" counter, not aria-checked, so
+    // we assert the language-independent "not disabled" signal the cap used to set.)
     await t(page, TID.motivator('gaming')).click();
     await t(page, TID.motivator('social')).click();
-    // A third is capped — its card is marked disabled (accessibilityState.disabled
-    // → aria-disabled on web) and selecting it does not check it.
-    const third = t(page, TID.motivator('creative'));
-    await expect(third).toHaveAttribute('aria-disabled', 'true');
-    await third.click({ force: true }).catch(() => {});
-    await expect(third).not.toHaveAttribute('aria-checked', 'true');
+    for (const id of ['creative', 'sports', 'privileges']) {
+      const card = t(page, TID.motivator(id));
+      await expect(card).not.toHaveAttribute('aria-disabled', 'true');
+      await card.click();
+      await expect(card).not.toHaveAttribute('aria-disabled', 'true');
+    }
+    await expect(t(page, TID.step4Continue)).toBeEnabled();
   });
 });
 
