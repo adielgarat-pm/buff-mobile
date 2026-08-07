@@ -23,7 +23,12 @@ lives in `e2e/onboarding.helpers.ts` (`TID`).
 - **Regression — mid-flow browser reload (web only):** reloading on Step 4 must
   resume on Step 4, not reset (the web nav-state persistence fix). Native does
   not reload, so this case is web-only by design.
-- **Max-2 motivators cap.**
+- **Unlimited motivator picks (no cap)** — PR #439 removed the old max-2 limit;
+  the suite asserts a third+ motivator is never disabled.
+- **Reward menu scales with motivators** (`motivators.web.spec.ts`) — a
+  self-contained spec that signs up a fresh parent via the email/password UI
+  (no pre-captured `storageState` needed), picks all five non-money motivators,
+  and asserts the "5 selected" counter + a populated UStep5 reward menu.
 - **Hebrew RTL** rendering (web): the back chevron flips to `›`.
 
 ---
