@@ -333,7 +333,7 @@ Simple sheet during outreach ramp:
 | Brendan Mahan | A | | | | | |
 | Penny Williams | A | | | | | |
 | Sharon Saline | A | | | | | |
-| Lara (coach + podcaster) | A/B | outreach sent | 2026-08-28 | "Yes let's chat" → time-setting msg sent | in conversation | await her reply on time/channel — full thread: [outreach/lara-podcast-thread.md](outreach/lara-podcast-thread.md) |
+| Lara (coach + podcaster + teacher) | A/B | outreach sent | 2026-08-28 | Warm; chose async, offered teacher help; invited as product validator | advisor track forming | await reply to validator invite — full thread: [outreach/lara-podcast-thread.md](outreach/lara-podcast-thread.md) |
 | ... | | | | | | |
 
 **Cadence:** one pitch every 3–5 days, not a blast. **One follow-up max** at day 7 if no reply (per [FOUNDING_100_KIT §2.4](BUFF_FOUNDING_100_KIT.md) follow-up rule). After that: no more. Respects their attention.
