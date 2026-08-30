@@ -58,6 +58,7 @@ import InstantBuffCard from '../../components/InstantBuffCard';
 import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import { useCompletionPop } from '../../hooks/useCompletionPop';
+import { useExperienceBand } from '../../hooks/useExperienceBand';
 import type { Task } from '../../types/task';
 import type { RootStackParamList, ChildTabsParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
@@ -248,6 +249,15 @@ export default function GamerDashboardScreen() {
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [hideModalVisible, setHideModalVisible] = useState(false);
+
+  // Experience depth is age-driven, NOT skin-driven (theme-age-decouple). The
+  // inline HQ task list + time-of-day chips are a teen-band affordance; a young
+  // child (6–11) who picked the Gamer *look* gets the same dark HQ but WITHOUT the
+  // reading-heavy list — their tasks live on the Quests tab, one path, no overwhelm
+  // (BUFF_PERSONAS: reading-heavy interfaces alienate 6–9). Skin stays their free
+  // choice; only the depth follows their age. Itay-approved for the junior band.
+  const band = useExperienceBand();
+  const showTaskList = band === 'teen';
 
   // Haptics preference persisted by ChildSettingsScreen — same contract as
   // ChildTasksScreen → PhaseTaskCard (hapticsEnabled).
@@ -505,6 +515,11 @@ export default function GamerDashboardScreen() {
       {/* What-to-pack today (activities + seasonal packing) */}
       <PackingCard childId={childId} />
 
+      {/* Task list + time-of-day chips — teen-band only (age-driven, not skin-
+          driven). Junior kids on the Gamer skin get the summary HQ above; their
+          tasks live on the Quests tab. See `band`/`showTaskList` note above. */}
+      {showTaskList && (
+      <>
       {/* Time-of-day filter chips */}
       <ScrollView
         horizontal
@@ -555,6 +570,8 @@ export default function GamerDashboardScreen() {
         displayedTasks.map(task => (
           <DashboardTaskCard key={task.id} task={task} onTap={onTaskTap} />
         ))
+      )}
+      </>
       )}
 
       {/* Instant Buff card — self-conditional (only renders when isLowPower

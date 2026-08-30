@@ -175,26 +175,21 @@ None required. Reuses existing `profiles.pro_settings.age_group` and `isTeenAgeG
   do not re-implement per screen (IN-2026-07-06-01).
 - Reference: `docs/teen-ui-design/dashboard-no-buddy/` for the teen layout intent.
 
+## Decisions (resolved with Adi, 2026-08-30)
+
+- **Q1 — RESOLVED ✅ (Adi):** Skin = look (free, any age); depth = age band. Adi approved
+  the PRD reconciliation to this wording (Spec Sync at close).
+- **Q2 — RESOLVED ✅ (Itay):** Approved to hide the Gamer HQ inline list for the **junior**
+  band; teens keep the full dashboard.
+- **Q3 — RESOLVED ✅ (Adi → option b):** Missing `age_group` → **legacy skin-heuristic
+  bridge** (`gamer→teen`, `mint→junior`) so no current teen regresses. Runtime bridge only;
+  parents make it authoritative by setting age in EditChild.
+- **Q4 — RESOLVED ✅ (Adi):** Ship **Phase 1 alone first** (fixes the reported bug fast +
+  removes the duplicate-task-surface risk); Phase 2 (Mint-skin teen depth) is a separate
+  follow-up package.
+
 ## Open Questions
-
-> Things CC + Adi resolve in Plan Mode. Not pre-solved here.
-
-- **Q1 (Adi — spec ruling):** The PRD is internally inconsistent — modes are
-  "aesthetic, not age-gated" (§4.2) yet it lists different task features per mode
-  (Pastel "one task at a time" `:211` vs Gamer "task list" `:224–226`). This SPEC
-  resolves it as *skin = look (free, any age); depth = age band*. Adi confirms the
-  PRD edit (Spec Sync) — CC must not silently pick.
-- **Q2 (Itay — design ownership):** OK to hide his approved Gamer HQ inline list for
-  the **junior** band (teens keep it)? Needed before Phase 1 ships.
-- **Q3 (fallback for missing `age_group`):** Family-code signups have
-  `pro_settings: { source: 'child_signup' }` with no `age_group` (`AuthContext.tsx:616`);
-  legacy children may also lack it. Options: (a) default `junior` (safest — never
-  overwhelm an unknown-age kid), (b) legacy skin heuristic bridge (`gamer→teen`,
-  `mint→junior`) so no current teen regresses, (c) prompt the parent to set age.
-  **CC recommendation: (b)** as a runtime bridge + surface an age-missing nudge in the
-  parent's EditChild screen. Adi's final call.
-- **Q4 (packaging):** Ship Phase 1 alone in this package (fixes the reported bug fast),
-  Phase 2 as a follow-up? Or both together?
+- None blocking Phase 1. Phase 2 scoping (Mint-styled list build) deferred to its own package.
 
 ## Out of Scope
 - Teen age-threshold change (12 vs 13 / 13-17) — separate flag (`CLAUDE.md:309`, "D5").
