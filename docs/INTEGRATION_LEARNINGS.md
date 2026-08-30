@@ -849,6 +849,15 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
 
 ## FLAGs פתוחים
 
+### IN-2026-08-30-01 (RESOLVED 2026-08-30): מדריך "חזרה לבית הספר" — פער עיתוי בהפצת Sept 1
+
+- **תאריך:** 2026-08-30
+- **מקור:** CC — session `claude/1-9-release-check` (Adi ביקשה לבדוק את המאמר לקראת ה-1.9 ולתכנן הפצה). "1.9" = ה-1 בספטמבר (חזרה ללימודים), לא version 1.9.
+- **תיאור:** מדריך `landing-web/public/guides/back-to-school/index.html` בנוי כולו סביב "start about two weeks before the first day". קורא שנוחת **על/סמוך ל-1 בספטמבר** (שיא החיפוש וגם שיא ההפצה) כבר פספס את חלון השבועיים → תחושת "איחרתי" שסותרת את המסר. תוכן ה-evergreen לא היה אופטימלי לגל ההפצה של המועד עצמו.
+- **השפעה:** נוספה קופסת callout קצרה (EN+HE) מתחת ל"7 steps" שמפנה את הקורא לצעדים 4–7 (עובדים מהיום הראשון). הפך את המדריך מ-evergreen למותאם גם ל-Sept 1. שינוי ב-`landing-web` בלבד, static HTML, בלי CSS חדש.
+- **סטטוס:** `resolved` — נמזג ב-PR #449 (main `0fae6ec`), נפרס דרך Vercel ל-buffadhd.com. אומת ויזואלית בשתי השפות (RTL/LTR border בצד הנכון). Values Check עבר (Positive Coaching + Independence + Intrinsic).
+- **קשור ל:** ORGANIC_LAUNCH_KIT (מפת הפצה), BLOG_CONTENT_MAP. **תובנה לשימוש חוזר:** מדריכי-מועד evergreen באתר צריכים "מסלול קיצור ל-day-0" כדי לשרת גם את גל ההפצה של המועד עצמו, לא רק את המחפשים המקדימים.
+
 ### F-2026-06-17-01: Android 15 edge-to-edge deprecated-API warning (Play Console) — resolves on upstream/SDK bump
 
 - **תאריך:** 2026-06-17
