@@ -29,6 +29,12 @@ interface ModeContextType {
   isChildPreview: boolean; // true when a parent is in child-preview mode
   previewChildId: string | null;
   previewChildName: string | null; // the previewed child's real display name, if known
+  // The previewed child's age band (pro_settings.age_group), fetched on preview
+  // entry. On shared devices (~65% of families) view-as-child IS the kid's real
+  // interface, so the experience-band gate (theme-age-decouple) must read the
+  // PREVIEWED child's age, not the parent's. Null until the fetch resolves or
+  // when age_group is unset (family-code signups) — callers fall back per Q3.
+  previewChildAgeGroup: string | null;
   enterChildPreview: (childId: string, childName?: string) => void;
   exitChildPreview: () => void;
 }
@@ -45,6 +51,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   const [isChildPreview, setIsChildPreview] = useState(false);
   const [previewChildId, setPreviewChildId] = useState<string | null>(null);
   const [previewChildName, setPreviewChildName] = useState<string | null>(null);
+  const [previewChildAgeGroup, setPreviewChildAgeGroup] = useState<string | null>(null);
 
   // Natural mode follows the profile role; falls back to 'parent' while loading
   const naturalMode: ViewMode = profile?.role === 'child' ? 'child' : 'parent';
@@ -57,6 +64,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
     if (profile?.role !== 'parent') return;
     setPreviewChildId(childId);
     setPreviewChildName(childName ?? null); // synchronous when the caller knows it
+    setPreviewChildAgeGroup(null); // reset until the fetch below resolves the real band
     setIsChildPreview(true);
 
     // Switch i18n strings to the previewed child's language (strings-only — see
@@ -70,6 +78,9 @@ export function ModeProvider({ children }: { children: ReactNode }) {
         .single();
       if (error || !data) return;
       if (data.display_name) setPreviewChildName(data.display_name);
+      // Surface the previewed child's age band for the experience-band gate.
+      const ag = (data.pro_settings as { age_group?: string } | null)?.age_group ?? null;
+      setPreviewChildAgeGroup(ag);
       const childLang = resolveChildLang(data as never, deviceLanguage);
       if (childLang !== i18n.language) {
         i18n.changeLanguage(childLang).catch(() => { /* non-fatal */ });
@@ -81,6 +92,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
     setIsChildPreview(false);
     setPreviewChildId(null);
     setPreviewChildName(null);
+    setPreviewChildAgeGroup(null);
     // Restore the parent's device language. Direction never changed during the
     // preview, so this is a strings-only swap with no restart and no flicker.
     if (i18n.language !== deviceLanguage) {
@@ -89,7 +101,7 @@ export function ModeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ModeContext.Provider value={{ viewMode, isChildPreview, previewChildId, previewChildName, enterChildPreview, exitChildPreview }}>
+    <ModeContext.Provider value={{ viewMode, isChildPreview, previewChildId, previewChildName, previewChildAgeGroup, enterChildPreview, exitChildPreview }}>
       {children}
     </ModeContext.Provider>
   );

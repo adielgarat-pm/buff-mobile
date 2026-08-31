@@ -7,10 +7,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { ChildTabsParamList } from './types';
-import { useChildTheme, useTheme } from '../contexts/ThemeContext';
+import { useChildTheme } from '../contexts/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { useMode } from '../contexts/ModeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useExperienceBand } from '../hooks/useExperienceBand';
 
 import ChildDashboardScreen from '../screens/child/ChildDashboardScreen';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
@@ -53,8 +54,8 @@ export default function ChildTabs() {
   const { t }           = useTranslation();
   const { isChildPreview, exitChildPreview } = useMode();
   const { profile }     = useAuth();
-  const { themeName }   = useTheme();
-  const isGamer         = themeName === 'gamer';
+  const band            = useExperienceBand();
+  const isTeenBand      = band === 'teen';
 
   // Memoize the global screenOptions function so its identity is stable
   // across renders that don't change visual tokens (e.g. previewBanner show/
@@ -88,10 +89,14 @@ export default function ChildTabs() {
     [T.tabBarActive, T.tabBarInactive, T.tabBar, T.tabBarBorder, insets.bottom, t],
   );
 
-  // MY STATS is a Gamer-only tab. We always render the <Tab.Screen> (stable
-  // children — React Navigation expects this) and hide the tab button when
-  // not in Gamer theme via module-level constant options (stable identity).
-  const myStatsOptions = isGamer ? undefined : HIDDEN_TAB_OPTIONS;
+  // MY STATS is a teen-band tab (age-driven, NOT skin-driven — theme-age-decouple).
+  // A young child (6–11) never sees it, whichever skin they pick; a teen sees it on
+  // either skin. We always render the <Tab.Screen> (stable children — React
+  // Navigation expects this) and hide the tab button for the junior band via
+  // module-level constant options (stable identity). Age doesn't flip at runtime the
+  // way theme does, so this is also less prone to the tab-thrash that
+  // pkg/fix-runtime-theme-switch fixed.
+  const myStatsOptions = isTeenBand ? undefined : HIDDEN_TAB_OPTIONS;
 
   return (
     <View style={{ flex: 1 }}>

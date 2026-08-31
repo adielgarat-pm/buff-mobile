@@ -122,14 +122,23 @@ jest.mock('../../../lib/uiLocale', () => ({
   formatNum: (n: number) => String(n),
 }));
 
+// Experience band is age-driven (theme-age-decouple). Mock it so tests control
+// whether the HQ renders the teen task list. Default 'teen' keeps the existing
+// task-list assertions valid; the junior case has its own test.
+jest.mock('../../../hooks/useExperienceBand', () => ({
+  useExperienceBand: jest.fn(() => 'teen'),
+}));
+
 // Type-safe access to the mocked hooks
 import { useMode } from '../../../contexts/ModeContext';
 import { useChildData } from '../../../hooks/useChildProgress';
 import { usePetState } from '../../../hooks/usePetState';
 import { useChildStreak } from '../../../hooks/useChildStreak';
 import { useBuddyRelationship } from '../../../hooks/useBuddyRelationship';
+import { useExperienceBand } from '../../../hooks/useExperienceBand';
 
 const mockedUseMode      = useMode              as jest.MockedFunction<typeof useMode>;
+const mockedUseBand      = useExperienceBand    as jest.MockedFunction<typeof useExperienceBand>;
 const mockedUseChildData = useChildData         as jest.MockedFunction<typeof useChildData>;
 const mockedUsePetState  = usePetState          as jest.MockedFunction<typeof usePetState>;
 const mockedUseStreak    = useChildStreak       as jest.MockedFunction<typeof useChildStreak>;
@@ -144,6 +153,7 @@ function setHooks({
   tasks = [],
   completeTask = jest.fn(),
   uncompleteTask = jest.fn(),
+  band = 'teen',
 }: Partial<{
   streak: number;
   successfulDays: number;
@@ -153,7 +163,9 @@ function setHooks({
   tasks: any[];
   completeTask: () => void;
   uncompleteTask: () => void;
+  band: 'junior' | 'teen';
 }> = {}) {
+  mockedUseBand.mockReturnValue(band);
   mockedUseMode.mockReturnValue({
     viewMode: isChildPreview ? 'child-preview' : 'child',
     isChildPreview,
@@ -373,5 +385,48 @@ describe('GamerDashboardScreen — HQ task completion feedback', () => {
     expect(row.props.accessibilityState).toEqual({ checked: true });
     // i18n'd credits badge (was a hardcoded "+N BUFFs" literal).
     expect(getByText('gamerTasks.taskCredits')).toBeTruthy();
+  });
+});
+
+// theme-age-decouple: the inline HQ task list + time-of-day chips are teen-band
+// only. A young child (6–11) on the Gamer *skin* gets the summary HQ but NOT the
+// reading-heavy list — their tasks live on the Quests tab. Skin is unchanged; only
+// depth follows age.
+describe('GamerDashboardScreen — junior band hides the HQ task list', () => {
+  afterEach(() => jest.clearAllMocks());
+
+  test('junior band renders no full list / chips, only a single next-task card', () => {
+    setHooks({ tasks: [makeTask(), makeTask({ id: 't-2' })], band: 'junior' });
+
+    const { queryByTestId } = render(<GamerDashboardScreen />);
+
+    // No inline full-list task rows…
+    expect(queryByTestId('hq-task-t-1')).toBeNull();
+    expect(queryByTestId('hq-task-t-2')).toBeNull();
+    // …and no time-of-day filter chips.
+    expect(queryByTestId('filter-chip-all')).toBeNull();
+    expect(queryByTestId('filter-chip-morning')).toBeNull();
+    // …but the single "next task" card + see-all link ARE shown.
+    expect(queryByTestId('hq-next-task')).toBeTruthy();
+    expect(queryByTestId('hq-next-see-all')).toBeTruthy();
+  });
+
+  test('junior next-task card completes the first incomplete task on tap', () => {
+    const completeTask = jest.fn();
+    setHooks({ tasks: [makeTask({ id: 't-1' }), makeTask({ id: 't-2' })], band: 'junior', completeTask });
+
+    const { getByTestId } = render(<GamerDashboardScreen />);
+    fireEvent.press(getByTestId('hq-next-task'));
+
+    expect(completeTask).toHaveBeenCalledWith('t-1');
+  });
+
+  test('teen band still renders the task list (guards the gate is band-driven)', () => {
+    setHooks({ tasks: [makeTask()], band: 'teen' });
+
+    const { getByTestId } = render(<GamerDashboardScreen />);
+
+    expect(getByTestId('hq-task-t-1')).toBeTruthy();
+    expect(getByTestId('filter-chip-all')).toBeTruthy();
   });
 });

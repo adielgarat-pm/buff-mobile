@@ -35,8 +35,11 @@ import LowPowerBanner from '../../components/LowPowerBanner';
 import SosButton from '../../components/SosButton';
 import InstantBuffCard from '../../components/InstantBuffCard';
 import PackingCard from '../../components/PackingCard';
+import NextTaskCard, { type NextTaskPalette } from '../../components/child/NextTaskCard';
+import { useExperienceBand } from '../../hooks/useExperienceBand';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import type { RootStackParamList } from '../../navigation/types';
+import type { Task } from '../../types/task';
 import { formatNum } from '../../lib/uiLocale';
 
 type Nav = StackNavigationProp<RootStackParamList>;
@@ -61,7 +64,8 @@ function PastelChildDashboard() {
   const T = useChildTheme();
 
   const childId = previewChildId ?? profile?.id ?? null;
-  const { tasks, totalBalance, dailyGoal, loading, refetch, offRoutineActive } = useChildData(childId);
+  const { tasks, totalBalance, dailyGoal, loading, refetch, offRoutineActive, completeTask } = useChildData(childId);
+  const band = useExperienceBand();
   const { settings, isPauseActive } = useAppSettings();
   const isWeekend = isWeekendToday(settings?.friday_enabled ?? false);
   const welcomeBack = useWelcomeBack();
@@ -123,6 +127,9 @@ function PastelChildDashboard() {
   const todayTasks = tasks.filter(t => isTaskVisibleToday(t, isWeekend));
   const doneTasks  = todayTasks.filter(t => t.completed).length;
   const totalTasks = todayTasks.length;
+  // Junior band shows a single "next task" card (same as the Gamer skin — one
+  // task at a time per BUFF_PRD.md:211). First still-incomplete task of the day.
+  const nextTask   = todayTasks.find(t => !t.completed) ?? null;
   // Count-based success (D-2026-06-14): a good day = min(3, total) completed
   // tasks, NOT 70% of the whole list — with 9-20 tasks a % goal is unreachable
   // and reads as permanent failure. Shared rule lives in utils/successDay.
@@ -227,6 +234,10 @@ function PastelChildDashboard() {
             navigation={navigation}
             catchBest={catchBest}
             catchPlaysLeft={catchPlaysLeft}
+            band={band}
+            nextTask={nextTask}
+            onCompleteNext={async (id) => { await completeTask(id); setJustCompletedTask(true); }}
+            onSeeAllTasks={() => navigation.navigate('ChildTasks' as never)}
           />
           <InstantBuffCard palette={pastelLPPalettes.instantBuff} />
           <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
@@ -258,13 +269,31 @@ interface DashboardActiveContentProps {
   navigation: Nav;
   catchBest: number;
   catchPlaysLeft: number;
+  band: 'junior' | 'teen';
+  nextTask: Task | null;
+  onCompleteNext: (id: string) => void;
+  onSeeAllTasks: () => void;
 }
 
 function DashboardActiveContent({
   T, t, doneTasks, totalTasks, goalCount, fuelPct, atGoal, isChildPreview,
   profileName, previewChildName, buddyName, justCompletedTask, setJustCompletedTask, totalBalance, navigation,
-  catchBest, catchPlaysLeft,
+  catchBest, catchPlaysLeft, band, nextTask, onCompleteNext, onSeeAllTasks,
 }: DashboardActiveContentProps) {
+  // Junior-band "next task" card — identical behavior to the Gamer skin, Mint
+  // palette. Skin changes the look; age drives whether the child sees a single
+  // next task (junior) vs. the full list (teen, on the Quests tab for now).
+  const mintNextTaskPalette: NextTaskPalette = {
+    cardBg:      T.card,
+    cardBorder:  T.accent,            // #C084FC — visible purple accent (T.primary is a pale button bg)
+    glow:        T.shadow,
+    checkBorder: T.accent,
+    title:       T.foreground,
+    credits:     T.buff,
+    label:       T.primaryForeground, // #5B3FAF — strong, readable label
+    link:        T.primaryForeground,
+    done:        T.success,
+  };
   return (
     <>
       {/* Focus fuel meter */}
@@ -313,6 +342,18 @@ function DashboardActiveContent({
           </Text>
         </View>
       </TouchableOpacity>
+
+      {/* Junior-band next-task card (shared with the Gamer skin). Teen Mint keeps
+          the summary-only layout until Phase 2 adds the full Pastel list. */}
+      {band === 'junior' && (
+        <NextTaskCard
+          nextTask={nextTask}
+          hasTasksToday={totalTasks > 0}
+          onComplete={onCompleteNext}
+          onSeeAll={onSeeAllTasks}
+          palette={mintNextTaskPalette}
+        />
+      )}
 
       {/* Virtual pet — free for all (core engagement, no longer gated). */}
       <View style={[styles.petCard, { backgroundColor: T.card, borderColor: T.border }]}>
