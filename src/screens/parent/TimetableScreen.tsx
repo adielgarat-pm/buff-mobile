@@ -196,6 +196,7 @@ export default function TimetableScreen() {
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'application/vnd.ms-excel',
           'text/csv',
+          'application/pdf', // one "load file" entry covers Excel/CSV *and* PDF
           '*/*', // fallback for some Android devices
         ],
         copyToCacheDirectory: true,
@@ -203,6 +204,15 @@ export default function TimetableScreen() {
 
       if (result.canceled) return;
       const asset = result.assets[0];
+
+      // PDFs have no text layer / aren't spreadsheets — route them to the vision
+      // parse instead of the local XLSX reader (which would freeze on the binary).
+      const isPdf = asset.mimeType === 'application/pdf'
+        || (asset.name ?? '').toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        await processPdfAsset(asset);
+        return;
+      }
 
       setProcessingMsg(t('timetable.processing'));
       setMode('processing');
@@ -312,20 +322,14 @@ export default function TimetableScreen() {
   // A "Print to PDF" school timetable has no text layer, so it goes through the
   // same vision path as Photo — Anthropic reads the PDF natively server-side
   // (parse-schedule fileType:'pdf'); no on-device PDF library needed.
+  // Reached from the file card (handleExcel routes PDFs here), so one "Load file"
+  // button covers Excel/CSV *and* PDF.
 
-  const handlePdf = useCallback(async () => {
+  const processPdfAsset = useCallback(async (asset: { uri: string; size?: number | null }) => {
     try {
-      const DocumentPicker = await import('expo-document-picker');
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/pdf'],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled) return;
-      const asset = result.assets[0];
-
       if (typeof asset.size === 'number' && asset.size > PDF_MAX_BYTES) {
         crossAlert('', t('timetable.pdfTooLarge'));
+        setMode('choose');
         return;
       }
 
@@ -725,15 +729,6 @@ export default function TimetableScreen() {
                 <Ionicons name="camera-outline" size={36} color={T.accent} />
                 <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodPhoto')}</Text>
                 <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodPhotoSub')}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handlePdf}
-                style={[styles.methodCard, { borderColor: T.cardBorder, backgroundColor: T.card }]}
-              >
-                <Ionicons name="document-attach-outline" size={36} color={T.accent} />
-                <Text style={[styles.methodLabel, { color: T.text }]}>{t('timetable.methodPdf')}</Text>
-                <Text style={[styles.methodSub,   { color: T.textMuted }]}>{t('timetable.methodPdfSub')}</Text>
               </TouchableOpacity>
             </>
           )}
