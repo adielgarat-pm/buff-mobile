@@ -50,6 +50,17 @@
 
 ---
 
+## 2.5 Integrated pipeline (v2) — Console + Skill
+
+שני כלים שמחוברים לפייפליין אחד, כדי לצמצם אותך ל"אשר + הדבק":
+
+1. **Reply Console (Artifact)** — עמוד בקרה עם ה-Operator Brief, פורמט ה-handoff, ה-guardrails, ו-cadence tracker מקומי. את מפנה את Claude for Chrome לעמוד ("read the instructions on this page and run them on the open tab") — או מעתיקה את ה-brief. מקור: [`docs/marketing-assets/buff-reply-console.html`](marketing-assets/buff-reply-console.html).
+2. **`/buff-reply` (Skill)** — [`.claude/skills/buff-reply/SKILL.md`](../.claude/skills/buff-reply/SKILL.md). מקבל את ה-handoff מ-Chrome, מנסח באיכות Opus, מריץ Values + compliance, ומחזיר תור מוכן-לאישור.
+
+**הזרימה:** Console → Chrome סורק ומחזיר candidates (handoff §3.5) → את מדביקה ל-Claude ומריצה `/buff-reply` → תור טיוטות בדוקות → את מאשרת + מדביקה + מעדכנת cadence ב-Console. Chrome = עיניים · Skill = יד-מנסחת · את = אישור + keystroke.
+
+---
+
 ## 3. Operator Brief — להעתיק ל-Claude for Chrome
 
 > העתק-הדבק את כל הבלוק פעם אחת בתחילת כל סבב. עדכן את חלק ה-RULES אם נכנסת לקבוצה חדשה.
@@ -111,6 +122,25 @@ HARD COMPLIANCE RULES (never break — flag and skip if a post pulls me toward t
 
 OUTPUT: a ranked list, best candidates first. Nothing posted.
 ```
+
+---
+
+## 3.5 Handoff format — Chrome → `/buff-reply`
+
+כדי ששלב 1 (Chrome scan) יתחבר ישר לשלב 2 (ניסוח Opus כאן), ה-Operator Brief מחזיר כל מועמד בפורמט הזה. Adi מעתיקה את הבלוק כולו ל-Claude ואומרת `/buff-reply`:
+
+```
+### CANDIDATE [id]
+group: [G1 | G2 | ...]
+score: [1-5]
+summary: [one line]
+permalink: [url]
+post: """
+[raw post text, verbatim]
+"""
+```
+
+הסקיל [`buff-reply`](../.claude/skills/buff-reply/SKILL.md) קורא את הבלוקים, מנסח טיוטה בקול, מריץ Values + compliance, ומחזיר תור מוכן-לאישור. Chrome = עיניים; הסקיל = יד-מנסחת; Adi = אישור + הדבקה.
 
 ---
 
