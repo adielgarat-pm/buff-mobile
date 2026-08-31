@@ -8,6 +8,7 @@
  */
 
 import type { Task } from '../types/task';
+import { isWeekendDay } from '../utils/schoolDay';
 
 /** Local YYYY-MM-DD for a Date (matches getDay()-based weekday logic). */
 export function toDateKey(d: Date = new Date()): string {
@@ -75,5 +76,46 @@ export function countVisibleTasks(
   return {
     total: visible.length,
     completed: visible.filter(t => completedIds.has(t.id)).length,
+  };
+}
+
+/** The task shape needed to reason about a multi-day window. */
+export type WindowTask = Pick<Task, 'scheduleDays' | 'hideOnWeekend' | 'dueDate'>;
+
+/**
+ * The days in `dates` (each 'YYYY-MM-DD', local) on which `task` is scheduled,
+ * applying the family weekend rule (Sat always; Fri unless `fridayEnabled`).
+ */
+export function scheduledDaysInWindow(
+  task: WindowTask,
+  dates: string[],
+  fridayEnabled: boolean,
+): string[] {
+  return dates.filter(dk => {
+    const weekday = new Date(dk + 'T00:00:00').getDay();
+    return isTaskVisibleOn(task as Task, dk, { isWeekend: isWeekendDay(weekday, fridayEnabled) });
+  });
+}
+
+/**
+ * Completion rate (0–100) for `task` across the window, or `null` when the task
+ * was never scheduled in it (so it's excluded from averages rather than counted
+ * as 0%). Denominator = days actually SCHEDULED (not a fixed number); numerator =
+ * completions on those scheduled days; clamped to ≤100 so a parent never sees a
+ * nonsensical >100% (audit M7).
+ */
+export function completionRateOverWindow(
+  task: WindowTask,
+  dates: string[],
+  fridayEnabled: boolean,
+  completedDates: Set<string>,
+): { rate: number; scheduledDays: number; completedDays: number } | null {
+  const scheduled = scheduledDaysInWindow(task, dates, fridayEnabled);
+  if (scheduled.length === 0) return null;
+  const completedDays = scheduled.filter(dk => completedDates.has(dk)).length;
+  return {
+    rate: Math.min(100, (completedDays / scheduled.length) * 100),
+    scheduledDays: scheduled.length,
+    completedDays,
   };
 }
