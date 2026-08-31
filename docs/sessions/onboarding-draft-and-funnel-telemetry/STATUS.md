@@ -4,8 +4,8 @@
 |---|---|---|---|---|---|
 | Analysis + SPEC + architect review | ✅ done | 2026-08-31 | this branch | data-backed vs live DB | ANALYSIS.md; Plan-agent review |
 | Cleanup dry-run + Category-A deletion | ✅ done | 2026-08-31 | `ef02b8d` | post-verify 0 orphans | CLEANUP_DRYRUN.md |
-| **1. Funnel telemetry (B)** | ✅ code done | 2026-08-31 | this branch | tsc clean · 6 new + 107 onboarding/hooks pass | — |
-| 2. Resumable draft (A) | ⏳ pending | — | — | — | — |
+| **1. Funnel telemetry (B)** | ✅ MERGED | 2026-08-31 | `4c68d99` (PR #454) | tsc clean · build:web ✓ · 6+3 new + 107 pass | — |
+| 2. Resumable draft (A) | 🔨 in progress | 2026-08-31 | branch reset from main post-merge | — | — |
 
 ## Phase 1 — what shipped
 - `onboarding_step_reached` added to `OnboardingEventType` (`src/lib/onboardingFunnel.ts`).
