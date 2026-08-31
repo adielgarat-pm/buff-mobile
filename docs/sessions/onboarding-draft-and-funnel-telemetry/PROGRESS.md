@@ -38,9 +38,20 @@ Adi chose **Shape A** (minimal, no DB/schema). Implemented:
   - Architect decisions (in SPEC "Decisions"): draft not RPC-move; v1 shallow resume (UStep1 prefilled); module-Set dedup; DB-only.
   - ⚠️ Verify during impl: an EXISTING web reload-resume test suggests RootNavigator may already persist nav state on web — check overlap with the draft before duplicating.
 
-## Open decisions (waiting on Adi)
-- **Attribution buffadhd.com pass-through:** needs `adielgarat-pm/buff` added to the session (likely the marketing site). Else it's a manual link-tagging playbook. GitHub access this session = buff-mobile only.
-- **Watch PR / CI:** not currently subscribed.
+## Topology resolved (2026-08-31) — IN-2026-08-31-01
+Two BUFF apps on two Supabase projects existed: buff-mobile (RN, LIVE, `gfrongfnyigxsexuofrg`) and the Lovable `adielgarat-pm/buff` (buff.lovable.app, `iyejaxnugjgjeceqdcky`, stale since Jun 20). **Adi: Lovable is retired; buff-mobile is live; buffadhd.com = buff-mobile web.** ⇒ analysis is on the correct/complete DB; attribution needs NO Lovable-repo work.
+
+## Attribution — activated (docs + tiny code, on this branch)
+- `docs/sessions/acquisition-attribution-activation/` — SPEC (OQ1 resolved), **UTM_PLAYBOOK.md** (the marketing action: tag every outbound buffadhd.com link with `?utm_source=`).
+- `normalizeSource` extended: `reddit`, `whatsapp` (utm + referrer host) → first-class instead of `unknown`. +3 tests (13 pass).
+- `scripts/acquisition-by-source.sql` — source split + the ≥80%-attributed success metric.
+- Remaining = **marketing action only** (tag the links); Play install-referrer stays deferred.
+
+## PR watching
+- **PR #457 (Phase 2) — subscribed** (auto-handle CI/reviews).
+
+## Test coverage added
+- `MASTER_TEST_PLAYBOOK` F3.E6 — native app-kill → Welcome resume (Hat 3); web reload covered by `onboarding.web.spec.ts` (Hat 1).
 
 ## Explicitly deferred / separate packages
 - Real signup→wizard E2E on a dev machine / CI (sandbox can't reach live host; wizard auth-gated; writes prod). Test Plan in `SPEC.md`.

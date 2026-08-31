@@ -18,6 +18,8 @@ export type AcquisitionSource =
   | 'fb'         // Facebook / Instagram / Meta
   | 'referral'   // family-invite referral link
   | 'reels'      // Instagram/FB Reels
+  | 'reddit'     // Reddit posts / replies
+  | 'whatsapp'   // WhatsApp community
   | 'play_ads'   // Google/Play paid acquisition (UAC)
   | 'unknown';   // a utm_source was present but did not map — raw kept for triage
 
@@ -63,12 +65,16 @@ export function normalizeSource(
     if (['winback', 'win-back', 'win_back'].includes(s)) return 'winback';
     if (['guide', 'guides', 'seo'].includes(s)) return 'guide';
     if (['reels', 'reel'].includes(s)) return 'reels';
+    if (['reddit'].includes(s)) return 'reddit';
+    if (['whatsapp', 'wa', 'community'].includes(s)) return 'whatsapp';
     if (['referral', 'ref', 'invite'].includes(s)) return 'referral';
     if (['play_ads', 'uac', 'googleads', 'google-ads', 'gads'].includes(s)) return 'play_ads';
     return 'unknown';
   }
   const r = (referrer ?? '').toLowerCase();
   if (r && /facebook\.com|fb\.com|instagram\.com/.test(r)) return 'fb';
+  if (r && /reddit\.com|redd\.it/.test(r)) return 'reddit';
+  if (r && /whatsapp\.com|wa\.me/.test(r)) return 'whatsapp';
   // Any other external referrer with no utm, or nothing at all → organic inbound.
   return 'organic';
 }

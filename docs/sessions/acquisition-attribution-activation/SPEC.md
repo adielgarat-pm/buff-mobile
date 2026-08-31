@@ -68,7 +68,7 @@
 - **אין UI באפליקציה.**
 
 ## Open Questions
-- **OQ1:** האם הריפו של buffadhd.com נגיש לסשן (add_repo)? אם לא — ה-pass-through (G2) הוא משימת cross-repo/ידנית של Adi, וה-app-side מסתכם בהרחבת enum + scripts + playbook.
+- **OQ1 — ✅ נפתר (2026-08-31):** הריפו `adielgarat-pm/buff` (buff.lovable.app) הוא אפליקציה ישנה על DB אחר (`iyejaxnugjgjeceqdcky`), **מושבתת** (אישור Adi; ראה IN-2026-08-31-01). **buffadhd.com מוגש ע"י buff-mobile web**, כך שאין hop נפרד לגשר: `acquisitionCapture.web.ts` כבר קולט utm/referrer ב-first-touch על הדומיין הזה. → **ה-pass-through (G2) מבוטל; אין עבודה ב-repo של lovable.** הפער היחיד = תיוג לינקים (UTM_PLAYBOOK).
 - **OQ2:** אילו ערוצים בפועל צריך למפות מעבר לקיים? (Reddit? WhatsApp community? מיילים?) — קובע את הרחבת `normalizeSource`.
 - **OQ3:** האם לאמת signup אמיתי מול פרוד (עם ניקוי `e2e+`) כדי לאשש שהשרשרת חיה end-to-end, או להסתפק בבדיקת יחידה של `normalizeSource`?
 
