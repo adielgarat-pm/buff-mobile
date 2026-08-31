@@ -32,10 +32,13 @@
 | **E** | `/philosophy` page on buffadhd.com — 3-Principles hero (WHY/WHAT framing) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | ✅ **Wave 1 PR opened 2026-05-14** — `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`. Awaits merge + deploy. |
 | **F** | Clinician / coach / podcast advisor outreach | 2 | [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) | 10-name target list + 3 personalized pitches drafted |
 | **G** | Founder-voice HE FB posts (privacy-first lead hook) | 1 | §6.5 below + [COMPETITORS §3.8](BUFF_COMPETITORS.md) + [FOUNDING_100_KIT](BUFF_FOUNDING_100_KIT.md) | Observation captured 2026-05-23. Kit not started — Adi deferring copy-writing to a dedicated session. |
+| **H** | WhatsApp community group (HE) — welcome + content cadence + attribution | 1 | [BUFF_COMMUNITY_PLAYBOOK.md](BUFF_COMMUNITY_PLAYBOOK.md) | ✅ **Kit drafted 2026-08-31** (Mamazone post → WhatsApp joins). Welcome copy + Sept 1–8 posts ready. Awaits Adi: confirm source, UTM links, English group list. |
 
 **Track F (advisor outreach) was previously mapped only as bullet items in [GO_TO_MARKET §2.4–2.5](BUFF_GO_TO_MARKET.md). The kit doc operationalizes it — same pattern as FOUNDING_100_KIT operationalizes Phase 1.**
 
 **Track G (founder-voice HE FB posts) was added 2026-05-23 after Adi observed an indirect competitor (Hebrew chore-tracker, organic FB post, privacy-first lead hook) succeed with a positioning move BUFF holds only defensively. See [§6.5](#65-track-g--founder-voice-he-fb-posts-brief) and [COMPETITORS §3.8](BUFF_COMPETITORS.md).**
+
+**Track H (WhatsApp community group) was added 2026-08-31 after a "light post + link" on the Mamazone moms' community drove joins to the BUFF Hebrew WhatsApp group. Operationalized in [BUFF_COMMUNITY_PLAYBOOK.md](BUFF_COMMUNITY_PLAYBOOK.md) — same kit pattern as FOUNDING_100_KIT/ADVISOR_OUTREACH_KIT. Directly feeds the WhatsApp channel in [GO_TO_MARKET §95/§110](BUFF_GO_TO_MARKET.md) and the still-open target-list blocker in Track A §4.**
 
 ---
 
