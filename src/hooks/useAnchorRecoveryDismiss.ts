@@ -18,8 +18,11 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { localDayKey } from '../lib/dayKey';
 
-const getTodayKey = () => new Date().toISOString().split('T')[0];
+// Local calendar day (see src/lib/dayKey.ts / audit C1) — the per-day dismiss
+// gate must clear at the user's local midnight.
+const getTodayKey = () => localDayKey();
 
 export function useAnchorRecoveryDismiss(familyId: string | null) {
   const [shownToday, setShownToday] = useState(false);

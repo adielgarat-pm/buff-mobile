@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { isTaskInActivePlan } from '../utils/offRoutineUtils';
+import { localDayKey } from '../lib/dayKey';
 
 export interface ChildSummary {
   childId:        string;
@@ -25,7 +26,9 @@ export interface ChildSummary {
   accessMode:     string | null;
 }
 
-const getTodayKey = () => new Date().toISOString().split('T')[0];
+// Local calendar day (see src/lib/dayKey.ts / audit C1) — must match the day
+// key useChildProgress writes, or the parent dashboard reads the wrong day.
+const getTodayKey = () => localDayKey();
 
 export function useChildrenDashboard() {
   const { familyId } = useAuth();
