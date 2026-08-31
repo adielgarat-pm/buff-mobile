@@ -2207,6 +2207,8 @@
   "install.getApp.playButton": "הורדה מ-Google Play",
   "paywall.webTitle": "המנוי נרכש באפליקציית BUFF",
   "paywall.webBody": "את המנוי רוכשים באפליקציה לאנדרואיד — החשבון וכל מה שהגדרתם כאן עוברים איתכם.",
+  "paywall.iosTitle": "פרימיום בדרך לאייפון",
+  "paywall.iosBody": "בזמן הבטא לאייפון הכול פתוח בחינם — אין עדיין מה לרכוש. נעדכן אתכם כשהמנויים יגיעו.",
   "install.getApp.openButton": "פתחו את BUFF",
   "install.getApp.keepBrowsing": "המשך בדפדפן",
   "install.getApp.inAppTitle": "פתחו את BUFF ב-Google Play — החשבון שלכם נשמר",

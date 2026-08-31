@@ -11,6 +11,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
 import { useAuth } from '../contexts/AuthContext';
 import { isTaskInActivePlan } from '../utils/offRoutineUtils';
+import { localDayKey } from '../lib/dayKey';
+import { countVisibleTasks } from '../lib/taskScheduling';
+import { isWeekendToday } from '../utils/schoolDay';
 
 export interface ChildSummary {
   childId:        string;
@@ -25,7 +28,18 @@ export interface ChildSummary {
   accessMode:     string | null;
 }
 
-const getTodayKey = () => new Date().toISOString().split('T')[0];
+// Local calendar day (see src/lib/dayKey.ts / audit C1) — must match the day
+// key useChildProgress writes, or the parent dashboard reads the wrong day.
+const getTodayKey = () => localDayKey();
+
+// Raw `tasks` row shape for the columns this hook selects.
+interface RawTaskRow {
+  id:              string;
+  is_off_routine:  boolean | null;
+  schedule_days:   number[] | null;
+  hide_on_weekend: boolean | null;
+  due_date:        string | null;
+}
 
 export function useChildrenDashboard() {
   const { familyId } = useAuth();
@@ -71,6 +85,15 @@ export function useChildrenDashboard() {
         return;
       }
 
+      // Family weekend rule (Fri unless friday_enabled; Sat always) — needed to
+      // day-filter the task counts the same way the child screens do (H3).
+      const { data: appSettings } = await supabase
+        .from('app_settings')
+        .select('friday_enabled')
+        .eq('family_id', familyId)
+        .maybeSingle();
+      const isWeekend = isWeekendToday((appSettings as { friday_enabled?: boolean } | null)?.friday_enabled ?? false);
+
       // Step 2 — tasks + progress for all children in parallel
       const summaries = await Promise.all(
         profiles.map(async (child): Promise<ChildSummary> => {
@@ -81,7 +104,7 @@ export function useChildrenDashboard() {
           ] = await Promise.all([
             supabase
               .from('tasks')
-              .select('id, is_off_routine')
+              .select('id, is_off_routine, schedule_days, hide_on_weekend, due_date')
               .eq('family_id', familyId)
               .eq('assigned_to', child.id),
             supabase
@@ -103,8 +126,23 @@ export function useChildrenDashboard() {
 
           // Off-routine partition (mirrors useChildData) — never count off-routine
           // rows as phantom incompletes when the child is on a normal day.
-          const visibleTasks = (tasks ?? []).filter(t =>
+          const inPlanTasks = ((tasks ?? []) as RawTaskRow[]).filter(t =>
             isTaskInActivePlan(t.is_off_routine, child.off_routine_until)
+          );
+
+          // Day-filter the SAME way the child screens do (schedule days, weekend,
+          // one-time dueDate), so the parent's "X / Y" matches what the child
+          // sees and "all done" can actually register (H3).
+          const counts = countVisibleTasks(
+            inPlanTasks.map(t => ({
+              id:            t.id,
+              scheduleDays:  t.schedule_days ?? undefined,
+              hideOnWeekend: t.hide_on_weekend ?? undefined,
+              dueDate:       t.due_date ?? undefined,
+            })),
+            completedIds,
+            todayKey,
+            { isWeekend },
           );
 
           return {
@@ -112,8 +150,8 @@ export function useChildrenDashboard() {
             displayName:    child.display_name ?? '—',
             avatar:         child.avatar       ?? '🚀',
             created_at:     child.created_at   ?? null,
-            tasksTotal:     visibleTasks.length,
-            tasksCompleted: visibleTasks.filter(t => completedIds.has(t.id)).length,
+            tasksTotal:     counts.total,
+            tasksCompleted: counts.completed,
             totalBalance:   vault?.total_balance ?? 0,
             accessMode:     (child as { access_mode?: string | null }).access_mode ?? null,
           };

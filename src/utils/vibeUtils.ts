@@ -8,6 +8,8 @@
  * the authoritative child_vibes column contract.
  */
 
+import { localDayKey } from '../lib/dayKey';
+
 export type VibeLevel = 1 | 2 | 3 | 4 | 5;
 // 'bars' retained for the historical Gamer selector; 'battery' is the
 // current Gamer selector (pkg/vibe-check-battery). vibe_type is free text
@@ -28,18 +30,19 @@ export interface VibeSnapshot {
 }
 
 /**
- * Today's date key as 'YYYY-MM-DD'.
+ * Today's date key as 'YYYY-MM-DD', in the child's LOCAL time.
  *
- * Uses UTC to match the existing `daily_progress.date` convention
- * (see useChildProgress.ts). For Israel (UTC+2/+3) the day rolls at
- * 02:00/03:00 local — acceptable for the MVP cohort. Logged as a
- * follow-up in INTEGRATION_LEARNINGS for the international-users
- * timeline.
+ * The vibe check (and every per-day loop it shares a boundary with:
+ * daily_progress, streak) must roll at the child's local midnight. The old
+ * implementation used UTC, which for negative-offset users rolled the day
+ * mid-afternoon and re-prompted the vibe check twice a day (audit H5). Now
+ * delegates to the shared local helper so it agrees with useChildProgress /
+ * useChildrenDashboard. See src/lib/dayKey.ts.
  *
  * `now` parameter overridable for tests.
  */
 export function getTodayKey(now: Date = new Date()): string {
-  return now.toISOString().split('T')[0];
+  return localDayKey(now);
 }
 
 /**

@@ -2207,6 +2207,8 @@
   "install.getApp.playButton": "Get it on Google Play",
   "paywall.webTitle": "Subscribe in the BUFF app",
   "paywall.webBody": "Premium is purchased in the Android app — your account and everything you set up here come with you.",
+  "paywall.iosTitle": "Premium is on the way for iPhone",
+  "paywall.iosBody": "During the iPhone beta everything is unlocked for free — there's nothing to buy yet. We'll let you know when subscriptions arrive.",
   "install.getApp.openButton": "Open BUFF",
   "install.getApp.keepBrowsing": "Keep going in the browser",
   "install.getApp.inAppTitle": "Open BUFF in Google Play — your account is saved",

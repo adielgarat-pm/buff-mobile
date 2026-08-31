@@ -7,6 +7,7 @@ import { Task } from '../types/task';
 import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils';
 import { applyTaskCompletionToPet } from './usePetState';
 import { emitConfetti } from '../lib/confetti';
+import { localDayKey } from '../lib/dayKey';
 
 // ג”€ג”€ג”€ Types ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
@@ -27,7 +28,9 @@ export interface ChildProgress {
 
 // ג”€ג”€ג”€ Helpers ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
-const getTodayKey = () => new Date().toISOString().split('T')[0];
+// Local calendar day — the daily loop rolls at the child's local midnight,
+// not UTC (see src/lib/dayKey.ts / audit C1). Read + write both use this.
+const getTodayKey = () => localDayKey();
 
 // ג”€ג”€ג”€ useChildProgress ג€” all children's daily summary ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 

@@ -1,5 +1,5 @@
 import type { Task } from '../../types/task';
-import { isTaskVisibleOn, toDateKey } from '../taskScheduling';
+import { isTaskVisibleOn, toDateKey, countVisibleTasks } from '../taskScheduling';
 
 function task(partial: Partial<Task>): Task {
   return {
@@ -80,5 +80,62 @@ describe('isTaskVisibleOn — pause + defaults (fix-pause-visibility-child)', ()
     const t = task({ scheduleDays: undefined });
     expect(isTaskVisibleOn(t, MON, { isWeekend: false })).toBe(true);
     expect(isTaskVisibleOn(t, SAT, { isWeekend: true })).toBe(true);
+  });
+});
+
+describe('countVisibleTasks — parent dashboard day-filtered counts (H3)', () => {
+  // A representative multi-schedule child: 2 daily, 1 Monday-only, 1 weekend-
+  // hidden, 1 future-dated one-time, 1 past-dated one-time.
+  const tasks = [
+    { id: 'daily-a',   scheduleDays: undefined },              // every day
+    { id: 'daily-b',   scheduleDays: [0, 1, 2, 3, 4, 5, 6] },  // every day
+    { id: 'mon-only',  scheduleDays: [1] },                    // Monday only
+    { id: 'no-wknd',   scheduleDays: undefined, hideOnWeekend: true },
+    { id: 'future-1x', dueDate: '2026-06-20' },                // one-time, later
+    { id: 'past-1x',   dueDate: '2026-06-01' },                // one-time, earlier
+  ];
+
+  test('Tuesday: only the recurring weekday tasks count (no Mon-only, no dated)', () => {
+    // TUE is a weekday → hideOnWeekend task still shows; mon-only hidden;
+    // dated tasks only show on their exact date.
+    const { total, completed } = countVisibleTasks(tasks, new Set(), TUE, { isWeekend: false });
+    expect(total).toBe(3); // daily-a, daily-b, no-wknd
+  });
+
+  test('past-dated one-time task never inflates the total', () => {
+    const { total } = countVisibleTasks(tasks, new Set(), TUE, { isWeekend: false });
+    // past-1x (2026-06-01) is not visible on TUE → excluded.
+    expect(total).toBe(3);
+  });
+
+  test('all of today\'s visible tasks complete → completed === total ("all done" registers)', () => {
+    const done = new Set(['daily-a', 'daily-b', 'no-wknd']);
+    const { total, completed } = countVisibleTasks(tasks, done, TUE, { isWeekend: false });
+    expect(completed).toBe(total);
+    expect(total).toBe(3);
+  });
+
+  test('weekend hides hideOnWeekend tasks (Saturday)', () => {
+    const { total } = countVisibleTasks(tasks, new Set(), SAT, { isWeekend: true });
+    // daily-a + daily-b show Saturday (null/all-7); no-wknd hidden; mon-only no.
+    expect(total).toBe(2);
+  });
+
+  test('one-time task counts only on its exact date', () => {
+    // 2026-06-20 is a Saturday (weekend) → no-wknd hidden; daily-a, daily-b, and
+    // future-1x (dated exactly today) show.
+    const { total } = countVisibleTasks(tasks, new Set(), '2026-06-20', { isWeekend: true });
+    expect(total).toBe(3);
+  });
+
+  // Anti-divergence guard: the count MUST equal the child's own visible set,
+  // since both go through isTaskVisibleOn. If the parent aggregation ever drifts
+  // from the child rule again, this fails.
+  test('parent count === child visible count for the same list/day', () => {
+    for (const [dateKey, isWeekend] of [[MON, false], [TUE, false], [SAT, true]] as const) {
+      const childVisible = tasks.filter(t => isTaskVisibleOn(t as Task, dateKey, { isWeekend }));
+      const { total } = countVisibleTasks(tasks, new Set(), dateKey, { isWeekend });
+      expect(total).toBe(childVisible.length);
+    }
   });
 });

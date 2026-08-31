@@ -13,9 +13,13 @@
  *     Text nodes before).
  */
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import PaywallScreen, { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../PaywallScreen';
 import FoundingHundredScreen from '../FoundingHundredScreen';
+
+const originalOS = Platform.OS;
+const setOS = (os: string) => { (Platform as { OS: string }).OS = os; };
+afterEach(() => setOS(originalOS));
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -98,11 +102,24 @@ describe('purchase screens — child role gate (Pillar 1)', () => {
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
-  test('PaywallScreen renders the offer for a parent profile', () => {
+  test('PaywallScreen renders the purchase offer for a parent on Android', () => {
+    setOS('android'); // IAP is wired on Android → real purchase cards render
     const { getByText } = render(<PaywallScreen />);
 
     expect(getByText('Unlock BUFF Premium')).toBeTruthy();
     expect(getByText('Monthly')).toBeTruthy();
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
+  });
+
+  test('PaywallScreen shows the non-purchasing iOS panel (Phase 1) — no dead-end cards (H4)', () => {
+    setOS('ios'); // no IAP on iOS Phase 1 → must NOT render purchase cards
+    const { getByText, queryByText } = render(<PaywallScreen />);
+
+    // In the test env react-i18next returns the key, so assert on the key.
+    expect(getByText('Unlock BUFF Premium')).toBeTruthy();  // hero (hardcoded) still shows
+    expect(getByText('paywall.iosTitle')).toBeTruthy();     // iOS non-purchasing panel
+    expect(queryByText('Monthly')).toBeNull();              // no purchase card
+    expect(queryByText('Yearly')).toBeNull();
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
