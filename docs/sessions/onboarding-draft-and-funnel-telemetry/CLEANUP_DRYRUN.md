@@ -1,7 +1,19 @@
 # Cleanup Dry-Run Report — 2026-08-31
 
-> **DRY-RUN בלבד. לא נמחק דבר.** מזהה מועמדי-ניקוי ב-`buff-production` לאישור Adi.
 > כל מספר מעוגן לשאילתה. מחיקה בפועל תיעשה רק אחרי אישור מפורש + דוח DELETE מסודר (Verify-Before-Delete).
+
+## ✅ EXECUTED — Category A נמחקה (2026-08-31, באישור מפורש של Adi)
+מחיקה טרנזקציונית אחת, ממודרת ל-5 ה-user-ids המדויקים. FK map נבדק מראש; כל טבלאות ה-`NO ACTION`
+(`stickers`/`child_suggestions`/`parent_items`/`capture_runs`/`email_logs`/`push_subscriptions`) היו ריקות ל-5 המשפחות.
+- **נמחק:** 5 auth users · 8 profiles (5 הורים + 3 ילדים) · 5 families · 14 tasks · 7 store_rewards · 6 daily_progress · 3 credit_vault · 3 buddy_relationships (הכול בקסקייד ממחיקת ה-families). referrals: referrer→CASCADE, referred→SET NULL (לפי כללי ה-FK).
+- **אימות אחרי:** `test_auth_users_remaining=0`, `test_email_remaining=0`, `orphan_tasks=0`, `orphan_profiles=0`.
+- 4 המשפחות-הריקות (Category E) קדמו למחיקה ולא הושפעו.
+
+Categories B/C/D/E **לא נגענו** — נשארות להחלטה נפרדת / אסורות למחיקה כמפורט למטה.
+
+---
+
+> **להלן הדוח המקורי (dry-run) ששימש לאישור.**
 
 ---
 
