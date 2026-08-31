@@ -177,6 +177,40 @@ then nothing.
 
 Rationale: B קודם כי הוא מודד את הבעיה ש-A פותר, ומיידע את UX ה-resume (Step 1 vs Step 4 → resume רדוד מספיק או צריך deep).
 
+## Test Plan
+
+> רמת סיכון: Phase B 🟢 נמוך-מאוד · Phase A 🟡 נמוך-בינוני (3 נקודות: כתיבת draft לא חוסמת ניווט · גייטינג הבאנר לא נוגע בהורים קיימים · RMW לא דורס jsonb).
+
+**E2E אוטונומי מלא — בלי OAuth.** אומת בקוד: `SignupScreen` → `signUp` → `supabase.auth.signUp({email,password})`, וההמשך משתמש ב-`authData.user` **מיידית** ללא המתנה לאישור-מייל (`AuthContext.tsx:532+`) → autoconfirm בפועל. לכן CC יכול ליצור הורה-בדיקה עם אימייל+סיסמה ולרוץ מקצה-לקצה על **אמולטור וגם web**, בלי Adi.
+
+**היגיינת חשבונות-בדיקה (חשוב — זו buff-production):** אימיילים מתויגים בבירור (למשל `e2e+<slug>@bufftest.dev`), וניקוי אחרי כל ריצה דרך Supabase MCP (מחיקת auth.users + profiles/families/onboarding_events של אותו slug). להירשם ב-STATUS מה נוצר/נמחק.
+
+### Hat 1 — סטטי + Jest (100% אוטונומי, נכנס ל-CI)
+- `tsc` typecheck (union `OnboardingEventType`, טיפוסי params/prefill).
+- Jest חדשים: `onboardingDraft` (save=merge, load, clear-only-on-success, TTL) · `useStepReachedLog` (fires-once/session/step) · פונקציית גייטינג הבאנר (0-kids+fresh→show; has-kid→hide; stale→hide; no-draft→hide).
+- רגרסיה: כל בדיקות ה-onboarding הקיימות עוברות.
+
+### Hat 3 — Android emulator (adb, אוטונומי; דורש lease דרך buff-emulator)
+כל התרחישים על **הורה email+password חדש**:
+1. Happy path מלא → ילד נוצר, משימות נוצרו, draft נוקה, ואחריו **אין** באנר.
+2. נטישה בכל שלב (1/2/3/4) → פתיחה מחדש → באנר → prefilled → סיום → ילד נוצר.
+3. **הורה קיים עם ילדים → דשבורד בלי באנר** (no-regression קריטי).
+4. מסלול שם-כפול ב-Step 5 עדיין עובד עם draft בתמונה.
+5. אין חסימת-ניווט בין שלבים (כתיבת draft fire-and-forget).
+
+### Web — `npm run web` (אוטונומי)
+- Happy path + **המקרה הקריטי:** התחלת אשף → **refresh לדפדפן באמצע** → פתיחה מחדש → הבאנר משחזר (ב-web ה-params מתים).
+- רינדור הבאנר תקין ב-web.
+
+### אימות DB — Supabase MCP (אחרי כל ריצה)
+- שורות `onboarding_step_reached` נכתבו + הרצת `scripts/onboarding-funnel.sql`.
+- `onboarding_data.wizard_draft` נכתב → נוקה.
+- **מבחן RMW:** שתילת מפתח-אח ב-`onboarding_data` ואימות שהוא **שורד** שמירת draft.
+
+### Hat 4 — רק Adi
+- ליטוש ויזואלי סופי של הבאנר על Android אמיתי · הרשמת Google OAuth אמיתית מקצה-לקצה.
+- **לא ניתן לבדיקה אוטונומית:** TTL על פני ימים אמיתיים · ריצה חוצת-מכשירים · OAuth production.
+
 ## Exit Deliverables (per CLAUDE.md)
 - עדכון canonical docs לפי `SPEC_SYNC.md` (GAP_ANALYSIS: לסגור/לעדכן את "no child added" leak; INTEGRATION_LEARNINGS: ממצא dead-columns + RPC-trigger constraint).
 - שורה ב-`STATUS.md`: state, date, commit, tests, learnings link.
