@@ -103,7 +103,12 @@ Cadence: **3 posts/week**, ~80% עזרה טהורה / ~20% BUFF רך. השבוע
 > Sharing it here because I know I'm really not the only one in this boat 🤍
 > 👇 Link to the guide in the first comment (I also dropped in an invite to our little group, for anyone who wants more moms who get exactly this daily grind)
 
-**Adapt per target sub before posting:** `r/ADHD_parenting` tolerates founder presence but read rules; general parenting groups keep it lighter. Keep moves #1–#8; swap "first day of school" for the audience's calendar (US back-to-school is Aug/Sept too — timing still holds).
+**First comment (post it yourself, immediately after the post):**
+
+> Here's the guide 💜 https://buffadhd.com/guides/back-to-school/#en
+> (there's also an invite at the bottom to our quiet little WhatsApp group, for anyone who wants more moms who just get this daily grind)
+
+**Adapt per target sub before posting:** `r/ADHD_parenting` tolerates founder presence but read rules; general parenting groups keep it lighter. Keep moves #1–#8; swap "first day of school" for the audience's calendar (US back-to-school is Aug/Sept too — timing still holds). **Verify the guide anchor:** `#en` assumed to mirror the Hebrew `#he`; swap if the English guide lives elsewhere. Optional attribution: append `?utm_source=<group>&utm_medium=community&utm_campaign=back-to-school` per §5.
 
 ### 4.1 The formula, generalized
 
