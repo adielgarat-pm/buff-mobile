@@ -10,6 +10,7 @@ import OnboardingShell from '../_OnboardingShell';
 import { PARENT_THEME as T } from '../../../theme';
 import type { AgeGroup, Gender } from './onboardingData';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
 
@@ -33,7 +34,10 @@ export default function UStep1_ChildProfile() {
   const { params }  = useRoute<Route>();
   const { t, i18n } = useTranslation();
   const { isRTL }   = useRTLStyles();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, familyId } = useAuth();
+
+  // Funnel: parent reached the first data-entry step. Once per family per session.
+  useStepReachedLog('1_child_profile', familyId);
 
   // Empty-state re-entry: attach the flow to an existing child instead of
   // creating a new profile. prefillName seeds the name field; existingChildId

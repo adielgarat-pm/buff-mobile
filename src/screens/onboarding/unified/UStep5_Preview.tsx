@@ -33,6 +33,7 @@ import { generateStarterTasks } from './starterTasks';
 import { isTeenAgeGroup } from '../../../lib/activities/childMode';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
 import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep5_Preview'>;
@@ -48,6 +49,9 @@ export default function UStep5_Preview() {
   const { params }  = useRoute<Route>();
   const { t, i18n } = useTranslation();
   const { familyId, user } = useAuth();
+
+  // Funnel: parent reached the Preview step (last step before child_created).
+  useStepReachedLog('5_preview', familyId);
 
   const lang  = i18n.language.startsWith('he') ? 'he' : 'en';
   // Per-child language. At onboarding the profile doesn't exist yet, so this

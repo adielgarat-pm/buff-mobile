@@ -15,6 +15,8 @@ import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { OPTIONS_BY_AGE } from './onboardingData';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep3_Challenges'>;
@@ -27,6 +29,9 @@ export default function UStep3_Challenges() {
   const { params }  = useRoute<Route>();
   const { t }       = useTranslation();
   const { isRTL }   = useRTLStyles();
+  const { familyId } = useAuth();
+
+  useStepReachedLog('3_challenges', familyId);
 
   const [additionalChallenges, setAdditional] = useState<string[]>([]);
 
