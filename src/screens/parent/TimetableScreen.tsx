@@ -84,6 +84,12 @@ async function invokeWithTimeout(
   }
 }
 
+/** supabase.functions.invoke surfaces a non-2xx as a FunctionsHttpError whose
+ *  .context is the Response. 429 = the family hit the daily schedule-parse cap. */
+function isRateLimited(error: unknown): boolean {
+  return (error as { context?: { status?: number } })?.context?.status === 429;
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function TimetableScreen() {
@@ -294,7 +300,10 @@ export default function TimetableScreen() {
 
       abortRef.current = null;
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); setMode('choose'); return; }
+        throw new Error(error.message);
+      }
       if (!data?.tasks?.length) {
         crossAlert('', t('timetable.noLessonsFound'));
         setMode('choose');
@@ -353,7 +362,10 @@ export default function TimetableScreen() {
       if (controller.signal.aborted) return; // user tapped Cancel
       abortRef.current = null;
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); setMode('choose'); return; }
+        throw new Error(error.message);
+      }
       if (!data?.tasks?.length) {
         crossAlert('', t('timetable.noLessonsFound'));
         setMode('choose');
@@ -390,7 +402,10 @@ export default function TimetableScreen() {
         PASTE_TIMEOUT_MS,
         controller,
       );
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); return; }
+        throw new Error(error.message);
+      }
       if (!data?.tasks?.length) {
         crossAlert('', t('timetable.noLessonsFound'));
         return;
