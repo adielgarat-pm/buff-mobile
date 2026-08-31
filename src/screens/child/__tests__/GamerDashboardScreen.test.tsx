@@ -395,17 +395,30 @@ describe('GamerDashboardScreen — HQ task completion feedback', () => {
 describe('GamerDashboardScreen — junior band hides the HQ task list', () => {
   afterEach(() => jest.clearAllMocks());
 
-  test('junior band renders no task cards and no filter chips', () => {
+  test('junior band renders no full list / chips, only a single next-task card', () => {
     setHooks({ tasks: [makeTask(), makeTask({ id: 't-2' })], band: 'junior' });
 
     const { queryByTestId } = render(<GamerDashboardScreen />);
 
-    // No inline task rows…
+    // No inline full-list task rows…
     expect(queryByTestId('hq-task-t-1')).toBeNull();
     expect(queryByTestId('hq-task-t-2')).toBeNull();
     // …and no time-of-day filter chips.
     expect(queryByTestId('filter-chip-all')).toBeNull();
     expect(queryByTestId('filter-chip-morning')).toBeNull();
+    // …but the single "next task" card + see-all link ARE shown.
+    expect(queryByTestId('hq-next-task')).toBeTruthy();
+    expect(queryByTestId('hq-next-see-all')).toBeTruthy();
+  });
+
+  test('junior next-task card completes the first incomplete task on tap', () => {
+    const completeTask = jest.fn();
+    setHooks({ tasks: [makeTask({ id: 't-1' }), makeTask({ id: 't-2' })], band: 'junior', completeTask });
+
+    const { getByTestId } = render(<GamerDashboardScreen />);
+    fireEvent.press(getByTestId('hq-next-task'));
+
+    expect(completeTask).toHaveBeenCalledWith('t-1');
   });
 
   test('teen band still renders the task list (guards the gate is band-driven)', () => {

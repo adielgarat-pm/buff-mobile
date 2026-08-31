@@ -3,7 +3,8 @@
 | Phase | State | Date | Commit | Tests | Notes |
 |---|---|---|---|---|---|
 | SPEC | ✅ drafted + decisions locked | 2026-08-30 | 2e089fe | n/a | Q1–Q4 resolved with Adi; Itay approved junior gating |
-| Phase 1 — junior gating | ✅ code complete (pending Hat-4 device verify) | 2026-08-30 | _(this commit)_ | 948 jest + typecheck green | Gamer HQ list + Stats tab now age-gated, both skins |
+| Phase 1 — junior gating | ✅ code complete (pending Hat-4 device verify) | 2026-08-30 | ffce6b1 | 948 jest + typecheck green | Gamer HQ list + Stats tab now age-gated, both skins |
+| Phase 1.1 — junior next-task card | ✅ code complete (pending Hat-4) | 2026-08-30 | _(this commit)_ | 953 jest + typecheck + i18n green | Shared NextTaskCard replaces the passive hint; identical in Mint + Gamer |
 
 ## Phase 1 — what shipped
 - **New shared layer** (per IN-2026-07-06-01 — behavior in a hook, not the screen):
@@ -17,6 +18,19 @@
   BUFFs, Catch, buddy), no list. Their tasks live on the Quests tab (single completion path).
 - `src/navigation/ChildTabs.tsx` — Stats (סטטים) tab visibility switched from `isGamer` to
   `isTeenBand`. Stable-reference `HIDDEN_TAB_OPTIONS` pattern preserved.
+
+## Phase 1.1 — junior "next task" card (UX review outcome)
+A UX/UI pass on the Phase-1 screenshots flagged the passive dashed hint as reading like an
+empty/broken state. Adi chose the "next task" card (option A) — one task at a time, matching
+`BUFF_PRD.md:211`. Built as a SHARED component so a young child gets the IDENTICAL card on
+either skin (Adi: "צריך לוודא שזה ממש אותו דבר בפסטל"):
+- `src/components/child/NextTaskCard.tsx` — NEW shared component (label + single tappable task
+  + "see all" link; positive all-done / no-tasks states). Palette injected per skin.
+- `GamerDashboardScreen.tsx` — junior branch renders NextTaskCard (gamer palette) instead of
+  an empty gap; `nextTask` = first incomplete of today's tasks.
+- `ChildDashboardScreen.tsx` (Pastel) — same NextTaskCard (mint palette) for the junior band;
+  wired `completeTask` + pet celebration (`justCompletedTask`) + navigate-to-Quests.
+- i18n: `nextTask.label / seeAll / allDone / none` added to he + en.
 
 ## Tests
 - `src/lib/__tests__/experienceBand.test.ts` — new (4): age→depth matrix + Q3 fallback.

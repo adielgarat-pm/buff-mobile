@@ -59,6 +59,7 @@ import PackingCard from '../../components/PackingCard';
 import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowPowerContext';
 import { useCompletionPop } from '../../hooks/useCompletionPop';
 import { useExperienceBand } from '../../hooks/useExperienceBand';
+import NextTaskCard, { type NextTaskPalette } from '../../components/child/NextTaskCard';
 import type { Task } from '../../types/task';
 import type { RootStackParamList, ChildTabsParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
@@ -106,6 +107,19 @@ const GAMER_LP_PALETTES = {
     ctaShadow: COLORS.lime,
   },
 } as const;
+
+// Palette for the junior-band NextTaskCard in the Gamer skin.
+const GAMER_NEXT_TASK_PALETTE: NextTaskPalette = {
+  cardBg:      COLORS.surface,
+  cardBorder:  COLORS.borderActive,
+  glow:        COLORS.lime,
+  checkBorder: COLORS.borderActive,
+  title:       COLORS.text,
+  credits:     COLORS.lime,
+  label:       COLORS.lime,
+  link:        COLORS.lime,
+  done:        COLORS.lime,
+};
 
 type TimeFilter = 'all' | 'morning' | 'noon' | 'afternoon' | 'evening';
 
@@ -322,6 +336,14 @@ export default function GamerDashboardScreen() {
     [isLowPower, filteredTasks],
   );
 
+  // Junior band shows a single "next task" instead of the full list — the first
+  // still-incomplete task of the day (ignores the time-of-day chips, which juniors
+  // don't see). See NextTaskCard.
+  const nextTask = useMemo(
+    () => todayTasks.find(task => !task.completed) ?? null,
+    [todayTasks],
+  );
+
   const doneCount  = filteredTasks.filter(t => t.completed).length;
   const totalCount = filteredTasks.length;
   // Count-based success (D-2026-06-14): a good day = min(3, total) completed
@@ -516,9 +538,10 @@ export default function GamerDashboardScreen() {
       <PackingCard childId={childId} />
 
       {/* Task list + time-of-day chips — teen-band only (age-driven, not skin-
-          driven). Junior kids on the Gamer skin get the summary HQ above; their
-          tasks live on the Quests tab. See `band`/`showTaskList` note above. */}
-      {showTaskList && (
+          driven). Junior kids get a single "next task" card instead (same as the
+          Mint skin — one-task-at-a-time per BUFF_PRD.md:211); their full list lives
+          on the Quests tab. See `band`/`showTaskList` note above. */}
+      {showTaskList ? (
       <>
       {/* Time-of-day filter chips */}
       <ScrollView
@@ -572,6 +595,14 @@ export default function GamerDashboardScreen() {
         ))
       )}
       </>
+      ) : (
+        <NextTaskCard
+          nextTask={nextTask}
+          hasTasksToday={todayTasks.length > 0}
+          onComplete={(id) => { void onTaskTap(id, false); }}
+          onSeeAll={() => navigation.navigate('ChildTasks')}
+          palette={GAMER_NEXT_TASK_PALETTE}
+        />
       )}
 
       {/* Instant Buff card — self-conditional (only renders when isLowPower
