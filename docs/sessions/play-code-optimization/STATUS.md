@@ -4,7 +4,15 @@
 |---|---|---|---|---|---|
 | SPEC | ✅ drafted | 2026-08-31 | 5a1… | n/a | R8 package for Google Play "Code optimization ≥25%" |
 | SPEC review | ✅ finalized after architect review + API verification | 2026-08-31 | 3fe5eac | 977 jest + typecheck green | No open technical questions |
-| Phase 1 — enable R8 | ✅ config complete (pending EAS build + Hat-4 device verify) | 2026-08-31 | _(this commit)_ | 977 jest + typecheck + expo-config resolve + throwaway-prebuild wiring verified | Awaiting production AAB to confirm build succeeds + Play Console ≥25% |
+| Phase 1 — enable R8 | ✅ config complete | 2026-08-31 | 26c785c | 977 jest + typecheck + expo-config resolve + throwaway-prebuild wiring verified | R8 flags land in Gradle; Sentry AGP applied |
+| Phase 1 — EAS production build | ✅ **build SUCCEEDED with R8 on** | 2026-08-31 | 26c785c | EAS build finished, AAB produced | Run #8; R8 minify+shrink did NOT break the build; no keep-rules needed. Remaining = Hat-4 device smoke + Play Console ≥25% |
+
+## EAS production build result (run #8, wait=true)
+- Triggered by Claude via the `eas-build-android.yml` workflow_dispatch on this branch (sha `26c785c`).
+- **Build finished successfully** — R8 (`minifyEnabled` + `shrinkResources`) + Sentry AGP did **not** break the production AAB. RevenueCat/svg/Sentry consumer rules sufficed; **no `extraProguardRules` needed**.
+- EAS build page: https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/d8cee29c-1103-4c92-9d00-be559683df94
+- AAB artifact: https://expo.dev/artifacts/eas/EZ1bIGDswcdPaq9Jw602Nulo_JPR4KeFAr2pWqNWlrg.aab
+- Job step "EAS build (Android app-bundle)" ran ~12.5 min (17:52:51→18:05:30 UTC) — a real completed cloud build, not just a submission.
 
 ## What shipped (config only — no app source changed)
 - **Dependency:** `expo-build-properties@1.0.10` (SDK 54-pinned) added.
