@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Phase, getPhaseForTime, PHASES } from '../types/phase';
 import type { TaskCategory } from '../types/task';
 import type { InsightFraming } from '../utils/insightFraming';
+import { completionRateOverWindow, toDateKey } from '../lib/taskScheduling';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,6 +94,12 @@ export function useParentInsights(childId: string | null) {
   const [categoryStats,  setCategoryStats]  = useState<CategoryStats>({});
   const [cachedFraming,  setCachedFraming]  = useState<InsightFraming | null>(null);
   const [loading,        setLoading]        = useState(true);
+  // Whether the child has ANY real activity in the window. This — not the child
+  // profile's row age — gates the Insights "unlock" card (audit M3): a seeded /
+  // back-dated / re-linked child with real history but a fresh created_at used to
+  // read "unlock after 3 days" forever. Same signal the content below is built
+  // from, so the lock and the content can never disagree.
+  const [hasEnoughData,  setHasEnoughData]  = useState(false);
 
   // Try to read a pre-computed insight from child_insights (written by pg_cron).
   // Returns true when a valid cached row was found so the caller can skip the
@@ -136,12 +143,14 @@ export function useParentInsights(childId: string | null) {
     }
 
     try {
-      // Last 7 days
+      // Last 7 days, LOCAL calendar days — matches how daily_progress.date is now
+      // written (src/lib/dayKey.ts, audit C1); a UTC window would query the wrong
+      // days for negative-offset users.
       const dates: string[] = [];
       for (let i = 0; i < 7; i++) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        dates.push(d.toISOString().split('T')[0]);
+        dates.push(toDateKey(d));
       }
 
       const { data: tasksData } = await supabase
@@ -151,6 +160,7 @@ export function useParentInsights(childId: string | null) {
         .or(`assigned_to.is.null,assigned_to.eq.${childId}`);
 
       if (!tasksData || tasksData.length === 0) {
+        setHasEnoughData(false);
         setLoading(false);
         return;
       }
@@ -162,27 +172,58 @@ export function useParentInsights(childId: string | null) {
         .in('date', dates)
         .or(`child_id.is.null,child_id.eq.${childId}`);
 
-      // No progress data yet (brand-new child) — insights would all show 0%,
-      // so return empty and let the dashboard show the "unlock after 3 days" card.
+      // No real activity yet → Insights stay locked (M3 gates on this, not on the
+      // profile's created_at age).
       if (!progressData || progressData.length === 0) {
+        setHasEnoughData(false);
         setLoading(false);
         return;
       }
+      setHasEnoughData(true);
 
-      // Per-task completion rates
-      const taskInsights: TaskInsight[] = tasksData.map(task => {
-        const taskProgress   = progressData?.filter(p => p.task_id === task.id) || [];
-        const completedDays  = taskProgress.filter(p => p.completed).length;
-        const totalDays      = Math.min(dates.length, 5);
-        return {
+      // Family weekend rule (Fri unless friday_enabled; Sat always) — needed to
+      // know which days each task was actually SCHEDULED, for the rate denominator.
+      const { data: appSettings } = await supabase
+        .from('app_settings')
+        .select('friday_enabled')
+        .eq('family_id', familyId)
+        .maybeSingle();
+      const fridayEnabled = (appSettings as { friday_enabled?: boolean } | null)?.friday_enabled ?? false;
+
+      // Per-task completion rates.
+      // Denominator = the number of days in the window the task was actually
+      // SCHEDULED (via the shared isTaskVisibleOn rule — the same one the child
+      // screens and the parent dashboard counts use), NOT a hardcoded 5. The old
+      // `min(dates.length, 5)` produced 7/5 = 140% for a daily task and rated a
+      // Mondays-only task as chronically failing (audit M7). Tasks never scheduled
+      // in the window are excluded (rate undefined) rather than counted as 0%.
+      const taskInsights: TaskInsight[] = tasksData.flatMap(task => {
+        // Dates on which THIS task's progress is marked complete.
+        const completedDates = new Set(
+          (progressData ?? [])
+            .filter(p => p.task_id === task.id && p.completed)
+            .map(p => p.date as string),
+        );
+        const stats = completionRateOverWindow(
+          {
+            scheduleDays:  task.schedule_days ?? undefined,
+            hideOnWeekend: task.hide_on_weekend ?? undefined,
+            dueDate:       task.due_date ?? undefined,
+          },
+          dates,
+          fridayEnabled,
+          completedDates,
+        );
+        if (!stats) return []; // never scheduled this window — not a signal
+        return [{
           taskId:         task.id,
           taskTitle:      task.title,
           phase:          getPhaseForTime(task.time),
           category:       (task.category ?? null) as TaskCategory | null,
-          completionRate: totalDays > 0 ? (completedDays / totalDays) * 100 : 0,
-          totalDays,
-          completedDays,
-        };
+          completionRate: stats.rate,
+          totalDays:      stats.scheduledDays,
+          completedDays:  stats.completedDays,
+        }];
       });
 
       // Per-category averages (Layer C targeted tips, by category not keyword).
@@ -295,5 +336,5 @@ export function useParentInsights(childId: string | null) {
     analyzeCompletionPatterns();
   }, [analyzeCompletionPatterns]);
 
-  return { insights, phaseInsights, categoryStats, cachedFraming, loading, refetch: analyzeCompletionPatterns };
+  return { insights, phaseInsights, categoryStats, cachedFraming, hasEnoughData, loading, refetch: analyzeCompletionPatterns };
 }
