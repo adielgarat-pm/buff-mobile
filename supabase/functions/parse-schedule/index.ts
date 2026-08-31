@@ -26,6 +26,7 @@ interface ParsedLesson {
   equipment?: string | null;   // comma-separated gear for this lesson
   auto_time?: boolean;
   row_index?: number;
+  merged?: boolean;            // true when lesson_name is several options joined with " / "
 }
 
 interface ParsedTask {
@@ -195,43 +196,101 @@ function guessCredits(title: string): number {
   return 10;
 }
 
-function cleanupAndDeduplicateLessons(lessons: ParsedLesson[]): ParsedLesson[] {
+const EMPTY_NAMES = new Set(['', 'null', '[שיעור ללא שם]']);
+const isRealSubject = (name?: string | null) => {
+  const t = (name ?? '').trim();
+  return t.length > 0 && !EMPTY_NAMES.has(t);
+};
+
+interface CleanupOpts {
+  /** Merge several options in one slot into ONE lesson, names joined with " / " (vision modes). */
+  mergeSlots?: boolean;
+  /** Keep the parsed start_time instead of regenerating a Buff-standard time (PDFs have real times). */
+  preserveTimes?: boolean;
+}
+
+function cleanupAndDeduplicateLessons(
+  lessons: ParsedLesson[],
+  opts: CleanupOpts = {},
+): ParsedLesson[] {
+  const { mergeSlots = false, preserveTimes = false } = opts;
+
   const byDay: Record<string, ParsedLesson[]> = {};
   lessons.forEach(l => { if (!byDay[l.day]) byDay[l.day] = []; byDay[l.day].push(l); });
 
   const cleaned: ParsedLesson[] = [];
   Object.entries(byDay).forEach(([day, dayLessons]) => {
-    const slotMap: Record<number, ParsedLesson & { row_index?: number }> = {};
+    // Per slot: collect the sample lesson (for time/equipment) + distinct option names.
+    const slotMap: Record<number, { sample: ParsedLesson; options: string[] }> = {};
     dayLessons.forEach((lesson, index) => {
-      const rawNum = (lesson as any).row_index ?? (index + 1);
+      const rawNum = lesson.row_index ?? (index + 1);
       const num = Number(rawNum);
       if (!Number.isFinite(num) || num < 1 || num > 10) return;
-      const hasSubject = lesson.lesson_name?.trim() && lesson.lesson_name !== 'null' && lesson.lesson_name !== '[שיעור ללא שם]';
-      const existing = slotMap[num];
-      if (!existing) {
-        slotMap[num] = { ...lesson, row_index: num };
-      } else {
-        const existingHas = existing.lesson_name?.trim() && existing.lesson_name !== 'null';
-        if (hasSubject && !existingHas) slotMap[num] = { ...lesson, row_index: num };
+      if (!slotMap[num]) slotMap[num] = { sample: lesson, options: [] };
+      const slot = slotMap[num];
+      if (!isRealSubject(slot.sample.lesson_name) && isRealSubject(lesson.lesson_name)) {
+        slot.sample = lesson; // prefer a sample that carries a real subject (time/equipment)
+      }
+      if (isRealSubject(lesson.lesson_name)) {
+        // The model may already have joined options with "/"; split and dedupe.
+        for (const part of lesson.lesson_name!.split('/').map(s => s.trim()).filter(Boolean)) {
+          if (mergeSlots) {
+            if (!slot.options.some(o => o.toLowerCase() === part.toLowerCase())) slot.options.push(part);
+          } else if (slot.options.length === 0) {
+            slot.options.push(part); // legacy: one subject per slot, first real wins
+          }
+        }
       }
     });
     Object.entries(slotMap)
-      .filter(([, l]) => l.lesson_name?.trim() && l.lesson_name !== 'null' && l.lesson_name !== '[שיעור ללא שם]')
-      .forEach(([num, lesson]) => {
-        const idx = parseInt(num) - 1;
-        cleaned.push({ ...lesson, day, start_time: generateDefaultTime(idx), auto_time: true, row_index: parseInt(num) });
+      .filter(([, s]) => s.options.length > 0)
+      .forEach(([num, s]) => {
+        const slot = parseInt(num);
+        const idx  = slot - 1;
+        const time = preserveTimes
+          ? (s.sample.start_time?.trim() || generateDefaultTime(idx))
+          : generateDefaultTime(idx);
+        cleaned.push({
+          ...s.sample,
+          day,
+          lesson_name: s.options.join(' / '),
+          merged:      s.options.length > 1,
+          start_time:  time,
+          auto_time:   preserveTimes ? !!s.sample.auto_time : true,
+          row_index:   slot,
+        });
       });
   });
   return cleaned;
 }
 
-function lessonsToTasks(lessons: ParsedLesson[], applyCleanup = true): ParsedTask[] {
-  const processed = applyCleanup ? cleanupAndDeduplicateLessons(lessons) : lessons;
+interface TasksOpts extends CleanupOpts { applyCleanup?: boolean; }
+
+function lessonsToTasks(lessons: ParsedLesson[], opts: TasksOpts = {}): ParsedTask[] {
+  const { applyCleanup = true, ...cleanupOpts } = opts;
+  const processed = applyCleanup ? cleanupAndDeduplicateLessons(lessons, cleanupOpts) : lessons;
   return processed
     .filter(l => (l.lesson_name?.trim() && l.lesson_name !== 'null') || l.start_time?.trim())
     .map(l => {
       const raw = l.lesson_name?.trim() || '';
-      const isEmpty = !raw || raw === 'null' || raw === '[שיעור ללא שם]';
+      const isEmpty = !isRealSubject(raw);
+      // Merged slots keep every option verbatim ("A / B / C") — no teacher parsing,
+      // so the joined name is never mangled by the single-lesson subject/teacher split.
+      if (l.merged) {
+        return {
+          title:        raw,
+          time:         l.start_time,
+          day:          l.day,
+          category:     guessCategory(raw),
+          credits:      guessCredits(raw),
+          equipment:    (l.equipment ?? '').toString().trim() || null,
+          autoTime:     l.auto_time,
+          missingSubject: false,
+          lessonNumber: l.row_index || 0,
+          teacher:      null,
+          adhdCategory: getADHDCategory(raw),
+        };
+      }
       const { subject, teacher } = extractSubjectAndTeacher(raw);
       let title = isEmpty ? 'שעה פנויה' : (teacher ? `${subject} (${teacher})` : subject);
       title = title.replace(/\[\?\]$/, '').trim();
@@ -244,7 +303,7 @@ function lessonsToTasks(lessons: ParsedLesson[], applyCleanup = true): ParsedTas
         equipment: (l.equipment ?? '').toString().trim() || null,
         autoTime: l.auto_time,
         missingSubject: isEmpty,
-        lessonNumber: (l as any).row_index || 0,
+        lessonNumber: l.row_index || 0,
         teacher,
         adhdCategory: getADHDCategory(subject),
       };
@@ -308,11 +367,21 @@ const DEFAULT_MODELS: Record<string, string> = {
   image: "claude-sonnet-4-6",
   text:  "claude-haiku-4-5-20251001",
   excel: "claude-haiku-4-5-20251001",
+  pdf:   "claude-sonnet-4-6",
 };
 
 const EQUIPMENT_RULE = `EQUIPMENT (IMPORTANT):
 - If a lesson/cell lists gear to bring, put it in "equipment" (comma-separated).
 - If the sheet has a general "bring every day / keep in the bag" note (often a footer), return it ONCE in top-level "daily_equipment" (comma-separated). Do NOT repeat it on every lesson.`;
+
+// SPLIT / LEVEL GROUPS (D: Adi 2026-08-31) — many Israeli high-school timetables
+// put several lesson OPTIONS in one time-slot cell (ability levels "רמה 3/4/5",
+// or parallel groups with different teachers). We do NOT create a row per option
+// — the parent/child pick one later. Instead: ONE lesson per slot, all option
+// names joined with " / ".
+const SPLIT_GROUP_RULE = `SPLIT / LEVEL GROUPS (IMPORTANT):
+- When a SINGLE time-slot cell contains several lesson options (e.g. ability levels "רמה 3/4/5", or parallel groups with different teachers), return them as ONE lesson for that slot whose "lesson_name" joins ALL option names with " / " (spaces around the slash), e.g. "מתמטיקה רמה 5 / מתמטיקה רמה 4 / מתמטיקה רמה 3".
+- Do NOT create a separate row per option, and do NOT drop options — the parent/child choose one afterwards.`;
 
 const DEFAULT_PROMPTS: Record<string, string> = {
   image: `You are an OCR parser for ANY weekly schedule — a school timetable, a summer-camp board, or after-school activities. Extract EXACTLY what is written, by the times and labels in the sheet. Do NOT assume a fixed list of subjects; camp activities (בריכה, סרט, הפנינג, חוג) are valid lesson_name values.
@@ -322,6 +391,8 @@ LAYOUT: columns are usually days (headers may be dated, e.g. "רביעי 8.7" �
 DAYS (RTL, right→left): ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday. Include any day that appears.
 
 ${EQUIPMENT_RULE}
+
+${SPLIT_GROUP_RULE}
 
 ZERO DATA LOSS: keep a row if it has a label OR a time. Unclear label → append [?]. Missing time → start_time null (the system fills it).
 
@@ -345,6 +416,23 @@ ${EQUIPMENT_RULE}
 
 RULES: Return ONLY valid JSON, no markdown. If time missing set start_time to null.
 OUTPUT: {"lessons":[{"day":"יום א","start_time":"08:00","lesson_name":"מתמטיקה","equipment":"מחברת"}],"daily_equipment":null}`,
+
+  pdf: `You are an OCR parser for a weekly schedule delivered as a PDF (usually a "Print to PDF" of a school/camp timetable, often with NO selectable text — read it visually). Extract EXACTLY what is written, by the times and labels in the sheet. Do NOT assume a fixed subject list.
+
+MULTI-PAGE: the schedule is ONE weekly grid that may spill across several pages. Day headers (columns) usually appear once (page 1); later pages CONTINUE the same day columns with more time-rows. Treat all pages as a single grid and keep the same column→day mapping across pages. Use the printed time in each row's leftmost/edge cell as start_time (a range like "08:15-09:00" → start_time "08:15").
+
+LAYOUT: columns are days; rows are time slots. Cells may be merged/colored; IGNORE header blocks (grade title, coordinator, phone numbers, room-only codes).
+
+DAYS (RTL, right→left): ראשון/א'=Sunday, שני/ב'=Monday, שלישי/ג'=Tuesday, רביעי/ד'=Wednesday, חמישי/ה'=Thursday, שישי/ו'=Friday. Include any day that appears.
+
+${EQUIPMENT_RULE}
+
+${SPLIT_GROUP_RULE}
+
+ZERO DATA LOSS: keep a row if it has a label OR a time. Unclear label → append [?]. Missing time → start_time null.
+
+Return ONLY valid JSON, no markdown fences.
+OUTPUT: {"lessons":[{"day":"יום ב'","row_index":1,"start_time":"08:15","lesson_name":"מתמטיקה רמה 5 / מתמטיקה רמה 4 / מתמטיקה רמה 3","equipment":null}],"daily_equipment":null}`,
 };
 
 interface ParseConfig { models?: Record<string, string>; prompts?: Record<string, string>; }
@@ -432,7 +520,7 @@ serve(async (req) => {
       });
     }
 
-    const { imageBase64, excelData, fileType, extractedText } = await req.json();
+    const { imageBase64, excelData, fileType, extractedText, pdfBase64 } = await req.json();
     const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
     if (!ANTHROPIC_API_KEY) {
@@ -559,10 +647,75 @@ serve(async (req) => {
             validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, equipment: l.equipment ?? null, auto_time: !time, row_index: rowIdx });
           });
         });
-        parsedTasks = lessonsToTasks(validated);
+        parsedTasks = lessonsToTasks(validated, { mergeSlots: true });
         console.log(`Parsed ${parsedTasks.length} tasks from image`);
       } catch {
         throw new Error("לא הצלחנו לחלץ את המערכת. נסו תמונה ברורה יותר.");
+      }
+
+    // ── PDF mode ───────────────────────────────────────────────────────────────
+    } else if (fileType === "pdf" && pdfBase64) {
+      console.log("Processing PDF schedule...");
+
+      const system = promptFor("pdf");
+
+      let content: string;
+      try {
+        content = await callAnthropic({
+          apiKey: ANTHROPIC_API_KEY,
+          model: modelFor("pdf"),
+          system,
+          // Anthropic reads PDFs natively via a document block (no extra library,
+          // no client-side page rendering). Document goes before the instruction.
+          userContent: [
+            { type: "document", source: { type: "base64", media_type: "application/pdf", data: pdfBase64 } },
+            { type: "text", text: "Extract the FULL weekly schedule from this PDF with ZERO DATA LOSS. It may span several pages that continue one grid. Return only JSON." },
+          ],
+          maxTokens: 8000,
+          timeoutMs: 90000,
+        });
+      } catch (e: any) {
+        if (e.isTimeout) {
+          return new Response(JSON.stringify({ error: "עיבוד ה-PDF ארך יותר מדי זמן. נסו קובץ קטן/ברור יותר.", timeout: true }), {
+            status: 408, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (e.isRateLimit) {
+          return new Response(JSON.stringify({ error: "יש הרבה בקשות כרגע. נסו שוב בעוד דקה." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw e;
+      }
+
+      const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const rawLessons = parsed.lessons || [];
+        if (typeof parsed.daily_equipment === "string" && parsed.daily_equipment.trim()) {
+          dailyEquipment = parsed.daily_equipment.trim();
+        }
+        const byDay: Record<string, any[]> = {};
+        rawLessons.forEach((l: any) => {
+          const day = normalizeDay(l.day || 'sunday');
+          if (!byDay[day]) byDay[day] = [];
+          byDay[day].push(l);
+        });
+        const validated: ParsedLesson[] = [];
+        Object.entries(byDay).forEach(([day, lessons]) => {
+          lessons.sort((a: any, b: any) => (a.start_time || '').localeCompare(b.start_time || ''));
+          lessons.forEach((l, i) => {
+            const time = normalizeTime(l.start_time);
+            const rawIdx = l.row_index ?? (i + 1);
+            const rowIdx = Math.min(Math.max(Number(rawIdx) || (i + 1), 1), 10);
+            validated.push({ day, start_time: time || generateDefaultTime(rowIdx - 1), end_time: null, lesson_name: l.lesson_name || null, equipment: l.equipment ?? null, auto_time: !time, row_index: rowIdx });
+          });
+        });
+        // preserveTimes: PDFs print real times; mergeSlots: join split-level options with " / ".
+        parsedTasks = lessonsToTasks(validated, { mergeSlots: true, preserveTimes: true });
+        console.log(`Parsed ${parsedTasks.length} tasks from PDF`);
+      } catch {
+        throw new Error("לא הצלחנו לחלץ את המערכת מה-PDF. נסו קובץ ברור יותר.");
       }
 
     // ── EXCEL mode ───────────────────────────────────────────────────────────

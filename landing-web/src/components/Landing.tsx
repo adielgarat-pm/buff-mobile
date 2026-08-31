@@ -159,8 +159,15 @@ export default function Landing() {
                 {t('landing.langToggle')}
               </Button>
 
-              {/* Login - hidden on mobile to reduce clutter */}
-              <Button variant="ghost" className="rounded-full hidden sm:inline-flex" onClick={goToLogin}>
+              {/* Login — reachable on mobile too. Was `hidden sm:inline-flex`,
+                  which left mobile web with NO login flow (app root redirects to
+                  this marketing site; Get Started only leads to signup). */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full h-8 sm:h-9 text-xs sm:text-sm px-3 sm:px-4"
+                onClick={goToLogin}
+              >
                 {t('nav.login')}
               </Button>
               <Button

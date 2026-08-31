@@ -14,6 +14,14 @@
 
 ## Implementation Notes
 
+### IN-2026-08-31-01: אימות טופולוגיה — קיימות שתי אפליקציות BUFF על שני Supabase נפרדים; ה-Lovable מושבת, buff-mobile (gfrongfnyigxsexuofrg) הוא החי
+- **תאריך:** 2026-08-31
+- **מקור:** CC — בהקשר `sessions/onboarding-draft-and-funnel-telemetry/` (חקירת "איפה ההרשמות נתקעו") + `sessions/acquisition-attribution-activation/`
+- **תיאור:** בזמן בדיקת ה-attribution התגלה ש-`adielgarat-pm/buff` (buff.lovable.app) הוא אפליקציית web **מלאה עם onboarding+auth משלה**, שמצביעה על Supabase **אחר** (`iyejaxnugjgjeceqdcky`) — לא `gfrongfnyigxsexuofrg` (buff-production, ה-DB היחיד ב-org הנגיש). ה-repo של lovable stale (commit אחרון 20/6). **Adi אישרה: ה-Lovable מושבת; buff-mobile הוא החי, ו-buffadhd.com מוגש ע"י buff-mobile web.** (קשור ל-IN-2026-07-08-01 שכבר ציין שה-app הישן "עדיין מוגש לחלק מהמבקרים".)
+- **השפעה:** (1) ניתוח המשפך על `gfrongfnyigxsexuofrg` **נכון ומלא** — זה ה-DB החי. (2) **attribution לא דורש עבודה ב-repo של lovable** — buffadhd.com = buff-mobile web, כך ש-`acquisitionCapture.web.ts` כבר קולט utm/referrer ב-first-touch; הפער היחיד הוא לינקים יוצאים לא-מתויגים (ראה UTM_PLAYBOOK). (3) Phase 2 (resume) הרחיב את ה-persistence מ-web-only (IN-2026-06-28-02) גם ל-native.
+- **סטטוס:** `resolved`
+- **קשור ל:** IN-2026-07-08-01, IN-2026-06-28-02, IN-2026-07-30-01, `sessions/acquisition-attribution-activation/`
+
 ### IN-2026-07-31: activities-multi-day — a pre-build architect/PM/UX review caught three real gaps the SPEC missed; one backward-compat hole is an ACCEPTED risk, not a fix
 `pkg/activities-multi-day` (recurring activity → `weekdays[]`). Adi deferred approval to "check with architect, PM and UX." Three parallel review agents (all GO-WITH-CHANGES) surfaced things the SPEC — and I — had not:
 - **The SPEC's compat plan only reasoned about old-build *reads*, not *writes*.** Because the backfill sets `weekdays` on every existing recurring row and `rowToActivity` reads weekdays-first (`coerceWeekdays(weekdays) ?? [weekday]`), a pre-OTA client that *edits* a backfilled multi-day row writes only the legacy `weekday`, leaving a **stale** `weekdays` that new builds then trust — the edit silently vanishes. The read-fallback only fires when `weekdays IS NULL` (old-build *inserts*), never for backfilled rows being *updated*. **Decision: accept it as a bounded risk** (near-zero population given forced-update/OTA + pre-scale, 9 total rows) rather than build read-reconciliation, which carries its own edge cases. Documented, not silently dropped.

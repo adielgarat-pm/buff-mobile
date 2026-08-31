@@ -46,6 +46,50 @@ import { copyTimetableDay, dayHasLessons, type CopyDayMode } from '../../utils/t
 
 type Mode = 'view' | 'choose' | 'processing' | 'review' | 'manual' | 'paste';
 
+// Reject oversized PDFs before upload — a huge file is slow to send and can
+// exceed the function payload limit. 12MB covers a multi-page school timetable.
+const PDF_MAX_BYTES  = 12 * 1024 * 1024;
+// Client-side ceilings so a stuck request can never trap the user on an infinite
+// spinner (the pre-fix bug: a bad file span the loader forever with no escape).
+const PDF_TIMEOUT_MS   = 100_000; // vision PDF parse is the slowest path
+const PASTE_TIMEOUT_MS = 45_000;
+
+interface InvokeResult { data: any; error: { message: string } | null }
+
+/**
+ * supabase.functions.invoke with a hard client-side timeout. On timeout we abort
+ * the controller (so the caller can bail) and reject with { isTimeout: true } —
+ * the underlying request may still finish server-side, but the UI is never stuck.
+ */
+async function invokeWithTimeout(
+  fn: string,
+  opts: { body: unknown },
+  ms: number,
+  controller: AbortController,
+): Promise<InvokeResult> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(Object.assign(new Error('timeout'), { isTimeout: true }));
+    }, ms);
+  });
+  try {
+    return (await Promise.race([
+      supabase.functions.invoke(fn, opts as Parameters<typeof supabase.functions.invoke>[1]) as Promise<InvokeResult>,
+      timeout,
+    ]));
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** supabase.functions.invoke surfaces a non-2xx as a FunctionsHttpError whose
+ *  .context is the Response. 429 = the family hit the daily schedule-parse cap. */
+function isRateLimited(error: unknown): boolean {
+  return (error as { context?: { status?: number } })?.context?.status === 429;
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function TimetableScreen() {
@@ -158,6 +202,7 @@ export default function TimetableScreen() {
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'application/vnd.ms-excel',
           'text/csv',
+          'application/pdf', // one "load file" entry covers Excel/CSV *and* PDF
           '*/*', // fallback for some Android devices
         ],
         copyToCacheDirectory: true,
@@ -165,6 +210,15 @@ export default function TimetableScreen() {
 
       if (result.canceled) return;
       const asset = result.assets[0];
+
+      // PDFs have no text layer / aren't spreadsheets — route them to the vision
+      // parse instead of the local XLSX reader (which would freeze on the binary).
+      const isPdf = asset.mimeType === 'application/pdf'
+        || (asset.name ?? '').toLowerCase().endsWith('.pdf');
+      if (isPdf) {
+        await processPdfAsset(asset);
+        return;
+      }
 
       setProcessingMsg(t('timetable.processing'));
       setMode('processing');
@@ -246,7 +300,10 @@ export default function TimetableScreen() {
 
       abortRef.current = null;
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); setMode('choose'); return; }
+        throw new Error(error.message);
+      }
       if (!data?.tasks?.length) {
         crossAlert('', t('timetable.noLessonsFound'));
         setMode('choose');
@@ -270,6 +327,67 @@ export default function TimetableScreen() {
     setMode('choose');
   }, []);
 
+  // ─── PDF import ────────────────────────────────────────────────────────────────
+  // A "Print to PDF" school timetable has no text layer, so it goes through the
+  // same vision path as Photo — Anthropic reads the PDF natively server-side
+  // (parse-schedule fileType:'pdf'); no on-device PDF library needed.
+  // Reached from the file card (handleExcel routes PDFs here), so one "Load file"
+  // button covers Excel/CSV *and* PDF.
+
+  const processPdfAsset = useCallback(async (asset: { uri: string; size?: number | null }) => {
+    try {
+      if (typeof asset.size === 'number' && asset.size > PDF_MAX_BYTES) {
+        crossAlert('', t('timetable.pdfTooLarge'));
+        setMode('choose');
+        return;
+      }
+
+      setProcessingMsg(t('timetable.processingPdf'));
+      setMode('processing');
+
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+        encoding: 'base64' as const,
+      });
+
+      const { data, error } = await invokeWithTimeout(
+        'parse-schedule',
+        { body: { pdfBase64: base64, fileType: 'pdf' } },
+        PDF_TIMEOUT_MS,
+        controller,
+      );
+
+      if (controller.signal.aborted) return; // user tapped Cancel
+      abortRef.current = null;
+
+      if (error) {
+        if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); setMode('choose'); return; }
+        throw new Error(error.message);
+      }
+      if (!data?.tasks?.length) {
+        crossAlert('', t('timetable.noLessonsFound'));
+        setMode('choose');
+        return;
+      }
+
+      const { periods, hasAuto, hasErrors } = processApiResponse(data.tasks);
+      const withGear = applyDailyEquipment(periods, data.daily_equipment, t('timetable.dailyGear'));
+      openReview(withGear, hasAuto, hasErrors);
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') return;
+      if ((err as { isTimeout?: boolean })?.isTimeout) {
+        crossAlert(t('timetable.parseError'), t('timetable.timeoutMsg'));
+        setMode('choose');
+        return;
+      }
+      console.error('[TimetableScreen] PDF error:', err);
+      crossAlert(t('timetable.parseError'), err instanceof Error ? err.message : '');
+      setMode('choose');
+    }
+  }, [t, openReview]);
+
   // ─── Paste mode ──────────────────────────────────────────────────────────────
 
   const handleProcessPaste = useCallback(async () => {
@@ -277,10 +395,17 @@ export default function TimetableScreen() {
     if (!text) return;
     setPastePending(true);
     try {
-      const { data, error } = await supabase.functions.invoke('parse-schedule', {
-        body: { extractedText: text, fileType: 'text' },
-      });
-      if (error) throw new Error(error.message);
+      const controller = new AbortController();
+      const { data, error } = await invokeWithTimeout(
+        'parse-schedule',
+        { body: { extractedText: text, fileType: 'text' } },
+        PASTE_TIMEOUT_MS,
+        controller,
+      );
+      if (error) {
+        if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); return; }
+        throw new Error(error.message);
+      }
       if (!data?.tasks?.length) {
         crossAlert('', t('timetable.noLessonsFound'));
         return;
@@ -292,7 +417,10 @@ export default function TimetableScreen() {
       openReview(withGear, hasAuto, hasErrors);
     } catch (err: unknown) {
       console.error('[TimetableScreen] paste error:', err);
-      crossAlert(t('timetable.parseError'), err instanceof Error ? err.message : '');
+      const msg = (err as { isTimeout?: boolean })?.isTimeout
+        ? t('timetable.timeoutMsg')
+        : (err instanceof Error ? err.message : '');
+      crossAlert(t('timetable.parseError'), msg);
     } finally {
       setPastePending(false);
     }

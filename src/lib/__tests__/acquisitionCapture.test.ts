@@ -44,7 +44,15 @@ describe('normalizeSource', () => {
     expect(normalizeSource('winback')).toBe('winback');
     expect(normalizeSource('guide')).toBe('guide');
     expect(normalizeSource('reels')).toBe('reels');
+    expect(normalizeSource('reddit')).toBe('reddit');
+    expect(normalizeSource('whatsapp')).toBe('whatsapp');
+    expect(normalizeSource('community')).toBe('whatsapp');
     expect(normalizeSource('play_ads')).toBe('play_ads');
+  });
+
+  it('derives reddit / whatsapp from their referrer host when no utm', () => {
+    expect(normalizeSource(null, 'https://www.reddit.com/r/ADHD/')).toBe('reddit');
+    expect(normalizeSource(null, 'https://chat.whatsapp.com/abc')).toBe('whatsapp');
   });
 
   it('is case/space-insensitive', () => {

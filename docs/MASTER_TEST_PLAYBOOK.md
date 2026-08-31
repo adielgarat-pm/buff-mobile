@@ -354,6 +354,12 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 - **Expected:** Validation error, no advance.
 - **Verdict:** ⬜
 
+**F3.E6 — Resume after leaving mid-wizard (Shape A)** *(Hat 3 — native app-kill; Hat 1 covers web reload via `onboarding.web.spec.ts`)*
+- **Steps:** Start onboarding, complete UStep1→UStep3 (now on UStep4). Force-stop the app (`adb shell am force-stop <pkg>`), then relaunch.
+- **Expected:** Lands on **Welcome** showing a "Continue setup" prompt (testID `welcome-resume`) + "Start over" (`welcome-start-fresh`) — NOT a blank restart. Tapping "Continue setup" re-enters **UStep4** with the earlier data intact (child name still set). "Start over" clears it and begins at UStep1.
+- **Why:** Phase 2 enabled the onboarding snapshot on native (was web-only). Within the 6h TTL the parent resumes; past it, a normal fresh start.
+- **Verdict:** ⬜
+
 **F3.E4 — Duplicate options across UStep2 and UStep3** *(Hat 3)*
 - **Setup:** Pick same value in UStep2 and UStep3 (if possible).
 - **Expected:** Per FLAG in CLAUDE.md — "duplicate options between Steps 2-3" is known partial. Surface visible.
