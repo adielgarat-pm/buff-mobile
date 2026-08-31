@@ -72,6 +72,41 @@ Cadence: **3 posts/week**, ~80% עזרה טהורה / ~20% BUFF רך. השבוע
 
 ## 4. English Replication — The "Light + Link" Formula
 
+### 4.0 Reference Specimen — the Mamazone post that worked (verbatim, 2026-08-31)
+
+> הבטן שלי כבר מתהפכת מהמחשבה על בוקר ההתארגנות של ה-1 בספטמבר, וכמו כל שנה השמחה על החזרה לשגרה המלווה בפאניקה קלה.
+> אני אמא לשניים עם ADHD, והחזרה לשגרה אחרי חודשיים של חופש היא המעבר הכי קשה שלנו בשנה. הרי אי אפשר לצפות שביום אחד הכל יחזור לעבוד — השכמות, התארגנות, תיק, שיעורים, אצל הגדול מבחנים בשבוע הראשון, הכל ביחד.
+> ריכזתי את מה שעוזר לנו לא להתרסק (ויש שם גם חלק למי שמתחילה להיערך רק עכשיו בדקה ה-90 — כלומר, רובנו 🙈).
+> משתפת פה כי אני יודעת שאני ממש לא היחידה בסירה הזאת 🤍
+> 👇 הלינק למדריך בתגובה הראשונה (שמתי שם גם הזמנה לקבוצת הוואטסאפ שלנו, למי שרוצה עוד אמהות שמבינות בדיוק את היום-יום הזה)
+
+### 4.0.1 Anatomy — why it converted (reusable template)
+
+| # | Move | In the specimen | Why it works |
+|---|---|---|---|
+| 1 | **Visceral physical hook** | "הבטן שלי כבר מתהפכת" | body sensation, not "are you stressed?" — passes [BRAND §4.4](BUFF_BRAND.md) acid test |
+| 2 | **Named ambivalence** | שמחה על שגרה + פאניקה קלה | reframe, not complaint |
+| 3 | **Peer credibility** | "אמא לשניים עם ADHD" | peer, never "expert" ([MESSAGING §8.1](BUFF_MESSAGING.md)) |
+| 4 | **Concrete pain list** | השכמות, תיק, מבחנים בשבוע הראשון | specific = replayable |
+| 5 | **Self-deprecating inclusion** | "בדקה ה-90... רובנו 🙈" | disarms, widens tent, zero judgment (Pillar 2) |
+| 6 | **"Same boat" close** | "לא היחידה בסירה הזאת 🤍" | belonging, not pitch |
+| 7 | **Link in FIRST COMMENT** | "הלינק... בתגובה הראשונה" | algorithms throttle posts w/ external links; comment-1 preserves reach |
+| 8 | **App never named** | (BUFF לא מוזכר) | 100% value + community; the group *is* the soft sell |
+
+**Golden ratio confirmed:** the winning post is ~0% product mention. Top-of-funnel community posts should stay there. BUFF surfaces later, inside the group, at the §3 cadence.
+
+### 4.0.2 English adaptation (DRAFT — Adi's voice, per §6 caveat)
+
+> My stomach already knots up thinking about the first-day-of-school morning — and like every year, the relief of getting back to routine comes wrapped in a little panic.
+> I'm a mom of two with ADHD, and the return to routine after summer is the hardest transition of our year. You can't expect everything to click back on day one — the wake-ups, getting ready, the backpack, homework, and for my older one, tests in the very first week. All at once.
+> I put together what keeps us from crashing (there's a part in there for whoever's starting to prep only now, at the last minute — so, most of us 🙈).
+> Sharing it here because I know I'm really not the only one in this boat 🤍
+> 👇 Link to the guide in the first comment (I also dropped in an invite to our little group, for anyone who wants more moms who get exactly this daily grind)
+
+**Adapt per target sub before posting:** `r/ADHD_parenting` tolerates founder presence but read rules; general parenting groups keep it lighter. Keep moves #1–#8; swap "first day of school" for the audience's calendar (US back-to-school is Aug/Sept too — timing still holds).
+
+### 4.1 The formula, generalized
+
 **Formula:** peer-toned post שעונה על כאב אמיתי → link לדלת בעלת friction נמוך (**קהילה או מדריך חינם, לא ה-store**) → מוזרק בקבוצה שבה אמהות ADHD כבר נמצאות.
 
 - **"קבוצות רגילות שיש בהן אמהות ADHD"** (הניסוח של Adi) הוא ה-insight החכם: לא דגים רק בבריכות מתויגות-ADHD. Targets רחבים: general parenting / back-to-school / "overwhelmed moms" FB groups, בנוסף לקבוצות ה-ADHD הספציפיות.
@@ -103,7 +138,7 @@ Cadence: **3 posts/week**, ~80% עזרה טהורה / ~20% BUFF רך. השבוע
 
 ## 7. Open Decisions for Adi
 
-1. **Confirm the source** — "מאמזון" = Mamazone community (assumed), לא Amazon? משנה את targets ה-English replication.
+1. ~~Confirm the source~~ ✅ **Resolved 2026-08-31** — Mamazone community. Winning post captured verbatim in §4.0.
 2. **List English groups** — 3 FB + 2 subreddits לפוסטי ה-"light + link" (משלים את ה-blocker של Track A §4).
 3. **Approve UTM links** — link נפרד לקבוצת הווטסאפ + ל-Mamazone. (עלות אפס, unblocks §5.)
 4. **Onboarding "how did you hear about us?"** — קיים? אם לא — לפתוח ticket?
