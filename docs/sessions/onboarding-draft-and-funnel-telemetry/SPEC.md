@@ -122,31 +122,37 @@ then nothing.
 - `profiles.onboarding_data` (jsonb, קיים): policy `Users can update their own profile` — `user_id = auth.uid()`. ההורה יכול לעדכן. אין column/constraint חדש.
 
 ## API / Route Changes
-- **`src/lib/onboardingFunnel.ts`**: להוסיף `'onboarding_step_reached'` ל-`OnboardingEventType` (הרחבת type בלבד — הטבלה כבר מקבלת free-text). לשקול helper דק ל-dedup per-session.
-- **`src/lib/onboardingDraft.ts` (חדש)**: `saveWizardDraft(userId, partial)`, `loadWizardDraft(userId)`, `clearWizardDraft(userId)` — עוטפים read/merge/update של `profiles.onboarding_data.wizard_draft`. fire-and-forget, never throws.
-- **`src/navigation/types.ts`**: `UStep1` params מקבל `draft?: WizardDraft` (בנוסף ל-`prefillName`/`existingChildId` הקיימים).
+- **`src/lib/onboardingFunnel.ts`**: להוסיף `'onboarding_step_reached'` ל-`OnboardingEventType` (הרחבת type בלבד — הטבלה כבר מקבלת free-text).
+- **`src/lib/onboardingDraft.ts` (חדש)**: `saveWizardDraft(userId, partial)`, `loadWizardDraft(userId)`, `clearWizardDraft(userId)`.
+  ⚠️ **`saveWizardDraft` חייב read-modify-write** (או merge `||` בצד-שרת) על `profiles.onboarding_data` — `update({onboarding_data:{wizard_draft}})` נאיבי ידרוס את כל ה-jsonb וימחק מפתחות-אח עתידיים. fire-and-forget, never throws.
+  ⚠️ **`loadWizardDraft` עושה read עצמאי** — `AuthContext.Profile` (`AuthContext.tsx:35-52`) **לא** חושף את `onboarding_data` (למרות `select('*')`), אז אין לשרשר דרך `useAuth().profile`.
+- **`src/lib/onboardingStepReached.ts` / hook `useStepReachedLog` (חדש)**: מעטפת dedup — module-level `Set<familyId+step>`, איפוס per app process. **מעתיק מילה-במילה את `src/lib/parentCapture/entryTelemetry.ts:21-37`**.
+- **`src/navigation/types.ts`**: `UStep1` params מקבל `draft?: WizardDraft` (בנוסף ל-`prefillName`/`existingChildId` הקיימים) — `types.ts:44`.
 - אין Supabase functions / RPC changes.
 
 ## UI Changes
-- **UStep1..UStep6**: hook קטן `useStepReachedLog(stepId)` (mount-once-per-session).
-- **UStep1_ChildProfile**: seed ראשוני של `childName/ageGroup/gender/birthDate` מ-`params.draft` אם קיים; קריאת `saveWizardDraft` ב-`onNext` (וכן בשלבים 2–4 ב-`onNext`, שם מצטברים `mainChallenge`/`motivators`).
-- **UStep5_Preview**: `clearWizardDraft` אחרי `child_created` מוצלח.
-- **ParentDashboardScreen**: באנר "המשך הגדרה" (component חדש `ResumeOnboardingBanner`, מדגם ה-`ResumeHandoffBanner` הקיים), מותנה ב-0-children + draft-exists + TTL.
+- **5 מסכי הזנת-הנתונים בלבד** — `UStep1, UStep2_Goal, UStep3_Challenges, UStep4_Motivator, UStep5_Preview` — מקבלים `useStepReachedLog(stepId)` (mount-once-per-session). **לא** UStep6/ChildAccess/UStep8 (הם אחרי `child_created`, מחוץ ל-leak). הערה: אין רצף 1–6 רציף; המספור הפנימי כבר מתפצל (`UStep5_Preview.tsx:41` = `STEP=4;TOTAL=6`) — `stepId` הוא label יציב (`'1_child_profile'`...), לא נגזר מהמספור.
+- **UStep1_ChildProfile**: seed ראשוני של `childName/ageGroup/gender/birthDate` מ-`params.draft` (היום seed רק ל-`childName` דרך `prefillName`, `UStep1:50-53`); קריאת `saveWizardDraft` ב-`onNext`. שלבים 2–4 קוראים `saveWizardDraft` ב-`onNext` שלהם (שם מצטברים `mainChallenge`/`additionalChallenges`/`motivators`).
+- **UStep5_Preview**: `clearWizardDraft` **רק** בענף `child_created` המוצלח (`UStep5_Preview.tsx:273-275`) — לא בענפי `existingChildId`/retry.
+- **ParentDashboardScreen**: באנר "המשך הגדרה" (component חדש `ResumeOnboardingBanner`, מדגם ה-`ResumeHandoffBanner` הקיים). תנאי render: **`childrenCount === 0 && draftFresh`** — הגייטינג ה-authoritative הוא 0-ילדים (עצמאי מהצלחת ה-clear, כך ש-draft ישן אחרי clear שנכשל בכתיבת fire-and-forget נשאר לא-מזיק).
 - Copy: he.json / en.json — מפתחות חדשים לבאנר. **עידוד בלבד** (Values Pillar 2).
+
+## Decisions (Architect review, 2026-08-31 — Plan agent)
+
+> ה-Open Questions הוכרעו לאחר סקירת ארכיטקט מול הקוד. **עדיין ממתין לאישור Adi על הכיוון הכולל.**
+
+- **OQ1 → גישת draft, מאושרת (חוזקה).** מעבר ל-triggers: ה-idempotency guard ב-`UStep5_Preview.tsx:302-307` מדלג על הזרעת המשימות מבוססות-האתגר כאשר `existingTaskCount > 0`. יצירת ילד ב-Step 1 → ה-triggers זורעים משימות דיפולט → ה-guard **ידלג בשקט** על המשימות המותאמות (אתגר/מוטיבטור, שעדיין לא ידועים בשלב 1). כלומר יצירה מוקדמת לא רק מכפילה — היא **מבטלת את ההתאמה-אישית** שהאשף קיים כדי לאסוף. child creation נשאר ב-Step 5, ללא שינוי.
+- **OQ2 → v1 רדוד (UStep1 prefilled).** deep-resume לא בטוח ב-v1: טיפוסי ה-params הם required+non-null, אז אי-אפשר לבנות params חוקיים ל-`UStep4` מ-draft חלקי של הורה שנטש ב-Step 2; בנוסף back-stack שבור. לבחון deep-resume רק אם B יראה clustering ב-Step 4.
+- **OQ3 → module-level `Set`, איפוס per app launch.** persistence חוצה-session תסתיר נטישה חוזרת — בדיוק האות שהמשפך צריך.
+- **OQ4 → 14 יום, נשאר.** הנתונים שורדים ב-jsonb מעבר לחלון; רק הבאנר מוסתר.
+- **OQ5 → DB-only ב-v1.** parity-safe, שורד reinstall; resume באותו-session כבר מכוסה ע"י nav params חיים. mirror מוסיף נתיב-כתיבה שני ללא תועלת ב-v1.
+- **Phasing → "B קודם" נכון.** B עצמאי ואפס-סיכון, ופלטו (איזה שלב מדמם) הוא הקלט שמכריע את עומק ה-resume ב-OQ2. Precondition: `useStepReachedLog` צריך `familyId` — קיים כבר ב-UStep1 (משפחה נוצרת ב-signup), אין hazard סדר.
+- **Web מרוויח מ-A יותר מסתם parity:** ב-Expo Web refresh/סגירת-טאב באמצע האשף מוחקת את כל ה-nav params — בדיוק מקרה הנטישה — ואין push לשחזור. ה-draft חשוב **יותר** ב-web.
 
 ## Open Questions
 
-> דברים שCC חייב לפתור ב-Plan Mode. לא לפתור מראש פה.
-
-- **OQ1 (החלטת ארכיטקטורה — הכי חשוב):** בניתוח הצעתי במקור "להריץ `create_child_profile` כבר ב-Step 1".
-  לאחר בדיקת הקוד זה **מסוכן**: ה-RPC מפעיל AFTER-INSERT triggers שזורעים buddy_relationships + default
-  tasks/rewards + credit_vault, ו-UStep5 מוסיף משימות מבוססות-אתגר → סיכון לכפל משימות/נתונים חלקיים.
-  לכן ה-SPEC בוחר בגישת **draft** (לא נוגעים ב-RPC/triggers). **צריך אישור Adi שזו הגישה הנכונה** לפני קוד.
-- **OQ2 (resume depth):** v1 חוזר ל-UStep1 prefilled (ההורה מקליק מהר קדימה). deep-resume ישיר ל-`lastStep`
-  אפשרי (הטיפוסים תומכים ב-params מצטברים) אבל מגדיל surface. v1 רדוד או deep מיד?
-- **OQ3 (session-dedup store):** module-level `Set` (כמו capture) איפוס בכל app launch — מספיק? או צריך persistence ל-dedup חוצה-session (סיכון לכתיבת-חסר מול כתיבת-יתר)?
-- **OQ4 (TTL):** 14 יום ל-draft banner — נכון? מעבר לזה הבאנר נעלם (הנתונים נשארים ב-jsonb).
-- **OQ5 (AsyncStorage mirror):** להתחיל DB-only (parity-safe, שורד reinstall), או להוסיף mirror מקומי ל-resume מיידי באותו session? נטייה: DB-only ב-v1.
+> כל ה-OQ המקוריים הוכרעו ב-Decisions למעלה. נותרה **החלטה אחת ל-Adi**:
+- **האם לאשר את כיוון החבילה כולו** (draft + telemetry, ללא נגיעה ב-RPC), ולפתוח PR / להתחיל Phase 1.
 
 ## Out of Scope
 
@@ -158,6 +164,8 @@ then nothing.
 - ילדים יתומים `family_id=NULL` (3 מקרים) — `childjoin-claim-orphans` הקיים.
 - העמודות המתות `onboarding_step` / `is_activated` (לא נכתבות בשום מקום בריפו) — ניקוי/החייאה בחבילה נפרדת.
 - דליפת engagement "ילד נוצר אך לא השתמש" (55%) — מעבר ל-onboarding.
+- **נטישת "ילד שני"**: הבאנר גייטד על 0 ילדים, אז הורה שנטש בהוספת ילד נוסף לא מקבל resume, וה-draft עלול לשאת `childName` ישן. מקובל ל-v1, מצוין מפורשות.
+- **אימות אינטראקציית triggers×idempotency** (רלוונטי רק אם אי-פעם חוזרים ליצירה-מוקדמת): לוודא אם ה-AFTER-INSERT triggers של `create_child_profile` באמת מכניסים ל-`tasks` (מול buddy/vault בלבד). לא בסקופ (draft לא נוגע), אבל להירשם ב-INTEGRATION_LEARNINGS.
 
 ---
 
