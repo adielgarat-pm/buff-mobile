@@ -28,6 +28,14 @@ export type OnboardingEventType =
   | 'first_task_write_failed'
   | 'onboarding_resumed'
   | 'onboarding_abandoned_at_step'
+  // Per-step wizard funnel (pkg/onboarding-draft-and-funnel-telemetry, 2026-08-31).
+  // `family_created` fires at signup but `child_created` only lands at Step 5, so
+  // the ~20% "family, no child" leak was invisible mid-wizard. This fires once per
+  // family per JS session on each data-entry step mount; `variant` = step id
+  // ('1_child_profile'..'5_preview'). The drop step is then DERIVED: max step
+  // reached for a family with no child_created (see scripts/onboarding-funnel.sql).
+  // child_id is null (parent-surface telemetry, Pillar 2), same as parent_tab_viewed.
+  | 'onboarding_step_reached'
   // Parent-capture ("Smart Organizer") usability funnel. Reuses this table
   // rather than adding a second event log — same family scope, same RLS, same
   // admin read policy. Tagged with source='parent_capture'.

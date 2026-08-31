@@ -11,6 +11,8 @@ import { useTranslation } from 'react-i18next';
 import type { RootStackParamList } from '../../../navigation/types';
 import { PARENT_THEME as T } from '../../../theme';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { MOTIVATORS } from './onboardingData';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep4_Motivator'>;
@@ -23,6 +25,9 @@ export default function UStep4_Motivator() {
   const { params }  = useRoute<Route>();
   const { t }       = useTranslation();
   const { isRTL }   = useRTLStyles();
+  const { familyId } = useAuth();
+
+  useStepReachedLog('4_motivator', familyId);
 
   const [selected, setSelected] = useState<string[]>([]);
 
