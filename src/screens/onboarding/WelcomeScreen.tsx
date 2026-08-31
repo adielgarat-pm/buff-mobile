@@ -19,11 +19,12 @@ import {
   ScrollView, StyleSheet, Animated, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
+import { clearOnboardingSnapshot } from '../../navigation/onboardingPersistence';
 import { useRTLStyles } from '../../contexts/LanguageContext';
 // Web-only native-install CTA. Metro resolves the native stub (renders null) on
 // Android/iOS, so this import is inert in the native bundle. This screen is only
@@ -51,11 +52,20 @@ const CARDS = [
 
 export default function WelcomeScreen() {
   const navigation   = useNavigation<Nav>();
+  const { params }   = useRoute<RouteProp<RootStackParamList, 'Welcome'>>();
   const { t }        = useTranslation();
   const { textAlign, rowDirection } = useRTLStyles();
 
   const hasNavigated = useRef(false);
   const fadeAnim     = useRef(new Animated.Value(0)).current;
+
+  // Resume: RootNavigator hands us an in-progress-onboarding snapshot (a parent
+  // who left mid-wizard, within the 6h TTL). We only offer resume when they got
+  // past the first step — resuming to UStep1 with no data is just starting over.
+  const snap      = params?.resumeSnapshot ?? null;
+  const canResume = !!snap && snap.route !== 'UStep1';
+  const resumeName =
+    (snap?.params as { childName?: string } | undefined)?.childName?.trim() || null;
 
   // ── Fade-in on mount ─────────────────────────────────────────────────────────
   useEffect(() => {
@@ -70,6 +80,28 @@ export default function WelcomeScreen() {
   const goToOnboarding = useCallback(() => {
     if (hasNavigated.current) return;
     hasNavigated.current = true;
+    navigation.navigate('UStep1');
+  }, [navigation]);
+
+  // Resume where the parent left off: re-enter the exact step with its params.
+  const continueSetup = useCallback(() => {
+    if (hasNavigated.current || !snap) return;
+    hasNavigated.current = true;
+    // The snapshot's route/params are a union across the onboarding steps; a
+    // single navigate() overload can't express "this route with its own params",
+    // so cast the call rather than the individual args (which TS reads as a
+    // [never, never] tuple).
+    (navigation.navigate as (route: string, params: object) => void)(
+      snap.route,
+      snap.params as object,
+    );
+  }, [navigation, snap]);
+
+  // Start over: drop the snapshot so it can't re-appear, then begin fresh.
+  const startFresh = useCallback(() => {
+    if (hasNavigated.current) return;
+    hasNavigated.current = true;
+    void clearOnboardingSnapshot();
     navigation.navigate('UStep1');
   }, [navigation]);
 
@@ -120,14 +152,49 @@ export default function WelcomeScreen() {
             ))}
           </View>
 
-          {/* ── 4. CTA button ────────────────────────────────────────────── */}
-          <TouchableOpacity
-            style={styles.cta}
-            onPress={goToOnboarding}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.ctaText}>{t('welcome.cta')}</Text>
-          </TouchableOpacity>
+          {/* ── 4. CTA ───────────────────────────────────────────────────
+              Resume path: a parent who left mid-wizard gets an invitation to
+              continue (encouraging, never "you abandoned" — Pillar 2), plus a
+              quiet "start over". Otherwise the normal single start CTA.
+          ─────────────────────────────────────────────────────────────────── */}
+          {canResume ? (
+            <>
+              {resumeName ? (
+                <Text style={[styles.resumeHint, { textAlign: 'center' }]}>
+                  {t('welcome.resume.title', { name: resumeName })}
+                </Text>
+              ) : (
+                <Text style={[styles.resumeHint, { textAlign: 'center' }]}>
+                  {t('welcome.resume.titleGeneric')}
+                </Text>
+              )}
+              <TouchableOpacity
+                testID="welcome-resume"
+                style={styles.cta}
+                onPress={continueSetup}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.ctaText}>{t('welcome.resume.continue')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="welcome-start-fresh"
+                style={styles.freshBtn}
+                onPress={startFresh}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.freshText}>{t('welcome.resume.fresh')}</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <TouchableOpacity
+              testID="welcome-cta"
+              style={styles.cta}
+              onPress={goToOnboarding}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.ctaText}>{t('welcome.cta')}</Text>
+            </TouchableOpacity>
+          )}
 
         </ScrollView>
       </Animated.View>
@@ -230,5 +297,25 @@ const styles = StyleSheet.create({
     color:      '#fff',
     fontSize:   17,
     fontWeight: '900',
+  },
+
+  // ── Resume ────────────────────────────────────────────────────────────────
+  resumeHint: {
+    color:        TEXT_MUTED,
+    fontSize:     14,
+    lineHeight:   20,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  freshBtn: {
+    marginTop:       10,
+    paddingVertical: 12,
+    alignItems:      'center',
+  },
+  freshText: {
+    color:              TEXT_MUTED,
+    fontSize:           14,
+    fontWeight:         '700',
+    textDecorationLine: 'underline',
   },
 });

@@ -4,6 +4,7 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { AgeGroup, Gender } from '../screens/onboarding/unified/onboardingData';
 import type { AccessMode } from '../lib/onboardingFunnel';
+import type { OnboardingSnapshot } from './onboardingRoutes';
 
 // ── Shared accumulated onboarding data ───────────────────────────────────────
 // Each step extends the previous by adding its own field(s).
@@ -40,7 +41,8 @@ export type RootStackParamList = {
   AuthCallback:  undefined;
 
   // ── Unified onboarding flow ───────────────────────────────────────────
-  Welcome:             undefined;        // First screen — shown before UStep1
+  Welcome:             { resumeSnapshot?: OnboardingSnapshot | null } | undefined; // First screen; carries an in-progress-onboarding snapshot to offer resume
+
   UStep1:              { existingChildId?: string; prefillName?: string } | undefined; // Entry; params only set on empty-state re-entry (age-less child)
   UStep2_Goal:         UBase;
   UStep3_Challenges:   UWithGoal;

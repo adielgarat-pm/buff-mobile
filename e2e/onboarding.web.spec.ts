@@ -61,7 +61,7 @@ test.describe('BUFF onboarding (web)', () => {
     await expect(t(page, TID.childName)).toHaveCount(0); // not back on Step 1
   });
 
-  test('regression: a mid-flow browser reload resumes the same step (web persistence)', async ({ page }) => {
+  test('regression: a mid-flow browser reload offers to resume the same step (Shape A)', async ({ page }) => {
     await completeStep1(page, { childName: 'Gal', age: AGE });
     await completeStep2(page, GOAL);
     await completeStep3(page, []);
@@ -70,7 +70,11 @@ test.describe('BUFF onboarding (web)', () => {
 
     await page.reload();
 
-    // Should resume on Step 4 — NOT reset to Step 1 / Welcome.
+    // Shape A: reload lands on Welcome with a "Continue setup" prompt (an
+    // invitation, not a silent jump) — NOT a reset to a blank Step 1. Tapping
+    // it re-enters the same step with its accumulated data.
+    await expect(t(page, TID.welcomeResume)).toBeVisible({ timeout: 20_000 });
+    await t(page, TID.welcomeResume).click();
     await expect(t(page, TID.step4Continue)).toBeVisible({ timeout: 20_000 });
     await expect(t(page, TID.childName)).toHaveCount(0);
   });

@@ -16,10 +16,19 @@ Durable status of the whole line of work, so any session can pick it up. Detail 
    Verified: typecheck, build:web, 6 unit + 3 wiring + 107 onboarding/hooks tests. Zero schema changes.
 5. **Attribution SPEC** — `docs/sessions/acquisition-attribution-activation/SPEC.md`. Key finding: capture code already exists; the gap is untagged outbound links + no buffadhd.com pass-through (activation, not code).
 
-## ⚠️ Phase 2 BLOCKED on a decision (spec drift found in code — see SPEC "Spec Drift Correction")
-- **ParentDashboard resume banner is invalid** — childless parents route to the Onboarding stack, never ParentTabs (`RootNavigator.tsx:143`). Resume surface must be **WelcomeScreen**.
-- **Web ≤6h reload already solved** by `onboardingPersistence.web.ts` (localStorage snapshot, TTL 6h). Native = no-op. Real gaps: native app-kill, web >6h, cross-device.
-- **Awaiting Adi:** Shape A (extend existing snapshot to native + Welcome resume prompt; no DB) vs Shape B (full DB draft + Welcome resume). Phase 2 not written until decided.
+## Phase 2 — Resume onboarding (Shape A) — ✅ code done (this branch)
+Adi chose **Shape A** (minimal, no DB/schema). Implemented:
+- `onboardingPersistence.ts` unified into ONE real impl (AsyncStorage) — now persists on **native too** (was a no-op); deleted `onboardingPersistence.web.ts`. `ONBOARDING_PERSISTENCE_ENABLED = true`.
+- `RootNavigator`: dropped the silent auto-jump (initialState); now always lands the not-yet-onboarded parent on **Welcome**, passing the snapshot via `initialParams={{ resumeSnapshot }}`.
+- `WelcomeScreen`: if a fresh mid-wizard snapshot exists (route ≠ UStep1) → "Continue setup" (re-enters the step with its params) + "Start over" (clears snapshot → UStep1). Encouraging copy (Pillar 2). testIDs: welcome-cta / welcome-resume / welcome-start-fresh.
+- `types.ts`: `Welcome` param carries `resumeSnapshot`.
+- i18n: `welcome.resume.*` in en + he (parity check ✓).
+- e2e: reload test updated to the prompt behavior; `completeStep1` now dismisses Welcome first (`startFromWelcome`).
+- Tests: `WelcomeScreen.resume.test.tsx` (4). Verified: tsc, build:web exit 0, 119 tests, i18n parity.
+- Solves: native app-kill mid-wizard + gives an explicit resume choice on both platforms. (Web ≤6h reload was already handled; native was a no-op before.)
+
+### Not verified here (Adi / CI, per Test Plan)
+- 🚩 Live: kill the native app mid-wizard → reopen → Welcome offers resume → continue lands on the same step. And web reload → same.
 
 ## Original Phase 2 plan (SUPERSEDED by the correction above — kept for reference)
 - **Phase 2 — Resumable draft (A).** Branch reset from merged `main`. Implementing:

@@ -143,27 +143,21 @@ export default function RootNavigator() {
 
   console.log('[RootNavigator] role:', profile?.role, 'onboardingComplete:', onboardingComplete, 'hasChildren:', hasChildren);
 
-  // Apply the restored onboarding snapshot ONLY when the recomputed branch is
-  // the not-yet-onboarded parent branch (which actually contains the UStep
-  // screens). Never feed initialState that names routes absent from the active
-  // branch — React Navigation can throw / render blank on an unknown route.
-  // `Welcome` underneath keeps the back gesture sane. Web-only (restoredSnap is
-  // always null on native).
-  const restoredState =
+  // Resume UX: instead of silently jumping the parent into the middle of the
+  // wizard (the old initialState auto-restore), we always land them on Welcome
+  // and hand it the snapshot so it can OFFER "Continue where you left off" vs
+  // "Start fresh" (Shape A — an invitation, not a forced restore; Pillar 2).
+  // Only meaningful in the not-yet-onboarded parent branch, which is the only
+  // branch that renders Welcome. Both platforms (restoredSnap resolves on native
+  // now too — see onboardingPersistence.ts).
+  const resumeSnapshot =
     restoredSnap && !parentOnboarded && profile?.role === 'parent'
-      ? {
-          index: 1,
-          routes: [
-            { name: 'Welcome' as const },
-            { name: restoredSnap.route, params: restoredSnap.params },
-          ],
-        }
-      : undefined;
+      ? restoredSnap
+      : null;
 
   return (
     <NavigationContainer
       linking={linking}
-      initialState={restoredState}
       onStateChange={onNavStateChange}
     >
       <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -298,7 +292,11 @@ export default function RootNavigator() {
         ) : (
           // ─── 5. PARENT — onboarding incomplete ───────────────────────
           <>
-            <Stack.Screen name="Welcome"           component={WelcomeScreen} />
+            <Stack.Screen
+              name="Welcome"
+              component={WelcomeScreen}
+              initialParams={{ resumeSnapshot }}
+            />
             <Stack.Screen name="UStep1"            component={UStep1_ChildProfile} />
             <Stack.Screen name="UStep2_Goal"       component={UStep2_Goal} />
             <Stack.Screen name="UStep3_Challenges" component={UStep3_Challenges} />
