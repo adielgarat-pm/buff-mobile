@@ -32,7 +32,7 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
@@ -190,6 +190,11 @@ export function useKidLocalNotifications(): void {
   }, []);
 
   const scheduleAllPhases = useCallback(async () => {
+    // Web has no local-notification scheduler: expo-notifications' DATE trigger
+    // is unsupported on web and rejects, and this hook has no per-call catch —
+    // producing an unhandled promise rejection on every child foreground (audit
+    // L1). Kid reminders are a native-only feature; no-op on web.
+    if (Platform.OS === 'web') return;
     if (!profile || profile.role !== 'child') return;
     const ctx: SchedulerContext = {
       childId: profile.id,
@@ -209,6 +214,7 @@ export function useKidLocalNotifications(): void {
 
   // On profile load + every app foreground → reschedule
   useEffect(() => {
+    if (Platform.OS === 'web') return; // native-only feature (see scheduleAllPhases)
     if (!profile || profile.role !== 'child') return;
     scheduleAllPhases();
     const onChange = (next: AppStateStatus) => {

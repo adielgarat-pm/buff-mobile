@@ -36,7 +36,14 @@ export default function BirthdayField({ value, onChange, placeholder, locale }: 
   const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
     // On Android the picker closes itself; on iOS it stays open until dismissed.
     if (Platform.OS === 'android') setShowDatePicker(false);
-    if (event.type === 'set' && selected) onChange(selected);
+    if (event.type === 'set' && selected) {
+      // Normalize to UTC midnight so the downstream `toISOString().split('T')[0]`
+      // in UStep1 yields the exact day the user picked — matching BirthdayField.web
+      // (which already emits UTC midnight). The native picker returns a LOCAL-midnight
+      // Date, whose toISOString() rolls to the previous day for any UTC+ user (audit
+      // M1). Both split variants must emit the SAME contract behind one prop shape.
+      onChange(new Date(Date.UTC(selected.getFullYear(), selected.getMonth(), selected.getDate())));
+    }
     if (event.type === 'dismissed') setShowDatePicker(false);
   };
 

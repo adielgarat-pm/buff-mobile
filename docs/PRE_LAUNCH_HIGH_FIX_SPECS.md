@@ -9,11 +9,13 @@
 
 | ID | Title | Change surface | Status |
 |---|---|---|---|
-| **C1 / H5** | Local day-boundary (daily loop + vibe check) | Client (TS) | ✅ Implemented |
-| **H1** | Server-side reward-cost validation | Supabase RPC + column | 🔐 SPEC only |
+| **C1 / H5** | Local day-boundary (daily loop + vibe check) | Client (TS) | ✅ Shipped (#451) |
+| **H3** | Parent dashboard day-filtered task counts | Client (TS) | ✅ Shipped (#452) |
+| **H4** | iOS Phase-1 paywall guard | Client (TS) | ✅ Shipped (#452) |
+| **H1** | Server-side reward-cost validation | Supabase RPC + column | 🔐 SPEC only — superseded by the data-backed design in `PRE_LAUNCH_GAP_RESOLUTION_PLAN.md` |
 | **H2** | Child session hardening (no guessable password) | Supabase RPC + client | 🔐 SPEC only |
-| **H3** | Parent dashboard day-filtered task counts | Client (TS) | 📐 SPEC only |
-| **H4** | iOS Phase-1 paywall guard | Client (TS) | 📐 SPEC only |
+
+> **Spec Sync (2026-08-31):** C1/H5 shipped in #451; H3/H4 in #452. For H1's final design use `docs/PRE_LAUNCH_GAP_RESOLUTION_PLAN.md` — live production-DB checks showed the equality check proposed below would reject 6 legitimate (price-edited) redemptions, so the authoritative fix is an insert-trigger + live-price re-read, not an equality check.
 
 ---
 
@@ -134,7 +136,7 @@ Largest of the five — touches auth. **Risk:** locking out existing children mi
 
 ---
 
-## H3 — Parent dashboard day-filtered task counts (📐 SPEC only — small client change)
+## H3 — Parent dashboard day-filtered task counts (✅ Shipped #452)
 
 ### Problem (anchored, verified)
 `src/hooks/useChildrenDashboard.ts:106-116` counts tasks filtered **only** by the off-routine partition (`isTaskInActivePlan`); it ignores `scheduleDays`, `hideOnWeekend`, and one-time `dueDate`. The child surfaces filter the same list through `isTaskVisibleOn` (`src/lib/taskScheduling.ts`). Result: the parent card (`ParentDashboardScreen.tsx:984`) shows a total that never matches what the child sees, "all done" never registers, and past-dated one-time tasks inflate the total permanently.
@@ -175,7 +177,7 @@ Low. **Risk:** the hook may not currently fetch the weekend/`friday_enabled` fla
 
 ---
 
-## H4 — iOS Phase-1 paywall guard (📐 SPEC only — small client change)
+## H4 — iOS Phase-1 paywall guard (✅ Shipped #452)
 
 ### Problem (anchored)
 On iOS Phase 1, `useSubscription` hides the child-limit paywall but leaves `insightsUnlocked=false`, so the parent Insights card renders a "Unlock with Premium" CTA that `navigate('Paywall')`. `PaywallScreen.tsx:58-61` guards only `isWeb` + `isChild` — **no iOS branch** — so it renders real purchase cards; tapping them calls RevenueCat, which was never initialized on iOS (`purchaseService.ts:35`) → "product not found".

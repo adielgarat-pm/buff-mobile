@@ -21,7 +21,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -106,7 +106,12 @@ export const NotificationGate: React.FC = () => {
   // Show the recovery banner only to parents who actively denied the OS prompt.
   // (Kid/age routing to settings is Phase 5.) The pre-prompt and the banner are
   // mutually exclusive: 'unknown' → pre-prompt, 'denied' → banner.
+  // Native-only: the banner's CTA is `Linking.openSettings()`, which does not
+  // exist on react-native-web (would throw a TypeError) — and a browser has no
+  // deep-linkable app-settings screen to route to. So suppress it on web (audit
+  // M5); a web parent re-enables notifications via their browser's site settings.
   const showDeniedBanner =
+    Platform.OS !== 'web' &&
     profile.role === 'parent' && permission === 'denied' && !bannerDismissed;
 
   return (
