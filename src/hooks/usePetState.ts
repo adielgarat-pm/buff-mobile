@@ -20,6 +20,7 @@ import {
   LEVEL_THRESHOLDS,
   MAX_LEVEL,
 } from '../types/pet';
+import { localDayKey } from '../lib/dayKey';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -54,8 +55,10 @@ async function saveSessionState(state: SessionState) {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+// Local calendar day — the streak rolls at the child's local midnight, in step
+// with task completion (see src/lib/dayKey.ts / audit C1).
 function getTodayKey() {
-  return new Date().toISOString().split('T')[0];
+  return localDayKey();
 }
 
 function normalizePetState(raw: Record<string, unknown>): PetState {

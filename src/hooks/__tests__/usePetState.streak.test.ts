@@ -14,11 +14,15 @@ import { DEFAULT_PET_STATE, PetState } from '../../types/pet';
 
 const PET_STATE_KEY = 'buff_pet_state';
 
-const todayKey = () => new Date().toISOString().split('T')[0];
+// usePetState now keys the streak on the LOCAL day (src/lib/dayKey.ts), so the
+// test seeds LOCAL day keys too — otherwise a non-UTC runner would mismatch.
+const pad = (n: number) => String(n).padStart(2, '0');
+const localKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayKey = () => localKey(new Date());
 function daysAgoKey(n: number): string {
   const d = new Date();
-  d.setUTCDate(d.getUTCDate() - n);
-  return d.toISOString().split('T')[0];
+  d.setDate(d.getDate() - n);
+  return localKey(d);
 }
 
 async function readState(): Promise<PetState> {

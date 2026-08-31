@@ -17,21 +17,29 @@ import {
 } from '../vibeUtils';
 
 describe('getTodayKey', () => {
-  test('returns YYYY-MM-DD for a UTC date', () => {
-    const d = new Date('2026-05-16T12:34:56Z');
+  // getTodayKey now delegates to the shared LOCAL day helper (src/lib/dayKey.ts)
+  // — the vibe check must roll at the child's local midnight, not UTC (audit
+  // H5). These use the LOCAL Date constructor so the expectation is timezone-
+  // independent (mirrors src/lib/__tests__/dayKey.test.ts and taskScheduling's
+  // toDateKey test).
+  test('returns YYYY-MM-DD from local calendar components', () => {
+    const d = new Date(2026, 4, 16, 12, 34, 56); // local May 16 2026, 12:34
     expect(getTodayKey(d)).toBe('2026-05-16');
   });
 
-  test('uses UTC, not local — date near midnight local stays in UTC day', () => {
-    // 23:30 in UTC+3 is 20:30 UTC same day, so UTC date is unchanged.
-    const d = new Date('2026-05-16T20:30:00Z');
+  test('does not roll early in the evening (local midnight, not UTC)', () => {
+    // Late-evening local time stays on the same local day regardless of the
+    // user's UTC offset. Under the old UTC key this flipped to the next day for
+    // negative-offset users; under the local key it does not.
+    const d = new Date(2026, 4, 16, 23, 30); // local May 16 2026, 23:30
     expect(getTodayKey(d)).toBe('2026-05-16');
   });
 
-  test('rolls over at UTC midnight, not local midnight', () => {
-    // 01:30 in UTC+3 is 22:30 UTC PREVIOUS day. UTC date = previous day.
-    const d = new Date('2026-05-15T22:30:00Z');
-    expect(getTodayKey(d)).toBe('2026-05-15');
+  test('rolls exactly at local midnight', () => {
+    const justBefore = new Date(2026, 4, 16, 23, 59, 59);
+    const justAfter  = new Date(2026, 4, 17, 0, 0, 0);
+    expect(getTodayKey(justBefore)).toBe('2026-05-16');
+    expect(getTodayKey(justAfter)).toBe('2026-05-17');
   });
 
   test('default `now` parameter uses real Date', () => {
