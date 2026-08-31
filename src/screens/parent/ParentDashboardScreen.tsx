@@ -297,7 +297,7 @@ export default function ParentDashboardScreen() {
   // Use first child for insights
   const firstChild    = children[0] ?? null;
   const firstChildId  = firstChild?.childId ?? null;
-  const { insights, loading: insightsLoading, refetch: refetchInsights } = useParentInsights(firstChildId);
+  const { insights, hasEnoughData: insightsHaveData, loading: insightsLoading, refetch: refetchInsights } = useParentInsights(firstChildId);
   const topInsight = insights[0] ?? null;
 
   // ── AI coach insight — the dashboard card's primary content ─────────────
@@ -338,11 +338,11 @@ export default function ParentDashboardScreen() {
       )
     : null;
 
-  // FIX 1 — detect "not enough data yet" for the insights card
-  const daysSinceChildCreated = firstChild?.created_at
-    ? (Date.now() - new Date(firstChild.created_at).getTime()) / (1000 * 60 * 60 * 24)
-    : 0;
-  const showLockedInsights = daysSinceChildCreated < 3;
+  // "Not enough data yet" for the insights card. Gate on real activity/history
+  // (from the same query that builds the insights), NOT the child profile's row
+  // age — a seeded/back-dated/re-linked child with a real streak but a fresh
+  // created_at used to read "unlock after 3 days" forever (audit M3).
+  const showLockedInsights = !insightsHaveData;
   const insightsLocked = !insightsLoading && (!topInsight || showLockedInsights);
 
   // ── "Recommended now" card (spec-typed-toucan) ───────────────────────────

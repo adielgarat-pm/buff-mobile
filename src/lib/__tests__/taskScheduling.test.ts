@@ -1,5 +1,8 @@
 import type { Task } from '../../types/task';
-import { isTaskVisibleOn, toDateKey, countVisibleTasks } from '../taskScheduling';
+import {
+  isTaskVisibleOn, toDateKey, countVisibleTasks,
+  scheduledDaysInWindow, completionRateOverWindow,
+} from '../taskScheduling';
 
 function task(partial: Partial<Task>): Task {
   return {
@@ -137,5 +140,61 @@ describe('countVisibleTasks — parent dashboard day-filtered counts (H3)', () =
       const { total } = countVisibleTasks(tasks, new Set(), dateKey, { isWeekend });
       expect(total).toBe(childVisible.length);
     }
+  });
+});
+
+describe('completion rate over a window — parent insights denominator (M7)', () => {
+  // A full local week: Mon 2026-06-08 … Sun 2026-06-14.
+  const WEEK = [
+    '2026-06-08', '2026-06-09', '2026-06-10', '2026-06-11', // Mon–Thu
+    '2026-06-12', '2026-06-13', '2026-06-14',               // Fri, Sat, Sun
+  ];
+  const daily      = { scheduleDays: undefined };            // every day
+  const noWeekend  = { scheduleDays: undefined, hideOnWeekend: true };
+  const monOnly    = { scheduleDays: [1] };
+  const paused     = { scheduleDays: [] as number[] };
+
+  test('scheduledDaysInWindow: a daily task is scheduled all 7 days', () => {
+    expect(scheduledDaysInWindow(daily, WEEK, false)).toHaveLength(7);
+  });
+
+  test('a daily task completed EVERY day is 100%, never 140% (the old /5 bug)', () => {
+    const done = new Set(WEEK);
+    const r = completionRateOverWindow(daily, WEEK, false, done);
+    expect(r).not.toBeNull();
+    expect(r!.rate).toBe(100);
+    expect(r!.scheduledDays).toBe(7);
+  });
+
+  test('hideOnWeekend drops Fri+Sat from the denominator (fridayEnabled=false)', () => {
+    // Weekend = Fri(2026-06-12) + Sat(2026-06-13) → 5 scheduled days.
+    const r = completionRateOverWindow(noWeekend, WEEK, false, new Set());
+    expect(r!.scheduledDays).toBe(5);
+    expect(r!.rate).toBe(0);
+  });
+
+  test('fridayEnabled makes Friday a school day → only Sat is weekend', () => {
+    const r = completionRateOverWindow(noWeekend, WEEK, true, new Set());
+    expect(r!.scheduledDays).toBe(6); // excludes only Saturday
+  });
+
+  test('a Monday-only task is rated on its ONE scheduled day, not as chronic failure', () => {
+    const doneMon = new Set(['2026-06-08']);
+    const r = completionRateOverWindow(monOnly, WEEK, false, doneMon);
+    expect(r!.scheduledDays).toBe(1);
+    expect(r!.completedDays).toBe(1);
+    expect(r!.rate).toBe(100);
+  });
+
+  test('a task never scheduled in the window is excluded (null), not counted 0%', () => {
+    expect(completionRateOverWindow(paused, WEEK, false, new Set())).toBeNull();
+  });
+
+  test('completions on non-scheduled days do not inflate the rate', () => {
+    // Mon-only task, but a stray completion recorded on Tuesday → ignored.
+    const done = new Set(['2026-06-09']); // Tue, not a scheduled day for monOnly
+    const r = completionRateOverWindow(monOnly, WEEK, false, done);
+    expect(r!.completedDays).toBe(0);
+    expect(r!.rate).toBe(0);
   });
 });
