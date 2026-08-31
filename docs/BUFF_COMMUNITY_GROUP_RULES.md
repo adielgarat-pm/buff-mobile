@@ -18,7 +18,11 @@
 
 ---
 
-## 1. הקבוצה
+> **תפקיד במנגנון:** זהו ה-per-group registry של [BUFF_COMMUNITY_ENGINE.md](BUFF_COMMUNITY_ENGINE.md). כל קבוצה מקבלת section עם חוקים verbatim + compliance. להוספת קבוצה — ראה §6.
+
+---
+
+## 1. הקבוצה (G1)
 
 **שם:** ADHD/AuDHD/ASD COMMUNITY SUPPORT GROUP - UK ONLY 🇬🇧
 **סוג:** קבוצה פרטית (Private)
@@ -105,6 +109,18 @@
 | מצטרפים לקבוצה חדשה עם חוקים | הוסף §2.X + §3.X לקבוצה החדשה, או שכפל את התבנית |
 | פוסט/תגובה שלנו נמחקו | תעד איזה חוק נשבר, חדד את §3 |
 | MESSAGING §8.1 מתעדכן | ודא consistency בין המסמכים |
+
+---
+
+## 6. להוספת קבוצה חדשה (template)
+
+כשנכנסים לקבוצה חדשה: הדבק את החוקים שלה ל-Claude, ונוסיף:
+
+1. **כאן** — section חדש `## N. הקבוצה (G2)` עם: שם, פלטפורמה, גודל, קהל, ואז החוקים **verbatim**, ואז Compliance Checklist ספציפי (כמו §3).
+2. **ב-[ENGINE §4](BUFF_COMMUNITY_ENGINE.md)** — שורה ב-Group Registry.
+3. **ב-[ENGINE §3](BUFF_COMMUNITY_ENGINE.md) Operator Brief** — עדכן את חלק ה-HARD COMPLIANCE RULES אם לקבוצה החדשה יש חוק ייחודי.
+
+> חוקים משתנים בין קבוצות. אל תניח שחוקי G1 חלים על G2 — כל קבוצה verbatim משלה.
 
 ---
 
