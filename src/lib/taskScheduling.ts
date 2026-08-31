@@ -49,3 +49,31 @@ export function isTaskVisibleOn(
   if (ctx.isWeekend && task.hideOnWeekend) return false;
   return true;
 }
+
+/** The minimal task shape needed to count what's visible on a given day. */
+export type CountableTask = Pick<Task, 'scheduleDays' | 'hideOnWeekend' | 'dueDate'> & {
+  id: string;
+};
+
+/**
+ * Count the tasks visible on `dateKey`, and how many of them are complete.
+ *
+ * This is the SINGLE rule the parent dashboard must share with the child
+ * surfaces (PhaseView / GamerTasksScreen), so the parent's "X / Y" always
+ * matches what the child actually sees. Before this, the parent dashboard
+ * counted every assigned task (ignoring schedule days / weekend / one-time
+ * dueDate), so the totals diverged and "all done" could never register
+ * (audit H3). Off-routine partitioning is applied by the caller before this.
+ */
+export function countVisibleTasks(
+  tasks: CountableTask[],
+  completedIds: Set<string>,
+  dateKey: string,
+  ctx: VisibilityContext,
+): { total: number; completed: number } {
+  const visible = tasks.filter(t => isTaskVisibleOn(t as Task, dateKey, ctx));
+  return {
+    total: visible.length,
+    completed: visible.filter(t => completedIds.has(t.id)).length,
+  };
+}
