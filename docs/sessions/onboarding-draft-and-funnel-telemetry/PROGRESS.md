@@ -16,7 +16,12 @@ Durable status of the whole line of work, so any session can pick it up. Detail 
    Verified: typecheck, build:web, 6 unit + 3 wiring + 107 onboarding/hooks tests. Zero schema changes.
 5. **Attribution SPEC** — `docs/sessions/acquisition-attribution-activation/SPEC.md`. Key finding: capture code already exists; the gap is untagged outbound links + no buffadhd.com pass-through (activation, not code).
 
-## Now (in progress)
+## ⚠️ Phase 2 BLOCKED on a decision (spec drift found in code — see SPEC "Spec Drift Correction")
+- **ParentDashboard resume banner is invalid** — childless parents route to the Onboarding stack, never ParentTabs (`RootNavigator.tsx:143`). Resume surface must be **WelcomeScreen**.
+- **Web ≤6h reload already solved** by `onboardingPersistence.web.ts` (localStorage snapshot, TTL 6h). Native = no-op. Real gaps: native app-kill, web >6h, cross-device.
+- **Awaiting Adi:** Shape A (extend existing snapshot to native + Welcome resume prompt; no DB) vs Shape B (full DB draft + Welcome resume). Phase 2 not written until decided.
+
+## Original Phase 2 plan (SUPERSEDED by the correction above — kept for reference)
 - **Phase 2 — Resumable draft (A).** Branch reset from merged `main`. Implementing:
   - `src/lib/onboardingDraft.ts` (save = read-modify-write `profiles.onboarding_data.wizard_draft`; load = own read, NOT via useAuth().profile; clear only on `child_created`).
   - draft write in UStep1–UStep4 `onNext`; prefill in UStep1; clear in UStep5 success branch.

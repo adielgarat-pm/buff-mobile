@@ -177,6 +177,20 @@ then nothing.
 
 Rationale: B קודם כי הוא מודד את הבעיה ש-A פותר, ומיידע את UX ה-resume (Step 1 vs Step 4 → resume רדוד מספיק או צריך deep).
 
+## ⚠️ Phase 2 — Spec Drift Correction (code inspection, 2026-08-31)
+
+בבדיקת הקוד לפני כתיבת Phase 2 התגלו שני דברים ש**מבטלים חלק מהתכנון**:
+
+1. **הבאנר ב-ParentDashboard לא יכול להופיע לקהל היעד.** `RootNavigator.tsx:143` — `parentOnboarded = onboarding_complete && hasChildren`. הורה **בלי ילד מנותב ל-Onboarding stack, אף פעם לא ל-ParentTabs**. לכן משטח ה-resume חייב להיות **WelcomeScreen** (כניסת ה-onboarding), לא הדשבורד.
+2. **web reload באותה ישיבה (≤6h) כבר פתור.** `src/navigation/onboardingPersistence.web.ts` — snapshot ל-localStorage (route+params, TTL 6h), משוחזר אוטומטית ב-`RootNavigator` (`initialState`). **native = no-op מכוון.** לכן הפערים האמיתיים: (א) native app-kill באמצע, (ב) web מעבר ל-6h, (ג) cross-device, (ד) בחירת "המשך/התחל מחדש" עדינה במקום auto-restore שקט.
+
+**החלטה פתוחה ל-Adi (מחליפה את OQ המקוריים ל-Phase 2):**
+- **Shape A (מינימלי, ROI גבוה):** להפעיל את ה-snapshot הקיים גם ב-native (AsyncStorage) + resume prompt ב-WelcomeScreen. בלי DB, בלי cross-device. קטן, low-risk, פותר native app-kill + מוסיף את שאלת "המשך/מחדש".
+- **Shape B (מלא, כמו ב-SPEC):** DB-backed draft ב-`profiles.onboarding_data` + resume ב-WelcomeScreen. מוסיף cross-device + בסיס ל-re-engagement, אבל surface גדול יותר וחופף חלקית ל-snapshot הקיים ≤6h.
+- בשני המקרים: משטח ה-resume = **WelcomeScreen**, לא ParentDashboard. סעיפי ה-UI/ParentDashboard בתכנון המקורי בטלים.
+
+עד להכרעה — Phase 2 **לא נכתב**.
+
 ## Test Plan
 
 > רמת סיכון: Phase B 🟢 נמוך-מאוד · Phase A 🟡 נמוך-בינוני (3 נקודות: כתיבת draft לא חוסמת ניווט · גייטינג הבאנר לא נוגע בהורים קיימים · RMW לא דורס jsonb).
