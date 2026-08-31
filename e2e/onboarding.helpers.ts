@@ -10,6 +10,10 @@ import { Page, expect } from '@playwright/test';
 /** testIDs — keep in sync with src/screens/onboarding/unified/*. */
 export const TID = {
   back:            'onb-back',
+  // Welcome (onboarding entry / resume prompt)
+  welcomeCta:      'welcome-cta',
+  welcomeResume:   'welcome-resume',
+  welcomeFresh:    'welcome-start-fresh',
   // Step 1 — child profile
   step1Next:       'onb1-next',
   childName:       'onb1-child-name',
@@ -49,12 +53,24 @@ export async function waitForApp(page: Page) {
     .catch(() => { /* fall through — individual tests assert their own first screen */ });
 }
 
+/** Dismiss the Welcome entry screen if it's showing (the onboarding stack's
+ *  first screen). A fresh parent lands here; tapping the start CTA opens Step 1.
+ *  No-op when the app already resolved past Welcome. */
+export async function startFromWelcome(page: Page) {
+  const cta = t(page, TID.welcomeCta);
+  if (await cta.isVisible().catch(() => false)) {
+    await cta.click();
+  }
+}
+
 /** Step 1 → Step 2. Fills the required fields and advances. */
 export async function completeStep1(page: Page, opts: {
   childName?: string; age?: string; parentName?: string; gender?: string;
 } = {}) {
   const name = opts.childName ?? 'TestKid';
   const age  = opts.age ?? '9-11';
+  // A fresh parent lands on Welcome first — get past it before Step 1 fields.
+  await startFromWelcome(page);
   await expect(t(page, TID.childName)).toBeVisible();
   // Parent name only appears when the parent's display_name is missing/email-like.
   if (await t(page, TID.parentName).isVisible().catch(() => false)) {
