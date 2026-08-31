@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Platform, SafeAreaView, ActivityIndicator,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, SafeAreaView, ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateField from '../../components/DateField';
+import TimeField from '../../components/TimeField';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
 import { useChildTheme } from '../../contexts/ThemeContext';
@@ -20,9 +21,6 @@ function toISODate(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${d.getFullYear()}-${m}-${day}`;
-}
-function toHHMM(d: Date): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 /**
@@ -55,8 +53,6 @@ export default function ChildAddActivityScreen() {
   const [time, setTime] = useState<string | null>(null);
   const [gear, setGear] = useState<string[]>([]);
   const [newItem, setNewItem] = useState('');
-  const [showDate, setShowDate] = useState(false);
-  const [showTime, setShowTime] = useState(false);
 
   const canSave = title.trim().length > 0 && (scheduleKind === 'recurring' || !!date);
 
@@ -137,41 +133,32 @@ export default function ChildAddActivityScreen() {
             })}
           </View>
         ) : (
-          <TouchableOpacity style={[styles.input, styles.btnLike, { borderColor: T.border, backgroundColor: T.card }]} onPress={() => setShowDate(true)}>
-            <Text style={{ color: date ? T.foreground : T.mutedForeground }}>
-              {date ? date.toLocaleDateString(lang) : t('activities.pickDate')}
-            </Text>
-          </TouchableOpacity>
-        )}
-        {showDate && (
-          <DateTimePicker
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            value={date ?? new Date()}
-            onChange={(e: DateTimePickerEvent, sel?: Date) => {
-              if (Platform.OS === 'android') setShowDate(false);
-              if (e.type === 'set' && sel) setDate(sel);
-              if (e.type === 'dismissed') setShowDate(false);
-            }}
+          // DateField renders the native picker on native and a real
+          // <input type="date"> on web (via Metro .web split) — the raw
+          // DateTimePicker was a dead control on the Web PWA (audit M4). Child-
+          // theme colors passed through style/textStyle so it reads correctly in
+          // Pastel + Gamer. Local-getter contract preserved (no TZ shift).
+          <DateField
+            value={date}
+            onChange={setDate}
+            placeholder={t('activities.pickDate')}
+            locale={lang}
+            minimumDate={new Date()}
+            style={[styles.input, styles.btnLike, { borderColor: T.border, backgroundColor: T.card }]}
+            textStyle={{ color: date ? T.foreground : T.mutedForeground }}
+            accessibilityLabel={t('activities.pickDate')}
+            testID="child-activity-date"
           />
         )}
 
-        <TouchableOpacity style={[styles.input, styles.btnLike, { borderColor: T.border, backgroundColor: T.card }]} onPress={() => setShowTime(true)}>
-          <Text style={{ color: time ? T.foreground : T.mutedForeground }}>{time ?? t('activities.timeOptional')}</Text>
-        </TouchableOpacity>
-        {showTime && (
-          <DateTimePicker
-            mode="time"
-            is24Hour
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            value={new Date()}
-            onChange={(e: DateTimePickerEvent, sel?: Date) => {
-              if (Platform.OS === 'android') setShowTime(false);
-              if (e.type === 'set' && sel) setTime(toHHMM(sel));
-              if (e.type === 'dismissed') setShowTime(false);
-            }}
-          />
-        )}
+        <TimeField
+          value={time ?? ''}
+          onChange={setTime}
+          style={[styles.input, styles.btnLike, { borderColor: T.border, backgroundColor: T.card, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}
+          textStyle={{ color: time ? T.foreground : T.mutedForeground }}
+          accessibilityLabel={t('activities.timeOptional')}
+          testID="child-activity-time"
+        />
 
         <Text style={[styles.gearLabel, { color: T.mutedForeground }]}>{t('activities.step.gear')}</Text>
         {gear.map((g, i) => (
