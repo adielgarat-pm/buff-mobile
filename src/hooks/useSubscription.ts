@@ -113,6 +113,13 @@ export function useSubscription() {
   // the web half stays until web billing exists.
   const noIapPaywallHidden = Platform.OS === 'ios' || Platform.OS === 'web';
 
+  // Whether real in-app purchases can actually be made on this platform right
+  // now. RevenueCat is wired on ANDROID only; iOS Phase 1 has no IAP (see
+  // initRevenueCat's iOS guard) and web billing is a Play Store redirect. The
+  // paywall must not render live purchase cards where this is false, or the
+  // buyer hits a "product not found" dead-end (audit H4).
+  const isIapAvailable = Platform.OS === 'android';
+
   const isSubscribed =
     isLifetimeAccess     ||
     familyHasEntitlement ||
@@ -193,6 +200,7 @@ export function useSubscription() {
     referralPremiumUntil,
     hasRealEntitlement,
     insightsUnlocked,
+    isIapAvailable,
     isTrialActive,
     trialDaysLeft,
     needsUpgrade,

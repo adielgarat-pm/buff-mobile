@@ -56,6 +56,12 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
   // screen, so it must route them to the Android app instead of a dead end
   // (web-to-native CTA pattern, #316).
   const isWeb = Platform.OS === 'web';
+  // iOS Phase 1 has no IAP wired (RevenueCat is never configured — see
+  // initRevenueCat / useSubscription.isIapAvailable), so rendering the live
+  // purchase cards here dead-ends on "product not found". Show a non-purchasing
+  // panel instead (audit H4). Real purchases exist on Android only for now.
+  const isIOS = Platform.OS === 'ios';
+  const canPurchase = !isWeb && !isIOS;
 
   // ── Role guard (Pillar 1) — children never see purchase screens ────────────
   const isChild = profile?.role === 'child';
@@ -71,7 +77,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
 
   // ── Fetch real prices from RevenueCat ──────────────────────────────────────
   useEffect(() => {
-    if (isWeb) return; // RC not configured on web — nothing to fetch
+    if (!canPurchase) return; // RC not configured on web/iOS — nothing to fetch
     getOfferings().then(offerings => {
       const monthly = offerings?.current?.monthly;
       const yearly  = offerings?.current?.annual;
@@ -191,6 +197,21 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
               <Text style={styles.webPanelBtnText}>{t('install.getApp.playButton')}</Text>
             </TouchableOpacity>
           </View>
+        ) : isIOS ? (
+          /* ── iOS Phase 1: no IAP wired → never render purchase cards (they
+                dead-end on "product not found"). iOS testers are entitled for
+                free during the beta, so this is informational, not a CTA. */
+          <View style={styles.webPanel}>
+            <Text style={styles.webPanelTitle}>{t('paywall.iosTitle')}</Text>
+            <Text style={styles.webPanelBody}>{t('paywall.iosBody')}</Text>
+            <TouchableOpacity
+              style={styles.webPanelBtn}
+              accessibilityRole="button"
+              onPress={() => { if (navigation.canGoBack()) navigation.goBack(); }}
+            >
+              <Text style={styles.webPanelBtnText}>{t('common.ok')}</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
         <>
         {/* Founding 100 CTA — only shown while spots are available.
@@ -258,7 +279,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
 
         {/* Footer links */}
         <View style={styles.footerRow}>
-          {!isWeb && (
+          {canPurchase && (
             <>
               <TouchableOpacity onPress={handleRestore} disabled={isBusy}>
                 {purchasing === 'restore' ? (

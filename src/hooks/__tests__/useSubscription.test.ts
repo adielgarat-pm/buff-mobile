@@ -86,3 +86,26 @@ describe('useSubscription — iOS paywall gate', () => {
     expect(Purchases.getCustomerInfo as jest.Mock).toHaveBeenCalled();
   });
 });
+
+describe('useSubscription — isIapAvailable (H4: no iOS/web paywall dead-end)', () => {
+  it('is TRUE on Android (RevenueCat is wired)', async () => {
+    (Platform as { OS: string }).OS = 'android';
+    const { result } = renderHook(() => useSubscription());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isIapAvailable).toBe(true);
+  });
+
+  it('is FALSE on iOS (Phase 1, no IAP → paywall must not render purchase cards)', async () => {
+    (Platform as { OS: string }).OS = 'ios';
+    const { result } = renderHook(() => useSubscription());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isIapAvailable).toBe(false);
+  });
+
+  it('is FALSE on web (billing is a Play Store redirect, not in-app)', async () => {
+    (Platform as { OS: string }).OS = 'web';
+    const { result } = renderHook(() => useSubscription());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.isIapAvailable).toBe(false);
+  });
+});
