@@ -2257,5 +2257,6 @@
   "teenTask.modal.create": "הוספה",
   "teenTask.time.morning": "בוקר",
   "teenTask.time.afternoon": "צהריים",
-  "teenTask.time.evening": "ערב"
+  "teenTask.time.evening": "ערב",
+  "parentTasks.createdByChild": "נוסף על־ידי {{name}}"
 }

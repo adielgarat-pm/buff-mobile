@@ -2257,5 +2257,6 @@
   "teenTask.modal.create": "Add it",
   "teenTask.time.morning": "Morning",
   "teenTask.time.afternoon": "Afternoon",
-  "teenTask.time.evening": "Evening"
+  "teenTask.time.evening": "Evening",
+  "parentTasks.createdByChild": "Added by {{name}}"
 }

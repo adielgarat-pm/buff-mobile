@@ -428,6 +428,14 @@ export default function ParentTasksScreen() {
                       <Text style={[styles.taskMeta, { color: T.textMuted }]}>
                         {t('parentTasks.taskMeta', { time: task.time, credits: task.credits })}
                       </Text>
+                      {/* pkg/teen-autonomy: transparency, not control — the parent
+                          SEES a teen-authored task and can price it (tap to edit),
+                          but never has to approve its existence. */}
+                      {task.createdByChild && (
+                        <Text style={[styles.taskMeta, { color: T.accent, fontWeight: '700' }]}>
+                          {t('parentTasks.createdByChild', { name: selectedChildName, defaultValue: 'Added by {{name}}' })}
+                        </Text>
+                      )}
                     </View>
                     {children.length > 1 && (
                       <TouchableOpacity
