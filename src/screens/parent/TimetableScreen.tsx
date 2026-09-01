@@ -51,7 +51,7 @@ type Mode = 'view' | 'choose' | 'processing' | 'review' | 'manual' | 'paste';
 const PDF_MAX_BYTES  = 12 * 1024 * 1024;
 // Client-side ceilings so a stuck request can never trap the user on an infinite
 // spinner (the pre-fix bug: a bad file span the loader forever with no escape).
-const PDF_TIMEOUT_MS   = 100_000; // vision PDF parse is the slowest path
+const PDF_TIMEOUT_MS   = 170_000; // vision PDF parse is the slowest path (multi-page scans on Sonnet)
 const PASTE_TIMEOUT_MS = 45_000;
 
 interface InvokeResult { data: any; error: { message: string } | null }

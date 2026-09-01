@@ -672,7 +672,7 @@ serve(async (req) => {
             { type: "text", text: "Extract the FULL weekly schedule from this PDF with ZERO DATA LOSS. It may span several pages that continue one grid. Return only JSON." },
           ],
           maxTokens: 8000,
-          timeoutMs: 90000,
+          timeoutMs: 160000, // multi-page scanned PDFs on Sonnet run long; give real headroom (client waits 170s)
         });
       } catch (e: any) {
         if (e.isTimeout) {

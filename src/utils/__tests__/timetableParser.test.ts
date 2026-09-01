@@ -396,6 +396,40 @@ describe('processApiResponse', () => {
     ]);
     expect(periods[0].equipment).toBe('צבעים, מכחול');
   });
+
+  // "Different systems" guard (Adi 2026-09-01): a real HS grid uses IRREGULAR
+  // printed times (07:30 / 08:15 / 09:05), NOT the 08:00/08:50 Buff-standard.
+  // When the parse returns explicit times they must be preserved verbatim — a
+  // regression here is exactly the "hours shift" the Haiku model produced.
+  test('Hebrew HS grid: preserves real printed times (no shift) + keeps split "/" title', () => {
+    const { periods, hasAuto } = processApiResponse([
+      { title: 'מתמטיקה רמה 5 / מתמטיקה רמה 4 / מתמטיקה רמה 3', day: 'sunday', time: '08:15', lessonNumber: 1 },
+      { title: 'אנגלית',   day: 'sunday',   time: '09:05', lessonNumber: 2 },
+      { title: 'היסטוריה', day: 'thursday', time: '07:30', lessonNumber: 1 },
+    ]);
+    // Times are taken exactly as given — never rewritten to Buff-standard.
+    const timeOf = (day: string, startsWith: string) =>
+      periods.find(p => p.day === day && p.subject.startsWith(startsWith))?.time;
+    expect(timeOf('sunday', 'מתמטיקה')).toBe('08:15');
+    expect(timeOf('sunday', 'אנגלית')).toBe('09:05');
+    expect(timeOf('thursday', 'היסטוריה')).toBe('07:30');
+    expect(hasAuto).toBe(false);
+    // The joined split-group options survive intact (one lesson, all options).
+    expect(periods.some(p => p.subject === 'מתמטיקה רמה 5 / מתמטיקה רמה 4 / מתמטיקה רמה 3')).toBe(true);
+  });
+
+  test('English Mon–Fri grid: preserves times and maps weekdays', () => {
+    const { periods, hasAuto, hasErrors } = processApiResponse([
+      { title: 'Math', day: 'monday', time: '09:00', lessonNumber: 1 },
+      { title: 'PE',   day: 'friday', time: '10:00', lessonNumber: 1 },
+    ]);
+    expect(hasErrors).toBe(false);
+    expect(hasAuto).toBe(false);
+    expect(periods.find(p => p.subject === 'Math')?.time).toBe('09:00');
+    expect(periods.find(p => p.subject === 'Math')?.day).toBe('monday');
+    expect(periods.find(p => p.subject === 'PE')?.time).toBe('10:00');
+    expect(periods.find(p => p.subject === 'PE')?.day).toBe('friday');
+  });
 });
 
 // ─── Daily gear (import-extract-equipment, D-IE-1) ────────────────────────────
