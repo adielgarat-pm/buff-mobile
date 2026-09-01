@@ -46,6 +46,17 @@
    symbolicate and a mapping artifact is attached.
 5. Play Console → Code optimization shows **≥25% / green**; record the AAB size delta vs previous.
 
+## vc76 rebuild — R8 + latest main (v1.8.6)
+- **Why:** Play Console showed v75 (1.8.6) at **2% code obfuscation** (below 25%) because main shipped
+  1.8.6 WITHOUT R8 — the R8 fix lived only on this branch and v73 never uploaded (submit blocked on the
+  missing `GOOGLE_SERVICE_ACCOUNT_KEY` secret).
+- **Action:** merged latest `origin/main` (1.8.6, #461/#462) into the R8 branch (`de581fe`) → v1.8.6 + R8.
+  Sanity: tsc clean, Jest 991/992. Built EAS production AAB (run #12) — **succeeded** (vc76).
+- EAS build: https://expo.dev/accounts/iamadi79/projects/buff-mobile/builds/def32e8d-a22a-4d88-a362-b17829ed3548
+- AAB artifact: https://expo.dev/artifacts/eas/eJQTe1nit0HK2srid4oXCEgZBFKPcNWjnq4JZPO6LRk.aab
+- **Still open:** upload vc76 to Play (manual, or add the secret for auto-submit); and **R8 must merge to
+  main** or the next main release regresses to 2%.
+
 ## Not in this package
 - Memory / bitmap optimization (separate — needs the Play Console memory report first).
 - Device migration / Restore Credentials (separate — functionally already works via ChildJoin;
