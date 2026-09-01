@@ -600,7 +600,10 @@ export default function TimetableScreen() {
     onSelect: (d: WeekDay) => void,
     activeDays: WeekDay[],
   ) => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dayBar}>
+    // Wrapping row (not a horizontal ScrollView): guarantees every loaded day
+    // is visible at once — an RTL horizontal ScrollView pushed later days
+    // off-screen with no way to reach them (Adi, 2026-09-01).
+    <View style={styles.dayBar}>
       {activeDays.map(day => {
         const active = day === selectedDay;
         return (
@@ -615,7 +618,7 @@ export default function TimetableScreen() {
           </TouchableOpacity>
         );
       })}
-    </ScrollView>
+    </View>
   );
 
   // ─── VIEW mode ────────────────────────────────────────────────────────────────
@@ -633,6 +636,15 @@ export default function TimetableScreen() {
         <View style={[styles.header, headerPad]}>
           <Text style={[styles.title, { color: T.text }]}>{t('timetable.title')}</Text>
           <View style={styles.headerRight}>
+            {hasTimetable && (
+              <TouchableOpacity
+                onPress={openManual}
+                style={[styles.headerBtn, { backgroundColor: T.card, borderWidth: 1, borderColor: T.accent }]}
+              >
+                <Ionicons name="create-outline" size={16} color={T.accent} />
+                <Text style={[styles.headerBtnText, { color: T.accent }]}>{t('timetable.editBtn')}</Text>
+              </TouchableOpacity>
+            )}
             {hasTimetable && (
               <TouchableOpacity
                 onPress={() => setMode('choose')}
@@ -1322,8 +1334,8 @@ const styles = StyleSheet.create({
   childEmoji:    { fontSize: 16 },
   childName:     { fontSize: 13, fontWeight: '600' },
 
-  dayBar:        { paddingHorizontal: 12, paddingBottom: 8, flexGrow: 0 },
-  dayChip:       { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, marginRight: 8,
+  dayBar:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingHorizontal: 12, paddingBottom: 8 },
+  dayChip:       { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
                    backgroundColor: '#F3F4F6' },
   dayChipText:   { fontSize: 13, fontWeight: '600' },
 
