@@ -672,7 +672,9 @@ serve(async (req) => {
             { type: "text", text: "Extract the FULL weekly schedule from this PDF with ZERO DATA LOSS. It may span several pages that continue one grid. Return only JSON." },
           ],
           maxTokens: 8000,
-          timeoutMs: 90000,
+          // Must stay UNDER Supabase's ~150s gateway idle limit so we return our
+          // own clean 408 before the gateway 504s. Client waits a hair longer (150s).
+          timeoutMs: 140000,
         });
       } catch (e: any) {
         if (e.isTimeout) {
