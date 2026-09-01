@@ -32,3 +32,15 @@ export function experienceBandFor(
   }
   return isTeenAgeGroup(ageGroup) ? 'teen' : 'junior';
 }
+
+/**
+ * Capability: may this band self-manage their own tasks (create/edit/delete
+ * directly, live)? Teens only — juniors keep the propose→parent-approve flow
+ * (pkg/teen-autonomy, D1). Named by CAPABILITY, not age, so the eventual
+ * age-threshold decision changes one predicate, not every screen. The client
+ * gate is UX only; RLS + the tasks_stamp_child_economy trigger (migration 058)
+ * are the real security + economy boundary.
+ */
+export function canSelfManageTasks(band: ExperienceBand): boolean {
+  return band === 'teen';
+}

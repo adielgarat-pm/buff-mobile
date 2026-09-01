@@ -37,4 +37,11 @@ export interface Task {
   strategyId?: string;
   /** Off-routine-day task: shown only while the child's off-routine mode is active. */
   isOffRoutine?: boolean;
+  /**
+   * Teen self-authored task (pkg/teen-autonomy): the teen created this row
+   * themselves. Only these rows get the teen's edit/delete affordances; a
+   * parent-assigned task is not the teen's to change. Server-governed: credits
+   * are stamped to 0 until the parent assigns a value (migration 058).
+   */
+  createdByChild?: boolean;
 }

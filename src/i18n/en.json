@@ -2247,5 +2247,15 @@
   "referral.onboardingErrorSelf": "You can't use your own code",
   "referral.onboardingErrorGeneric": "Something went wrong, try again",
   "referral.sheetBannerTitle": "A friend joined!",
-  "referral.sheetBannerSub": "You both get 14 days of Premium"
+  "referral.sheetBannerSub": "You both get 14 days of Premium",
+  "teenTask.cta": "Add a task",
+  "teenTask.modal.heading": "New task",
+  "teenTask.modal.titlePlaceholder": "What do you want to do?",
+  "teenTask.modal.whenLabel": "When",
+  "teenTask.modal.categoryLabel": "Kind",
+  "teenTask.modal.creditsNote": "Your parent sets the BUFFs for this.",
+  "teenTask.modal.create": "Add it",
+  "teenTask.time.morning": "Morning",
+  "teenTask.time.afternoon": "Afternoon",
+  "teenTask.time.evening": "Evening"
 }

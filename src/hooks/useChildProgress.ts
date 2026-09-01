@@ -299,6 +299,7 @@ export function useChildData(childId: string | null) {
         hideOnWeekend: t.hide_on_weekend ?? false,
         isOffRoutine:  t.is_off_routine ?? false,
         dueDate:      t.due_date ?? undefined,
+        createdByChild: t.created_by_child ?? false,
       }));
 
       // Off-routine partition (single source of truth for all child screens):
@@ -485,7 +486,14 @@ export function useChildData(childId: string | null) {
 
   // ג”€ג”€ Task CRUD ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
-  const addTask = useCallback(async (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => {
+  const addTask = useCallback(async (
+    task: Omit<Task, 'id' | 'completed' | 'completedAt'>,
+    // pkg/teen-autonomy: when a teen self-authors a task, pass createdByChild so
+    // the row is provenance-tagged (unlocks their edit/delete affordances) and
+    // the server stamp forces credits to 0 (parent prices it later). Defaults to
+    // false so the parent create path is unchanged.
+    opts?: { createdByChild?: boolean },
+  ) => {
     if (!familyId || !childId) return;
 
     const { data } = await supabase
@@ -502,6 +510,7 @@ export function useChildData(childId: string | null) {
         strategy_id:   task.strategyId || null,
         schedule_days: task.scheduleDays || [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Fri+Sat)
         due_date:      task.dueDate ?? null,
+        created_by_child: opts?.createdByChild ?? false,
       })
       .select()
       .single();
@@ -519,6 +528,7 @@ export function useChildData(childId: string | null) {
         strategyId:   data.strategy_id || undefined,
         scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
         dueDate:      data.due_date ?? undefined,
+        createdByChild: data.created_by_child ?? false,
       }].sort((a, b) => a.time.localeCompare(b.time)));
     }
   }, [familyId, childId]);

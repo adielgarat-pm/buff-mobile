@@ -22,6 +22,9 @@ import { useMode } from '../../contexts/ModeContext';
 import { useChildData } from '../../hooks/useChildProgress';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { TeenTaskModal } from '../../components/child/TeenTaskModal';
+import { useExperienceBand } from '../../hooks/useExperienceBand';
+import { canSelfManageTasks } from '../../lib/experienceBand';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { isWeekendToday } from '../../utils/schoolDay';
@@ -63,12 +66,18 @@ function PastelChildTasks() {
     loading,
     completeTask,
     uncompleteTask,
+    addTask,
   } = useChildData(childId);
   const { settings, isPauseActive } = useAppSettings();
   const fridayEnabled = settings?.friday_enabled ?? false;
 
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
+
+  // pkg/teen-autonomy: teens create tasks directly; juniors propose (gate is
+  // age band, not the mint/gamer skin).
+  const canCreateTasks = canSelfManageTasks(useExperienceBand());
+  const [createOpen, setCreateOpen] = useState(false);
 
   const suggestPalette: SuggestPalette = {
     overlay:    'rgba(0,0,0,0.45)',
@@ -203,29 +212,44 @@ function PastelChildTasks() {
           colors={{ card: T.card, border: T.border, text: T.foreground, muted: T.mutedForeground }}
         />
 
-        {/* Suggest-a-task CTA + the kid's own open ideas */}
-        <View style={styles.suggestRow}>
-          <TouchableOpacity
-            style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.accent }]}
-            onPress={() => setSuggestOpen(true)}
-            activeOpacity={0.7}
-          >
-            {/* Use accent (not primary): in the Mint theme `primary` is a very pale
-                lavender that reads as disabled on the white card. accent is the
-                visible interactive purple. */}
-            <Ionicons name="add" size={18} color={T.accent} />
-            <Text style={[styles.suggestText, { color: T.accent }]}>{t('childSuggest.task.cta')}</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Task authoring — teens create directly; juniors propose to a parent */}
+        {canCreateTasks ? (
+          <View style={styles.suggestRow}>
+            <TouchableOpacity
+              style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.accent }]}
+              onPress={() => setCreateOpen(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add" size={18} color={T.accent} />
+              <Text style={[styles.suggestText, { color: T.accent }]}>{t('teenTask.cta', { defaultValue: 'Add a task' })}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={styles.suggestRow}>
+              <TouchableOpacity
+                style={[styles.suggestBtn, { backgroundColor: T.card, borderColor: T.accent }]}
+                onPress={() => setSuggestOpen(true)}
+                activeOpacity={0.7}
+              >
+                {/* Use accent (not primary): in the Mint theme `primary` is a very pale
+                    lavender that reads as disabled on the white card. accent is the
+                    visible interactive purple. */}
+                <Ionicons name="add" size={18} color={T.accent} />
+                <Text style={[styles.suggestText, { color: T.accent }]}>{t('childSuggest.task.cta')}</Text>
+              </TouchableOpacity>
+            </View>
 
-        <View style={{ paddingHorizontal: 20 }}>
-          <SuggestionStatusList
-            suggestions={suggestions}
-            kind="task"
-            palette={suggestPalette}
-            onWithdraw={withdraw}
-          />
-        </View>
+            <View style={{ paddingHorizontal: 20 }}>
+              <SuggestionStatusList
+                suggestions={suggestions}
+                kind="task"
+                palette={suggestPalette}
+                onWithdraw={withdraw}
+              />
+            </View>
+          </>
+        )}
       </ScrollView>
 
       <SuggestModal
@@ -234,6 +258,12 @@ function PastelChildTasks() {
         palette={suggestPalette}
         onClose={() => setSuggestOpen(false)}
         onSubmit={({ title }) => submit({ kind: 'task', title })}
+      />
+      <TeenTaskModal
+        visible={createOpen}
+        palette={suggestPalette}
+        onClose={() => setCreateOpen(false)}
+        onCreate={(input) => addTask(input, { createdByChild: true })}
       />
     </SafeAreaView>
   );

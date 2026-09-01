@@ -50,6 +50,9 @@ import PauseEmptyState from '../../components/PauseEmptyState';
 import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackModal';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
+import { TeenTaskModal } from '../../components/child/TeenTaskModal';
+import { useExperienceBand } from '../../hooks/useExperienceBand';
+import { canSelfManageTasks } from '../../lib/experienceBand';
 import { formatNum } from '../../lib/uiLocale';
 import { TomorrowPreview } from '../../components/child/TomorrowPreview';
 
@@ -182,7 +185,14 @@ export default function GamerTasksScreen() {
     loading,
     completeTask,
     uncompleteTask,
+    addTask,
   } = useChildData(childId);
+
+  // pkg/teen-autonomy: teens self-author tasks directly; juniors keep the
+  // propose→parent flow. Gate is age band (via useExperienceBand), NOT the
+  // gamer skin — a young child on the gamer theme is still a junior.
+  const canCreateTasks = canSelfManageTasks(useExperienceBand());
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { settings, isPauseActive } = useAppSettings();
   const fridayEnabled     = settings?.friday_enabled ?? false;
@@ -388,23 +398,38 @@ export default function GamerTasksScreen() {
           );
         })}
 
-        {/* ── Suggest-a-task CTA + the kid's own open ideas ────────────── */}
-        <View style={styles.suggestRow}>
-          <TouchableOpacity
-            style={styles.suggestBtn}
-            onPress={() => setSuggestOpen(true)}
-          >
-            <Ionicons name="add" size={18} color={COLORS.lime} />
-            <Text style={styles.suggestText}>{t('childSuggest.task.cta')}</Text>
-          </TouchableOpacity>
-        </View>
+        {/* ── Task authoring ──────────────────────────────────────────────
+             Teens create tasks directly; juniors propose to a parent. ── */}
+        {canCreateTasks ? (
+          <View style={styles.suggestRow}>
+            <TouchableOpacity
+              style={styles.suggestBtn}
+              onPress={() => setCreateOpen(true)}
+            >
+              <Ionicons name="add" size={18} color={COLORS.lime} />
+              <Text style={styles.suggestText}>{t('teenTask.cta', { defaultValue: 'Add a task' })}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <View style={styles.suggestRow}>
+              <TouchableOpacity
+                style={styles.suggestBtn}
+                onPress={() => setSuggestOpen(true)}
+              >
+                <Ionicons name="add" size={18} color={COLORS.lime} />
+                <Text style={styles.suggestText}>{t('childSuggest.task.cta')}</Text>
+              </TouchableOpacity>
+            </View>
 
-        <SuggestionStatusList
-          suggestions={suggestions}
-          kind="task"
-          palette={SUGGEST_PALETTE}
-          onWithdraw={withdraw}
-        />
+            <SuggestionStatusList
+              suggestions={suggestions}
+              kind="task"
+              palette={SUGGEST_PALETTE}
+              onWithdraw={withdraw}
+            />
+          </>
+        )}
 
         {/* Tomorrow's dated tasks (camp days, bag prep) — read-only heads-up */}
         <TomorrowPreview
@@ -419,6 +444,12 @@ export default function GamerTasksScreen() {
         palette={SUGGEST_PALETTE}
         onClose={() => setSuggestOpen(false)}
         onSubmit={({ title }) => submit({ kind: 'task', title })}
+      />
+      <TeenTaskModal
+        visible={createOpen}
+        palette={SUGGEST_PALETTE}
+        onClose={() => setCreateOpen(false)}
+        onCreate={(input) => addTask(input, { createdByChild: true })}
       />
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
     </SafeAreaView>

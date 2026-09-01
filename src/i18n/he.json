@@ -2247,5 +2247,15 @@
   "referral.onboardingErrorSelf": "לא ניתן להשתמש בקוד שלך",
   "referral.onboardingErrorGeneric": "שגיאה, נסו שוב",
   "referral.sheetBannerTitle": "חבר הצטרף!",
-  "referral.sheetBannerSub": "שניכם מקבלים 14 ימים Premium"
+  "referral.sheetBannerSub": "שניכם מקבלים 14 ימים Premium",
+  "teenTask.cta": "הוספת משימה",
+  "teenTask.modal.heading": "משימה חדשה",
+  "teenTask.modal.titlePlaceholder": "מה בא לך לעשות?",
+  "teenTask.modal.whenLabel": "מתי",
+  "teenTask.modal.categoryLabel": "סוג",
+  "teenTask.modal.creditsNote": "ההורה שלך קובע כמה BUFFs זה שווה.",
+  "teenTask.modal.create": "הוספה",
+  "teenTask.time.morning": "בוקר",
+  "teenTask.time.afternoon": "צהריים",
+  "teenTask.time.evening": "ערב"
 }

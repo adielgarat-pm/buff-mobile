@@ -46,6 +46,13 @@ jest.mock('../../../contexts/ModeContext', () => ({
   useMode: () => ({ previewChildId: null, isChildPreview: false }),
 }));
 
+// pkg/teen-autonomy: the screen now reads the experience band (which pulls in
+// ThemeContext). This rowtap test isn't about the create CTA, so pin the band —
+// 'junior' keeps the pre-existing propose CTA rendering unchanged.
+jest.mock('../../../hooks/useExperienceBand', () => ({
+  useExperienceBand: () => 'junior',
+}));
+
 jest.mock('../../../hooks/useChildProgress', () => ({
   useChildData: jest.fn(),
 }));
