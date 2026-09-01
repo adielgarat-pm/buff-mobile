@@ -66,6 +66,15 @@
       "expo-localization",
       "@react-native-community/datetimepicker",
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "BUFF uses your photo library to import images, such as a photo of your child's timetable."
@@ -85,7 +94,11 @@
         {
           "url": "https://sentry.io/",
           "organization": "buffadhd",
-          "project": "react-native"
+          "project": "react-native",
+          "experimental_android": {
+            "enableAndroidGradlePlugin": true,
+            "autoUploadProguardMapping": true
+          }
         }
       ]
     ],
