@@ -1888,7 +1888,7 @@
   "timetable.pickImage": "Pick Photo",
   "timetable.processing": "Processing...",
   "timetable.processingOcr": "Reading schedule from image...",
-  "timetable.processingPdf": "Reading schedule from PDF...",
+  "timetable.processingPdf": "Reading schedule from PDF... (can take up to 2 min)",
   "timetable.rateLimitTitle": "You've hit today's limit",
   "timetable.rateLimitMsg": "You can scan up to 10 schedules a day. Try again tomorrow — or add it manually now, it's quick 🙂",
   "timetable.pdfTooLarge": "This PDF is too large (up to 12MB). Try re-exporting it or taking a photo instead.",
