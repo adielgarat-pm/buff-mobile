@@ -14,7 +14,7 @@
    - **B.** On **Web**, the app-open heartbeat is **rejected by a CHECK constraint** on every open. `last_seen_at` / `last_platform` / `last_country` for web parents are frozen at signup. This corrupts every retention metric, the admin board, and the engagement scan's eligibility.
    - **C.** `smart_insight_feedback` SELECT is denied for `authenticated` (~26–30 errors/day). Not a retention blocker, but it is the noisiest error in the logs and the vote UI never reflects a saved vote.
 3. **There is no working email channel.** `pkg/lifecycle-emails` is stuck at Phase 0 (Resend + DNS, Adi). The last row in `email_logs` is 2026-02-24. Push reaches ~12 live tokens total, all Android. **15 of the 26 T2 families are Web → email is the only way to reach them.**
-4. **The audience has shifted to English.** 0 of the 52 stuck parents have `preferred_language='he'` (countries: US, GB, JM, PK, IL). The approved lifecycle templates are Hebrew-only.
+4. **The audience is now mixed Hebrew/English, and `preferred_language` cannot tell them apart.** It is `'en'` for every one of the 52 (a default, never a choice). Judged by the script of the child's name and task titles, the manual batch splits ~20 Hebrew / ~22 English. The approved lifecycle templates are Hebrew-only, so EN variants are needed before any automated send.
 5. **"I'll send it tonight" does nothing.** `ChildAccessStep.sendTonight` only records `own_phone`; the day-1 reminder (Chunk 4) was deferred. A parent who taps it is promised a nudge that never comes.
 
 ---
@@ -62,6 +62,8 @@ August is the worst month on record: 16 families, 0 with progress after day 2.
 | **T2** child created, zero completed tasks | 26 | 9 | 0 | 8 | 15 |
 | **T3** had progress, silent 7d+ | 10 | 3 | 0 | 5 | 4 |
 | active | 2 | 2 | 0 | 1 | 0 |
+
+Note: T3/active here use the parent's `last_seen_at`, which Bug B freezes on web. Re-cut on the child's last `daily_progress` (the batch list) moves one web family from T3 to active; after test-account removal the batch is 42 parents (see `WINBACK_TEMPLATES_2026-09.md`).
 
 Cohort names match the `pkg/lifecycle-emails` SPEC triggers (T1/T2/T3), so the same batch logic applies.
 
@@ -158,7 +160,7 @@ Bottom line: **for 15 of 26 T2 families (web) and 8 of 14 T1 (web), email is the
 ## 5. Ways to bring them back — recommendation, ranked
 
 ### 5.1 This week — manual win-back batch (Adi, ~1h), no code
-Proven format (2026-07-14: 3/18 back within 48h). Segment by stage, English copy (0 Hebrew parents in the cohort):
+**Decided 2026-09-02: send to everyone, per stage.** Templates (HE + EN per segment) in `WINBACK_TEMPLATES_2026-09.md`; merge CSV delivered to Adi outside the repo. Proven format (2026-07-14: 3/18 back within 48h). Segment by stage:
 
 | Segment | N | Hook (one line, kid's real data first — approved voice) | CTA |
 |---|---|---|---|
