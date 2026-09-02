@@ -246,3 +246,15 @@ HE: BUFF — buffadhd.com · קיבלת את המייל הזה כי נרשמת �
 
 ## Measure (2 weeks after send)
 Re-run the cohort query from `ANALYSIS.md` §2: any `daily_progress` / `child_created` / `onboarding_events` row after the send date per family. Baseline from the 2026-07-14 batch: 3/18 returned within 48h.
+
+
+---
+
+## v2 — Gemini-refined (2026-09-02)
+
+Ran the six templates (HE+EN) through Gemini via `GEMINI_REVIEW_PROMPT.md`. Adopted:
+- **Back-to-school (1.9) framing is the default for T1 and T2** (Adi's call to mention the school year). A fresh year as opportunity, never a deadline or catch-up pressure (Pillar 2). Generator toggle `BTS=True` reverts it.
+- **T3 strengthened**: "especially with ADHD" / "losing a routine is a natural stage" — names the drop-off as expected, not failure. Gemini flagged T3 as the batch's weakest link for exactly this reason (guilt on re-engagement).
+- Minor flow/scannability fixes across all six; plain URLs kept (not markdown links) for the personal-email feel.
+
+The 40 fully-merged v2 emails are delivered to Adi as a scratchpad file (contains recipient addresses → deliberately NOT committed). Regenerate anytime from the merge CSV + these templates.
