@@ -21,7 +21,10 @@ Seed for child C (family F), where **tomorrow** = the weekday after the device's
 
 ### Automated (CC) — `src/components/__tests__/PackingCard.test.tsx`
 Mocks: `useActivities` / `useTimetable` return fixtures plus a controllable `loading`; `@react-navigation/native` (`useNavigation`, `useFocusEffect`) as in `GamerDashboardScreen.test.tsx:31`; `ThemeContext` as in `PetDisplay.test.tsx` (bare `useChildTheme` throws); AsyncStorage via the **global** `jest-setup.ts` mock (has `multiGet` — do not copy the Gamer test's `getItem/setItem`-only override). `toHaveStyle` is available from RNTL ≥12.4 (`^12.7.2` installed).
-- [ ] Today header renders with the primary style (`toHaveStyle({ fontWeight: '800', color: <mock foreground> })`); tomorrow header with the muted style; accent bar uses the mock `accent` token.
+- [ ] Today pill uses mock `primary`/`primaryForeground`; today block has `borderStartWidth: 3` + mock `accent`; tomorrow pill uses mock `muted`/`mutedForeground`; tomorrow header text equals `childTasks.tomorrow` (with the `t: key => key` mock assert the key and the `day` param via a spy).
+- [ ] Collapsed tomorrow header shows the first tomorrow group's title as hint; expanded header shows no hint.
+- [ ] Tomorrow rows have no `opacity` style.
+- [ ] `defaultTomorrowExpanded` prop: `true` → rows present on first render; `false`/absent → absent, unless today is empty (auto-expand).
 - [ ] Tomorrow header has `accessibilityRole="button"` and `accessibilityState.expanded` that flips on press.
 - [ ] Pressing the tomorrow header removes every tomorrow row from the tree; pressing again restores them. Default state per Q6 (test the chosen default; if Q6 = collapsed, also test the **T0** auto-expand).
 - [ ] While collapsed, no text node exists between the tomorrow header and `camp.addMine` (stronger than a digit regex, which is vacuous under the `t: key => key` mock).
@@ -32,7 +35,7 @@ Mocks: `useActivities` / `useTimetable` return fixtures plus a controllable `loa
 - [ ] `GamerDashboardScreen.test.tsx`, `fromTimetable.test.ts`, `packing.test.ts` still pass. `npm run typecheck` = 0 errors.
 
 ### Emulator / web (Hat-3, then Adi)
-- [ ] HQ tab, Mint: today block visibly heavier than tomorrow; divider between them; chevron visible; accent bar (`#C084FC` on white) clearly visible; bar on the reading-start side in **he** and **en**.
+- [ ] HQ tab, Mint: today reads as one contained block (rail `#C084FC` down its start edge + filled pill) and tomorrow as a second, quieter block; the pill does not look more important than the card title; rail and pill on the reading-start side in **he** and **en**.
 - [ ] Same on Gamer (dark): accent bar `#A855F7` on `#1E2436`, muted header `#7F8EA3` — both legible.
 - [ ] Web: Tab to the tomorrow header, Enter/Space toggles it; screen reader announces expanded/collapsed.
 - [ ] Tap tomorrow header → expands; items slightly muted; tap again → collapses. Tap target ≥ 44 px.
@@ -53,8 +56,9 @@ Mocks: `useActivities` / `useTimetable` return fixtures plus a controllable `loa
 - [ ] `npm run typecheck`, `npm test`, `npm run i18n:check` clean. Web bundle builds.
 
 ### Emulator / web — Noa's scenario, end-to-end (Reachability)
-- [ ] Cold start as child C → tap **ציוד** tab → the card shows today's "חוג אלקטרוניקה · 17:00 / ארגז כלים" and a collapsed "מחר" header. **No** "מחר יום חופש".
-- [ ] Expand "מחר" → נינג'ה 16:15, כדורסל 17:30, הגנה עצמית 18:15, each with בגדי ספורט + נעלי ספורט.
+- [ ] Cold start as child C → tap **ציוד** tab → today block (rail + pill) with "אמנות" and "חוג אלקטרוניקה · 17:00 / ארגז כלים", then "מחר · יום {weekday}" **expanded** (per-host default; if Q6 = global, per Adi) listing נינג'ה 16:15, כדורסל 17:30, הגנה עצמית 18:15, each with בגדי ספורט + נעלי ספורט. **No** "מחר יום חופש".
+- [ ] HQ tab, same data: "מחר" collapsed to one row showing the weekday + "חוג נינג'ה · 16:15" hint + chevron; tap → expands.
+- [ ] Tick all of today's items → today pill turns success-styled and "✓ מוכנים!" appears in foreground colour; rows stay visible.
 - [ ] Tick "נעלי ספורט" under נינג'ה → switch to HQ tab → same item ticked there **without relaunch** (focus-reload). Tick something on HQ → back to ציוד → ticked.
 - [ ] Kill + relaunch app → ticks persist on both hosts.
 - [ ] **T0** variant: behaviour per Q6 (if collapsed default: "מחר" opens expanded).

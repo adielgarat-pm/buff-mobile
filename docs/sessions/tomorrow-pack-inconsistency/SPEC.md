@@ -4,7 +4,7 @@
 > Wins over canonical docs during the package; canonical docs are updated at exit per `SPEC_SYNC.md`.
 >
 > **Origin:** beta tester Noa, WhatsApp 2026-09-02 07:22–07:23 (two screenshots).
-> **Investigation:** this session (read-only) + architect review + independent adversarial SPEC review (2026-09-02, rev 2 incorporates its findings). No code has been changed yet.
+> **Investigation:** this session (read-only) + architect review + independent adversarial SPEC review (rev 2) + ADHD-focused UI/UX review (rev 3), both 2026-09-02. No code has been changed yet.
 > **Successor of:** `docs/sessions/noaa-behavior-spec/` — closes the half of D1 that session deferred.
 
 ---
@@ -111,20 +111,25 @@ No divider between the day blocks, no emphasis difference, no collapse. On a day
 
 **Recommendation:** keep one card, two sections, but differentiate them:
 
-| | Today (`camp.today`) | Tomorrow (`camp.tomorrow`) |
+**Design principle (UX review):** a 7-year-old separates blocks by *containment and shape* (a chip, a rail, a region), not by font-weight deltas. So the distinction is carried by a **filled pill + a rail down the whole today block**, reusing the app's existing chip vocabulary (`OffRoutineCard.tsx` `pillActive`, `PhaseTaskCard.tsx` `categoryPill`) and the existing child "tomorrow" header convention (`TomorrowPreview.tsx:28-32` → `childTasks.tomorrow` = *"מחר · יום {{day}}"* + `weekday.{n}`, `he.json:499-506`). No new strings.
+
+| | Today (`camp.today`) | Tomorrow |
 |---|---|---|
-| Header | 14px / weight 800 / `T.foreground`, leading 4×16 accent bar in **`T.accent`** (Mint `#C084FC`, Gamer `#A855F7`) — **not** `T.primary`, which on Mint is `#E9D5FF` on a white card (≈1.2:1, invisible) | 12px / weight 700 / `T.mutedForeground`, trailing `chevron-down` / `chevron-up` in `T.mutedForeground`; whole header row is a `TouchableOpacity` (min-height 44) |
+| Header | **filled pill**: `T.primary` bg / `T.primaryForeground` text, 12px/700, `paddingH 10, paddingV 4, borderRadius 999` (Mint ≈5.9:1, Gamer ≈11:1). Section header must **not** outrank the card title (15/700) — the old 14/800 proposal inverted hierarchy | **muted pill**: `T.muted` bg / `T.mutedForeground` text, same shape, label = `t('childTasks.tomorrow', { day: t(\`weekday.${getDay}\`) })` → *"מחר · יום שלישי"* (attacks time-blindness: a weekday is picturable, "tomorrow" is abstract). Row = `[pill] [hint, flex 1, numberOfLines 1] [Ionicons chevron-down/up 18, T.mutedForeground]`, whole row a `TouchableOpacity`, min-height 44, `hitSlop 6` |
+| Block | `borderStartWidth: 3, borderStartColor: T.accent` on the **whole today block container** (the `parent/CapturedItemRow.tsx:61` pattern) — a rail says *which rows* are today; a 16px bar next to a label does not. `T.accent` = Mint `#C084FC` / Gamer `#A855F7`; never `T.primary` (Mint `#E9D5FF` on white ≈1.2:1) | no rail |
+| Hint (collapsed only) | — | the **first tomorrow group's title** (e.g. *"חוג נינג'ה · 16:15"*) in `T.mutedForeground` 12px. Content, not a count; disappears when expanded. Not an icon row (three ✨ *is* an implicit count) |
 | Separator | — | `borderTopWidth: 1, borderTopColor: T.border` above the header, `marginTop: 12` |
-| Body | as today | when expanded: same rows, item label at `opacity: 0.85` (prep, not now); when collapsed: nothing |
-| Default state | always expanded (not collapsible) | **Q6 — Adi decides.** SPEC default until answered: **expanded** (collapsible as a *control*, emphasis + divider carry the distinction). If Adi picks "collapsed": auto-expand when `todayGroups.length === 0`, and accept that the default then flips day-to-day with the data. |
+| Body | rows unchanged (`T.foreground`, 13/600 group title, 14px items, minHeight 44) | **same rows at full contrast — no opacity.** The card already dims a label to mean "done" (`:135`); a second grey meaning "later" reads as "disabled / not mine" to ADHD kids |
+| Default state | always expanded (not collapsible) | **Q6 — Adi decides.** UX recommendation: **per host** — ציוד tab **expanded** (the child declared intent to pack), HQ dashboard **collapsed** with auto-expand when `todayGroups.length === 0` (the card sits *above* the next-task block on both dashboards; 9 tomorrow rows every morning push "what do I do now" below the fold). The collapsed HQ header is a *signpost* (weekday + first-group hint), so nothing is out of sight. Time-of-day defaults rejected: an ADHD UI must look the same every time it opens. Implemented as a prop `defaultTomorrowExpanded` (see §6). If Adi prefers one global default: **expanded**. |
 | State | — | ephemeral `useState`, per card instance (HQ and ציוד may differ); **not** persisted (Q3) |
-| Accessibility | — | header: `accessibilityRole="button"`, `accessibilityState={{ expanded }}`, `accessibilityLabel={t('camp.tomorrow')}` — needed for web keyboard/screen-reader parity |
+| Accessibility | — | header: `accessibilityRole="button"`, `accessibilityState={{ expanded }}`, `accessibilityLabel` = weekday string + hint ("מחר · יום שלישי, חוג נינג'ה") — needed for web keyboard/screen-reader parity. Plain mount/unmount, no `LayoutAnimation` |
+| Section complete | when every item in the section is ticked: pill switches to `T.success + '22'` bg / `T.success` border, `checkmark-circle` 16 in `T.success`, text `T.foreground`; the *"מוכנים!"* line becomes 14/700 `T.foreground` + `checkmark-circle` in `T.success` (today's 13/600 `T.success` text is ≈2.1:1 on Mint white). Optional: `Haptics.notificationAsync(Success)` on the completing tick, gated exactly as `PhaseTaskCard.tsx:92`. No confetti, no BUFFs, no auto-collapse — the ticks are the evidence of "done, I can relax" | same |
 | Counts | none | none — the collapsed header is **label + chevron only**; never "3 פריטים" (values guard, Pillar 2) |
 | "מוכנים!" | unchanged (`camp.allPacked` when every id in the section is checked) | unchanged; shows only when expanded |
 
 **Why not a segmented today/tomorrow toggle:** it hides today whenever the child looks at tomorrow and adds a mode to manage — the opposite of "today is zero-tap". **Why collapsible but not (by default) collapsed:** Noa asked for *"להבליט את ההבדל **או** … לצמצם ולהרחיב"* — a control, not a hidden section. The ציוד tab exists for the night-before case; a child opening it at 20:00 should not find tomorrow behind a chevron ("out of sight" is the ADHD failure mode). Emphasis + divider already answer the distinguishability complaint; the chevron gives the child control over length. The reviewer and the architect disagreed on this point — hence Q6.
 
-All tokens used (`foreground`, `mutedForeground`, `accent`, `border`, `success`, `card`) exist in both Mint (`ThemeContext.tsx:81-119`) and Gamer (`:124-160`) palettes. No new colours.
+All tokens used (`primary`, `primaryForeground`, `muted`, `mutedForeground`, `accent`, `border`, `success`, `foreground`, `card`) exist in both Mint (`ThemeContext.tsx:81-119`) and Gamer (`:124-160`) palettes. No new colours. Pills use `borderRadius 999`; do not introduce a fifth radius value (card 16 vs brand 12 is pre-existing drift, not fixed here).
 
 ### D3 — Tab title copy
 
@@ -166,7 +171,7 @@ None. No Supabase table, RLS, or function is touched. Read paths are unchanged (
 
 - **Navigation:** none. `ChildTabs.tsx`, `ChildTabsParamList`, `RootStackParamList` unchanged. Route `ChildBagPrep` keeps its name and tab slot.
 - **Hooks:** none added or changed. `useActivities` / `useTimetable` used as they are.
-- **Components:** `PackingCard` gains (a) internal collapse state and a `renderSection` variant parameter (`emphasis: 'primary' | 'secondary'`, or two small render helpers — CC's call in Plan Mode), (b) a `useFocusEffect` that re-reads check-off state, (c) a loading gate over both hooks (D4). Its props contract (`{ childId }`) is unchanged.
+- **Components:** `PackingCard` gains (a) internal collapse state and a `renderSection` variant parameter (`emphasis: 'primary' | 'secondary'`, or two small render helpers — CC's call in Plan Mode), (b) a `useFocusEffect` that re-reads check-off state, (c) a loading gate over both hooks (D4). Props contract gains one optional prop: `defaultTomorrowExpanded?: boolean` (default `false`; the ציוד shell passes `true`). Q6 may collapse this back to no prop.
 - **Files touched:** `src/components/PackingCard.tsx`, `src/screens/child/ChildBagPrepScreen.tsx`, `src/i18n/he.json`, `src/i18n/en.json`, tests (below). Nothing else.
 
 ---
@@ -180,21 +185,27 @@ None. No Supabase table, RLS, or function is touched. Read paths are unchanged (
 │ נארוז יחד?                          🛍  │
 │ מה לוקחים היום, בקצב שלך                 │
 │                                          │
-│ ▍היום                      ← 14px/800/fg │  ▍= T.accent bar
-│ ─ 📖 אמנות · 09:00           (school)    │
-│   ○ תיקיית אמנות                         │
-│ ─ ✨ חוג אלקטרוניקה · 17:00  (activity)  │
-│   ○ ארגז כלים                            │
+│ ┃                              [ היום ]  │▐ filled pill (primary/primaryFg); rail = T.accent, whole block
+│ ┃  ▫ אמנות · 09:00              (school) │▐ ▫ = Ionicons book-outline
+│ ┃  ○ תיקיית אמנות                        │▐
+│ ┃  ✦ חוג אלקטרוניקה · 17:00  (activity)  │▐ ✦ = Ionicons sparkles-outline
+│ ┃  ○ ארגז כלים                           │▐
 │ ───────────────────────── (T.border)     │
-│ מחר                              ⌃       │  ← 12px/700/muted, button
-│ ─ ✨ חוג נינג'ה · 16:15       (0.85 op.) │
-│   ○ בגדי ספורט   ○ נעלי ספורט            │
-│   …                                      │
+│ ⌃                     [ מחר · יום שלישי ]│  muted pill; expanded → no hint
+│    ✦ חוג נינג'ה · 16:15                  │  rows at full contrast
+│    ○ בגדי ספורט    ● נעלי ספורט          │
+│    …                                     │
+│                      ✓ מוכנים!           │  only when the whole section is ticked
+│           + הוסף לעצמי                   │
+└──────────────────────────────────────────┘
+HQ, collapsed (recommended default there):
+│ ───────────────────────── (T.border)     │
+│ ⌄   חוג נינג'ה · 16:15  [ מחר · יום שלישי ]│  ← one 44px row: pill + hint + chevron
 │           + הוסף לעצמי                   │
 └──────────────────────────────────────────┘
 ```
 
-Shown expanded (SPEC default). Collapsed: chevron ⌄ and nothing between the header and "+ הוסף לעצמי". Item labels under tomorrow at 0.85 opacity. RTL: the accent bar sits on the reading-start side — use `borderStartWidth` / logical margins (already the in-repo pattern, e.g. `CapturedItemRow.tsx:61`; RN 0.81.5 + RNW 0.21 support it). In Noa's screenshot the ✨ icon on "חוג אלקטרוניקה" marks it as an **activity**, not a timetable subject.
+The glyphs above (▫ ✦ ○ ● ✓ ⌃ ⌄ ┃) are **diagram stand-ins** for Ionicons `book-outline` / `sparkles-outline` / `ellipse-outline` / `checkmark-circle` / `chevron-up` / `chevron-down` and a `borderStartWidth` rail — **not** emoji (BUFF_BRAND §7.8). RTL: pills sit at reading start inside `flexDirection: 'row'` (RN flips rows under `forceRTL`); the rail uses logical `borderStartWidth` (in-repo pattern `src/components/parent/CapturedItemRow.tsx:61`; RN 0.81.5 + RNW 0.21). In Noa's screenshot the sparkles icon on "חוג אלקטרוניקה" marks it as an **activity**, not a timetable subject.
 
 ### 7.2 ציוד tab (`ChildBagPrepScreen` shell)
 
@@ -214,6 +225,19 @@ Removed: subject chips row, "🎒 ציוד נדרש לשיעורים" label, `n/
 | `camp.cardSub` | מה לוקחים היום, בקצב שלך | Q5 (bundled with Q2) |
 | `camp.empty` | היום אין מה לארוז — תהנו! | Q5 (bundled with Q2) |
 | shell title during chunk 2a | — | `tabs.child.gear` ("ציוד") — existing key, interim only |
+| tomorrow header | מחר | `childTasks.tomorrow` + `weekday.{n}` → "מחר · יום שלישי" / "Tomorrow · Tuesday" — existing keys, but a visible copy change: **Adi nods (Q8)** |
+
+**UX-proposed strings for Q2 / Q5 (proposals, not decisions):**
+
+| Key | HE | EN | Note |
+|---|---|---|---|
+| `bagPrep.title` — recommended | הציוד שלי | My gear | matches the tab label the child just tapped (nav orientation); "שלי" = ownership (Pillar 3). Reusing *"נארוז יחד?"* would show the same string twice ~40px apart |
+| alt | התיק שלי | My bag | more concrete for 6–9 |
+| `camp.cardSub` | מה לוקחים היום ומחר, בקצב שלך | What to bring today and tomorrow, at your pace | minimal L3 fix |
+| alt | מה לוקחים, בקצב שלך | What to bring, at your pace | scope-free |
+| `camp.empty` | אין מה לארוז היום ומחר — תהנו! | Nothing to pack today or tomorrow — have fun! | L3 |
+
+Tone flags for Adi: `camp.cardSub` is singular ("שלך") while `camp.empty` is plural ("תהנו") — pick one. `camp.addMine` contains a literal "+" **and** the button renders an `add` icon (`PackingCard.tsx:167-168`) — a double plus, pre-existing; cheap to drop from the string in chunk 2b.
 | `camp.today` / `camp.tomorrow` | היום / מחר | unchanged |
 | dead `bagPrep.*` (D5 list) | present | deleted (Q4) |
 
@@ -286,6 +310,8 @@ No new user-facing string is introduced by this package except whatever Adi pick
 - **Q4 — Delete the dead `bagPrep.*` keys** (D5) in this package, or leave for a later i18n sweep? Default: **delete** (guarded by `i18n:check`).
 - **Q5 — Fix L3 copy now?** `camp.cardSub` / `camp.empty` still say "היום" although the card covers tomorrow too. **Bundled with Q2** — once the card is the only surface, its subtitle is the tab's subtitle. Default if unanswered: unchanged strings.
 - **Q6 — Tomorrow's default state:** (a) **expanded**, collapsible as a control (SPEC default; reviewer's position — protects the night-before use case), (b) time-of-day: expanded after ~16:00, collapsed before, (c) **collapsed**, auto-expanded when today is empty (architect's position — shortest dashboard). Values-neutral either way; this is a UX call.
+- **Q8 — Weekday in the tomorrow header** ("מחר · יום שלישי" via existing keys) and **first-group hint on the collapsed header** — both count-free; approve as compliant with the no-counter rule.
+- **Q9 — Closure styling** (success pill + foreground "מוכנים!" + optional haptic): fix in this package (same file, small) or log for later?
 - **Q7 — Paywall boundary for packing.** D-2026-06-19-01 lists *"הכנת תיק"*, *"מערכת שעות"* and *"פעילויות"* as **paid** features (`BUFF_DECISIONS_LOG.md:52`), yet neither `PackingCard`, `ChildBagPrepScreen` nor `ChildTabs` has any entitlement gate today. Consolidation makes "the tab" and "the card" the same thing, so a future gate can no longer distinguish them. This SPEC does **not** add gating (out of scope, and children never see paywall CTAs per `pkg/hide-paywall-from-child`); Adi decides whether a gate belongs to a later monetization package and at which level (data entry on the parent side vs child display).
 
 ---
@@ -310,6 +336,7 @@ No new user-facing string is introduced by this package except whatever Adi pick
 | Old `bagPrep:` AsyncStorage ticks are orphaned | Ephemeral daily state; worst case a child re-ticks once. No migration. Note in INTEGRATION_LEARNINGS. |
 | RTL accent bar drawn on the wrong side | Use logical start/end styles; verify in he **and** en on both platforms. |
 | A collapsed tomorrow hides the night-before list | SPEC default is expanded (Q6). If Adi picks collapsed: chevron + 44px target + today-empty auto-expand, and beta feedback decides whether to persist "expanded" (Q3). |
+| Per-host defaults feel inconsistent | Same card, order, labels, header; only the initial chevron state differs, and collapse state is already per-instance. If beta feedback flags it, Q6 fallback is "expanded everywhere". |
 | Two mounted cards disagree on ticks | Focus-reload in `PackingCard` (D1 hard requirement); tested in TESTS Phase 2 without relaunch. |
 | Spinner never resolves if one hook errors | Both hooks set `loading=false` in `finally`; error state falls through to the normal render (empty groups) — same as today. |
 | `PackingCard` in a `ScrollView` inside a tab that already scrolls | The shell is the only scroll container; the card is a plain `View`. |
@@ -324,4 +351,5 @@ No new user-facing string is introduced by this package except whatever Adi pick
 - `INTEGRATION_LEARNINGS.md:78` lists "איחוד/הפניה של טאב BagPrep" as **open**; this package closes it. Proposed: status → resolved with a pointer here.
 - `camp.cardSub` / `camp.empty` copy vs the today+tomorrow behaviour (L3) — see Q5.
 - D-2026-06-19-01 (*"הכנת תיק"* is a paid feature) vs the code (no gate anywhere on the child packing surfaces) — see Q7. Not resolved here.
-- Architect vs reviewer on tomorrow's default state — surfaced as Q6, not resolved here.
+- Architect vs reviewer on tomorrow's default state — UX review proposes per-host defaults; surfaced as Q6, not resolved here.
+- **Pre-existing brand drift, out of scope, to log:** PackingCard radius 16 vs BRAND §7.4 12; Gamer card shadow vs BRAND §7.5 "tonal layers, no drop shadow"; Gamer HQ chips use `COLORS.lime/violet` while the card uses `T.primary` cyan (BRAND §7.9); double "+" in `camp.addMine`; "מוכנים!" `T.success` text ≈2.1:1 on Mint.

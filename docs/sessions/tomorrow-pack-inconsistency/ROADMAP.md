@@ -6,8 +6,9 @@
 ## Phase 1 — `PackingCard`: today dominant, tomorrow collapsible (SPEC D2)
 
 **Scope:** `src/components/PackingCard.tsx` only, plus a new `src/components/__tests__/PackingCard.test.tsx`.
-- Split `renderSection` into a primary (today) and secondary (tomorrow) treatment per SPEC §3 D2 / §7.1 (accent bar in `T.accent`, a11y props on the header).
-- Collapse state: `useState`, default per Q6 (SPEC default: expanded).
+- Split `renderSection` into a primary (today: filled pill + `T.accent` rail on the block) and secondary (tomorrow: muted pill with weekday + hint + Ionicons chevron, a11y props) treatment per SPEC §3 D2 / §7.1. No opacity on tomorrow rows.
+- Collapse state: `useState(defaultTomorrowExpanded || todayGroups.length === 0)`; new optional prop, default `false` (HQ); per Q6.
+- Section-complete styling (success pill + foreground "מוכנים!") if Q9 = now.
 - Loading gate over both hooks (D4) — spinner instead of `camp.empty` while loading.
 - `useFocusEffect` re-reading check-off state (D1 hard requirement, done here so Phase 2 inherits it).
 - No new strings. No count anywhere on the collapsed header.
@@ -29,7 +30,7 @@
 ## Phase 2 — ציוד tab hosts `PackingCard` (SPEC D1, D3, D4)
 
 **Scope:** `src/screens/child/ChildBagPrepScreen.tsx` becomes the shell described in SPEC §7.2. Delete the timetable-only logic, the `bagPrep:` storage, the counter / mark-all / bag-ready footer, the day-off branch. Keep `previewChildId ?? profile?.id` resolution. Spinner gated on `useTimetable(...).loading`.
-- **Chunk 2a (structural):** shell + card, interim title = existing `tabs.child.gear` ("ציוד") — not "סידור תיק למחר" over a card that says "היום". Does **not** wait on Q2. No shell-side hooks besides `useAuth`/`useMode`.
+- **Chunk 2a (structural):** shell + `<PackingCard childId=… defaultTomorrowExpanded />`, interim title = existing `tabs.child.gear` ("ציוד") — not "סידור תיק למחר" over a card that says "היום". Does **not** wait on Q2. No shell-side hooks besides `useAuth`/`useMode`.
 - **Chunk 2b (copy):** title per Adi's Q2 answer (+ Q5 card copy if Adi changes it). Waits on Q2.
 
 **Stop conditions:**

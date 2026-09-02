@@ -9,7 +9,7 @@ See [STATUS.md](./STATUS.md).
 
 | File | Role |
 |---|---|
-| `SPEC.md` | Target state — authoritative for this package. Root cause, decisions D1–D5, behavior contract, Values Check, open questions Q1–Q7 |
+| `SPEC.md` | Target state — authoritative for this package. Root cause, decisions D1–D5, behavior contract, Values Check, open questions Q1–Q9 |
 | `ROADMAP.md` | Phases with stop conditions |
 | `TESTS.md` | Pass/fail criteria per phase |
 | `SPEC_SYNC.md` | Which canonical docs are updated, in which phase |
@@ -21,6 +21,6 @@ No `PRINCIPLES.md` — the package-specific rules are already in `BUFF_VALUES.md
 `claude/tomorrow-pack-inconsistency-lbm97x`
 
 ## Execution
-1. Adi answers Q1–Q7 in `SPEC.md` (Q2+Q5 block chunk 2b; Q6 should precede Phase 1 shipping).
+1. Adi answers Q1–Q9 in `SPEC.md` (Q2+Q5 block chunk 2b; Q6 should precede Phase 1 shipping).
 2. CC in Plan Mode, phase by phase, `approved, proceed` per phase, diff per chunk.
 3. Every phase exit: code + `STATUS.md` row + `SPEC_SYNC.md` docs + `INTEGRATION_LEARNINGS.md` if surprised — one commit.
