@@ -18,7 +18,7 @@
 
 `lang_hint` is derived from the script of the child name / task titles (`profiles.preferred_language` is `'en'` for everyone, it is a default, not a choice). Two T3 rows are the same family (two parents) — send once or to both, Adi's call.
 
-Excluded from the 45 candidates: 3 test accounts, plus 2 T1 rows Adi asked to skip (2026-09-02: one family member, one personal contact).
+Excluded from the 45 candidates: 3 test accounts, plus 2 T1 rows Adi asked to skip (2026-09-02: a family that signed up to support, not to use). Their parent profiles were soft-hidden (`profiles.is_deleted=true`) so the admin board and cohort queries ignore them; the app itself still works for them.
 
 ## Merge fields
 
