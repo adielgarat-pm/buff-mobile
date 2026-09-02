@@ -2,23 +2,23 @@
 
 > Decision (Adi, 2026-09-02): send a manual email to **every** stuck parent, each according to the stage they stopped at. Not consent-gated (manual batch from Adi's address, same as the 2026-07-14 batch).
 > Voice = the approved v2 lifecycle voice (`docs/sessions/lifecycle-emails/EMAIL_TEMPLATES.md`): founder-personal, honest, zero pressure, the kid's real data first, "reply to this email" as the ask.
-> The merge list (42 parents, PII) was delivered to Adi as a CSV outside the repo. Columns: `segment, lang_hint, email, parent_name, child_first, first_3_tasks, task_count, completions, last_done, family_code, ...`.
+> The merge list (40 parents, PII) was delivered to Adi as a CSV outside the repo. Columns: `segment, lang_hint, email, parent_name, child_first, first_3_tasks, task_count, completions, last_done, family_code, ...`.
 
 ## Batch composition
 
 | Segment | HE | EN | Template |
 |---|---|---|---|
-| T1 — signed up, no child | 0 | 11 | T1 |
+| T1 — signed up, no child | 0 | 9 | T1 |
 | T2 — child + plan, nothing done, no access mode chosen (pre 08-05) | 13 | 5 | T2 |
 | T2 — shared_device | 1 | 1 | T2-S |
 | T2 — own_phone | 0 | 1 | T2-P |
 | T2 — home_device | 0 | 1 | T2-H |
 | T3 — started, then silent | 6 | 3 | T3 |
-| **Total** | **20** | **22** | 42 |
+| **Total** | **20** | **20** | 40 |
 
 `lang_hint` is derived from the script of the child name / task titles (`profiles.preferred_language` is `'en'` for everyone, it is a default, not a choice). Two T3 rows are the same family (two parents) — send once or to both, Adi's call.
 
-Excluded from the 45 candidates: 3 test accounts. Flagged for Adi: one T1 row that looks like family (`FAMILY?` in the CSV).
+Excluded from the 45 candidates: 3 test accounts, plus 2 T1 rows Adi asked to skip (2026-09-02: one family member, one personal contact).
 
 ## Merge fields
 
