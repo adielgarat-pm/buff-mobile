@@ -19,7 +19,7 @@
 - **מקור:** CC — `sessions/tomorrow-pack-inconsistency/` (דיווח בטא של נועה: "מחר יום חופש" בטאב ציוד מול 3 חוגים במפקדה; היום/מחר לא מובחנים)
 - **תיאור:** (1) שורש הבעיה: `ChildBagPrepScreen` הוא הפורק שלפני הגשר של `noaa-behavior-spec` — קורא `timetables` בלבד, ולכן יום של חוגים-בלבד נראה לו כ"יום חופש". תוקן ארכיטקטונית ע"י הפיכת `PackingCard` למשטח היחיד (P2 יארח אותו בטאב). (2) **הפתעה:** בדיקת jest חדשה ("toggling collapse never changes ticks") נכשלה לא בגלל הקיפול אלא בגלל מרוץ קיים מאז ומעולם: `multiGet` הראשוני מסתיים *אחרי* הקשה מהירה של הילד ודורס את הסימון. בפרודקשן החלון הוא מילישניות, אבל עם focus-reload (שני כרטיסים חיים) החלון נפתח בכל מעבר טאב. תוקן: סימונים שנעשו בזמן קריאה פתוחה נרשמים ומוחזרים על התוצאה. (3) שלושה סוקרים (ארכיטקט, אדברסרי, UX) חלקו על ברירת המחדל של "מחר"; הפתרון — prop לפי מארח — נולד מהמחלוקת, לא מה-SPEC המקורי.
 - **השפעה:** P1 שונה מ"הבלטה ויזואלית" ל: פיל+פס להיום, פיל עמום עם יום-בשבוע ורמז למחר, שער loading בתוך הכרטיס (מתקן גם הבהוב `camp.empty` קיים בדשבורדים), `useFocusEffect` לסנכרון סימונים, וסגירת "מוכנים!" קריאה ב-Mint. 18 בדיקות jest חדשות. אימות: tsc 0, jest 1009/1009, web export נקי. **אנדרואיד לא אומת בסשן הזה** (סביבה מרוחקת ללא אמולטור) — Hat-3/Hat-4 לפני flag-on, לפי כלל 12.
-- **סטטוס:** `open` — P2 (טאב ציוד מארח את הכרטיס) ו-P3 (ניקוי i18n) ממתינים.
+- **סטטוס:** `resolved` בקוד (P1–P3 באותו ענף, 2026-09-02); **Android/Hat-4 pending** לפני flag-on/merge.
 - **קשור ל:** IN-2026-07-xx (noaa-behavior-spec, שורה 74-78 — סעיף "איחוד טאב BagPrep" נסגר ב-P2), `sessions/tomorrow-pack-inconsistency/SPEC.md` §2.5 L5/L6
 
 ### IN-2026-08-31-01: אימות טופולוגיה — קיימות שתי אפליקציות BUFF על שני Supabase נפרדים; ה-Lovable מושבת, buff-mobile (gfrongfnyigxsexuofrg) הוא החי
@@ -83,7 +83,7 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
 - **תיקון (5 chunks):** D3-A הסרת שער האישור (`childAddOptions()` תמיד `active`); D1 גשר `lib/packing/fromTimetable.ts` (ציוד timetable → אותו `PackingGroup[]`, PackingCard קורא את שני המקורות); D2 סקשני היום/מחר בכרטיס אחד; D4 הבאנר של View-as-Child מציין את שם הילד.
 - **לקח:** שני מסכים שעונים על אותה שאלת-משתמש ("מה הילד אורז") אבל נשענים על שתי טבלאות ושני day-scopes = "התנהגות לא הגיונית" מובטחת. לפני שבונים משטח-ילד שני לאותו concept — לאחד את ה-builder, לא את ה-UI בלבד. גם: `INTEGRATION_LEARNINGS:1306` כבר חזה את התפר הזה ("Equipment surfacing… P-05 Bag Prep") אבל הוא לא אוחד עד עכשיו.
 - **השפעה:** ההבטחה של "מקום אחד למה שהילד אורז" לא התקיימה; הורה שהזין ציוד ב-timetable לא ראה אותו במפקדה.
-- **סטטוס:** resolved (5 chunks בענף); open — איחוד/הפניה של טאב BagPrep (D1 option 2, נוגע ב-`ChildTabs` של סשן אחר; ל-BagPrep גם מונה count/total שסותר את כלל ה-no-counter); open — D5 סף גיל (לא נושא-משקל יותר אחרי D3-A, FLAG F-2026-05-03-03).
+- **סטטוס:** resolved (5 chunks בענף); ~~open — איחוד/הפניה של טאב BagPrep~~ → **resolved 2026-09-02** ב-`sessions/tomorrow-pack-inconsistency/` (הטאב מארח את PackingCard, המונה נמחק; ראה IN-2026-09-02-01); open — D5 סף גיל (לא נושא-משקל יותר אחרי D3-A, FLAG F-2026-05-03-03).
 - **קשור ל:** `docs/sessions/noaa-behavior-spec/`, IN-2026-07-06-01 (דיווח נועה קודם), `docs/sessions/activities-and-camp-lists/` (Feature C / D7 שעודכן), INTEGRATION_LEARNINGS:1306.
 
 ### IN-2026-07-06-01: ה-realtime publication היה כמעט ריק — כל המנויים של pause-mode מעולם לא ירו; ופיצול-ערכות-נושא (Mint/Gamer) גרם לבאג ערכים אצל משתמשת אמיתית
