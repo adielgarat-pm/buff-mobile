@@ -4,14 +4,14 @@
 > Wins over canonical docs during the package; canonical docs are updated at exit per `SPEC_SYNC.md`.
 >
 > **Origin:** beta tester Noa, WhatsApp 2026-09-02 07:22–07:23 (two screenshots).
-> **Investigation:** this session (read-only) + architect review. No code has been changed yet.
+> **Investigation:** this session (read-only) + architect review + independent adversarial SPEC review (2026-09-02, rev 2 incorporates its findings). No code has been changed yet.
 > **Successor of:** `docs/sessions/noaa-behavior-spec/` — closes the half of D1 that session deferred.
 
 ---
 
 ## 0. TL;DR
 
-Two child-facing "what to pack" surfaces disagree about the same tomorrow, and neither makes today vs tomorrow visually distinct. Root cause: the **ציוד tab** (`ChildBagPrepScreen`) is the pre-consolidation fork that never received the noaa-behavior-spec bridge — it reads the school timetable only, computes tomorrow with a different date engine, keeps its own check-off storage, and still carries the `n/total` counter the values rule forbids. **Fix: make the ציוד tab host the already-canonical `PackingCard` (one source of truth, one date engine, one storage), and inside `PackingCard` make "today" the visually dominant section with "tomorrow" collapsible.** No schema, no new dependency, no navigation change.
+Two child-facing "what to pack" surfaces disagree about the same tomorrow, and neither makes today vs tomorrow visually distinct. Root cause: the **ציוד tab** (`ChildBagPrepScreen`) is the pre-consolidation fork that never received the noaa-behavior-spec bridge — it reads the school timetable only, computes tomorrow with a different date engine, keeps its own check-off storage, and still carries the `n/total` counter the values rule forbids. **Fix: make the ציוד tab host the already-canonical `PackingCard` (one source of truth, one date engine, one storage), and inside `PackingCard` make "today" the visually dominant section with "tomorrow" demoted and collapsible (default open/closed = Adi's call, Q6).** No schema, no new dependency, no navigation change.
 
 ---
 
@@ -78,7 +78,9 @@ No divider between the day blocks, no emphasis difference, no collapse. On a day
 ### 2.5 Latent issues found in passing (real, in scope only where marked)
 
 - **L1 — Split check-off state.** Ticking "נעלי ספורט" on the HQ card does not tick it on the ציוד tab and vice-versa (different storage keys). Consolidation fixes this for free. *(in scope — falls out of D1)*
-- **L2 — Stale tomorrow on the tab.** `tomorrowDate` is memoised `[]`; a tab left mounted across midnight keeps yesterday's "tomorrow". `PackingCard` recomputes per render. *(in scope — falls out of D1)*
+- **L2 — Stale tomorrow on the tab.** `tomorrowDate` is memoised `[]`; a tab left mounted across midnight keeps yesterday's "tomorrow". `PackingCard` recomputes on every *render*, but nothing forces a render at midnight either — an idle mounted card also goes stale until the next state change. The focus-reload required by D1 (below) makes both hosts refresh on every tab switch, which is the realistic fix. *(in scope — reduced by D1, not eliminated)*
+- **L5 — `camp.empty` flashes before data.** `PackingCard.tsx:102-158` has no loading gate: with the hooks' initial `activities=[]` / `timetable={}` (`useActivities.ts:77`, `useTimetable.ts:35`) it renders *"היום אין מה לארוז — תהנו!"* for a frame or more, then pops the groups in. Pre-existing on both dashboards today. *(in scope — D4)*
+- **L6 — Two live cards would not share check-off state.** `PackingCard` loads `checked` once per mount (`:70-86`, deps `[childId, today, tomorrow]`) with no focus-effect and no cross-instance sync. Bottom tabs keep screens mounted, so after D1 the HQ card and the ציוד card are two instances writing the same AsyncStorage key but never re-reading it. *(in scope — D1 requirement)*
 - **L3 — Card copy says "today" but card shows tomorrow too.** `camp.cardSub` = *"מה לוקחים היום, בקצב שלך"*, `camp.empty` = *"היום אין מה לארוז — תהנו!"* — both pre-date the today+tomorrow split. *(copy decision for Adi — see Open Questions)*
 - **L4 — Dead / never-used bagPrep keys.** `bagPrep.bagReadyCredits`, `.undo`, `.undone`, `.undoneDesc`, `.bagReadyToast`, `.bagAlreadyReady`, `.credits`, `.waterBottle`, `.food`, `.phoneCharger`, `.importantItems`, `.lessons` are not referenced by the current screen. *(cleanup — see D5)*
 
@@ -91,6 +93,8 @@ No divider between the day blocks, no emphasis difference, no collapse. On a day
 ### D1 — Consolidate onto `PackingCard`: the ציוד tab hosts the card *(core)*
 
 **Recommendation:** `ChildBagPrepScreen` becomes a thin screen shell (title + `T.background` + `ScrollView` + loading spinner) that renders `<PackingCard childId={previewChildId ?? profile?.id ?? null} />`. All bespoke timetable-only logic in the file is deleted (`WEEKDAY_BY_JS`, `PackItem`/`PackSource`, `splitEquipment`, `buildSchoolSource`, `ymd`, the `bagPrep:` storage, the counter/markAll/bagReady footer, the day-off branch). The tab entry in `ChildTabs.tsx` is **not touched**.
+
+**Hard requirement (L6):** because two `PackingCard` instances will now be mounted at once, the card must re-read its check-off state whenever its host gains focus — `useFocusEffect` from `@react-navigation/native` re-running the AsyncStorage `multiGet` (the same hook `GamerDashboardScreen` already uses). Without this, a tick on the ציוד tab is invisible on HQ until relaunch and §4.1 is false. Alternative (heavier, not recommended for this package): lift `checked` into a small shared context. CC chooses the focus-effect unless a reason surfaces in Plan Mode.
 
 **Why:**
 - One date engine, one merge, one storage scheme. R1, L1, L2 disappear by construction rather than by reconciliation.
@@ -109,42 +113,46 @@ No divider between the day blocks, no emphasis difference, no collapse. On a day
 
 | | Today (`camp.today`) | Tomorrow (`camp.tomorrow`) |
 |---|---|---|
-| Header | 14px / weight 800 / `T.foreground`, leading 4×16 accent bar in `T.primary` | 12px / weight 700 / `T.mutedForeground`, trailing `chevron-down` / `chevron-up` in `T.mutedForeground`; whole header row is a `TouchableOpacity` (min-height 44) |
+| Header | 14px / weight 800 / `T.foreground`, leading 4×16 accent bar in **`T.accent`** (Mint `#C084FC`, Gamer `#A855F7`) — **not** `T.primary`, which on Mint is `#E9D5FF` on a white card (≈1.2:1, invisible) | 12px / weight 700 / `T.mutedForeground`, trailing `chevron-down` / `chevron-up` in `T.mutedForeground`; whole header row is a `TouchableOpacity` (min-height 44) |
 | Separator | — | `borderTopWidth: 1, borderTopColor: T.border` above the header, `marginTop: 12` |
 | Body | as today | when expanded: same rows, item label at `opacity: 0.85` (prep, not now); when collapsed: nothing |
-| Default state | always expanded (not collapsible) | **collapsed**, except: if `todayGroups.length === 0` → **expanded** (otherwise the child lands on an empty card with only "+ הוסף לעצמי") |
-| State | — | ephemeral `useState`; **not** persisted (Q3) |
+| Default state | always expanded (not collapsible) | **Q6 — Adi decides.** SPEC default until answered: **expanded** (collapsible as a *control*, emphasis + divider carry the distinction). If Adi picks "collapsed": auto-expand when `todayGroups.length === 0`, and accept that the default then flips day-to-day with the data. |
+| State | — | ephemeral `useState`, per card instance (HQ and ציוד may differ); **not** persisted (Q3) |
+| Accessibility | — | header: `accessibilityRole="button"`, `accessibilityState={{ expanded }}`, `accessibilityLabel={t('camp.tomorrow')}` — needed for web keyboard/screen-reader parity |
 | Counts | none | none — the collapsed header is **label + chevron only**; never "3 פריטים" (values guard, Pillar 2) |
 | "מוכנים!" | unchanged (`camp.allPacked` when every id in the section is checked) | unchanged; shows only when expanded |
 
-**Why not a segmented today/tomorrow toggle:** it hides today whenever the child looks at tomorrow and adds a mode to manage — the opposite of "today is zero-tap". **Why not emphasis alone:** on a long merged list the boundary still blurs, which is Noa's exact complaint.
+**Why not a segmented today/tomorrow toggle:** it hides today whenever the child looks at tomorrow and adds a mode to manage — the opposite of "today is zero-tap". **Why collapsible but not (by default) collapsed:** Noa asked for *"להבליט את ההבדל **או** … לצמצם ולהרחיב"* — a control, not a hidden section. The ציוד tab exists for the night-before case; a child opening it at 20:00 should not find tomorrow behind a chevron ("out of sight" is the ADHD failure mode). Emphasis + divider already answer the distinguishability complaint; the chevron gives the child control over length. The reviewer and the architect disagreed on this point — hence Q6.
 
-All tokens used (`foreground`, `mutedForeground`, `primary`, `border`, `success`, `card`) exist in both Mint and Gamer palettes (`ThemeContext.tsx:88-138`). No new colours.
+All tokens used (`foreground`, `mutedForeground`, `accent`, `border`, `success`, `card`) exist in both Mint (`ThemeContext.tsx:81-119`) and Gamer (`:124-160`) palettes. No new colours.
 
 ### D3 — Tab title copy
 
-The tab screen title is `bagPrep.title` = *"סידור תיק למחר"* / *"Packing bag for tomorrow"*. After D1 the tab shows today **and** tomorrow. **Recommendation:** re-point the shell title to a scope-neutral string. Proposed: reuse `camp.cardTitle` (*"נארוז יחד?"*) so tab and card share one name, **or** a new `bagPrep.title` value *"הציוד שלי"* / *"My gear"* (matches the tab label `tabs.child.gear`). **Adi picks the string** (Open Question Q2). CC must not invent copy.
+The tab screen title is `bagPrep.title` = *"סידור תיק למחר"* / *"Packing bag for tomorrow"*. After D1 the tab shows today **and** tomorrow. **Recommendation:** re-point the shell title to a scope-neutral string. Proposed: reuse `camp.cardTitle` (*"נארוז יחד?"*) so tab and card share one name, **or** a new `bagPrep.title` value *"הציוד שלי"* / *"My gear"* (matches the tab label `tabs.child.gear`). **Adi picks the string** (Open Question Q2). CC must not invent copy. **Interim (chunk 2a, before Q2 is answered):** the shell uses the existing tab label `tabs.child.gear` (*"ציוד"*) — never *"סידור תיק למחר"* over a card whose subtitle says *"היום"* (two contradicting scope words on one screen). Q5 (the card's own "היום" copy) is bundled with Q2 so Adi answers both together.
 
-### D4 — Loading state in the shell
+### D4 — Loading state lives inside `PackingCard` (fixes L5 on all hosts)
 
-`PackingCard` renders nothing until its hooks resolve; the old tab showed an `ActivityIndicator`. **Recommendation:** the shell keeps a spinner gated on `useTimetable(childId).loading` only (the timetable is the slower of the two fetches; `PackingCard` already handles the activities arriving late). Alternative: expose a `loading` flag from `PackingCard` — rejected as unnecessary API surface.
+`PackingCard` does **not** wait for data today: its only early return is `!childId`, so it paints `camp.empty` from the hooks' empty initial state and then pops the groups in (L5). **Recommendation:** `PackingCard` reads `loading` from **both** `useActivities` and `useTimetable` and, while either is loading, renders the card header with a small `ActivityIndicator` (colour `T.primary`) in place of the body — never `camp.empty`. The ציוד shell adds **no** hook of its own. This fixes the pre-existing flash on both dashboards as well.
+
+**Rejected:** a shell-side spinner gated on a *second* `useTimetable(childId)` instance. It cannot stop the flash (the card's own hooks still start empty; `useActivities` — the source that carries Noa's clubs — would not be gated at all) and it doubles the work: two `useTimetable` instances = up to four queries + two realtime channels on `timetables` for one screen (`useTimetable.ts:56-81,105-123`).
 
 ### D5 — i18n key hygiene
 
-After D1 these keys have **no** remaining reference: `bagPrep.lessons`, `.tomorrowLessons`, `.equipmentNeeded`, `.importantItems`, `.waterBottle`, `.food`, `.phoneCharger`, `.tomorrowOff`, `.noNeedToPack`, `.bagReady`, `.bagReadyCredits`, `.readyForTomorrow`, `.checkAllItems`, `.undo`, `.undone`, `.undoneDesc`, `.itemsReady`, `.bagReadyToast`, `.bagAlreadyReady`, `.credits` (he + en). **Recommendation:** delete them in the same chunk, guarded by `npm run i18n:check`. Alternative: leave them (harmless, but they mislead the next reader into thinking the counter still exists). Q4.
+After D1 these keys have **no** remaining reference: `bagPrep.lessons`, `.tomorrowLessons`, `.equipmentNeeded`, `.importantItems`, `.waterBottle`, `.food`, `.phoneCharger`, `.tomorrowOff`, `.noNeedToPack`, `.bagReady`, `.bagReadyCredits`, `.readyForTomorrow`, `.checkAllItems`, `.undo`, `.undone`, `.undoneDesc`, `.itemsReady`, `.bagReadyToast`, `.bagAlreadyReady`, `.credits`, plus **`gear.noSpecialEquipment`** (sole reference is `ChildBagPrepScreen.tsx:195`) (he + en). Pre-existing orphans `gear.noBagPrep` / `prep.noBagPrep` (`he.json:677,779`) are noted, not touched. **Recommendation:** delete them in the same chunk, guarded by `npm run i18n:check`. Alternative: leave them (harmless, but they mislead the next reader into thinking the counter still exists). Q4.
 
 ---
 
 ## 4. Behavior Contract (after the package closes)
 
-1. **One packing surface, two hosts.** The HQ dashboards (Mint + Gamer) and the ציוד tab render the same `PackingCard` for the same `childId`. Whatever appears on one appears on the other, including check-off state.
+1. **One packing surface, two hosts.** The HQ dashboards (Mint + Gamer) and the ציוד tab render the same `PackingCard` for the same `childId`. Whatever appears on one appears on the other; check-off state converges on the next tab focus (focus-reload, D1).
 2. **Sources.** For each of today and tomorrow the card shows, in this order: school-timetable gear (one group per subject, `source: 'school'`) then activities/clubs gear (one group per activity, `source: 'activity'`). Groups with no equipment are omitted. Archived and `proposed` activities are omitted (`activeOnDate`).
-3. **Dates.** "Today" is the device-local calendar date; "tomorrow" is today + 1 day, both computed via noon-anchored local parsing. Saturday has no school groups (`toSchoolWeekday` returns null) but may have activity groups. Both dates are recomputed on every render — no stale tomorrow after midnight.
+3. **Dates.** "Today" is the device-local calendar date; "tomorrow" is today + 1 day, both computed via noon-anchored local parsing. Saturday has no school groups (`toSchoolWeekday` returns null) but may have activity groups. Both dates are recomputed on every render and on every host focus; a card left idle across midnight refreshes on the next tab switch (there is no midnight timer — see L2).
 4. **Day-off semantics.** The card shows `camp.empty` only when today **and** tomorrow both have zero groups from **both** sources. There is no per-day "day off" celebration; an empty day is simply not rendered as a section. *(A clubs-only tomorrow therefore shows the clubs.)*
-5. **Today vs tomorrow.** Today is the prominent, always-open section. Tomorrow is a demoted, collapsible section — collapsed by default when today has content, expanded by default when today is empty. Toggling never affects check-off state.
-6. **Check-off.** Per item, per day, per child, in AsyncStorage key `buff_packing_${childId}_${iso}`; tomorrow's ticks survive into tomorrow (they become today's key). No counter, no "mark all", no completion verdict. Per-section *"מוכנים!"* appears when every item in that section is ticked.
+5. **Today vs tomorrow.** Today is the prominent, always-open section. Tomorrow is a demoted section with a collapse/expand control; its default state is per Q6 (SPEC default: expanded). Toggling never affects check-off state. Collapse state is per card instance and not persisted.
+6. **Check-off.** Per item, per day, per child, in AsyncStorage key `buff_packing_${childId}_${iso}`; re-read on host focus; tomorrow's ticks survive into tomorrow (they become today's key). No counter, no "mark all", no completion verdict. Per-section *"מוכנים!"* appears when every item in that section is ticked.
 7. **Child voice.** "+ הוסף לעצמי" remains at the bottom of the card on both hosts and navigates to `ChildAddActivity` as today.
-8. **Platform parity.** Pure RN + AsyncStorage; identical on Android and Web. No native module, no platform split.
+8. **Platform parity.** Pure RN + AsyncStorage; identical on Android and Web. No native module, no platform split. The collapsible header is keyboard/screen-reader operable on web (D2 accessibility row).
+9. **Loading.** While either source is loading the card shows a spinner in its body; `camp.empty` is only ever painted after both sources have settled.
 
 ---
 
@@ -158,7 +166,7 @@ None. No Supabase table, RLS, or function is touched. Read paths are unchanged (
 
 - **Navigation:** none. `ChildTabs.tsx`, `ChildTabsParamList`, `RootStackParamList` unchanged. Route `ChildBagPrep` keeps its name and tab slot.
 - **Hooks:** none added or changed. `useActivities` / `useTimetable` used as they are.
-- **Components:** `PackingCard` gains internal collapse state and a `renderSection` variant parameter (`emphasis: 'primary' | 'secondary'`, or two small render helpers — CC's call in Plan Mode). Its props contract (`{ childId }`) is unchanged.
+- **Components:** `PackingCard` gains (a) internal collapse state and a `renderSection` variant parameter (`emphasis: 'primary' | 'secondary'`, or two small render helpers — CC's call in Plan Mode), (b) a `useFocusEffect` that re-reads check-off state, (c) a loading gate over both hooks (D4). Its props contract (`{ childId }`) is unchanged.
 - **Files touched:** `src/components/PackingCard.tsx`, `src/screens/child/ChildBagPrepScreen.tsx`, `src/i18n/he.json`, `src/i18n/en.json`, tests (below). Nothing else.
 
 ---
@@ -172,19 +180,21 @@ None. No Supabase table, RLS, or function is touched. Read paths are unchanged (
 │ נארוז יחד?                          🛍  │
 │ מה לוקחים היום, בקצב שלך                 │
 │                                          │
-│ ▍היום                      ← 14px/800/fg │
-│ ─ 📖 אמנות · 09:00                       │
+│ ▍היום                      ← 14px/800/fg │  ▍= T.accent bar
+│ ─ 📖 אמנות · 09:00           (school)    │
 │   ○ תיקיית אמנות                         │
-│ ─ ✨ חוג אלקטרוניקה · 17:00              │
+│ ─ ✨ חוג אלקטרוניקה · 17:00  (activity)  │
 │   ○ ארגז כלים                            │
 │ ───────────────────────── (T.border)     │
-│ מחר                              ⌄       │  ← 12px/700/muted, tappable
-│                                          │  (collapsed: nothing below)
+│ מחר                              ⌃       │  ← 12px/700/muted, button
+│ ─ ✨ חוג נינג'ה · 16:15       (0.85 op.) │
+│   ○ בגדי ספורט   ○ נעלי ספורט            │
+│   …                                      │
 │           + הוסף לעצמי                   │
 └──────────────────────────────────────────┘
 ```
 
-Expanded tomorrow shows the same group/row structure as today with the chevron flipped to ⌃ and item labels at 0.85 opacity. RTL: the accent bar sits on the reading-start side (use `borderStartWidth` / logical margins, not `left`).
+Shown expanded (SPEC default). Collapsed: chevron ⌄ and nothing between the header and "+ הוסף לעצמי". Item labels under tomorrow at 0.85 opacity. RTL: the accent bar sits on the reading-start side — use `borderStartWidth` / logical margins (already the in-repo pattern, e.g. `CapturedItemRow.tsx:61`; RN 0.81.5 + RNW 0.21 support it). In Noa's screenshot the ✨ icon on "חוג אלקטרוניקה" marks it as an **activity**, not a timetable subject.
 
 ### 7.2 ציוד tab (`ChildBagPrepScreen` shell)
 
@@ -201,8 +211,9 @@ Removed: subject chips row, "🎒 ציוד נדרש לשיעורים" label, `n/
 | Key | Now | After |
 |---|---|---|
 | `bagPrep.title` | סידור תיק למחר / Packing bag for tomorrow | **Q2 — Adi** |
-| `camp.cardSub` | מה לוקחים היום, בקצב שלך | unchanged unless Adi wants L3 fixed (Q5) |
-| `camp.empty` | היום אין מה לארוז — תהנו! | unchanged unless Q5 |
+| `camp.cardSub` | מה לוקחים היום, בקצב שלך | Q5 (bundled with Q2) |
+| `camp.empty` | היום אין מה לארוז — תהנו! | Q5 (bundled with Q2) |
+| shell title during chunk 2a | — | `tabs.child.gear` ("ציוד") — existing key, interim only |
 | `camp.today` / `camp.tomorrow` | היום / מחר | unchanged |
 | dead `bagPrep.*` (D5 list) | present | deleted (Q4) |
 
@@ -213,21 +224,25 @@ No new user-facing string is introduced by this package except whatever Adi pick
 ## 8. Tests (summary — full criteria in `TESTS.md`)
 
 **Automated (CC):**
-- New `src/components/__tests__/PackingCard.test.tsx` (RTL): today header uses primary emphasis; tomorrow collapsed by default when today has groups; expanded by default when today is empty; toggling does not alter `checked`; collapsed header renders no digits; `camp.empty` only when both days empty; clubs-only tomorrow renders the activity groups.
+- New `src/components/__tests__/PackingCard.test.tsx` (RNTL): today header uses primary emphasis; tomorrow header is a button with `accessibilityState.expanded`; collapsing removes every tomorrow row from the tree and expanding restores them; default state per Q6; toggling does not alter `checked` nor call `setItem`; nothing renders between the tomorrow header and `camp.addMine` while collapsed; `camp.empty` only after both hooks settled **and** both days empty (never while `loading`); clubs-only tomorrow renders the activity groups; focus-effect re-reads storage. Mock `ThemeContext` as `PetDisplay.test.tsx` / `PhaseTaskCard.test.tsx` do (bare `useChildTheme` throws), keep the global AsyncStorage mock from `jest-setup.ts` (it has `multiGet`; the `GamerDashboardScreen` test's local override does not).
 - Existing `fromTimetable.test.ts`, `packing.test.ts`, `GamerDashboardScreen.test.tsx` stay green.
 - `npm run typecheck`, `npm test`, `npm run i18n:check` clean.
 
 **Emulator / web (Hat-3 + Adi), Reachability rule (WORKFLOW #11):**
-- Seed Noa's data (timetable empty tomorrow; three recurring activities on tomorrow's weekday with gear). Cold start → tap ציוד tab → clubs listed under "מחר" once expanded → tick "נעלי ספורט" → switch to HQ tab → same item ticked. Both Mint and Gamer, he and en, Android **and** `npm run web`.
-- Today-empty day: tomorrow arrives expanded.
+- Seed Noa's data (timetable empty tomorrow; three recurring activities on tomorrow's weekday with gear). Cold start → tap ציוד tab → clubs listed under "מחר" → tick "נעלי ספורט" → switch to HQ tab → same item ticked (focus-reload) — no relaunch needed. Both Mint and Gamer, he and en, Android **and** `npm run web`.
+- Accent bar visible on Mint (white card) and Gamer; no `camp.empty` flash on a slow network.
 - Saturday tomorrow with a club: club shows, no school group.
 
 ---
 
 ## 9. Capabilities & Bottlenecks
 
+### What Claude.ai can do
+- Review CC's Plan-Mode plans and diffs against this SPEC; draft the DECISIONS_LOG / GAP_ANALYSIS proposals for Adi; answer Values questions.
+- Cannot run the app or read the emulator — relies on CC's Hat-3 evidence and Adi's Hat-4.
+
 ### What Claude Code will do
-- All edits in §6, tests, i18n check, typecheck, jest, web bundle check, STATUS/INTEGRATION_LEARNINGS rows, commit on `claude/tomorrow-pack-inconsistency-lbm97x`.
+- All edits in §6, tests, i18n check, typecheck, jest, web bundle check, STATUS/INTEGRATION_LEARNINGS rows, commit on `claude/tomorrow-pack-inconsistency-lbm97x` (the harness-assigned branch; CLAUDE.md's `pkg/{slug}` is a suggestion, not a rule).
 - Hat-3 emulator pass via `buff-emulator` / `buff-testing` skills if the emulator lease is free.
 
 ### What Adi must do herself
@@ -269,7 +284,9 @@ No new user-facing string is introduced by this package except whatever Adi pick
 - **Q2 — Tab title string** after it shows today+tomorrow: (a) reuse *"נארוז יחד?"* (one name everywhere), (b) *"הציוד שלי" / "My gear"* (matches tab label), (c) other. **Blocks the copy chunk only.**
 - **Q3 — Should tomorrow's collapsed/expanded choice persist** across app launches (AsyncStorage) or reset each open? SPEC default: **reset** (less state, today-first every time).
 - **Q4 — Delete the dead `bagPrep.*` keys** (D5) in this package, or leave for a later i18n sweep? Default: **delete** (guarded by `i18n:check`).
-- **Q5 — Fix L3 copy now?** `camp.cardSub` / `camp.empty` still say "היום" although the card covers tomorrow too. Default: **out of scope** (separate copy decision, values-sensitive wording).
+- **Q5 — Fix L3 copy now?** `camp.cardSub` / `camp.empty` still say "היום" although the card covers tomorrow too. **Bundled with Q2** — once the card is the only surface, its subtitle is the tab's subtitle. Default if unanswered: unchanged strings.
+- **Q6 — Tomorrow's default state:** (a) **expanded**, collapsible as a control (SPEC default; reviewer's position — protects the night-before use case), (b) time-of-day: expanded after ~16:00, collapsed before, (c) **collapsed**, auto-expanded when today is empty (architect's position — shortest dashboard). Values-neutral either way; this is a UX call.
+- **Q7 — Paywall boundary for packing.** D-2026-06-19-01 lists *"הכנת תיק"*, *"מערכת שעות"* and *"פעילויות"* as **paid** features (`BUFF_DECISIONS_LOG.md:52`), yet neither `PackingCard`, `ChildBagPrepScreen` nor `ChildTabs` has any entitlement gate today. Consolidation makes "the tab" and "the card" the same thing, so a future gate can no longer distinguish them. This SPEC does **not** add gating (out of scope, and children never see paywall CTAs per `pkg/hide-paywall-from-child`); Adi decides whether a gate belongs to a later monetization package and at which level (data entry on the parent side vs child display).
 
 ---
 
@@ -281,6 +298,7 @@ No new user-facing string is introduced by this package except whatever Adi pick
 - A "day off" celebration anywhere. If Adi wants a positive empty-day message it is a separate copy decision.
 - Re-introducing the subject chips ("📚 שיעורים מחר") — informational clutter the card intentionally omits; group titles already carry the subject.
 - Persisted collapse state (Q3 default).
+- Entitlement / paywall gating of packing (Q7 — monetization package, parent side).
 - Anything touching `DECISIONS_LOG`, `GAP_ANALYSIS`, `BUFF_VALUES` (Adi's docs — proposals only, in `SPEC_SYNC.md`).
 
 ---
@@ -291,10 +309,12 @@ No new user-facing string is introduced by this package except whatever Adi pick
 |---|---|
 | Old `bagPrep:` AsyncStorage ticks are orphaned | Ephemeral daily state; worst case a child re-ticks once. No migration. Note in INTEGRATION_LEARNINGS. |
 | RTL accent bar drawn on the wrong side | Use logical start/end styles; verify in he **and** en on both platforms. |
-| Collapsed-by-default hides tomorrow on the night-before use case | Chevron affordance + 44px tap target; today-empty auto-expands. If beta feedback says "I didn't see tomorrow", Q3 revisits (persist "expanded"). |
+| A collapsed tomorrow hides the night-before list | SPEC default is expanded (Q6). If Adi picks collapsed: chevron + 44px target + today-empty auto-expand, and beta feedback decides whether to persist "expanded" (Q3). |
+| Two mounted cards disagree on ticks | Focus-reload in `PackingCard` (D1 hard requirement); tested in TESTS Phase 2 without relaunch. |
+| Spinner never resolves if one hook errors | Both hooks set `loading=false` in `finally`; error state falls through to the normal render (empty groups) — same as today. |
 | `PackingCard` in a `ScrollView` inside a tab that already scrolls | The shell is the only scroll container; the card is a plain `View`. |
 | Preview mode (`previewChildId`) shows the wrong child | Shell resolves `previewChildId ?? profile?.id` exactly as the old screen did; test in View-as-Child. |
-| Test file for `PackingCard` needs navigation + AsyncStorage mocks | Follow `GamerDashboardScreen.test.tsx` mocking pattern; mock `useActivities`/`useTimetable` to inject fixtures. |
+| Test file for `PackingCard` needs navigation, theme and AsyncStorage mocks | Navigation: mock `useNavigation` + `useFocusEffect` as `GamerDashboardScreen.test.tsx:31` does. Theme: mock `ThemeContext` as `PetDisplay.test.tsx` does. AsyncStorage: keep the global `jest-setup.ts` mock (has `multiGet`). Data: mock `useActivities`/`useTimetable` to inject fixtures and a controllable `loading`. |
 
 ---
 
@@ -303,3 +323,5 @@ No new user-facing string is introduced by this package except whatever Adi pick
 - `docs/sessions/schedule-equipment-backpack/SPEC.md` describes `ChildBagPrepScreen` as "school source, tomorrow resolution, checklist, AsyncStorage, empty states" — that description becomes historical after this package. Proposed SPEC_SYNC row: mark as superseded, do not rewrite.
 - `INTEGRATION_LEARNINGS.md:78` lists "איחוד/הפניה של טאב BagPrep" as **open**; this package closes it. Proposed: status → resolved with a pointer here.
 - `camp.cardSub` / `camp.empty` copy vs the today+tomorrow behaviour (L3) — see Q5.
+- D-2026-06-19-01 (*"הכנת תיק"* is a paid feature) vs the code (no gate anywhere on the child packing surfaces) — see Q7. Not resolved here.
+- Architect vs reviewer on tomorrow's default state — surfaced as Q6, not resolved here.
