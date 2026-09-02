@@ -74,7 +74,7 @@ Mocks: `useActivities` / `useTimetable` return fixtures plus a controllable `loa
 ---
 
 ## Phase 3 — i18n hygiene + docs
-- [ ] Dead `bagPrep.*` keys removed from `he.json` **and** `en.json` (if Q4 = delete); `npm run i18n:check` clean.
+- [ ] Dead `bagPrep.*` + `gear.noSpecialEquipment` keys removed from `he.json` **and** `en.json` (Q4: delete); `npm run i18n:check` clean.
 - [ ] `SPEC_SYNC.md` rows applied; proposals for Adi's docs written in `STATUS.md` notes, **not** applied.
 - [ ] No drift between SPEC §4 Behavior Contract and the running app (walk the 8 points).
 

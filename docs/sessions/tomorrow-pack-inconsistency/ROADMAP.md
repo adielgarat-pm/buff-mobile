@@ -8,7 +8,7 @@
 **Scope:** `src/components/PackingCard.tsx` only, plus a new `src/components/__tests__/PackingCard.test.tsx`.
 - Split `renderSection` into a primary (today: filled pill + `T.accent` rail on the block) and secondary (tomorrow: muted pill with weekday + hint + Ionicons chevron, a11y props) treatment per SPEC §3 D2 / §7.1. No opacity on tomorrow rows.
 - Collapse state: `useState(defaultTomorrowExpanded || todayGroups.length === 0)`; new optional prop, default `false` (HQ); per Q6.
-- Section-complete styling (success pill + foreground "מוכנים!") if Q9 = now.
+- Section-complete styling (success pill + foreground "מוכנים!" + gated haptic) — Q9 decided: in this phase.
 - Loading gate over both hooks (D4) — spinner instead of `camp.empty` while loading.
 - `useFocusEffect` re-reading check-off state (D1 hard requirement, done here so Phase 2 inherits it).
 - No new strings. No count anywhere on the collapsed header.
@@ -44,7 +44,7 @@
 
 ## Phase 3 — i18n hygiene + docs (SPEC D5, §14)
 
-**Scope:** delete the dead `bagPrep.*` keys listed in SPEC D5 from `he.json` + `en.json` (if Q4 = delete); apply the `SPEC_SYNC.md` doc rows; propose (not apply) the DECISIONS_LOG / GAP_ANALYSIS lines.
+**Scope:** delete the dead `bagPrep.*` + `gear.noSpecialEquipment` keys listed in SPEC D5 from `he.json` + `en.json` (Q4 decided: delete); apply the `SPEC_SYNC.md` doc rows; propose (not apply) the DECISIONS_LOG / GAP_ANALYSIS lines.
 
 **Stop conditions:** `npm run i18n:check` clean; `npm test` green; no drift between SPEC §4 Behavior Contract and the running app.
 

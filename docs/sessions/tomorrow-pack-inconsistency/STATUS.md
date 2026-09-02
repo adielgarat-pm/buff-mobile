@@ -12,7 +12,8 @@
 | 3 — i18n hygiene + docs | _pending_ | — | — | — | — |
 
 ## Waiting on Adi
-- Q1–Q9 in `SPEC.md` §11. **Q2** (tab title, with Q5) blocks chunk 2b; **Q6** (tomorrow default state) should be answered before Phase 1 ships, SPEC default = expanded; Q7 (paywall) is informational for now.
+- **Decided 2026-09-02 (Adi):** Q1 keep tab · Q3 no persistence · Q4 delete dead keys (Phase 3) · Q9 closure styling now (Phase 1).
+- **Still open:** **Q6** (tomorrow default: per-host recommended) — answer before Phase 1 ships; **Q2 + Q5** (tab title / card subtitle) — block chunk 2b only; **Q8** (weekday + first-group hint in the tomorrow header) — answer before Phase 1 ships; Q7 (paywall boundary) informational.
 - `approved, proceed` for Phase 1.
 
 ## Legend
