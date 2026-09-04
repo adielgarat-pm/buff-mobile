@@ -15,9 +15,10 @@
 import { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Linking, Platform, } from 'react-native';
+  StyleSheet, ActivityIndicator, Platform, } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BUFF_URLS } from '../lib/buffConfig';
+import { openExternalUrl } from '../platform/openExternalUrl';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/types';
@@ -292,14 +293,14 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
             </>
           )}
           <TouchableOpacity
-            onPress={() => { void Linking.openURL(PRIVACY_POLICY_URL); }}
+            onPress={() => { openExternalUrl(PRIVACY_POLICY_URL); }}
             accessibilityRole="link"
           >
             <Text style={styles.footerLink}>Privacy Policy</Text>
           </TouchableOpacity>
           <Text style={styles.footerDivider}>|</Text>
           <TouchableOpacity
-            onPress={() => { void Linking.openURL(TERMS_OF_USE_URL); }}
+            onPress={() => { openExternalUrl(TERMS_OF_USE_URL); }}
             accessibilityRole="link"
           >
             <Text style={styles.footerLink}>Terms of Use</Text>
