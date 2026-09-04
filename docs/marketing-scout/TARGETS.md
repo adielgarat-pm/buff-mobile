@@ -47,7 +47,7 @@ public_status_line: "BUFF is on Google Play (Android) and on the web; iOS planne
 
 ## Brand terms (Bucket 0 — every run, every term)
 
-`"BUFF ADHD"` · `buffadhd` · `"buffadhd.com"` · `"BUFF app" ADHD` · `"BUFF" Joon` · `"buff" adhd kids app` · misspellings: `"buf adhd"`, `"buff add app"` · founder: `"Adi Elgarat"` · Play: `com.buffapp.mobile` reviews (search `"BUFF" site:play.google.com` — fetch blocked, snippet only)
+`"BUFF ADHD"` · `buffadhd` · `"buffadhd.com"` · `"BUFF app" ADHD` · `"BUFF" Joon` · `"buff" adhd kids app` · misspellings: `"buf adhd"`, `"buff add app"` · founder: `"Adi Elgarat German"` · `"Adi Elgarat" BUFF` (the bare surname search returns unrelated news about other Elgarats — never count namesakes as brand mentions) · Play: `com.buffapp.mobile` reviews (search `"BUFF" site:play.google.com` — fetch blocked, snippet only)
 
 ## Competitor pain queries (Bucket 1 — highest-converting intent; rotate ≥4/run)
 

@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### 🚩 F-2026-09-04-01: "70% = success" drift is repo-wide — needs a Spec Sync package (`pkg/count-rule-spec-sync`)
+
+- **תאריך:** 2026-09-04
+- **מקור:** CC — sweep during pkg/adhd-awareness-month-2026 (`grep "70%" docs/BUFF_*.md`)
+- **תיאור:** D-2026-06-14-01 replaced "70% of the list" with the count rule (~3 tasks = an active day) and BUFF_VALUES was updated 2026-07-12, but the rest of the corpus was not. **Fixed today (outbound-copy sources only):** MESSAGING (3 lines), COMPETITORS (3), ADVISOR_OUTREACH_KIT (§3 row 3, §5.1 pitch), FAQ (Q14 short+long, streak answer), FOUNDING_100_KIT (§ PM-craft inversions). **Still carrying 70% — flagged, NOT edited (product/brand specs, Adi's call):** `BUFF_PRD.md` §1 L21, §5 L105, §6.1 L168 (+ Rest Tickets L217); **`BUFF_BRAND.md` §6 lexicon L213 — "70% = success (קבועה בכל קופי על measurement)" is a brand *rule* that now contradicts VALUES**, plus L151 AHA definition, L165; `BUFF_PERSONAS.md` L359, L412; `BUFF_BUDDY_SYSTEM.md` L39, L53, L83, L379, L412 (engine spec — verify against `buddy-success-count` migration); `BUFF_BLOG_CONTENT_MAP.md` post 13 title; `BUFF_MARKETING_BACKLOG.md` L117 rating-ask trigger; `BUFF_FEATURE_AUDIT.md` C-10/L131; `BUFF_GAP_ANALYSIS.md` T-04 (Adi's doc).
+- **השפעה:** the marketing scout quotes FAQ/MESSAGING as ingredient banks — those are now clean. Anything drafted from PRD/BRAND/PERSONAS still risks re-introducing the old claim. The scout's Compliance Gate blocks the literal string "70%" as a backstop.
+- **סטטוס:** `open` — proposed package `pkg/count-rule-spec-sync` (docs-only, one PR; BRAND §6 + PRD §6.1 need Adi's wording decision).
+- **קשור ל:** D-2026-06-14-01, BUFF_VALUES.md § Pillar 1, IN-2026-09-04-01, `docs/marketing-scout/TARGETS.md` § Claims blocklist
+
 ### IN-2026-09-04-02: Unattended cloud Routine "succeeded" but did nothing — permission prompts with no human present
 
 - **תאריך:** 2026-09-04
