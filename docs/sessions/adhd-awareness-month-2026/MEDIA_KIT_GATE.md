@@ -11,7 +11,7 @@
 | 5 | 6 store screenshots | ✅ | — | `docs/marketing-assets/play-store-listing/screenshots/` |
 | 6 | Feature graphic | ✅ | — | `docs/marketing-assets/feature-graphics/` |
 | 7 | One-liner | ✅ | — | FOUNDER_STORY §2.1 |
-| 8 | **Logo pack** (SVG + PNG on light/dark, 512 px + 2048 px) | ❌ | CC can export from `assets/` if a vector exists; otherwise Adi supplies | `docs/marketing-assets/press/logo/` |
+| 8 | **Logo pack** | ✅ PNG-only (1024 px primary, transparent; lavender 512; Play 512; feature graphic). No SVG exists — flagged, not blocking. | — | `docs/marketing-assets/press/logo/` |
 
 **Decisions recorded 2026-09-04 (from Adi's answers):**
 - **Itay:** first name + age OK (rung 3–4). *Action for Adi: get his one-line written OK, keep it privately.*
