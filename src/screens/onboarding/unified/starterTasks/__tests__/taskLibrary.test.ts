@@ -8,6 +8,7 @@
 import { STARTER_TASK_LIBRARY, TASK_BY_ID } from '../taskLibrary';
 import { CHALLENGE_TO_DOMAIN } from '../challengeMap';
 import type { AgeBand, Domain, SexLean } from '../types';
+import { pickLang } from '../../../../../lib/i18nString';
 
 const AGE_BANDS: AgeBand[] = ['6-8', '9-11', '12-14', '15-18'];
 const SEX_LEANS: SexLean[] = ['both', 'girls', 'boys'];
@@ -34,8 +35,8 @@ describe('taskLibrary — structure', () => {
       expect(DOMAINS).toContain(t.domain);
       expect(SEX_LEANS).toContain(t.sexLean);
       expect(TIMES).toContain(t.timeOfDay);
-      expect(t.title.en.length).toBeGreaterThan(0);
-      expect(t.title.he.length).toBeGreaterThan(0);
+      expect(pickLang(t.title, 'en').length).toBeGreaterThan(0);
+      expect(pickLang(t.title, 'he').length).toBeGreaterThan(0);
       expect(t.ageBands.length).toBeGreaterThan(0);
       for (const band of t.ageBands) expect(AGE_BANDS).toContain(band);
       expect(t.evidenceTag.length).toBeGreaterThan(0);

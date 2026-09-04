@@ -32,18 +32,20 @@ jobs:
         run: npm run typecheck
       - name: Unit tests
         run: npm test -- --ci
-      # Guards. `check:no-fs-root-import` is invoked DIRECTLY (not via an npm
-      # script) on purpose: @expo/fingerprint hashes package.json `scripts`, so
-      # registering it there would drift the EAS runtimeVersion off the live
-      # binary and silently kill OTA delivery (2026-07-24 dead-OTA incident).
-      # no-raw-alert is already in the shipped script set (fingerprint-neutral).
-      # NOTE: the i18n guards are intentionally NOT wired here yet — they flag
-      # pre-existing debt (ParentRewardsScreen, onboarding test files) that a
-      # separate cleanup PR must clear first, or this gate blocks every PR.
+      # Guards. `check-no-fs-root-import` and the i18n guards are invoked DIRECTLY
+      # (node scripts/…, not via an npm script) on purpose: @expo/fingerprint
+      # hashes package.json `scripts`, so registering a NEW script there would
+      # drift the EAS runtimeVersion off the live binary and silently kill OTA
+      # delivery (2026-07-24 dead-OTA incident). no-raw-alert is already in the
+      # shipped script set (fingerprint-neutral) so it stays as `npm run`.
+      # The i18n guards' pre-existing debt (ParentRewardsScreen, onboarding test
+      # files) was cleared in the L2 cleanup, so they now gate every PR.
       - name: Guards
         run: |
           node scripts/check-no-fs-root-import.js
           npm run check:no-raw-alert
+          node scripts/check-bilingual-access.js
+          node scripts/i18n-key-check.js
       - name: Web build (catches RN-Web bundle breaks; produces ./dist)
         run: npm run build:web
 
