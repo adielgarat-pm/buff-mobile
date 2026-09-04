@@ -17,6 +17,7 @@ description: BUFF's daily marketing scout — scans the public web for brand men
 5. **Reddit is phone-only and gentle** (Adi's rule 2026-09-04): the scout never drafts Reddit prose, only talking points; Month 1 = listen-only; later ≤1 product-adjacent mention/week across all Reddit. See TARGETS § Venues.
 6. **Founder voice is Adi's.** Anything that tells Adi's/Itay's story, any top-level post, any LinkedIn piece → a *brief* (angle, 3 facts, one suggested first line, persona+emotion), never a draft.
 7. Budgets are numbers in TARGETS § Budgets. Hit a budget → stop that stage, note it in the report header, continue.
+8. **Permissions discipline (unattended sessions have no human to approve prompts):** run **one simple command per Bash call**. Never chain with `;` `&&` `||` `|`, never use `$(...)`, never use `>` / `>>` redirects, never `cd`. Create or append to files with the **Write / Edit tools** (Read the file, then Write the full new content) — never via shell redirection. Get the time with the single command `date -u +%Y-%m-%dT%H:%M:%SZ`. Allowed commands are listed in `.claude/settings.json`; if a tool call is blocked by permissions, do **not** retry variants — go straight to the FAIL path (Stage 6). *(Root cause of the 2026-09-04 silent watchdog: a compound `git add …; echo …; git status` fell to the permission classifier and the unattended session stalled while reporting success.)*
 
 ## Modes
 
@@ -35,7 +36,7 @@ description: BUFF's daily marketing scout — scans the public web for brand men
 2. Determine `RUN_DATE` (today, Asia/Jerusalem) and `RUN_ID = RUN_DATE`.
 3. Branch (Routine mode only): `git fetch origin main automation/marketing-scout` → `git checkout automation/marketing-scout` (create from `origin/main` if missing) → `git merge origin/main --no-edit` (Adi's TARGETS edits flow in; the job never edits TARGETS so this is conflict-free; if a conflict appears anyway → FAIL "targets conflict, needs Adi").
 4. **Idempotency:** if `docs/marketing-scout/reports/RUN_DATE.md` already exists → append `SKIP RUN_ID already-ran` to heartbeat.log, exit cleanly (no second report).
-5. **START heartbeat:** append `<ISO ts> START scout-daily` to `docs/marketing-scout/state/heartbeat.log`; commit `chore(marketing-scout): start RUN_DATE`; push. (Dry-run: skip commit/push.) *This is the cloud equivalent of HEARTBEAT.md's "before any browser/network dependency".*
+5. **START heartbeat:** Read `docs/marketing-scout/state/heartbeat.log`, then Write it back with `<ISO ts> START scout-daily` appended (Write tool — never a shell redirect); then three separate Bash calls: `git add docs/marketing-scout/state/heartbeat.log` · `git commit -m "chore(marketing-scout): start RUN_DATE"` · `git push origin automation/marketing-scout`. (Dry-run: skip commit/push.) *This is the cloud equivalent of HEARTBEAT.md's "before any browser/network dependency".*
 6. Start the wall clock. Hard budget = TARGETS `time_budget_min`. Check between stages; on overrun skip remaining DRAFT items, emit VOLUME WARNING, proceed to REPORT.
 7. If `scorecard_day` → jump to Stage 5b.
 
