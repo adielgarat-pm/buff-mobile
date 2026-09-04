@@ -1817,6 +1817,8 @@
   "parentRewards.redemption.discussingTag": "Talking about it",
   "parentRewards.redemption.insufficientTitle": "Not enough points yet",
   "parentRewards.redemption.insufficientMsg": "{{name}} doesn't have enough points for this reward right now.",
+  "parentRewards.redemption.rewardGoneTitle": "Reward no longer available",
+  "parentRewards.redemption.rewardGoneMsg": "This reward was changed or removed, so the request couldn't be approved. It's back in the shop if you'd like to add it again.",
   "childRewards.title": "Shop",
   "childRewards.empty": "No rewards yet.",
   "childRewards.emptySub": "Ask your parent to add some!",

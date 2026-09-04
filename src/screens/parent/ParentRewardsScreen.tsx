@@ -299,6 +299,13 @@ export default function ParentRewardsScreen() {
           t('parentRewards.redemption.insufficientTitle'),
           t('parentRewards.redemption.insufficientMsg', { name: selectedChild?.displayName ?? '' }),
         );
+      } else if (result.error === 'reward_gone') {
+        // The reward was deleted between the child's request and approval
+        // (migration 057 re-reads the live reward). Frame it as a change, not a fault.
+        crossAlert(
+          t('parentRewards.redemption.rewardGoneTitle'),
+          t('parentRewards.redemption.rewardGoneMsg'),
+        );
       } else {
         crossAlert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
       }
