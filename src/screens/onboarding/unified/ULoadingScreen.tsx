@@ -31,9 +31,13 @@ export default function ULoadingScreen() {
       useNativeDriver: false,
     }).start();
 
-    // Navigate after animation completes
+    // Navigate after animation completes. Use replace() so this self-advancing
+    // interstitial removes itself from the back stack — otherwise backing out of
+    // Preview lands on the frozen, already-100% loader (its timer has fired and
+    // won't re-run), a dead-end that needs a second back-press to escape (audit
+    // L7). replace() sends back straight to Step 4, and keeps web history clean.
     const timer = setTimeout(() => {
-      navigation.navigate('UStep5_Preview', params);
+      navigation.replace('UStep5_Preview', params);
     }, DURATION);
 
     return () => clearTimeout(timer);

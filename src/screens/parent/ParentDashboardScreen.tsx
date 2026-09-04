@@ -314,8 +314,29 @@ export default function ParentDashboardScreen() {
   // Tab screens stay mounted, so a generate/vote on the Insights screen would
   // leave this card (and its "as of" stamp) stale until an app restart — pull
   // the latest saved insight every time the dashboard regains focus.
+  //
+  // M8: also refetch the child cards + insights on focus. daily_progress and
+  // credit_vault are NOT in the supabase_realtime publication (confirmed against
+  // production), so useChildrenDashboard's subscriptions to them never fire — a
+  // child completing a task on their own device would otherwise leave the parent
+  // dashboard stale until a manual pull-to-refresh (parent then nudges a child
+  // who already finished — a Positive-Coaching hazard). First focus coincides
+  // with mount (the hooks already fetched), so skip it to avoid a duplicate
+  // fetch; refetch on every subsequent focus.
+  const didInitialFocus = useRef(false);
   useFocusEffect(
-    useCallback(() => { void reloadCoach(); }, [reloadCoach]),
+    useCallback(() => {
+      if (!didInitialFocus.current) {
+        didInitialFocus.current = true;
+        void reloadCoach();
+        return;
+      }
+      void refetch();
+      void refetchInsights();
+      void refetchSos();
+      void refetchYesterday();
+      void reloadCoach();
+    }, [refetch, refetchInsights, refetchSos, refetchYesterday, reloadCoach]),
   );
   useAutoCoachInsight({
     childId: firstChildId,

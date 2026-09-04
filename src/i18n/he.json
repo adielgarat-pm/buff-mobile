@@ -1572,6 +1572,7 @@
   "onboarding.step5.cta": "{{arrow}} קשר את הטלפון של {{name}}",
   "onboarding.step5.ctaExistingChild": "{{arrow}} המשימות של {{name}}",
   "onboarding.step5.skip": "לא עכשיו",
+  "onboarding.step5.buffs_one": "BUFF {{count}}",
   "onboarding.step5.buffs": "{{count}} BUFFs",
   "onboarding.step5.duplicateTitle": "{{name}} כבר אצלך",
   "onboarding.step5.duplicateBody": "כבר יש במשפחה שלך ילד/ה בשם {{name}}. לפתוח את {{name}}, או להוסיף ילד/ה נוסף/ת עם אותו שם?",

@@ -1572,6 +1572,7 @@
   "onboarding.step5.cta": "Connect {{name}}'s phone {{arrow}}",
   "onboarding.step5.ctaExistingChild": "See {{name}}'s tasks {{arrow}}",
   "onboarding.step5.skip": "Skip for now",
+  "onboarding.step5.buffs_one": "{{count}} BUFF",
   "onboarding.step5.buffs": "{{count}} BUFFs",
   "onboarding.step5.duplicateTitle": "{{name}} is already here",
   "onboarding.step5.duplicateBody": "You already have a child named {{name}} in your family. Want to open {{name}}, or add another child with the same name?",
