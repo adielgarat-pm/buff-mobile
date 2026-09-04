@@ -49,4 +49,4 @@ watchdog line in the log is itself a signal worth checking.
 - **Watchdog = a second Routine** (~12:00 Israel) that fetches the branch and pushes "scout silent today" if the date has no START+END/FAIL. Both are server-side cron — no PC, no open app required (the v1 limitation above no longer applies to this pair).
 - Adi's weekly backstop: `list_triggers` → `last_run` status.
 
-Task ids: `scout-daily`, `scout-watchdog`. Routine ids recorded in `docs/sessions/marketing-scout/STATUS.md` at Phase 2 exit.
+Task ids: `scout-daily` (Routine `trig_01PrPEH9EmT9YHJATajZXZ1f`, 04:30 UTC daily) · `scout-watchdog` (Routine `trig_01JVpNUmEu81XULcWE3xgha4`, 09:00 UTC daily). Cron is UTC — Israel local shifts by an hour at the late-October DST change; adjust with `update_trigger` if the 07:30 target matters.
