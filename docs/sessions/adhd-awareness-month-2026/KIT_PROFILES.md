@@ -7,7 +7,7 @@
 *Senior PM who built an ADHD app designed to be uninstalled — co-designed with a 15-year-old with ADHD.*
 
 ## Short bio (≈50 words) — drafted 2026-09-04 from Adi's answers; FOUNDER_STORY §3.1
-*Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens (ages 6–18). A software engineer since 2000 and a product manager since 2020, she built BUFF together with her son Itay (15), who has ADHD and designs the child's experience. Based in Israel.*
+*Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens aged 6 to 18. A software engineer since 2000 and a product manager since 2020, she built BUFF alongside her son Itay, 15, who has ADHD and designs the child's experience. Adi is based in Israel.*
 
 ## Topics I can speak to (pick 5–7 per platform)
 1. Why ADHD apps built on coins and pets stop working by month two — and what to do instead

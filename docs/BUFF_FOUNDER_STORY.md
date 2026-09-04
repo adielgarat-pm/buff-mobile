@@ -68,12 +68,16 @@
 ### 3.1 Adi Elgarat German — Founder
 
 **Public bio — short (≈50 words, approved 2026-09-04 from Adi's input; any channel):**
-> *Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens (ages 6–18). A software engineer since 2000 and a product manager since 2020, she built BUFF together with her son Itay (15), who has ADHD and designs the child's experience. Based in Israel.*
+> *Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens aged 6 to 18. A software engineer since 2000 and a product manager since 2020, she built BUFF alongside her son Itay, 15, who has ADHD and designs the child's experience. Adi is based in Israel.*
+
+*(54 words. Reviewed by Gemini 2026-09-04; accepted: read-aloud fixes. Rejected: "Drawing on her background…", "Leveraging two decades…" — corporate filler.)*
 
 **HE:** *עדי אלגרט גרמן היא המייסדת של BUFF, אפליקציית שגרה ומוטיבציה למשפחות של ילדים ונוער עם ADHD (גילאי 6–18). מפתחת תוכנה משנת 2000 ומנהלת מוצר משנת 2020, היא בנתה את BUFF יחד עם בנה איתי (15), נער עם ADHD שמעצב את חוויית הילד. מתגוררת בישראל.*
 
 **Extended bio — press / podcast / investor decks (≈120 words):**
-> *Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens aged 6 to 18. She has built software since 2000 — first as a developer, then for fourteen years leading development teams and projects, and since 2020 as a product manager for complex, data-heavy products in large organisations. BUFF began at home: every conversation with her son Itay, who has ADHD, had collapsed into nagging — did you do your homework, did you study, did you shower. The two sat down and built a first version just for him: real rewards he chose, a daily win small enough to reach. When it worked, they rebuilt it for other families. Itay (15) owns the child's experience; Adi owns the philosophy. Based in Israel; BUFF was founded in 2025 and relaunched in its current form in June 2026.*
+> *Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens aged 6 to 18. She has built software since 2000. After fourteen years leading development teams and projects, she moved in 2020 into product management for complex, data-heavy products in large organizations. BUFF began at home: every conversation with her son Itay, who has ADHD, had collapsed into nagging. Did you do your homework? Did you study? Did you shower? The two sat down and built a first version just for him: real rewards he chose, a daily win small enough to reach. When it worked, they rebuilt it for other families. Itay, 15, owns the child's experience; Adi owns the philosophy. From Israel, Adi founded BUFF in 2025 and relaunched it in its current form in June 2026.*
+
+*(≈130 words. Gemini review 2026-09-04 applied: career sentence split for read-aloud, question marks, sentence ending instead of the semicolon data-dump.)*
 >
 > **LinkedIn:** https://www.linkedin.com/in/adi-elgarat-german
 
