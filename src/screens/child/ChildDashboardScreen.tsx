@@ -87,7 +87,7 @@ function PastelChildDashboard() {
   // under `previewChildId` and `daily_vibe` RLS accepts the parent's
   // auth session for any child in the family.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff, instantBuffAwarded } = vibe;
   // Parent→child sticker reveal — fires on dashboard focus if one is unseen.
   const { sticker: incomingSticker, markSeen: markStickerSeen } = useIncomingSticker(childId);
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
@@ -103,8 +103,8 @@ function PastelChildDashboard() {
   // LowPowerBanner via context to avoid each component spinning up its
   // own realtime subscription).
   const lowPowerValue: LowPowerContextValue = useMemo(() => ({
-    isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff,
-  }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff]);
+    isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff, instantBuffAwarded,
+  }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff, instantBuffAwarded]);
 
   // Theme-scoped palettes for the LP components — Pastel mint.
   const pastelLPPalettes = useMemo(() => ({

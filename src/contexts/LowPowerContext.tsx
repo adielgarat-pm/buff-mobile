@@ -22,6 +22,9 @@ export interface LowPowerContextValue {
   sosSent: boolean;
   /** True if the kid has any vibe row for today (rated or persisted). */
   hasVibedToday: boolean;
+  /** True once today's +5 Instant Buff was granted — keeps the card hidden on
+   *  reload instead of re-appearing to be farmed (audit M6, migration 057). */
+  instantBuffAwarded: boolean;
   /** Flip child_vibes.parent_sos_sent = true on today's row. */
   sendSos: () => Promise<{ error: Error | null }>;
   /** Add +5 BUFFs to credit_vault for self-care prompt completion. */

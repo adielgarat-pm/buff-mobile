@@ -1817,6 +1817,8 @@
   "parentRewards.redemption.discussingTag": "מדברים על זה",
   "parentRewards.redemption.insufficientTitle": "אין מספיק נקודות כרגע",
   "parentRewards.redemption.insufficientMsg": "ל{{name}} אין מספיק נקודות לפרס הזה כרגע.",
+  "parentRewards.redemption.rewardGoneTitle": "הפרס כבר לא זמין",
+  "parentRewards.redemption.rewardGoneMsg": "הפרס הזה שונה או הוסר, אז לא ניתן היה לאשר את הבקשה. אפשר להוסיף אותו שוב מהחנות.",
   "childRewards.title": "חנות",
   "childRewards.empty": "אין פרסים עדיין.",
   "childRewards.emptySub": "בקש/י מההורה שלך להוסיף!",
