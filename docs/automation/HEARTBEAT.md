@@ -38,3 +38,15 @@ watchdog line in the log is itself a signal worth checking.
 
 1. Add the START/END/FAIL lines to its prompt per the contract above.
 2. Add its task-id to the expected list in the `heartbeat-watchdog` task prompt.
+
+## Cloud variant (marketing-scout, 2026-09-04)
+
+`scripts/heartbeat.ps1` is Windows/PC-bound — exactly the failure mode of 7/20. Jobs that run as **cloud Routines** (fresh Claude Code web session per fire) use the same contract with a repo file instead of a local log:
+
+- Log: `docs/marketing-scout/state/heartbeat.log` on branch `automation/marketing-scout`, format `<ISO ts> <START|END|FAIL|SKIP> <task-id> <note>`.
+- **START is committed and pushed before any network call** (the "before any browser/network dependency" rule).
+- END/FAIL is the last action, followed by a push notification. Partial results are not FAIL.
+- **Watchdog = a second Routine** (~12:00 Israel) that fetches the branch and pushes "scout silent today" if the date has no START+END/FAIL. Both are server-side cron — no PC, no open app required (the v1 limitation above no longer applies to this pair).
+- Adi's weekly backstop: `list_triggers` → `last_run` status.
+
+Task ids: `scout-daily`, `scout-watchdog`. Routine ids recorded in `docs/sessions/marketing-scout/STATUS.md` at Phase 2 exit.

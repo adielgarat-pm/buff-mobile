@@ -2,8 +2,13 @@ name: CI
 
 on:
   pull_request:
+    # Daily scout reports are docs-only; don't burn typecheck+jest on them.
+    paths-ignore:
+      - 'docs/marketing-scout/**'
   push:
     branches: [main]
+    paths-ignore:
+      - 'docs/marketing-scout/**'
 
 # New pushes to a branch supersede in-flight runs for that ref.
 concurrency:
