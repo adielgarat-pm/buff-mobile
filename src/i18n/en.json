@@ -2259,5 +2259,6 @@
   "teenTask.time.morning": "Morning",
   "teenTask.time.afternoon": "Afternoon",
   "teenTask.time.evening": "Evening",
-  "parentTasks.createdByChild": "Added by {{name}}"
+  "parentTasks.createdByChild": "Added by {{name}}",
+  "notificationFeed.row.teen_task_added": "{{name}} added a task: {{task}}"
 }

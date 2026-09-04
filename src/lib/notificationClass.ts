@@ -34,6 +34,7 @@ const INFO_TYPES: ReadonlySet<string> = new Set([
   'parent_engagement',   // weekly nudge to the parent — FYI
   'family_joined',       // a member joined — FYI
   'child_vibe_shared',   // kid chose to share a non-SOS mood — FYI (emitter: sibling package)
+  'teen_task_added',     // teen self-authored a task — FYI, no approval needed (pkg/teen-autonomy)
 ]);
 
 /** Days an unread INFO notification stays visible before it ages out. */

@@ -2259,5 +2259,6 @@
   "teenTask.time.morning": "בוקר",
   "teenTask.time.afternoon": "צהריים",
   "teenTask.time.evening": "ערב",
-  "parentTasks.createdByChild": "נוסף על־ידי {{name}}"
+  "parentTasks.createdByChild": "נוסף על־ידי {{name}}",
+  "notificationFeed.row.teen_task_added": "{{name}} הוסיף/ה משימה: {{task}}"
 }

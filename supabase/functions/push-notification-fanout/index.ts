@@ -82,6 +82,7 @@ const PARENT_RECIPIENT_TYPES = new Set([
   'anchor_recovery', // churned kids only (cron applies ever-active gate)
   'activation_nudge', // L8 — never-activated families (new cron)
   'child_vibe_shared', // pkg/vibe-share-notification — kid-initiated positive twin of SOS
+  'teen_task_added', // pkg/teen-autonomy — teen self-authored a task; FYI to parent (they can price it)
 ]);
 
 const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
@@ -110,6 +111,8 @@ const TYPE_TO_PREF_COLUMN: Record<string, string> = {
   kid_engagement: 'notif_child_reminders',
   // pkg/vibe-share-notification (D3): same channel as SOS — "my child reached out to me".
   child_vibe_shared: 'notif_parent_alerts',
+  // pkg/teen-autonomy: reuse the parent-alerts channel (Adi 2026-09-04).
+  teen_task_added: 'notif_parent_alerts',
 };
 
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
@@ -148,6 +151,9 @@ function copyForType(
         return { title: `${name} רוצה לממש פרס`, body: reward, data: {} };
       case 'child_suggestion':
         return { title: `${name} רוצה להציע משהו 💡`, body: reward, data: {} };
+      case 'teen_task_added':
+        // pkg/teen-autonomy — teen self-authored a task; declarative FYI.
+        return { title: `${name} הוסיף/ה משימה 📝`, body: reward, data: {} };
       case 'parent_engagement':
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
@@ -178,6 +184,9 @@ function copyForType(
       return { title: `${name} wants to redeem a reward`, body: reward, data: {} };
     case 'child_suggestion':
       return { title: `${name} has a suggestion 💡`, body: reward, data: {} };
+    case 'teen_task_added':
+      // pkg/teen-autonomy — teen self-authored a task; declarative FYI.
+      return { title: `${name} added a task 📝`, body: reward, data: {} };
     case 'parent_engagement':
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':

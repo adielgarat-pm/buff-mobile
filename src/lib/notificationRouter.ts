@@ -50,6 +50,10 @@ export function resolveRouteAction(data: PushNotificationData): RouteAction {
       return { kind: 'parent_tasks', childId: data.child_id };
     case 'child_suggestion':
       return { kind: 'parent_tasks', childId: data.child_id };
+    case 'teen_task_added':
+      // pkg/teen-autonomy — tap lands on the parent's task screen for this child,
+      // where the "Added by {teen}" chip + pricing (tap-to-edit) live.
+      return { kind: 'parent_tasks', childId: data.child_id };
     case 'quest_milestone':
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'parent_engagement':

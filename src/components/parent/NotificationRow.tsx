@@ -36,6 +36,7 @@ function iconForType(type: string): IconName {
     case 'reward_redemption_requested': return 'gift-outline';
     case 'task_completed':     return 'flag-outline';
     case 'child_suggestion':   return 'bulb-outline';
+    case 'teen_task_added':    return 'add-circle-outline';
     case 'quest_milestone':    return 'trophy-outline';
     case 'parent_engagement':  return 'leaf-outline';
     case 'family_joined':      return 'people-outline';
@@ -60,6 +61,8 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
       return t('notificationFeed.row.task_completed', { name, task: reward });
     case 'child_suggestion':
       return t('notificationFeed.row.child_suggestion', { name });
+    case 'teen_task_added':
+      return t('notificationFeed.row.teen_task_added', { name, task: reward });
     case 'quest_milestone':
       return t('notificationFeed.row.quest_milestone', { name });
     case 'parent_engagement':
