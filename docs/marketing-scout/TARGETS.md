@@ -41,7 +41,8 @@ lifecycle:            # n/4 — while < 3, cap help-venue replies at 1/day
   founding_100_visible: false
   email_capture: false
   day1_day3_nudge: false
-itay_ladder_rung: 2   # FOUNDER_STORY §3.2 — 2 = "a 15-year-old with ADHD" (no name). Set 3 only with Itay's written consent recorded.
+itay_ladder_rung: 3   # Adi 2026-09-04: first name OK ("Itay, 15"). Itay's own written OK to be kept privately (FOUNDER_STORY §3.2). Never: last name, school, medication, photos without separate consent.
+never_public: ["employer names", "sector of employment", "Emi (name, age, diagnosis)", "city/neighbourhood", "schools"]   # Adi 2026-09-04
 public_status_line: "BUFF is on Google Play (Android) and on the web; iOS planned."
 ```
 
@@ -133,7 +134,7 @@ Qwoted · Featured.com · Help a B2B Writer · SourceBottle · `#journorequest` 
 ## Minors filter (hard block)
 
 Block: `Emi|אמי|my 9-year-old|my 9 year old|daughter|בת 9|my younger (kid|child)` · any school, city/neighbourhood, medication status, diagnosis details beyond "ADHD", photos, last names, daily schedules — for **any** minor incl. beta families' kids (names only with recorded ✅ FULL CONSENT for that channel, `BUFF_TESTIMONIALS.md` §4.4).
-Allow: `Itay|איתי` only when `itay_ladder_rung >= 3`; otherwise "a 15-year-old with ADHD who co-designed the teen UI".
+Allow: `Itay|איתי` (rung 3 approved 2026-09-04) — first name + age only; never last name/school/medication. **Also block (founder):** any employer or organisation name, and the sector of Adi's day job — say "large organisations".
 
 ## Register markers
 
