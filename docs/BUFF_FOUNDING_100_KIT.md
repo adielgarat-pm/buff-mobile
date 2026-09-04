@@ -256,7 +256,7 @@ Close with: "If a kid is still using BUFF at 18, we failed. If a kid stopped at 
 **Section 4 — The PM craft (200 words)**
 Pivot to the PM-craft angle (this is the part the PM community shares). The inversions:
 - Don't optimize for time-in-app. Optimize for **time-not-needing-app.**
-- Don't reward streaks. Reward **70% completion** (BUFF doesn't have penalty-streaks at all).
+- Don't reward streaks. Reward **a small absolute win — about 3 tasks = a good day, never 100%** (BUFF doesn't have penalty-streaks at all).
 - Don't gate features behind levels. **Real-life rewards** unlock real-life experiences.
 - Don't make the buddy character "need" the kid. The buddy gives, never demands.
 - Don't have a "sad" state for the character — ADHD shame mechanics are anti-therapeutic.

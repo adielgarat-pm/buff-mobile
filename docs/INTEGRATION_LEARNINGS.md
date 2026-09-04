@@ -14,6 +14,34 @@
 
 ## Implementation Notes
 
+### 🚩 F-2026-09-04-01: "70% = success" drift is repo-wide — needs a Spec Sync package (`pkg/count-rule-spec-sync`)
+
+- **תאריך:** 2026-09-04
+- **מקור:** CC — sweep during pkg/adhd-awareness-month-2026 (`grep "70%" docs/BUFF_*.md`)
+- **תיאור:** D-2026-06-14-01 replaced "70% of the list" with the count rule (~3 tasks = an active day) and BUFF_VALUES was updated 2026-07-12, but the rest of the corpus was not. **Fixed today (outbound-copy sources only):** MESSAGING (3 lines), COMPETITORS (3), ADVISOR_OUTREACH_KIT (§3 row 3, §5.1 pitch), FAQ (Q14 short+long, streak answer), FOUNDING_100_KIT (§ PM-craft inversions). **Still carrying 70% — flagged, NOT edited (product/brand specs, Adi's call):** `BUFF_PRD.md` §1 L21, §5 L105, §6.1 L168 (+ Rest Tickets L217); **`BUFF_BRAND.md` §6 lexicon L213 — "70% = success (קבועה בכל קופי על measurement)" is a brand *rule* that now contradicts VALUES**, plus L151 AHA definition, L165; `BUFF_PERSONAS.md` L359, L412; `BUFF_BUDDY_SYSTEM.md` L39, L53, L83, L379, L412 (engine spec — verify against `buddy-success-count` migration); `BUFF_BLOG_CONTENT_MAP.md` post 13 title; `BUFF_MARKETING_BACKLOG.md` L117 rating-ask trigger; `BUFF_FEATURE_AUDIT.md` C-10/L131; `BUFF_GAP_ANALYSIS.md` T-04 (Adi's doc).
+- **השפעה:** the marketing scout quotes FAQ/MESSAGING as ingredient banks — those are now clean. Anything drafted from PRD/BRAND/PERSONAS still risks re-introducing the old claim. The scout's Compliance Gate blocks the literal string "70%" as a backstop.
+- **סטטוס:** `open` — proposed package `pkg/count-rule-spec-sync` (docs-only, one PR; BRAND §6 + PRD §6.1 need Adi's wording decision).
+- **קשור ל:** D-2026-06-14-01, BUFF_VALUES.md § Pillar 1, IN-2026-09-04-01, `docs/marketing-scout/TARGETS.md` § Claims blocklist
+
+### IN-2026-09-04-02: Unattended cloud Routine "succeeded" but did nothing — permission prompts with no human present
+
+- **תאריך:** 2026-09-04
+- **מקור:** CC — pkg/marketing-scout Phase 2 soak; watchdog Routine `trig_01JVpNUmEu81XULcWE3xgha4` first fire 09:07 UTC
+- **תיאור:** ה-Routine רץ 36 שניות, דיווח SUCCEEDED, ולא דחף כלום. session מבוקרת (`create_session` עם outcome_branch) נתקעה ב-`REQUIRES_ACTION — Waiting on permission: Bash` על `git add …; echo "…$?"; git status --short`. **הסיבה:** פקודת shell מורכבת (`;`, `$?`, redirects, `$(...)`) לא תואמת שום allow-rule ב-`.claude/settings.json` → נופלת ל-auto-mode classifier → "ask" → אין אדם → ה-session מסתיים ומדווח הצלחה. **התיקון:** "משמעת פקודה אחת" — פקודה פשוטה אחת לכל קריאת Bash, קבצים נכתבים ב-Write/Edit ולא ב-`>>`, `date -u …` כפקודה בודדת; מוטמע ב-SKILL.md (directive 8) ובשני ה-prompts של ה-Routines. **אימות:** control session (`b854976`, 09:55 UTC) דחפה שורת heartbeat ל-`automation/marketing-scout` תחת אותם allow-rules, ללא הרחבת הרשאות.
+- **הערה:** ניסיון של CC להרחיב את `permissions.allow` ב-`.claude/settings.json` (git merge/status/date/echo, `Write(docs/marketing-scout/**)`, WebSearch, PushNotification) נדחה ע"י ה-classifier — סוכן שמרחיב הרשאות לעצמו הוא security boundary. אם רוצים את שכבת ה-belt-and-braces, Adi מוסיפה את השורות ידנית.
+- **השפעה:** כלל חדש לכל אוטומציה ללא אדם: ה-prompt חייב לכלול "one simple command per Bash call; files via Write/Edit; blocked → FAIL path". `HEARTBEAT.md` Cloud variant עודכן.
+- **סטטוס:** `resolved` (soak ממשיך: 2026-09-05 ריצה ראשונה של scout-daily 04:38 UTC; watchdog 09:00 UTC)
+- **קשור ל:** IN-2026-09-04-01, `docs/automation/HEARTBEAT.md`, `.claude/skills/buff-marketing-scout/SKILL.md` §8
+
+### IN-2026-09-04-01: Marketing automation moved from Claude-desktop/Chrome to cloud Routines — sandbox egress facts
+
+- **תאריך:** 2026-09-04
+- **מקור:** CC — pkg/marketing-scout (Adi delegated: "מאשרת הכל"), six-discipline agency review panel (`docs/sessions/marketing-scout/REVIEW.md`)
+- **תיאור:** בבניית הסקאוט השיווקי היומי התגלו עובדות סביבה שקובעות את הארכיטקטורה: (1) **WebFetch חסום ב-egress policy של הסביבה** (`EGRESS_BLOCKED` ל-additudemag.com ועוד) — ניתן להרחבה רק ע"י Adi בהגדרות הסביבה; (2) **Reddit בלתי-נראה לחלוטין** — `site:reddit.com` מחזיר 0 תוצאות ו-fetch מסורב ברמת ה-crawler, לא 403 שאפשר לעקוף; (3) Bash ללא רשת בכלל — F5Bot / Google Alerts / Reddit RSS לא ניתנים לחיבור מהסנדבוקס. (4) חיפוש שם המייסדת `"Adi Elgarat"` מחזיר חדשות לא-קשורות על Itzik/Dani Elgarat — הסקאוט חייב לא לסווג namesake כאזכור מותג. (5) Claims drift: המוצר עבר לכלל הספירה (release 66) אבל MESSAGING/COMPETITORS עדיין מכרו "70% = success" — תוקן בחבילה זו.
+- **השפעה:** v1 = WebSearch-snippets בלבד; Reddit = טלפון בלבד ובעדינות (Month 1 listen-only, ≤1 אזכור מוצרי/שבוע); HEARTBEAT.md קיבל "Cloud variant" (START commit לפני כל רשת + watchdog Routine); reports נכתבים ל-branch ייעודי `automation/marketing-scout` ו-CI מדלג על `docs/marketing-scout/**`.
+- **סטטוס:** `open` — Phase 2 (Routines) + Phase 3 (החלטת Adi על הרחבת network allowlist; שדרוג `fetch_enabled`)
+- **קשור ל:** `docs/automation/HEARTBEAT.md`, `docs/marketing-scout/TARGETS.md`, `.claude/skills/buff-marketing-scout/SKILL.md`, 🚩 Play-install attribution gap (REVIEW § Growth — own package), 🚩 Itay naming rung `[NEEDS INPUT]` (FOUNDER_STORY §3.2, default 2)
+
 ### IN-2026-08-31-01: אימות טופולוגיה — קיימות שתי אפליקציות BUFF על שני Supabase נפרדים; ה-Lovable מושבת, buff-mobile (gfrongfnyigxsexuofrg) הוא החי
 - **תאריך:** 2026-08-31
 - **מקור:** CC — בהקשר `sessions/onboarding-draft-and-funnel-telemetry/` (חקירת "איפה ההרשמות נתקעו") + `sessions/acquisition-attribution-activation/`
