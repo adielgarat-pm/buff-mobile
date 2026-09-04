@@ -11,6 +11,7 @@
 
 ## Phase 2 (routines)
 - [ ] Day 1–3: `state/heartbeat.log` has START then END for each date; report file exists; push notification received.
+- [x] **Real failure found instead of simulated (2026-09-04):** watchdog first fire silent — unattended session stalled on a permission prompt. Fixed (one-command discipline) and verified by control session `b854976`. FAIL-path notification still to be observed live.
 - [ ] Simulated failure (rename TARGETS in a test branch) → FAIL line + failure notification; watchdog does *not* double-alert when FAIL is present.
 - [ ] Simulated silence (disable Routine A for a day) → watchdog pushes "scout silent".
 - [ ] Double fire same day → second run exits with `SKIP already-ran`, no second report.
