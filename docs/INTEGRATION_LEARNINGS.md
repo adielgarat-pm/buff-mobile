@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-09-04-01: Marketing automation moved from Claude-desktop/Chrome to cloud Routines — sandbox egress facts
+
+- **תאריך:** 2026-09-04
+- **מקור:** CC — pkg/marketing-scout (Adi delegated: "מאשרת הכל"), six-discipline agency review panel (`docs/sessions/marketing-scout/REVIEW.md`)
+- **תיאור:** בבניית הסקאוט השיווקי היומי התגלו עובדות סביבה שקובעות את הארכיטקטורה: (1) **WebFetch חסום ב-egress policy של הסביבה** (`EGRESS_BLOCKED` ל-additudemag.com ועוד) — ניתן להרחבה רק ע"י Adi בהגדרות הסביבה; (2) **Reddit בלתי-נראה לחלוטין** — `site:reddit.com` מחזיר 0 תוצאות ו-fetch מסורב ברמת ה-crawler, לא 403 שאפשר לעקוף; (3) Bash ללא רשת בכלל — F5Bot / Google Alerts / Reddit RSS לא ניתנים לחיבור מהסנדבוקס. (4) חיפוש שם המייסדת `"Adi Elgarat"` מחזיר חדשות לא-קשורות על Itzik/Dani Elgarat — הסקאוט חייב לא לסווג namesake כאזכור מותג. (5) Claims drift: המוצר עבר לכלל הספירה (release 66) אבל MESSAGING/COMPETITORS עדיין מכרו "70% = success" — תוקן בחבילה זו.
+- **השפעה:** v1 = WebSearch-snippets בלבד; Reddit = טלפון בלבד ובעדינות (Month 1 listen-only, ≤1 אזכור מוצרי/שבוע); HEARTBEAT.md קיבל "Cloud variant" (START commit לפני כל רשת + watchdog Routine); reports נכתבים ל-branch ייעודי `automation/marketing-scout` ו-CI מדלג על `docs/marketing-scout/**`.
+- **סטטוס:** `open` — Phase 2 (Routines) + Phase 3 (החלטת Adi על הרחבת network allowlist; שדרוג `fetch_enabled`)
+- **קשור ל:** `docs/automation/HEARTBEAT.md`, `docs/marketing-scout/TARGETS.md`, `.claude/skills/buff-marketing-scout/SKILL.md`, 🚩 Play-install attribution gap (REVIEW § Growth — own package), 🚩 Itay naming rung `[NEEDS INPUT]` (FOUNDER_STORY §3.2, default 2)
+
 ### IN-2026-08-31-01: אימות טופולוגיה — קיימות שתי אפליקציות BUFF על שני Supabase נפרדים; ה-Lovable מושבת, buff-mobile (gfrongfnyigxsexuofrg) הוא החי
 - **תאריך:** 2026-08-31
 - **מקור:** CC — בהקשר `sessions/onboarding-draft-and-funnel-telemetry/` (חקירת "איפה ההרשמות נתקעו") + `sessions/acquisition-attribution-activation/`
