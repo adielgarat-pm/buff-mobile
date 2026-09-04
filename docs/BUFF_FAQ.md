@@ -134,9 +134,9 @@
 
 ### Q14. How is BUFF different from a sticker chart? / מה שונה מטבלת מדבקות?
 
-**Short:** *Sticker charts collapse the first time life disrupts them. BUFF has Pause Mode, child-proposed rewards, and 70%-as-success — so disruptions don't end the system.*
+**Short:** *Sticker charts collapse the first time life disrupts them. BUFF has Pause Mode, child-proposed rewards, and a small absolute win (about 3 tasks = a good day) — so disruptions don't end the system.*
 
-**Long:** *Sticker charts work for ~3 weeks then fail at the first illness, vacation, or stressful week — and most families never recover. BUFF was built around the assumption that disruption is normal. Pause Mode handles it. 70% completion = success means a 7/10 day is a win, not a failure. And the rewards are something the child *wants*, not arbitrary stickers chosen by the parent. The math is automatic — the child sees exactly how many days until their next real reward.*
+**Long:** *Sticker charts work for ~3 weeks then fail at the first illness, vacation, or stressful week — and most families never recover. BUFF was built around the assumption that disruption is normal. Pause Mode handles it. A good day is about 3 tasks done (or all of them, if fewer were set) — never 100%, never a percentage — so a busy day is still a win, not a failure. And the rewards are something the child *wants*, not arbitrary stickers chosen by the parent. The math is automatic — the child sees exactly how many days until their next real reward.*
 
 ---
 
@@ -350,7 +350,7 @@
 
 **Short:** *BUFF doesn't punish breaks. There are no streaks in the traditional sense.*
 
-**Long:** *Traditional streak mechanics ("you broke your 30-day streak!") trigger ADHD shame and often cause kids to abandon the system entirely. BUFF deliberately doesn't have penalty-streaks. 70% completion is success. A "Welcome back" greets the child after a hard week. The math is forgiving by design.*
+**Long:** *Traditional streak mechanics ("you broke your 30-day streak!") trigger ADHD shame and often cause kids to abandon the system entirely. BUFF deliberately doesn't have penalty-streaks. About 3 tasks done is a good day — not 100%. A "Welcome back" greets the child after a hard week. The math is forgiving by design.*
 
 ---
 
