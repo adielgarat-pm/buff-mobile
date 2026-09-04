@@ -42,15 +42,15 @@
 
 ### 2.4 Three paragraphs (long-form blog, podcast bio)
 
-`[NEEDS INPUT: short narrative arc — when did Adi realize Itay had ADHD, what specifically wasn't working in existing tools, what was the moment that flipped from "I'm frustrated" to "I'm building this"? 3–5 sentences I can shape into a paragraph.]`
+*Shaped from Adi's own account, 2026-09-04 (pkg/adhd-awareness-month-2026). Approved for press, podcast bios and long-form posts; Adi may rephrase freely.*
 
-**Template באמצע ההשלמה:**
+> **The pain.** Before BUFF, the conversation between Adi and her son Itay had collapsed into a loop of questions — *Did you do your homework? Did you study for the test? Did you shower?* — that carried no value for either of them. Itay felt his mother cared only about school. Adi was exhausted from holding his tasks in her head, and every time she let go, he went into free fall and didn't get up.
+>
+> **The other side of the same brain.** What she could also see was this: when something interested him, Itay could work for hours and build projects of real complexity — he was already building things of his own, including an idea for a study-help tool for kids like him. The problem was never ability. It was that nothing on the market turned that engine toward an ordinary Tuesday.
+>
+> **The build.** So they built it together — for him only, at first. They sat down and asked what would actually work: real rewards he chose, a daily win small enough to reach, a screen that didn't crowd him. When the first version worked for Itay, with all his complexity, they realised it could help other kids and other parent–child conversations, and rebuilt BUFF at scale — Adi's product experience and her experience as a parent, Itay's experience as a teenager with ADHD. Today Itay owns the child's experience and Adi owns the philosophy; together they make BUFF.
 
-> *Paragraph 1 — The pain:* `[NEEDS INPUT]` Adi describes the daily reality before BUFF. The specific moment she'll never forget. Optional: a Hebrew morning-routine story that landed badly.
->
-> *Paragraph 2 — The search:* Years of trying things. Sticker charts that failed at the first illness. Joon that worked for 6 weeks then lost the kid's interest. Goally was too young, too expensive, too hardware-locked. The realization that no app was built for the *transition* — the moment a 12-year-old becomes 13.
->
-> *Paragraph 3 — The build:* `[NEEDS INPUT: when did Adi actually start building BUFF, and was there a specific incident that triggered "I'm going to build it myself"?]` What changed when Itay started giving design feedback. What's different about BUFF because a teen with ADHD shaped the teen interface.
+**HE:** *(לתרגום בעת השימוש)*
 
 ### 2.5 Full press / investor narrative
 
@@ -67,27 +67,25 @@
 
 ### 3.1 Adi Elgarat German — Founder
 
-**Public bio (approved for any channel):**
-> *Adi Elgarat German is the founder of BUFF. She is a product manager and mom of a teen with ADHD. She built BUFF because no app on the market served both her younger child and her teenager.*
+**Public bio — short (≈50 words, approved 2026-09-04 from Adi's input; any channel):**
+> *Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens (ages 6–18). A software engineer since 2000 and a product manager since 2020, she built BUFF together with her son Itay (15), who has ADHD and designs the child's experience. Based in Israel.*
 
-**HE:** *עדי אלגרט גרמן היא המייסדת של BUFF. היא מנהלת מוצר ואמא של נער עם ADHD. היא בנתה את BUFF כי אף אפליקציה בשוק לא נתנה מענה גם לבת הצעירה וגם לבן המתבגר.*
+**HE:** *עדי אלגרט גרמן היא המייסדת של BUFF, אפליקציית שגרה ומוטיבציה למשפחות של ילדים ונוער עם ADHD (גילאי 6–18). מפתחת תוכנה משנת 2000 ומנהלת מוצר משנת 2020, היא בנתה את BUFF יחד עם בנה איתי (15), נער עם ADHD שמעצב את חוויית הילד. מתגוררת בישראל.*
 
-**Extended bio for press / podcast / investor decks:**
-> *Adi is a senior product manager and mentor to other PMs. She's based in Israel and is building BUFF as founder. The combination of senior-PM craft + first-hand ADHD parenting + active mentor identity is the credibility BUFF leads with — not generic "founder energy" but specific product-management discipline applied to her own family's daily reality.*
+**Extended bio — press / podcast / investor decks (≈120 words):**
+> *Adi Elgarat German is the founder of BUFF, an ADHD routines-and-motivation app for families of kids and teens aged 6 to 18. She has built software since 2000 — first as a developer, then for fourteen years leading development teams and projects, and since 2020 as a product manager for complex, data-heavy products in large organisations. BUFF began at home: every conversation with her son Itay, who has ADHD, had collapsed into nagging — did you do your homework, did you study, did you shower. The two sat down and built a first version just for him: real rewards he chose, a daily win small enough to reach. When it worked, they rebuilt it for other families. Itay (15) owns the child's experience; Adi owns the philosophy. Based in Israel; BUFF was founded in 2025 and relaunched in its current form in June 2026.*
 >
 > **LinkedIn:** https://www.linkedin.com/in/adi-elgarat-german
-> `[NEEDS INPUT: specific past companies/products she wants named on the record — verify with Adi which to include]`
 
-**What Adi is comfortable being public about:**
-- Being the founder
-- Being a mom of a teen with ADHD
-- Being Israeli, building for international market
-- Background as a **senior product manager**
-- **Mentoring other PMs** — this is both an authority signal and a channel asset (see [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) §2.4 PM-community channel)
-- `[NEEDS INPUT: specific past employers/products she wants on/off the record?]`
+**What Adi is comfortable being public about** (confirmed 2026-09-04):
+- Being the founder; being a mom of a teen with ADHD; being Israeli, building for the international market
+- Career shape: developer since 2000 → dev-team lead and project manager 2006–2020 → product manager since 2020 (complex products, data strategy, platform/cross-cutting product, complex-entity management)
+- **Mentoring other PMs** — authority signal and channel asset (see [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) §2.4)
+- Itay by first name and age (see §3.2)
 
-**What Adi is NOT comfortable being public about:**
-- `[NEEDS INPUT: anything off-limits? Specific employers, specific personal details, family circumstances, etc.]`
+**What Adi is NOT comfortable being public about** (confirmed 2026-09-04):
+- **Employer names — current or past — and the sector she works in.** Copy says "large organisations", nothing more.
+- Emi: see §3.3 — CC's standing recommendation is to keep her unnamed in all press material (no co-designer role → no upside; a 9-year-old cannot consent).
 
 ---
 
@@ -103,12 +101,13 @@
 **Named attribution (only with explicit Adi-approval for that specific use):**
 > *Teen Mode was co-designed with Itay, the founder's son — a 15-year-old with ADHD.*
 
-**Itay's role (factual):**
-- Co-designed the Teen UI dashboard
-- Approved or rejected each of the 6 Stitch screens (D-2026-05-02 onwards)
-- Specifically requested: no buddy character by default, dark theme, dashboard not pet
+**Itay's role (factual, updated 2026-09-04 from Adi):**
+- Co-designed the Teen UI dashboard; approved or rejected each of the 6 Stitch screens (D-2026-05-02 onwards)
+- Specifically requested: no buddy character by default, dark theme, dashboard not pet — and **the Gamer interface itself was his ask**
+- Asked for *focus*: too many tasks on screen "bother the eye" — which matched Adi's research that too many or too-large tasks paralyse an ADHD brain (→ the count rule, the trimmed task view)
+- **Initiated the rewards store** and keeps proposing additions to it
 - Validated the "ADHD apps feel babyish" insight that drives the entire Teen Mode design
-- `[NEEDS INPUT: any quote Adi has from Itay that we can attribute (with his consent)? E.g. "ADHD apps feel babyish" — is this his actual phrase, or a paraphrase?]`
+- `[NEEDS INPUT: any quote from Itay we can attribute, in his words, with his consent?]`
 
 **Public visibility ladder (Adi decides per-use):**
 1. **No mention** — for most casual ad copy
@@ -117,7 +116,7 @@
 4. **Full attribution** — *"co-designed with Adi's son Itay"*
 5. **Direct quote, attributed** — Itay's own words, with consent
 
-`[NEEDS INPUT: which ladder rung is the default for Itay? My guess is #2 or #3 — confirm.]`
+**Default = rung 3–4 (Adi, 2026-09-04): first name + age, "the founder's son". Still never: last name, school, medication, photos without a separate per-use OK.** `[ACTION for Adi: get Itay's own one-line written OK and keep it privately — not in this repo.]`
 
 ---
 
@@ -235,7 +234,8 @@ Material relevant to the founder story that **should never appear in public copy
 - Emi's full last name, ever, without explicit consent for that specific use
 - Photos of Itay or Emi that show their faces, unless Adi explicitly approves the photo for that specific use
 - Adi's home address, kids' school locations, daily schedules
-- `[NEEDS INPUT: anything else Adi wants off-limits?]`
+- **Adi's employers — current or past — and the sector she works in** (confirmed 2026-09-04)
+- Emi's name, age or any diagnosis detail in press material (CC recommendation, pending Adi's final word — see §3.1)
 
 ---
 
