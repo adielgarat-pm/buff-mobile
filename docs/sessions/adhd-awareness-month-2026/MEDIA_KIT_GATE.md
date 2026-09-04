@@ -5,7 +5,7 @@
 | # | Item | Status | What Adi does | Where it goes |
 |---|---|---|---|---|
 | 1 | **Approved bio** (50 words + 120 words) | ✅ drafted 2026-09-04 from Adi's answers — **Adi: read once, say "bio OK"** | — | `BUFF_FOUNDER_STORY.md` §3.1 → `PRESS_PAGE.md` |
-| 2 | **2 headshots** (1 square, 1 landscape; ≥1200 px; neutral background) | ❌ | Phone photo in daylight is fine; no kids in frame | `docs/marketing-assets/press/adi-headshot-{square,wide}-2026-09.jpg` |
+| 2 | **Headshot (square) + story image (wide)** | ⚠ half | Square headshot **approved in chat 2026-09-04** (window light, smiling) — upload the original file via GitHub → `docs/marketing-assets/press/`. Wide slot = a no-face candid of Adi + Itay (from behind/side), not a family photo — see press/README.md | `docs/marketing-assets/press/` |
 | 3 | **Founding year + 3 data points** | ✅ | Founded 2025, relaunched in its current form June 2026; 183 beta families (PRD §2.2); ages 6–18; Google Play + web (iOS planned) | `PRESS_PAGE.md` § Facts |
 | 4 | **Press page live** at `buffadhd.com/press` | ❌ | Say "go" → CC builds it in the `buff` repo from `PRESS_PAGE.md` | `buff` repo |
 | 5 | 6 store screenshots | ✅ | — | `docs/marketing-assets/play-store-listing/screenshots/` |
