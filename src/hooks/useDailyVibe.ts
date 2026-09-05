@@ -56,7 +56,7 @@ export function useDailyVibe(childId: string | null) {
     try {
       const { data, error: queryError } = await supabase
         .from('child_vibes')
-        .select('vibe_level, low_power_mode, parent_sos_sent, vibe_shared_with_parent, vibe_type, date')
+        .select('vibe_level, low_power_mode, parent_sos_sent, vibe_shared_with_parent, instant_buff_awarded, vibe_type, date')
         .eq('family_id', familyId)
         .eq('child_id', childId)
         .eq('date', todayKey)
@@ -139,6 +139,7 @@ export function useDailyVibe(childId: string | null) {
       low_power_mode:  lowPower,
       parent_sos_sent: false,
       vibe_shared_with_parent: false,
+      instant_buff_awarded: false, // a fresh vibe row starts un-awarded
       vibe_type:       type,
       date:            todayKey,
     };
@@ -233,9 +234,12 @@ export function useDailyVibe(childId: string | null) {
   }, [familyId, childId, todayKey, todayVibe, refetch]);
 
   /**
-   * Add INSTANT_BUFF_AMOUNT BUFFs to the child's credit_vault, atomically.
-   * Uses the adjust_credit_vault RPC (migration 021) so a concurrent task
-   * completion can't clobber the award. Returns the new balance on success.
+   * Grant the +5 self-care Instant Buff — AT MOST ONCE per child per local day.
+   * Uses the award_instant_buff RPC (migration 057), which is atomic AND
+   * idempotent server-side (a one-shot flag on today's child_vibes row), so
+   * reopening the app can no longer farm it (audit M6). The +5 amount is fixed
+   * server-side. `already_awarded` is a SUCCESS (the self-care act happened; we
+   * just don't double-credit) — never surface it as an error.
    */
   const awardInstantBuff = useCallback(async (): Promise<{
     error:      Error | null;
@@ -245,24 +249,25 @@ export function useDailyVibe(childId: string | null) {
       return { error: new Error('No familyId/childId available'), newBalance: null };
     }
 
-    const { data, error } = await supabase.rpc('adjust_credit_vault', {
+    const { data, error } = await supabase.rpc('award_instant_buff', {
       p_child_id: childId,
-      p_delta:    INSTANT_BUFF_AMOUNT,
-      p_reason:   'instant_buff',
+      p_date:     todayKey,
     });
 
     if (error) {
       console.error('[useDailyVibe] awardInstantBuff RPC failed:', error);
       return { error: error as unknown as Error, newBalance: null };
     }
-    const res = data as { ok: boolean; new_balance?: number; error?: string } | null;
+    const res = data as { ok: boolean; already_awarded?: boolean; new_balance?: number; error?: string } | null;
     if (!res?.ok) {
       console.error('[useDailyVibe] awardInstantBuff rejected:', res?.error);
-      return { error: new Error(res?.error ?? 'adjust_failed'), newBalance: null };
+      return { error: new Error(res?.error ?? 'award_failed'), newBalance: null };
     }
 
+    // Reflect the now-set flag locally so the card stays hidden without a refetch.
+    void refetch();
     return { error: null, newBalance: res.new_balance ?? null };
-  }, [familyId, childId]);
+  }, [familyId, childId, todayKey, refetch]);
 
   return {
     // State
@@ -274,6 +279,9 @@ export function useDailyVibe(childId: string | null) {
     isLowPower,
     sosSent,
     vibeShared,
+    // Instant Buff one-shot state (migration 057) — lets the card stay hidden
+    // after a reload instead of re-appearing to be re-tapped (M6).
+    instantBuffAwarded: todayVibe?.instant_buff_awarded ?? false,
     // Actions
     recordVibe,
     sendSos,

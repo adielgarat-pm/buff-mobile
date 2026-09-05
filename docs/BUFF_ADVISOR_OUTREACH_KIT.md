@@ -67,7 +67,7 @@ Verified each person's body of work + public presence as of 2026-05-13. **Verify
 |---|---|---|---|---|
 | 1 | **Penny Williams** — *Beautifully Complex* podcast, parent coach, parentingadhdandautism.com | Direct alignment with Pillar 2 (Positive Coaching). Her framework is anti-control, pro-collaboration. Recently published episode 302 *"Break the Parenting Norms for Kids with ADHD"* (Feb 2025) | Advisor + podcast guest | 5/5 |
 | 2 | **Sharon Saline, PsyD** — *What Your ADHD Child Wishes You Knew* (90k+ copies), 5C's framework | Collaboration C is literally the operationalization thesis behind BUFF's child-proposed tasks/rewards. Direct overlap with Pillar 3. | Advisor + try-with-clients | 5/5 |
-| 3 | **Brendan Mahan, M.Ed., M.S.** — *ADHD Essentials* podcast, "Wall of Awful" coiner, new Hachette/Balance book deal *"Overcoming The Wall of Awful"* | Anti-shame, pro-coach orientation. BUFF's 70%-as-success and Pause Mode are anti-brick-laying mechanics. Highly responsive to thoughtful founders. | Podcast guest spot | 5/5 |
+| 3 | **Brendan Mahan, M.Ed., M.S.** — *ADHD Essentials* podcast, "Wall of Awful" coiner, new Hachette/Balance book deal *"Overcoming The Wall of Awful"* | Anti-shame, pro-coach orientation. BUFF's "about 3 tasks = a good day" count rule and Pause Mode are anti-brick-laying mechanics. Highly responsive to thoughtful founders. | Podcast guest spot | 5/5 |
 | 4 | **Elaine Taylor-Klaus + Diane Dempster** — ImpactParents, parent coaches | Their model is "parent as coach, not boss." Direct overlap with [BRAND.md §6](BUFF_BRAND.md) tone. | Try-and-recommend partnership (post Play Store live) | 5/5 |
 | 5 | **Caroline Maguire, ACCG, PCC** — *Why Will No One Play With Me?*, exec-function coach for kids | Specifically scaffolds EF with kid-as-stakeholder. Aligned with child-proposes-tasks feature. | Advisor or trial-with-clients | 4/5 |
 
@@ -169,8 +169,9 @@ shorter.
 That insight became a design constraint for an ADHD
 app I'm building called BUFF (ages 6–18). Two of its
 core mechanics are essentially the inverse of brick-
-laying: a "70% = success" rule that makes 7/10 a win
-and never a loss, and a Pause Mode that greets
+laying: a "small absolute win" rule — about three
+tasks done is a good day, never 100%, never a
+percentage — and a Pause Mode that greets
 returning kids with "Welcome back" instead of a
 missed-days count. The unusual part — and why I think
 there's an episode in it — is that the explicit
