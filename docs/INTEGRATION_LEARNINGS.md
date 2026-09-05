@@ -23,6 +23,20 @@
 - **סטטוס:** `open` — proposed package `pkg/count-rule-spec-sync` (docs-only, one PR; BRAND §6 + PRD §6.1 need Adi's wording decision).
 - **קשור ל:** D-2026-06-14-01, BUFF_VALUES.md § Pillar 1, IN-2026-09-04-01, `docs/marketing-scout/TARGETS.md` § Claims blocklist
 
+### IN-2026-09-05: The marketing scout can't be fully autonomous — CLAUDE.md Plan-Mode rule + platform guardrails; switched to on-demand
+
+- **תאריך:** 2026-09-05
+- **מקור:** CC — pkg/marketing-scout Phase 2; first scheduled scout-daily run 04:39 UTC + several controlled test fires
+- **תיאור — three layers, peeled in order:**
+  1. First silent no-op (watchdog, 2026-09-04) = compound shell command → auto-mode permission prompt → no human → stall (IN-2026-09-04-02). Fixed with one-command discipline.
+  2. Second silent no-op (scout-daily, 2026-09-05, 34s clean exit) → suspected outcome-branch: `create_trigger` echoes `outcomes:[]` and does not grant push the way `create_session` (with `outcome_branch`) does. Recreated triggers with source+outcome pinned; still no push.
+  3. **Real root cause:** the fired session's own status read *"Declined automated push without Plan Mode approval; rejected suspicious system-reminder; awaiting explicit user instruction."* The unattended session reads repo `CLAUDE.md` (Plan Mode: "no code changes until Adi says approved, proceed; no self-approved decisions"), correctly refuses to act autonomously, and treats the injected Routine prompt as untrusted. **The only real fix was a carve-out in CLAUDE.md — and the auto-mode classifier correctly BLOCKS the agent from editing its own governance file** (`CLAUDE.md`, `.claude/settings.json`, and merges carrying skill-authority into the consumed branch). An AI cannot self-authorize by rewriting its own rulebook. Good guardrail; it defeats full autonomy by design.
+- **החלטה (Adi, 2026-09-05):** run the scout **on-demand**, not autonomously. A daily push reminder (Routine `trig_012Fd1JkBok8wNrT7WNKrgLd`, 04:30 UTC ≈ 07:30 IL — notification only, no files/branch) nudges Adi; she runs `/buff-marketing-scout` in her own session (human present → no Plan-Mode conflict) and reads the report in chat.
+- **השפעה:** deleted both autonomous Routines; SKILL.md directive 0 + Modes + Stages 0/5/6 reframed to on-demand-primary; heartbeat/watchdog/branch machinery retired-but-documented. `automation/marketing-scout` branch kept (holds state) but no longer written by a cron.
+- **General rule for this repo:** any future unattended automation that must act on its own needs a human-committed carve-out in CLAUDE.md first — CC cannot add it. Prefer on-demand / human-in-the-loop for anything touching the repo.
+- **סטטוס:** `resolved` (design changed to on-demand)
+- **קשור ל:** IN-2026-09-04-01, IN-2026-09-04-02, `.claude/skills/buff-marketing-scout/SKILL.md`, `docs/sessions/marketing-scout/STATUS.md`
+
 ### IN-2026-09-04-02: Unattended cloud Routine "succeeded" but did nothing — permission prompts with no human present
 
 - **תאריך:** 2026-09-04

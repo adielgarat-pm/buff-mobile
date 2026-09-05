@@ -1,6 +1,7 @@
 # pkg/marketing-scout — BUFF's daily marketing scout
 
-**Status:** Phase 1 in progress · **Branch:** `claude/epic-johnson-j0lv3w` (skill + docs) · job branch: `automation/marketing-scout`
+**Status:** Built · **runs ON-DEMAND** (autonomous cron abandoned 2026-09-05 — see IN-2026-09-05). Adi runs `/buff-marketing-scout` in her own session; a daily push reminder nudges her (Routine `trig_012Fd1JkBok8wNrT7WNKrgLd`).
+**Branch:** `claude/epic-johnson-j0lv3w` (skill + docs) · `automation/marketing-scout` holds state files only.
 **Opened:** 2026-09-04 · **Owner:** Adi (delegated execution to CC, "מאשרת הכל" 2026-09-04)
 
 | File | What |
