@@ -38,8 +38,20 @@ runs:
           | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);process.stdout.write(j.hash||j.fingerprintHash||"")}catch(e){process.stdout.write("")}})')
 
         echo "Reading live binary runtimeVersion (latest FINISHED production android build)…"
-        BINARY=$(eas build:list --platform android --profile production --status finished --limit 1 --json --non-interactive \
-          | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const arr=Array.isArray(j)?j:(j.builds||[]);const b=arr[0]||{};process.stdout.write(b.runtimeVersion||"")}catch(e){process.stdout.write("")}})')
+        # NOTE: build:list filters by --build-profile (NOT --profile; that flag is
+        # `eas build`'s and errors here, which is why the read was silently empty
+        # and the guard failed "Refusing to guess" on every runtime commit since R8
+        # — 2026-09-05). Parse both id + runtimeVersion so we can fall back to
+        # build:view if the list summary ever omits the runtime.
+        LATEST=$(eas build:list --platform android --build-profile production --status finished --limit 1 --json --non-interactive \
+          | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const arr=Array.isArray(j)?j:(j.builds||[]);const b=arr[0]||{};process.stdout.write(JSON.stringify({id:b.id||"",rv:b.runtimeVersion||""}))}catch(e){process.stdout.write("{}")}})')
+        BINARY=$(printf '%s' "$LATEST" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{process.stdout.write((JSON.parse(d).rv)||"")}catch(e){process.stdout.write("")}})')
+        BID=$(printf '%s' "$LATEST" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{process.stdout.write((JSON.parse(d).id)||"")}catch(e){process.stdout.write("")}})')
+        if [ -z "$BINARY" ] && [ -n "$BID" ]; then
+          echo "runtimeVersion absent from build:list — falling back to build:view $BID"
+          BINARY=$(eas build:view "$BID" --json --non-interactive \
+            | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const b=Array.isArray(j)?(j[0]||{}):j;process.stdout.write(b.runtimeVersion||"")}catch(e){process.stdout.write("")}})')
+        fi
 
         echo "project fingerprint : ${PROJECT:-<empty>}"
         echo "live binary runtime : ${BINARY:-<empty>}"
