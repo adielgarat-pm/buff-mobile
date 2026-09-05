@@ -43,21 +43,23 @@ runs:
         # and the guard failed "Refusing to guess" on every runtime commit since R8
         # — 2026-09-05). Parse both id + runtimeVersion so we can fall back to
         # build:view if the list summary ever omits the runtime.
-        # build:list --json does NOT carry runtimeVersion at the top level -- it lives
-        # under metadata.runtimeVersion (confirmed 2026-09-05, run 33950880962). Read
-        # both. Every eas call is `|| true`-guarded because this step runs under
+        # build:list --json does NOT carry a top-level runtimeVersion (nor a metadata
+        # object). Confirmed from the real key dump (run 33951858186, 2026-09-05): the
+        # value lives in the `runtime` object (runtime.version = what the binary
+        # reports to expo-updates) with `fingerprint.hash` as the same value under
+        # the fingerprint policy. Read runtime.version first, then fingerprint.hash. Every eas call is `|| true`-guarded because this step runs under
         # `bash -e -o pipefail`: a failing eas call must reach the fail-closed check
         # below WITH diagnostics, not abort the script mid-way (which is exactly what
         # the build:view fallback did in run 33950880962).
         LATEST=$(eas build:list --platform android --build-profile production --status finished --limit 1 --json --non-interactive \
-          | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const arr=Array.isArray(j)?j:(j.builds||[]);const b=arr[0]||{};const m=b.metadata||{};process.stdout.write(JSON.stringify({id:b.id||"",rv:b.runtimeVersion||m.runtimeVersion||"",keys:Object.keys(b).join(","),mkeys:Object.keys(m).join(",")}))}catch(e){process.stdout.write("{}")}})' || true)
+          | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const arr=Array.isArray(j)?j:(j.builds||[]);const b=arr[0]||{};const m=b.metadata||{};const r=b.runtime||{};const f=b.fingerprint||{};process.stdout.write(JSON.stringify({id:b.id||"",rv:b.runtimeVersion||r.version||f.hash||m.runtimeVersion||"",keys:Object.keys(b).join(","),rkeys:Object.keys(r).join(","),fkeys:Object.keys(f).join(","),mkeys:Object.keys(m).join(",")}))}catch(e){process.stdout.write("{}")}})' || true)
         BINARY=$(printf '%s' "$LATEST" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{process.stdout.write((JSON.parse(d).rv)||"")}catch(e){process.stdout.write("")}})' || true)
         BID=$(printf '%s' "$LATEST" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{process.stdout.write((JSON.parse(d).id)||"")}catch(e){process.stdout.write("")}})' || true)
         if [ -z "$BINARY" ] && [ -n "$BID" ]; then
-          DIAG=$(printf '%s' "$LATEST" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);process.stdout.write("top="+j.keys+" metadata="+j.mkeys)}catch(e){process.stdout.write("")}})' || true)
+          DIAG=$(printf '%s' "$LATEST" | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);process.stdout.write("top="+j.keys+" runtime="+j.rkeys+" fingerprint="+j.fkeys+" metadata="+j.mkeys)}catch(e){process.stdout.write("")}})' || true)
           echo "runtimeVersion absent from build:list ($DIAG) -- falling back to build:view $BID"
           BINARY=$(eas build:view "$BID" --json --non-interactive \
-            | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const b=Array.isArray(j)?(j[0]||{}):j;const m=b.metadata||{};process.stdout.write(b.runtimeVersion||m.runtimeVersion||"")}catch(e){process.stdout.write("")}})' || true)
+            | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const j=JSON.parse(d);const b=Array.isArray(j)?(j[0]||{}):j;const m=b.metadata||{};const r=b.runtime||{};const f=b.fingerprint||{};process.stdout.write(b.runtimeVersion||r.version||f.hash||m.runtimeVersion||"")}catch(e){process.stdout.write("")}})' || true)
         fi
 
         echo "project fingerprint : ${PROJECT:-<empty>}"
