@@ -17,6 +17,9 @@ import { STARTER_TASKS_BY_CHALLENGE, FALLBACK_TASKS } from '../screens/onboardin
 import { pickLang, type I18nString } from './i18nString';
 
 function allLibraryTitles(): I18nString[] {
+  // The NEW engine library is listed FIRST because it is the canonical source;
+  // buildRetitleMap keeps the first mapping for a given key (see below), so on a
+  // cross-library collision the engine's variant wins over the legacy library.
   return [
     ...STARTER_TASK_LIBRARY.map((t) => t.title),
     ...Object.values(STARTER_TASKS_BY_CHALLENGE).flat().map((t) => t.title),
@@ -27,13 +30,20 @@ function allLibraryTitles(): I18nString[] {
 /**
  * Map of old-language title → new-language title, exact library matches only.
  * Exported for tests.
+ *
+ * Some English titles exist in BOTH the new engine library and the legacy
+ * `STARTER_TASKS_BY_CHALLENGE` with slightly different Hebrew (e.g. "Lay out
+ * tomorrow's clothes" → `…למחר` (engine) vs `…לבוקר` (legacy)). We keep the
+ * FIRST mapping seen — and the engine library is listed first — so the engine's
+ * canonical variant wins instead of the legacy one (audit L6). Previously this
+ * used last-writer-wins, so the legacy title silently overwrote the engine's.
  */
 export function buildRetitleMap(newLang: 'he' | 'en'): Map<string, string> {
   const map = new Map<string, string>();
   for (const title of allLibraryTitles()) {
     const from = pickLang(title, newLang === 'he' ? 'en' : 'he');
     const to = pickLang(title, newLang);
-    if (from && to && from !== to) map.set(from, to);
+    if (from && to && from !== to && !map.has(from)) map.set(from, to);
   }
   return map;
 }

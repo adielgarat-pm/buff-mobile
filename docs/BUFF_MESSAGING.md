@@ -134,7 +134,7 @@
 |---|---|---|
 | "I'm tired of repeating myself" | The app reminds, parent doesn't | H1, H3 |
 | "My kid loses interest in apps fast" | Real rewards, not virtual coins | H4 |
-| "Sticker charts don't last" | Pause Mode + 70% = success | H5 |
+| "Sticker charts don't last" | Pause Mode + "~3 tasks = a win" (count rule, not 100%) | H5 |
 | "My teen won't engage with kid apps" | Gamer Mode, no buddy, dashboard | H8 |
 | "I want to support, not control" | Coach framing, child as proposer | H6, H8 |
 | "What if my kid never becomes independent?" | Scaffold-that-fades, outgrow the app | H6, H9 |
@@ -173,7 +173,7 @@
 
 ### תבנית "Preliminary AHA" — אם ה-trophy event לא נורה ב-12 הימים הראשונים
 
-> *"You're 12 days in. {kid_name} has hit 70% completion {N} days in a row. That's the foundation that turns into the unprompted moments. Keep going — your subscription helps lock in the system."*
+> *"You're 12 days in. {kid_name} has had an active day ({goal} tasks done) {N} days in a row. That's the foundation that turns into the unprompted moments. Keep going — your subscription helps lock in the system."*
 > CTA: *"Continue with Family Plan — $9/mo"*
 
 ### עברית
@@ -230,7 +230,7 @@ WHY BUFF IS DIFFERENT
 
 • Built to be outgrown: The goal is for your kid to not need this app. Phase 1: parent + app remind. Phase 4: kid self-initiates.
 
-• 70% = success: Demanding perfection paralyzes ADHD kids. BUFF defines success at 70% — so 7 out of 10 tasks is a win.
+• A small, absolute win: Demanding perfection paralyzes ADHD kids. BUFF calls a day a win at about 3 tasks done (or all of them, if fewer were set) — never 100%, never a percentage.
 
 • Pause Mode: When life disrupts (illness, vacation, hard week), one button pauses everything without losing progress. Resume with "Welcome back."
 
@@ -399,14 +399,14 @@ NEVER include in BUFF visuals:
 
 **Tone:** Peer, not promoter. אם הקופי נקרא כמו ad — חוסם פעולה.
 **Format:** Reply to a question (Templates §3), not unsolicited post.
-**Founder voice:** Adi can post as founder ("I'm the founder of BUFF, but more importantly mom of a teen with ADHD…"). Disclosure builds trust.
+**Founder voice:** Adi posts as founder — **disclosure is mandatory whenever BUFF is named**, not optional ("I'm the founder of BUFF, but more importantly mom of a teen with ADHD…"). Disclosure builds trust, and undisclosed founder recommendations are both an FTC material-connection issue and a ban trigger. Canonical lines: `docs/marketing-scout/TARGETS.md` § Disclosure. _(Updated 2026-09-04, agency review panel.)_
 **Frequency:** Max 2-3 replies/week per group. More = spammer flag.
 
 ### 8.2 Reddit (r/ADHD_parenting, r/ADHD)
 
 **Tone:** Skeptical-tolerant. They smell hype 5 miles away.
 **Format:** Long-form replies (200+ words) outperform short. Specific > vague.
-**Founder voice:** OK to mention "we built X" but lead with the answer to their question.
+**Founder voice:** Lead with the answer to their question; mention "we built X" only if OP asked for tools, **always with the disclosure line, never with a link** in support subs. **Reddit is phone-only and gentle** (Adi 2026-09-04): Month 1 listen-only; then ≤1 product-adjacent mention/week across all Reddit; 10:1 goodwill ratio. r/ADHD = listen-only, permanently.
 **Rules:** Read each sub's rules — some ban founders entirely. r/ADHD specifically: be careful.
 **Frequency:** Quality > quantity. One excellent reply > 10 short ones.
 

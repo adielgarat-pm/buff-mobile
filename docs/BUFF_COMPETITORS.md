@@ -47,7 +47,7 @@
 3. **The app you outgrow** — כולם רוצים DAU. רק BUFF מצהירה: ילד שלא צריך אותנו = הצלחה.
 4. **Child as proposer** — Joon: ההורה מגדיר. Goally: ההורה קונה. BUFF: הילד מציע משימה, מציע פרס.
 5. **Pause Mode** — disruption recovery כפיצ'ר, לא ככישלון. אף אחד לא עושה את זה.
-6. **70% = success** — שאר השוק רוצה 100% completion. BUFF אומרת: 7/10 = ניצחון.
+6. **ניצחון קטן ומוחלט (כלל הספירה)** — שאר השוק רוצה 100% completion. BUFF אומרת: כ-3 משימות (או כולן, אם הוקצו פחות) = יום מוצלח. לא אחוז, לא שלמות. _(D-2026-06-14; הוחלף מ-"70%" ב-2026-09-04 — drift מול release 66.)_
 7. **Family as a system, not parent + tool** — Joon: parent installs app, tool does the work. BUFF: parent has interface, child has interface, **shared system**.
 8. **Coach, not warden** — reframe לזהות ההורה. אף מתחרה לא נוגע בזה. Joon: "we do the reminding". BUFF: "you become the coach".
 
@@ -146,7 +146,7 @@
 - **Direct overlap risk for BUFF:** Savvy Kid owns "soft empathetic ADHD parenting voice" organically. **Don't compete on tone — compete on mechanism** (we have a product, they're mostly content).
 
 **מתי תשמעי על Savvy Kid בפורומים:**
-- "Savvy Kid sounds nice but I don't understand what the app actually does" → AHA: vagueness. **תגובה:** מציגה את ה-flow המקונקרטי של BUFF — task → 70% → real reward.
+- "Savvy Kid sounds nice but I don't understand what the app actually does" → AHA: vagueness. **תגובה:** מציגה את ה-flow המקונקרטי של BUFF — task → "~3 done = a win" → real reward.
 
 ---
 
@@ -474,7 +474,8 @@
 
 ### 4.3 "I've tried every ADHD app and nothing sticks"
 
-> *"That's usually because every app is built on extrinsic motivation — coins, pets, points — and ADHD brains habituate to novelty fast. The thing that actually sticks is when the reward is something they already want in real life (concert, gaming console, specific outing). BUFF builds the system around real rewards. It's the only one where 70% completion is success, not failure."*
+> *"That's usually because every app is built on extrinsic motivation — coins, pets, points — and a common explanation is that novelty wears off fast for many ADHD kids. The thing that actually sticks is when the reward is something they already want in real life (concert, gaming console, specific outing). BUFF builds the system around real rewards, and it calls a day a win at about three tasks done — not 100%."*
+> _(2026-09-04: removed the unsourced "brains habituate" mechanism claim and the "only one where 70%…" superlative — see `docs/sessions/marketing-scout/REVIEW.md` § Legal.)_
 
 ### 4.4 "Won't this app just be another thing I have to manage?"
 

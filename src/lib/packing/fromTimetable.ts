@@ -3,9 +3,11 @@
  *
  * The HQ dashboard PackingCard was activities-only, so camp/lesson gear a parent
  * typed into the school timetable (TimetableScreen) was invisible there — it only
- * showed on the separate ChildBagPrepScreen. This module reshapes timetable
- * equipment into the same `PackingGroup[]` the card already renders, so both
- * sources appear in one place (noaa-behavior-spec D1).
+ * showed on the (then timetable-only) ChildBagPrepScreen. This module reshapes
+ * timetable equipment into the same `PackingGroup[]` the card renders, so both
+ * sources appear in one place (noaa-behavior-spec D1). Since
+ * tomorrow-pack-inconsistency (2026-09) the ציוד tab hosts PackingCard too, so
+ * this is the single merge point for every child packing surface.
  *
  * This is the one module allowed to import BOTH domains (activities + timetable);
  * lib/activities/packing.ts stays activities-only.

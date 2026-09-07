@@ -19,7 +19,7 @@ Branch: `claude/noaa-behavior-spec-rlymvx` · reported on app **1.7.8 (vc64)** �
 - **R2** "streak at Lia's, not mine" → P4 (banner names the child's screen).
 
 ## Non-goals / deferred
-- **ChildBagPrep tab consolidation** (D1 option 2 — remove/redirect the separate ציוד tab now that HQ shows today+tomorrow): deferred; touches `ChildTabs` owned by a sibling session. Follow-up decision for Adi. The BagPrep screen also still has a `count/total` progress counter that contradicts the no-counter rule — worth folding into the same cleanup.
+- ~~**ChildBagPrep tab consolidation**~~ → **done 2026-09-02** in `docs/sessions/tomorrow-pack-inconsistency/` (the ציוד tab now hosts `PackingCard`; `ChildTabs` untouched; the `count/total` counter, "סמן הכל" and the day-off branch were deleted). Original note: D1 option 2 was deferred because it touched `ChildTabs` owned by a sibling session and the BagPrep screen still had a progress counter contradicting the no-counter rule.
 - **D6 copy fix** (TimetableScreen "e.g. camp"): now harmless since camp entered in the timetable surfaces on HQ (P2); left as-is.
 - **F5 own-device child RLS silent-fail**: not exercised (approval path removed); left for a future own-device-child pass.
 

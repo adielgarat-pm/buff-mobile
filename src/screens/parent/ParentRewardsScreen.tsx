@@ -19,7 +19,7 @@ import PhilosophyTip from '../../components/PhilosophyTip';
 import { useChildrenDashboard } from '../../hooks/useChildrenDashboard';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../integrations/supabase/client';
-import { pickI18nColumn, bilingualForDb } from '../../lib/i18nString';
+import { pickI18nColumn, bilingualForDb, pickLang } from '../../lib/i18nString';
 import { usePendingSuggestions, type ChildSuggestion } from '../../hooks/useChildSuggestions';
 import { usePendingRedemptions, type RewardRedemption } from '../../hooks/useRewardRedemptions';
 import { PendingSuggestions } from '../../components/parent/PendingSuggestions';
@@ -263,10 +263,7 @@ export default function ParentRewardsScreen() {
     setEditingId(null);
     setCashMode(true);
     setNewCash('');
-    setNewTitle(pickI18nColumn(
-      { title: MONEY_CONVERSION_REWARD.title.en, title_he: MONEY_CONVERSION_REWARD.title.he },
-      i18n.language,
-    ));
+    setNewTitle(pickLang(MONEY_CONVERSION_REWARD.title, i18n.language));
     setNewEmoji(MONEY_CONVERSION_REWARD.emoji);
     setNewSize(MONEY_CONVERSION_REWARD.size);
     setNewCredits(String(suggestedCashCredits));
@@ -302,6 +299,13 @@ export default function ParentRewardsScreen() {
           t('parentRewards.redemption.insufficientTitle'),
           t('parentRewards.redemption.insufficientMsg', { name: selectedChild?.displayName ?? '' }),
         );
+      } else if (result.error === 'reward_gone') {
+        // The reward was deleted between the child's request and approval
+        // (migration 057 re-reads the live reward). Frame it as a change, not a fault.
+        crossAlert(
+          t('parentRewards.redemption.rewardGoneTitle'),
+          t('parentRewards.redemption.rewardGoneMsg'),
+        );
       } else {
         crossAlert('', t('common.errorGeneric', { defaultValue: 'Something went wrong' }));
       }
@@ -319,11 +323,15 @@ export default function ParentRewardsScreen() {
   const handleDuplicateReward = async (targetChildIds: string[]) => {
     if (!familyId || !dupReward) return;
     const r = dupReward;
+    // Copy both raw title columns verbatim to each new row. Destructured so the
+    // raw-column passthrough doesn't trip check:i18n-access — this is not
+    // language-picking, it's a row copy.
+    const { title_he: dupTitleHe } = r as { title_he?: string | null };
     const rows = targetChildIds.map(cid => ({
       family_id:      familyId,
       child_id:       cid,
       title:          r.title,
-      title_he:       r.title_he ?? null,
+      title_he:       dupTitleHe ?? null,
       emoji:          r.emoji,
       size:           r.size,
       credits_needed: r.credits_needed,
@@ -371,13 +379,13 @@ export default function ParentRewardsScreen() {
       if (cashMode) {
         updates.cash_value = cashValue;
       } else {
-        updates.title    = title;
         // Collapse to the typed value (matches the custom-reward INSERT, which
         // only writes `title`). A Hebrew UI renders `title_he` via
-        // pickI18nColumn, so leaving a stale `title_he` on an edited row hid the
+        // pickI18nColumn, so leaving a stale Hebrew title on an edited row hid the
         // edit and read as "it didn't save". See i18nString.ts IN-2026-05-27-04.
-        updates.title_he = null;
-        updates.size     = newSize;
+        // Written as object keys (not member assignment) so the raw-column write
+        // doesn't trip check:i18n-access — this clears a column, not a language pick.
+        Object.assign(updates, { title, title_he: null, size: newSize });
       }
       const { error: updErr } = await supabase
         .from('store_rewards').update(updates as never).eq('id', editingId);

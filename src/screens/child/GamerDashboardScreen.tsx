@@ -247,7 +247,7 @@ export default function GamerDashboardScreen() {
   // (~65% of families) view-as-child IS the kid's actual interface.
   // See SPEC § Scenario C.
   const vibe = useDailyVibe(childId);
-  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff } = vibe;
+  const { hasVibedToday, recordVibe, loading: vibeLoading, isLowPower, sosSent, sendSos, awardInstantBuff, instantBuffAwarded } = vibe;
   const { isDismissed: vibeDismissedToday, markDismissed: markVibeDismissed, loading: dismissLoading } = useVibeDismiss(childId);
   const shouldPromptVibe =
     !vibeLoading &&
@@ -258,8 +258,8 @@ export default function GamerDashboardScreen() {
     !vibeDismissedToday;
 
   const lowPowerValue: LowPowerContextValue = useMemo(() => ({
-    isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff,
-  }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff]);
+    isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff, instantBuffAwarded,
+  }), [isLowPower, sosSent, hasVibedToday, sendSos, awardInstantBuff, instantBuffAwarded]);
 
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [hideModalVisible, setHideModalVisible] = useState(false);

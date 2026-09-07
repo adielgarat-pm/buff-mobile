@@ -104,8 +104,11 @@ export default function UStep5_Preview() {
     // keeping the `key={reward.id}` render collision-free.
     const seen = new Set<string>();
     const deduped = combined.filter(r => {
-      if (seen.has(r.title.en)) return false;
-      seen.add(r.title.en);
+      // Dedupe by the English title as a stable, language-independent key
+      // (via the sanctioned accessor — no direct .en access; check:i18n-access).
+      const key = pickLang(r.title, 'en');
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
 

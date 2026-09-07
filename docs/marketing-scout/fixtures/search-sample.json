@@ -1,0 +1,14 @@
+{
+  "_comment": "Canned WebSearch results for --fixtures dry-runs. Shape mirrors the WebSearch tool: query → results[{title,url,snippet}]. Add cases as real runs surface interesting shapes.",
+  "joon alternative adhd": [
+    {"title": "Best Joon Alternative for Families in 2026 | Kikaroo", "url": "https://kikaroo.app/joon-alternative", "snippet": "Kikaroo is a direct Joon alternative for families without an ADHD diagnosis. Ages 4-18, $2.99/month premium vs Joon's $12.99, real-world rewards instead of a virtual pet."},
+    {"title": "Joon App Review: Does It Actually Help ADHD Kids? (2026)", "url": "https://timily.app/guides/joon-app-review/", "snippet": "Joon's virtual pet motivates younger kids but many parents report the novelty fades after a few weeks; teens find it babyish."}
+  ],
+  "\"BUFF ADHD\"": [],
+  "adhd morning routine kids": [
+    {"title": "ADHD Morning Routines That Actually Work", "url": "https://www.additudemag.com/adhd-morning-routine-kids/", "snippet": "Visual schedules, one-step instructions, and rewards the child chooses reduce morning battles for kids with ADHD."}
+  ],
+  "joon app cancel subscription": [
+    {"title": "How do I cancel Joon? — parent forum", "url": "https://example-forum.test/joon-cancel", "snippet": "My 13-year-old stopped caring about the pet after month two and now we're paying for nothing. Anyone found something that works for teens?"}
+  ]
+}

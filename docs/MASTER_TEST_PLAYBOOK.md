@@ -1051,6 +1051,7 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 | #338 share invite | ✅ both | Android: system share sheet w/ install URL; Web: clipboard fallback + "הועתק" toast |
 | #339 web pickers | ✅ web | ParentTasks `input[type=time]` live, 08:00→08:30 saved+persisted; UStep1 date input works; Activities/MedReminder via Jest |
 | Packing (#325/#326) | ✅ android | "נארוז יחד?" renders daily gear (07:30 activity) + child "הוסף לעצמי" |
+| Packing — ציוד tab = HQ card (tomorrow-pack-inconsistency) | ⏳ android pending | Seed: timetable empty tomorrow + 3 recurring clubs on tomorrow's weekday with gear. Cold start → ציוד tab → today block (pill + rail) then "מחר · יום X" **expanded** with the 3 clubs; **no** "מחר יום חופש". HQ tab: "מחר" collapsed to one row (weekday + first club + chevron). Tick on ציוד → HQ shows it without relaunch. Both themes, he+en, web too. Full list: `docs/sessions/tomorrow-pack-inconsistency/TESTS.md` |
 | Web signup→onboarding E2E | ✅ | fresh family, 7 steps, plan preview personalized to motivator, family code issued; 0 console errors |
 
 **Run findings (fixed in `pkg/qa-impeccable-sweep`):**

@@ -1,5 +1,7 @@
 # schedule-equipment-backpack — SPEC
 
+> **Superseded (child side), 2026-09-02:** the `ChildBagPrepScreen` described below (timetable-only source, tomorrow-only scope, own AsyncStorage key, progress counter) was replaced by a shell hosting the unified `PackingCard` — see `docs/sessions/tomorrow-pack-inconsistency/SPEC.md`. The parent-side timetable equipment flow is unchanged. Kept as history; do not implement from this section.
+
 > Branch: `pkg/schedule-equipment-backpack`
 > Goal: Close the loop **parent enters equipment per lesson → child sees what to pack for tomorrow.**
 

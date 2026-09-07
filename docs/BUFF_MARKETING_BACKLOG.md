@@ -32,6 +32,7 @@
 | **E** | `/philosophy` page on buffadhd.com — 3-Principles hero (WHY/WHAT framing) | 2 | [GO_TO_MARKET §2.3](BUFF_GO_TO_MARKET.md) | ✅ **Wave 1 PR opened 2026-05-14** — `pkg/philosophy-pillars-and-meta-fixes` in `adielgarat-pm/buff`. Awaits merge + deploy. |
 | **F** | Clinician / coach / podcast advisor outreach | 2 | [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) | 10-name target list + 3 personalized pitches drafted |
 | **G** | Founder-voice HE FB posts (privacy-first lead hook) | 1 | §6.5 below + [COMPETITORS §3.8](BUFF_COMPETITORS.md) + [FOUNDING_100_KIT](BUFF_FOUNDING_100_KIT.md) | Observation captured 2026-05-23. Kit not started — Adi deferring copy-writing to a dedicated session. |
+| **H** | **Marketing Scout** — daily cloud Routine: brand/reputation radar, competitor-pain + evergreen mining → owned content, PR radar, learning engine, one-screen brief + phone checklist. Never posts. | 1–2 | [sessions/marketing-scout](sessions/marketing-scout/README.md) · skill `.claude/skills/buff-marketing-scout` · config `marketing-scout/TARGETS.md` | 🛠 Phase 1 built 2026-09-04; Routines Phase 2. Reddit = phone-only, gentle (Adi 2026-09-04). |
 
 **Track F (advisor outreach) was previously mapped only as bullet items in [GO_TO_MARKET §2.4–2.5](BUFF_GO_TO_MARKET.md). The kit doc operationalizes it — same pattern as FOUNDING_100_KIT operationalizes Phase 1.**
 

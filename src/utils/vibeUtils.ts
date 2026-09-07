@@ -25,6 +25,10 @@ export interface VibeSnapshot {
   // my parent" flag. Default false; flipping false→true fires migration 025's
   // trigger → one child_vibe_shared notification per parent.
   vibe_shared_with_parent: boolean;
+  // One-shot flag: the +5 self-care Instant Buff was already granted today
+  // (migration 057). Server-authoritative; the card reads it to stay hidden
+  // after a reload instead of re-appearing to be farmed (audit M6).
+  instant_buff_awarded: boolean;
   vibe_type:       string;   // 'emoji' | 'bars' | 'battery' in practice
   date:            string;   // 'YYYY-MM-DD'
 }

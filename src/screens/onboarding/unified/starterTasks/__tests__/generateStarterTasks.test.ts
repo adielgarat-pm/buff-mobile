@@ -15,6 +15,7 @@ import { DEFAULT_GENERATOR_CONFIG, resolveConfig } from '../generatorConfig';
 import { hhmmFor } from '../timeOfDay';
 import { TASK_BY_ID } from '../taskLibrary';
 import type { AgeGroup } from '../onboardingData';
+import { pickLang } from '../../../../../lib/i18nString';
 
 const BUFF_VALUE = 20; // ONBOARDING_CONFIG.DEFAULT_BUFF_VALUE
 
@@ -80,8 +81,8 @@ describe('generateStarterTasks — contract', () => {
   it('every task carries the fields the preview + DB insert need', () => {
     for (const t of generateStarterTasks(base)) {
       expect(t.id).toBeTruthy();
-      expect(t.title.en).toBeTruthy();
-      expect(t.title.he).toBeTruthy();
+      expect(pickLang(t.title, 'en')).toBeTruthy();
+      expect(pickLang(t.title, 'he')).toBeTruthy();
       expect(t.buff_value).toBe(BUFF_VALUE);
       expect(t.time).toBe(hhmmFor(t.timeOfDay)); // time bug fix: derived, not positional
       expect(t.category).toBeTruthy();

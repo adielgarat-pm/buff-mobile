@@ -42,7 +42,7 @@ const PROMPT_KEYS = [
 
 export default function InstantBuffCard({ palette }: InstantBuffCardProps) {
   const { t } = useTranslation();
-  const { isLowPower, awardInstantBuff } = useLowPower();
+  const { isLowPower, awardInstantBuff, instantBuffAwarded } = useLowPower();
   const [awarded, setAwarded] = useState(false);
 
   // Pick a prompt at mount and keep it stable until card unmounts.
@@ -51,7 +51,10 @@ export default function InstantBuffCard({ palette }: InstantBuffCardProps) {
     [],
   );
 
-  if (!isLowPower || awarded) return null;
+  // Hidden when: not a low day · just tapped (optimistic) · OR already granted
+  // today per the server one-shot flag — so a reload can't bring it back to farm
+  // (audit M6). The limit is silent by design: the card's absence is the message.
+  if (!isLowPower || awarded || instantBuffAwarded) return null;
 
   const onPress = async () => {
     setAwarded(true);  // optimistic — hides the card immediately
