@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Phase, PHASES, getSmartPhaseForTime } from '../../types/phase';
+import type { Task } from '../../types/task';
 import { PhaseView } from '../../components/PhaseView';
 import { TomorrowPreview } from '../../components/child/TomorrowPreview';
 import { useChildTheme, useTheme } from '../../contexts/ThemeContext';
@@ -67,6 +68,8 @@ function PastelChildTasks() {
     completeTask,
     uncompleteTask,
     addTask,
+    updateTask,
+    deleteTask,
   } = useChildData(childId);
   const { settings, isPauseActive } = useAppSettings();
   const fridayEnabled = settings?.friday_enabled ?? false;
@@ -78,6 +81,7 @@ function PastelChildTasks() {
   // age band, not the mint/gamer skin).
   const canCreateTasks = canSelfManageTasks(useExperienceBand());
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const suggestPalette: SuggestPalette = {
     overlay:    'rgba(0,0,0,0.45)',
@@ -204,6 +208,7 @@ function PastelChildTasks() {
           onCompleteTask={completeTask}
           onUncompleteTask={uncompleteTask}
           hapticsEnabled={hapticsOn}
+          onEditTask={canCreateTasks ? setEditingTask : undefined}
         />
 
         {/* Tomorrow's dated tasks (camp days, bag prep) — read-only heads-up */}
@@ -260,10 +265,13 @@ function PastelChildTasks() {
         onSubmit={({ title }) => submit({ kind: 'task', title })}
       />
       <TeenTaskModal
-        visible={createOpen}
+        visible={createOpen || !!editingTask}
+        task={editingTask}
         palette={suggestPalette}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => { setCreateOpen(false); setEditingTask(null); }}
         onCreate={(input) => addTask(input, { createdByChild: true })}
+        onSave={(id, patch) => updateTask(id, patch)}
+        onDelete={(id) => deleteTask(id)}
       />
     </SafeAreaView>
   );

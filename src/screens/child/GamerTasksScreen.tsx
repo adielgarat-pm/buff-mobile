@@ -103,10 +103,12 @@ function formatToday(locale: 'en' | 'he'): string {
 // ─── Component ──────────────────────────────────────────────────────────────
 // One Gamer task row. Its own component so it can run the completion "pop"
 // (useCompletionPop needs a hook per card; a .map callback can't call hooks).
-function GamerTaskCard({ task, isNextUp, onTap, labelDone, labelTodo }: {
+function GamerTaskCard({ task, isNextUp, onTap, onEdit, labelDone, labelTodo }: {
   task: Task;
   isNextUp: boolean;
   onTap: (id: string, completed: boolean) => void;
+  /** pkg/teen-autonomy — present only for the teen's own tasks; opens edit/delete. */
+  onEdit?: (task: Task) => void;
   labelDone: string;
   labelTodo: string;
 }) {
@@ -165,6 +167,20 @@ function GamerTaskCard({ task, isNextUp, onTap, labelDone, labelTodo }: {
         <Text style={[styles.taskCredits, task.completed && { opacity: 0.55 }]}>
           {t('gamerTasks.taskCredits', { credits: task.credits })}
         </Text>
+
+        {/* Teen's own task → inline edit affordance (nested touchable wins the
+            press for its own area, so it never toggles completion). */}
+        {task.createdByChild && onEdit && (
+          <TouchableOpacity
+            onPress={() => onEdit(task)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityRole="button"
+            accessibilityLabel={t('teenTask.editA11y', { defaultValue: 'Edit task' })}
+            testID={`task-edit-${task.id}`}
+          >
+            <Ionicons name="pencil" size={16} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -186,6 +202,8 @@ export default function GamerTasksScreen() {
     completeTask,
     uncompleteTask,
     addTask,
+    updateTask,
+    deleteTask,
   } = useChildData(childId);
 
   // pkg/teen-autonomy: teens self-author tasks directly; juniors keep the
@@ -193,6 +211,7 @@ export default function GamerTasksScreen() {
   // gamer skin — a young child on the gamer theme is still a junior.
   const canCreateTasks = canSelfManageTasks(useExperienceBand());
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const { settings, isPauseActive } = useAppSettings();
   const fridayEnabled     = settings?.friday_enabled ?? false;
@@ -388,6 +407,7 @@ export default function GamerTasksScreen() {
                       task={task}
                       isNextUp={task.id === nextUpId}
                       onTap={onTaskTap}
+                      onEdit={canCreateTasks ? setEditingTask : undefined}
                       labelDone={t('gamerTasks.markIncomplete')}
                       labelTodo={t('gamerTasks.markComplete')}
                     />
@@ -446,10 +466,13 @@ export default function GamerTasksScreen() {
         onSubmit={({ title }) => submit({ kind: 'task', title })}
       />
       <TeenTaskModal
-        visible={createOpen}
+        visible={createOpen || !!editingTask}
+        task={editingTask}
         palette={SUGGEST_PALETTE}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => { setCreateOpen(false); setEditingTask(null); }}
         onCreate={(input) => addTask(input, { createdByChild: true })}
+        onSave={(id, patch) => updateTask(id, patch)}
+        onDelete={(id) => deleteTask(id)}
       />
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
     </SafeAreaView>

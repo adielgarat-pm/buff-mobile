@@ -22,6 +22,8 @@ interface Props {
   onUncompleteTask: (id: string) => void;
   /** Passed through to PhaseTaskCard — disables haptics when false. */
   hapticsEnabled?:  boolean;
+  /** pkg/teen-autonomy — opens edit/delete for the teen's own tasks (optional). */
+  onEditTask?:      (task: Task) => void;
 }
 
 export function PhaseView({
@@ -33,6 +35,7 @@ export function PhaseView({
   onCompleteTask,
   onUncompleteTask,
   hapticsEnabled  = true,
+  onEditTask,
 }: Props) {
   const { t }       = useTranslation();
   const T           = useChildTheme();
@@ -77,6 +80,7 @@ export function PhaseView({
               onComplete={onCompleteTask}
               onUncomplete={onUncompleteTask}
               hapticsEnabled={hapticsEnabled}
+              onEdit={onEditTask}
             />
           ))}
         </View>

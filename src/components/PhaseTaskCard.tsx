@@ -56,9 +56,11 @@ interface Props {
   onUncomplete:      (id: string) => void;
   /** When false, no haptic feedback fires. Defaults to true. */
   hapticsEnabled?:   boolean;
+  /** pkg/teen-autonomy — present only for the teen's own tasks; opens edit/delete. */
+  onEdit?:           (task: Task) => void;
 }
 
-export function PhaseTaskCard({ task, onComplete, onUncomplete, hapticsEnabled = true }: Props) {
+export function PhaseTaskCard({ task, onComplete, onUncomplete, hapticsEnabled = true, onEdit }: Props) {
   const T = useChildTheme();
   const [pressed, setPressed] = useState(false);
   const { t } = useTranslation();
@@ -165,6 +167,21 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, hapticsEnabled =
               {categoryLabel}
             </Text>
           </View>
+
+          {/* Teen's own task → inline edit affordance (nested touchable wins the
+              press for its own area, so it never toggles completion). */}
+          {task.createdByChild && onEdit && (
+            <TouchableOpacity
+              onPress={() => onEdit(task)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{ marginLeft: 'auto' }}
+              accessibilityRole="button"
+              accessibilityLabel={t('teenTask.editA11y', { defaultValue: 'Edit task' })}
+              testID={`task-edit-${task.id}`}
+            >
+              <Ionicons name="pencil" size={14} color={T.mutedForeground} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Completion timestamp — always neutral. Whenever the task got done,

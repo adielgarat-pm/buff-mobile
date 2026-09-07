@@ -2241,5 +2241,11 @@
   "teenTask.time.afternoon": "צהריים",
   "teenTask.time.evening": "ערב",
   "parentTasks.createdByChild": "נוסף על־ידי {{name}}",
-  "notificationFeed.row.teen_task_added": "{{name}} הוסיף/ה משימה: {{task}}"
+  "notificationFeed.row.teen_task_added": "{{name}} הוסיף/ה משימה: {{task}}",
+  "teenTask.modal.editHeading": "עריכת משימה",
+  "teenTask.modal.save": "שמירה",
+  "teenTask.modal.delete": "מחיקת משימה",
+  "teenTask.delete.confirmTitle": "למחוק את המשימה?",
+  "teenTask.delete.confirmBody": "היא תוסר מהרשימה שלך.",
+  "teenTask.editA11y": "עריכת משימה"
 }

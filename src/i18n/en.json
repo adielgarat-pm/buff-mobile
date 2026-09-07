@@ -2241,5 +2241,11 @@
   "teenTask.time.afternoon": "Afternoon",
   "teenTask.time.evening": "Evening",
   "parentTasks.createdByChild": "Added by {{name}}",
-  "notificationFeed.row.teen_task_added": "{{name}} added a task: {{task}}"
+  "notificationFeed.row.teen_task_added": "{{name}} added a task: {{task}}",
+  "teenTask.modal.editHeading": "Edit task",
+  "teenTask.modal.save": "Save",
+  "teenTask.modal.delete": "Delete task",
+  "teenTask.delete.confirmTitle": "Delete this task?",
+  "teenTask.delete.confirmBody": "It will be removed from your list.",
+  "teenTask.editA11y": "Edit task"
 }
