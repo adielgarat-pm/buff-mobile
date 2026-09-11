@@ -34,13 +34,18 @@ export function experienceBandFor(
 }
 
 /**
- * Capability: may this band self-manage their own tasks (create/edit/delete
+ * Capability: may a child self-manage their own tasks (create/edit/delete
  * directly, live)? Teens only — juniors keep the propose→parent-approve flow
- * (pkg/teen-autonomy, D1). Named by CAPABILITY, not age, so the eventual
- * age-threshold decision changes one predicate, not every screen. The client
- * gate is UX only; RLS + the tasks_stamp_child_economy trigger (migration 058)
- * are the real security + economy boundary.
+ * (pkg/teen-autonomy, D1).
+ *
+ * Unlike `experienceBandFor`, this has **no skin fallback**: an unknown/absent
+ * age fails CLOSED. That matters because the Gamer skin is the seeded default
+ * for family-code signups that carry no age_group — routing task autonomy
+ * through the band would hand a young, un-aged child on the gamer skin full
+ * self-management. Gating strictly on a KNOWN teen age keeps the package's
+ * "theme ≠ capability" guarantee real. See `useCanSelfManageTasks` for the
+ * session-role gate (real child only, never a parent-in-preview).
  */
-export function canSelfManageTasks(band: ExperienceBand): boolean {
-  return band === 'teen';
+export function canSelfManageTasksForAge(ageGroup: string | null | undefined): boolean {
+  return isTeenAgeGroup(ageGroup);
 }

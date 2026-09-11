@@ -98,13 +98,23 @@ as $function$
 declare
   v_caller_role text;
 begin
+  -- Only child-authored rows are economy-governed; every other task write (the
+  -- common parent path) skips the role lookup entirely.
+  if coalesce(NEW.created_by_child, false) = false then
+    return NEW;
+  end if;
+
   select role into v_caller_role
     from profiles
    where user_id = auth.uid()
    limit 1;
 
   if v_caller_role = 'child' then
-    NEW.credits := 0;   -- governed default; parent assigns the real value later
+    if TG_OP = 'INSERT' then
+      NEW.credits := 0;             -- a child never sets a price on create
+    else
+      NEW.credits := OLD.credits;   -- preserve the parent's price on a child edit
+    end if;
   end if;
 
   return NEW;

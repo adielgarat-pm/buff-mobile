@@ -1,4 +1,4 @@
-import { experienceBandFor, canSelfManageTasks } from '../experienceBand';
+import { experienceBandFor, canSelfManageTasksForAge } from '../experienceBand';
 
 describe('experienceBandFor — age drives depth, skin is only a fallback', () => {
   test('junior age bands → junior, regardless of skin', () => {
@@ -31,23 +31,23 @@ describe('experienceBandFor — age drives depth, skin is only a fallback', () =
   });
 });
 
-describe('canSelfManageTasks — task autonomy is a teen capability, never a theme', () => {
-  test('teen band can self-manage tasks', () => {
-    expect(canSelfManageTasks('teen')).toBe(true);
+describe('canSelfManageTasksForAge — task autonomy needs a KNOWN teen age, never a skin', () => {
+  test('teen age bands can self-manage tasks', () => {
+    expect(canSelfManageTasksForAge('12-14')).toBe(true);
+    expect(canSelfManageTasksForAge('15-18')).toBe(true);
   });
 
-  test('junior band cannot self-manage tasks', () => {
-    expect(canSelfManageTasks('junior')).toBe(false);
+  test('junior age bands cannot', () => {
+    expect(canSelfManageTasksForAge('6-8')).toBe(false);
+    expect(canSelfManageTasksForAge('9-11')).toBe(false);
   });
 
-  test('a ~9yo who picked the Gamer look gets NO task autonomy (theme ≠ capability)', () => {
-    // The load-bearing guarantee for pkg/teen-autonomy: gate is age, not skin.
-    expect(canSelfManageTasks(experienceBandFor('9-11', 'gamer'))).toBe(false);
-    expect(canSelfManageTasks(experienceBandFor('6-8', 'gamer'))).toBe(false);
-  });
-
-  test('real teens get autonomy regardless of skin', () => {
-    expect(canSelfManageTasks(experienceBandFor('12-14', 'mint'))).toBe(true);
-    expect(canSelfManageTasks(experienceBandFor('15-18', 'gamer'))).toBe(true);
+  test('unknown/absent age fails CLOSED — no skin fallback (the leak the band had)', () => {
+    // experienceBandFor(null,'gamer') === 'teen' via the legacy skin bridge; task
+    // autonomy must NOT inherit that, or an un-aged gamer-skin child self-manages.
+    expect(canSelfManageTasksForAge(null)).toBe(false);
+    expect(canSelfManageTasksForAge(undefined)).toBe(false);
+    expect(canSelfManageTasksForAge('')).toBe(false);
+    expect(canSelfManageTasksForAge('nonsense')).toBe(false);
   });
 });

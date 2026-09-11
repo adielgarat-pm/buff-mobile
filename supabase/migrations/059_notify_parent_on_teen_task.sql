@@ -25,12 +25,24 @@ security definer
 set search_path to 'public'
 as $function$
 declare
-  v_child_name text;
-  v_parent     record;
+  v_child_name  text;
+  v_caller_role text;
+  v_parent      record;
 begin
   -- Only teen self-authored tasks (created via the teen create flow). A parent's
   -- normal insert leaves created_by_child = false and never notifies.
   if NEW.created_by_child is not true then
+    return NEW;
+  end if;
+
+  -- Only a REAL child self-authoring notifies. A parent inserting a
+  -- created_by_child row (e.g. in view-as-child preview, via the parent RLS
+  -- policy) must not fire a false "your teen added a task" alert.
+  select role into v_caller_role
+    from public.profiles
+   where user_id = auth.uid()
+   limit 1;
+  if v_caller_role is distinct from 'child' then
     return NEW;
   end if;
 

@@ -51,6 +51,7 @@ jest.mock('../../../contexts/ModeContext', () => ({
 // 'junior' keeps the pre-existing propose CTA rendering unchanged.
 jest.mock('../../../hooks/useExperienceBand', () => ({
   useExperienceBand: () => 'junior',
+  useCanSelfManageTasks: () => false,
 }));
 
 jest.mock('../../../hooks/useChildProgress', () => ({

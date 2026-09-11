@@ -493,10 +493,10 @@ export function useChildData(childId: string | null) {
     // the server stamp forces credits to 0 (parent prices it later). Defaults to
     // false so the parent create path is unchanged.
     opts?: { createdByChild?: boolean },
-  ) => {
-    if (!familyId || !childId) return;
+  ): Promise<{ error: unknown }> => {
+    if (!familyId || !childId) return { error: new Error('no_session') };
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('tasks')
       .insert({
         family_id:     familyId,
@@ -515,26 +515,31 @@ export function useChildData(childId: string | null) {
       .select()
       .single();
 
-    if (data) {
-      setTasks(prev => [...prev, {
-        id:           data.id,
-        title:        data.title,
-        time:         data.time,
-        category:     data.category as Task['category'],
-        credits:      data.credits,
-        description:  data.description || undefined,
-        completed:    false,
-        assignedTo:   data.assigned_to || undefined,
-        strategyId:   data.strategy_id || undefined,
-        scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
-        dueDate:      data.due_date ?? undefined,
-        createdByChild: data.created_by_child ?? false,
-      }].sort((a, b) => a.time.localeCompare(b.time)));
-    }
+    // Surface the failure so callers (e.g. TeenTaskModal) can keep the sheet
+    // open and alert, instead of silently closing on a denied/failed write.
+    if (error || !data) return { error: error ?? new Error('insert_failed') };
+
+    setTasks(prev => [...prev, {
+      id:           data.id,
+      title:        data.title,
+      time:         data.time,
+      category:     data.category as Task['category'],
+      credits:      data.credits,
+      description:  data.description || undefined,
+      completed:    false,
+      assignedTo:   data.assigned_to || undefined,
+      strategyId:   data.strategy_id || undefined,
+      scheduleDays: (Array.isArray(data.schedule_days) && data.schedule_days.length > 0) ? data.schedule_days : [0, 1, 2, 3, 4, 5, 6],
+      dueDate:      data.due_date ?? undefined,
+      createdByChild: data.created_by_child ?? false,
+    }].sort((a, b) => a.time.localeCompare(b.time)));
+    return { error: null };
   }, [familyId, childId]);
 
-  const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    if (!familyId) return;
+  const updateTask = useCallback(async (
+    taskId: string, updates: Partial<Task>,
+  ): Promise<{ error: unknown }> => {
+    if (!familyId) return { error: new Error('no_session') };
 
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, ...updates } : t));
 
@@ -547,14 +552,19 @@ export function useChildData(childId: string | null) {
     if (updates.scheduleDays !== undefined) dbUpdates.schedule_days = updates.scheduleDays;
     if (updates.dueDate      !== undefined) dbUpdates.due_date      = updates.dueDate;
 
-    await supabase.from('tasks').update(dbUpdates).eq('id', taskId);
-  }, [familyId]);
+    const { error } = await supabase.from('tasks').update(dbUpdates).eq('id', taskId);
+    // On failure, re-sync from the DB so the optimistic edit can't linger.
+    if (error) { fetchChildData(); return { error }; }
+    return { error: null };
+  }, [familyId, fetchChildData]);
 
-  const deleteTask = useCallback(async (taskId: string) => {
-    if (!familyId) return;
+  const deleteTask = useCallback(async (taskId: string): Promise<{ error: unknown }> => {
+    if (!familyId) return { error: new Error('no_session') };
     setTasks(prev => prev.filter(t => t.id !== taskId));
-    await supabase.from('tasks').delete().eq('id', taskId);
-  }, [familyId]);
+    const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+    if (error) { fetchChildData(); return { error }; }
+    return { error: null };
+  }, [familyId, fetchChildData]);
 
   return {
     tasks,

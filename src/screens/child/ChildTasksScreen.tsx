@@ -24,8 +24,7 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 import { TeenTaskModal } from '../../components/child/TeenTaskModal';
-import { useExperienceBand } from '../../hooks/useExperienceBand';
-import { canSelfManageTasks } from '../../lib/experienceBand';
+import { useCanSelfManageTasks } from '../../hooks/useExperienceBand';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSettings } from '../../hooks/useAppSettings';
 import { isWeekendToday } from '../../utils/schoolDay';
@@ -77,9 +76,9 @@ function PastelChildTasks() {
   const { suggestions, submit, withdraw } = useChildSuggestions(childId);
   const [suggestOpen, setSuggestOpen] = useState(false);
 
-  // pkg/teen-autonomy: teens create tasks directly; juniors propose (gate is
-  // age band, not the mint/gamer skin).
-  const canCreateTasks = canSelfManageTasks(useExperienceBand());
+  // pkg/teen-autonomy: teens create tasks directly; juniors propose. Strict
+  // gate — real child session + known teen age; skin/preview never grant it.
+  const canCreateTasks = useCanSelfManageTasks();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -269,9 +268,9 @@ function PastelChildTasks() {
         task={editingTask}
         palette={suggestPalette}
         onClose={() => { setCreateOpen(false); setEditingTask(null); }}
-        onCreate={(input) => addTask(input, { createdByChild: true })}
-        onSave={(id, patch) => updateTask(id, patch)}
-        onDelete={(id) => deleteTask(id)}
+        onCreate={async (input) => { const { error } = await addTask(input, { createdByChild: true }); if (error) throw error; }}
+        onSave={async (id, patch) => { const { error } = await updateTask(id, patch); if (error) throw error; }}
+        onDelete={async (id) => { const { error } = await deleteTask(id); if (error) throw error; }}
       />
     </SafeAreaView>
   );

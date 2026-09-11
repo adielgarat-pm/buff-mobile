@@ -18,7 +18,25 @@ import { useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useMode } from '../contexts/ModeContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { experienceBandFor, type ExperienceBand } from '../lib/experienceBand';
+import { experienceBandFor, canSelfManageTasksForAge, type ExperienceBand } from '../lib/experienceBand';
+
+/**
+ * useCanSelfManageTasks — may the CURRENT session self-author/edit/delete its
+ * own tasks (pkg/teen-autonomy)? Two gates, both must hold:
+ *   1. a REAL child session (`profile.role === 'child'`) — a parent viewing
+ *      as-child is still the parent, and must not write tasks tagged as the
+ *      child (that would misattribute and fire a false "teen added a task"
+ *      alert). Parents author tasks from ParentTasksScreen instead.
+ *   2. a KNOWN teen age (no skin fallback — see canSelfManageTasksForAge).
+ * Fails closed on anything else (juniors, un-aged accounts, parent preview).
+ */
+export function useCanSelfManageTasks(): boolean {
+  const { profile } = useAuth();
+  if (profile?.role !== 'child') return false;
+  const ageGroup =
+    (profile?.pro_settings as { age_group?: string } | undefined)?.age_group ?? null;
+  return canSelfManageTasksForAge(ageGroup);
+}
 
 export function useExperienceBand(): ExperienceBand {
   const { profile } = useAuth();

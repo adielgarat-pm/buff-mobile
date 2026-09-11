@@ -51,8 +51,7 @@ import WelcomeBackModal, { useWelcomeBack } from '../../components/WelcomeBackMo
 import { useChildSuggestions } from '../../hooks/useChildSuggestions';
 import { SuggestModal, SuggestionStatusList, type SuggestPalette } from '../../components/child/ChildSuggest';
 import { TeenTaskModal } from '../../components/child/TeenTaskModal';
-import { useExperienceBand } from '../../hooks/useExperienceBand';
-import { canSelfManageTasks } from '../../lib/experienceBand';
+import { useCanSelfManageTasks } from '../../hooks/useExperienceBand';
 import { formatNum } from '../../lib/uiLocale';
 import { TomorrowPreview } from '../../components/child/TomorrowPreview';
 
@@ -207,9 +206,9 @@ export default function GamerTasksScreen() {
   } = useChildData(childId);
 
   // pkg/teen-autonomy: teens self-author tasks directly; juniors keep the
-  // propose→parent flow. Gate is age band (via useExperienceBand), NOT the
-  // gamer skin — a young child on the gamer theme is still a junior.
-  const canCreateTasks = canSelfManageTasks(useExperienceBand());
+  // propose→parent flow. Strict gate — a REAL child session with a known teen
+  // age; the cosmetic gamer skin never grants it, nor does parent-preview.
+  const canCreateTasks = useCanSelfManageTasks();
   const [createOpen, setCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -470,9 +469,9 @@ export default function GamerTasksScreen() {
         task={editingTask}
         palette={SUGGEST_PALETTE}
         onClose={() => { setCreateOpen(false); setEditingTask(null); }}
-        onCreate={(input) => addTask(input, { createdByChild: true })}
-        onSave={(id, patch) => updateTask(id, patch)}
-        onDelete={(id) => deleteTask(id)}
+        onCreate={async (input) => { const { error } = await addTask(input, { createdByChild: true }); if (error) throw error; }}
+        onSave={async (id, patch) => { const { error } = await updateTask(id, patch); if (error) throw error; }}
+        onDelete={async (id) => { const { error } = await deleteTask(id); if (error) throw error; }}
       />
       <WelcomeBackModal visible={welcomeBack.visible} onDismiss={welcomeBack.dismiss} />
     </SafeAreaView>
