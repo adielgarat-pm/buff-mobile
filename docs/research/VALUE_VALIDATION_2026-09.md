@@ -87,19 +87,19 @@ A fourth, uncomfortable one: **H4 — the child doesn't want it.** Parent sets i
 
 ### Track A — Churn interviews (H1 vs H2 vs H4) — Adi, week 1–2
 - **Who:** 10–12 of the 27 reachable parents who created a child but the child never logged in (since June). Mix of Android/web, IL/US.
-- **How:** personal email from Adi (no template feel), 15-minute call or 5 voice-note questions on WhatsApp. Offer nothing except "help me understand."
+- **How:** personal email from Adi (no template feel), 15-minute call or 5 voice-note questions on WhatsApp. Offer a small thank-you ($20 voucher or a free year) for "10 minutes of brutal feedback" — without it only the guilty and the angry reply (Gemini review, 2026-09-14).
 - **Ask, in this order:** What was happening at home the week you installed BUFF? What did you expect it would do? What happened after you finished setting up the tasks? Did your child see it? If yes — what did they say? If no — why not? What are you doing about [their pain] now?
-- **Kill/continue signal:** if ≥6 of 10 say some version of "I never got around to showing the kid" → H2 dominates (pain not urgent). If ≥6 say "I tried, the child couldn't/wouldn't log in / lost interest in a day" → H1/H4 (handoff or child value).
+- **Signal:** read for saturation (see §4). "I never got around to showing the kid" with no named blocker → H2. "I stalled at [specific step]" → H1/H5/H6. "The kid tried and dropped it" → H4.
 
 ### Track B — Retained-family "disappointment test" (H3) — Adi, week 1
-- **Who:** the 4 active non-founder lifetime families + the 1 heavy user that stopped in July (e073).
+- **Who:** the 4 active non-founder lifetime families + the 1 heavy user that stopped in July (e073). **Not part of the decision gate** (Gemini review, 2026-09-14): mechanism study only.
 - **Ask:** How would you feel if BUFF disappeared tomorrow? (very / somewhat / not disappointed). What is the one thing you'd miss? Who in the house opens it — you or the child? Would you have started without knowing me? Would you pay $60/year?
-- **Signal:** "very disappointed" from ≥3 non-founder families AND "the child opens it" → genuine child-side value exists. If the honest answer is "I use it because of you" → H3.
+- **Signal:** context only. What we learn: who opens it, who taps, what concretely changed at home. Hypothetical willingness-to-pay and "would you have started without me" are dropped as unanswerable.
 
 ### Track C — Problem interviews with strangers (H2) — Adi, week 2–3
 - **Who:** 8–10 parents of ADHD kids (7–14) who have never heard of BUFF. Source: FB/Reddit ADHD-parent groups, school WhatsApp groups, one clinician if reachable. **No pitch, no demo.**
 - **Ask:** Walk me through yesterday morning / homework time. What's the worst moment of the week? What have you tried (apps, charts, therapy, medication changes)? What did each cost you and why did you stop? If a friend said "there's an app for this", what would you assume it does — and would you believe it?
-- **Signal:** if the pain BUFF targets (morning/homework/bag independence) is top-2 for ≥6 of 10 and they've *paid* for something before → the problem is worth solving and H1 becomes the likely culprit. If the pain is real but they've never paid and don't believe an app helps → repositioning needed before any more code.
+- **Signal:** the existential track. Read for saturation: is a BUFF-scope pain in the top-2, have they paid for anything, do they believe an app can help, and do they already assume the child is the user. Prior spend is recorded for every interviewee, not used as a recruiting filter.
 
 ### Track D — Data that CC can produce without Adi's time — CC, week 1
 1. **Handoff timeline per churned family:** minutes from `family_created` → `child_created` → `invite_shown` → `invite_sent` → child `last_seen_at`. Where exactly does it stop, and does the parent ever come back (`parent_returned_after_d2` = 5 of 18 web, 4 of 13 Android)?
@@ -114,19 +114,20 @@ A fourth, uncomfortable one: **H4 — the child doesn't want it.** Parent sets i
 
 ---
 
-## 4. Decision gate (end of week 3)
+## 4. Decision gate (end of week 3) — revised after the Gemini review
 
-Adi decides, with the evidence in one table:
+**Rule of evidence:** qualitative interviews are read for **saturation**, not percentages. A pattern counts when the same story is told unprompted by at least three parents in the same track and no interview tells a contradicting story with equal specificity. Counts are recorded in the log but never decide alone.
+
+**Only Track C and Track A feed the gate.** Track B (friends) and the concierge observation are context, never evidence for "continue".
 
 | Outcome | Evidence pattern | Next move |
 |---|---|---|
-| **Continue — fix the handoff** | Parents wanted it (A), strangers have the pain and pay (C), retained kids open it themselves (B, D2) | One package only: child-entry, measured by "% of families whose child completes a task within 48h of setup." Target ≥40%. |
-| **Reposition** | Pain is real (C) but parents don't believe an app helps and never showed the kid (A) | Stop code. Change who we sell to (e.g. clinicians/coaches, or a parent-only tool) and how. |
-| **Pause / pivot** | Pain not top-2 (C), retained use is founder-driven (B), kids don't return (A, H4) | Honest stop. The current product is not it; the learnings are the asset. |
+| **Continue — fix the first session / handoff** | C: a BUFF-scope pain is in the top-2 for most strangers *and* they have paid for something before; A: churned parents describe wanting it and stalling at a specific, named step (H1/H5/H6) | One package only, scoped by what the interviews named. Leading indicator (not a gate): child completes a task within 48h of setup, watched over the next 20 stranger families. |
+| **Reposition** | C: pain is real but parents don't believe an app helps and have never paid; A: "never showed the kid" with no named blocker | Stop code. Change who we sell to and how. |
+| **Pause / pivot** | C: pain not top-2; A: kids tried and rejected it (H4) | Honest stop. |
+| **Mixed / no saturation** | Stories split with no dominant one | **Default: no build.** Extend Track C by 5 interviews. The default is never "fix the handoff" — an ambiguous demand signal is not fixed by a feature. |
 
-Whatever the outcome, the answer will be based on 25–30 conversations rather than a dashboard of 5 families — and on a pre-registered criterion, not on how the founder feels that week.
-
----
+Whatever the outcome, the answer will be based on 25–30 conversations rather than a dashboard of 5 families, and on rules written before the interviews, not on how the founder feels that week.
 
 ## 5. Track D results (CC, 2026-09-11)
 
@@ -142,7 +143,7 @@ Whatever the outcome, the answer will be based on 25–30 conversations rather t
 | Invite actually sent (share sheet) | 2 of 25 |
 | Child profile got a login | 2 of 25 (both: login, then nothing) |
 
-**Reading:** this is not "the child couldn't log in." In 18 of 25 families the *parent* left within the first session, right after generating tasks, and 17 of them never saw the invite step at all. The handoff never began. That moves weight from H1 (mechanics broken) toward **H2 (first session didn't create enough pull to come back)** — or an onboarding that ends without a clear "now hand it to your child" moment. Track A question 3 is the tiebreaker.
+**Reading (revised 2026-09-14):** this is not "the child couldn't log in." 20 of 25 families carry exactly the onboarding starter set (4–5 tasks, 2 rewards), 17 of 25 first sessions ended within 3 minutes of finishing the wizard, and only 4 of 25 ever wrote anything again. These are real, Google-authenticated parents who **finished the wizard and stopped**, before the invite step. That is consistent with H2 (pain not urgent), H5 (parent's own executive function) and H6 (the post-wizard screen gives no next step). It is *not* strong evidence for H1 (invite mechanics broken), because most never reached the invite. Track A question 3 is the tiebreaker; the cognitive walkthrough (H6) is the cheap check.
 
 Two families are the most valuable interviews: the one where the child logged in, the invite was sent, and the parent returned on day 1–2 but nothing was completed; and the one where the parent viewed the parent tab 11 times over two days and then stopped.
 
@@ -168,7 +169,32 @@ Delivered to Adi as a CSV outside the repo (PII). 50 rows: 25 churned-at-handoff
 ### D5 — Interview guides
 `docs/research/interview-guides/` — Track A (churn), Track B (retained), Track C (strangers), each with outreach text in EN + HE, question order, what to listen for, a coding sheet, and the pre-registered decision rule.
 
-## 6. Caveats on the numbers
+## 6. Gemini adversarial review (2026-09-14) — what changed
+
+Adi ran `GEMINI_REVIEW_PROMPT_2026-09.md`. Reconciliation, point by point. **Accepted** items are already applied in this doc and the guides.
+
+| # | Gemini's point | Verdict | What changed |
+|---|---|---|---|
+| 1a | `last_seen` unreliable; 1–3-minute child creation smells like curiosity/bots; denominator inflated | **Partly accepted** | Checked the code: `last_seen_at` is bumped on every app foreground (`usePushRegistration`), reliable on native, unverified on web. Checked intent: 20 of 25 churned families carry exactly the onboarding starter set (4–5 tasks, 2 rewards) and a first session of ≤7 minutes; only 3 show effort beyond defaults (custom rewards, 44–1228 min first session). They are Google-authenticated parents, not bots, but they are **low-investment**: they completed the wizard and stopped. Reframed §5 D1 accordingly: "finished the wizard and left" rather than "gave up on the handoff". |
+| 1b | 0/47 strangers is enough to say the self-serve loop is dead; don't assume intent over a hard blocker | **Accepted** | Stated as the headline fact. H1 and H2 stay open; the interviews decide. |
+| 1c | Friends' data is trash for value validation | **Partly accepted** | Track B removed from the decision gate. Kept as a *mechanism* study (who taps, what changed at home) because it is the only existence proof that a real 8–9-year-old sustains the loop for 3 months. Never counted as evidence for "continue". |
+| 1d | 8-day win-back read is fine; "0 completions" means they remembered why they left | **Accepted** | |
+| 2 | Missed hypotheses: H5 parent's own executive function; H6 blank-slate dead end after the wizard; H7 privacy/trust friction at the access step | **Accepted** | Added below with cheap checks. H5/H6 fit the data better than H2 alone: 17 of 25 first sessions ended within 3 minutes of finishing the wizard. |
+| 3 | Track A gets only guilty/angry parents → offer $20 for "brutal feedback"; Track C from FB/Reddit skews desperate → screen on recent spend; Track B is sycophancy | **Accepted with one change** | $20 incentive for Track A (Adi's budget call; no-spend constraint from GTM applies, so voucher or free year instead if needed). Track C: spend is **recorded**, not used as a hard filter — filtering to payers would bias toward "yes they pay". Track B: see 1c. |
+| 4 | Leading questions: "what you'd miss", "after you finished setting up", "who opens it", WTP hypothetical, "if you didn't know me" | **Accepted, except the fake paywall** | Rewrites applied in the guides. The Mom-Test "here is the payment link, upgrade today" is rejected for lifetime-access friends: there is no real paywall for them, so it would be a lie. Hypothetical WTP is dropped for Track B entirely; real WTP is tested only with a real price in front of strangers. |
+| 5 | 6/10 and 3/5 are pseudo-rigor; qualitative work is about saturation; ≥40%-in-48h is unmeasurable at 14 signups/month; pre-commit a default for mixed results | **Accepted** | Rules rewritten in §4: pattern saturation (the same story told three times unprompted, with no contradicting story), not counts. Mixed result → **no build**, extend Track C by 5 interviews; the default is never "fix the handoff". The 40% metric becomes a leading indicator on the next 20 stranger families, not a gate. |
+| 6 | Concierge pilot manufactures H3 and will produce a false positive | **Accepted, reframed** | Not a hypothesis test. Reframed as a 2-family **observation**: Adi watches the parent do the handoff on the call and does not do it for them; logged as observation only; explicitly excluded from the gate. If Adi prefers, it can be dropped without loss to the study. |
+| 7 | Email flatters and guilts; cut by a third | **Accepted** | Gemini's cut adopted with two edits (no "haven't gotten your child started" for families that never created a child; keep the "what were you hoping it would do" line). |
+| 8 | Strongest case against the freeze: only 2 of 8 who saw the invite screen sent it, a button fix is hours | **Rejected as the deciding argument, accepted as a task** | Freeze holds. But "2 of 8 sent the invite" is a concrete UX check CC can do with zero product decisions: a cognitive walkthrough of the post-wizard screen and the invite step, documented, no code. Added to Track D. |
+| 9 | With 5 hours: keep Track C only, drop B and the concierge | **Partly accepted** | Track C is the existential question, agreed. But dropping Track A contradicts Gemini's own 1b: the 25 churned families *are* the strangers. Priority order is now C → A → concierge observation → B. |
+| 10 | Study is engineered for a false "continue" | **Accepted as the risk; mitigated** | The four mechanisms Gemini named (friends in the gate, hypothetical pricing, founder hand-holding as evidence, count-based thresholds) are all removed above. Remaining risk: Adi's own hope. Mitigation: the coding sheet is filled *before* any interpretation, and CC summarizes against the rules, not Adi. |
+
+### Added hypotheses and cheap checks (CC, no product changes)
+- **H5 — Parent's own executive function.** Setup requires the parent to sustain effort across days. Check: first-session length and writes-after-day-1 (done above: 17 of 25 ended within 3 minutes of finishing the wizard; 4 of 25 ever wrote again). Consistent with H5 and H6; cannot separate them without interviews.
+- **H6 — Blank-slate dead end after the wizard.** Parent lands on a dashboard with no obvious "now hand it to your child" step. Check: cognitive walkthrough of the exact screens after `child_created` on Android and web, screenshots into `docs/research/walkthrough/`, no code. **Owner: CC, this week.**
+- **H7 — Privacy/trust friction at the access step.** 8 saw the invite/access screen, 2 sent. Check: same walkthrough documents what the access-mode screen asks for and how it reads to a parent who is protective of a minor's data.
+
+## 7. Caveats on the numbers
 
 - "Real family" = name-based exclusion only. A few friends-and-family and internal accounts are inside the 53; the funnel is if anything slightly *worse* for strangers than shown.
 - `daily_progress` before the 2026-06 upsert fix under-counted mobile completions for ~48 days (IN-2026-06 entry), so early-June activation may be understated by a few families. Does not change the shape.

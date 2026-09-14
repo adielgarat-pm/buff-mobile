@@ -1,6 +1,6 @@
 # Track C — Problem interview with parents who have never heard of BUFF
 
-**Who:** 8–10 parents of children aged 7–14 with ADHD (diagnosed or in process). Sources: ADHD-parent Facebook groups (IL + EN), r/ADHDparenting, school WhatsApp groups, one clinician/coach if reachable. Mix IL and US/UK.
+**Who:** 8–10 parents of children aged 7–14 with ADHD (diagnosed or in process). Sources: ADHD-parent Facebook groups (IL + EN), r/ADHDparenting, school WhatsApp groups, one clinician/coach if reachable. Mix IL and US/UK. **Bias warning (Gemini review):** online groups over-recruit the most desperate parents. Balance with at least 3 from offline channels (school WhatsApp, a clinician's waiting list, a friend-of-friend who is not in any group). Record prior spend for everyone; do not filter on it.
 **Format:** 20–25 minute call. **Do not mention BUFF until the very end, and even then only if they ask.** No demo, no landing page.
 **Goal:** is the pain BUFF targets a top-2 weekly pain, have they *paid* to solve it, and would they believe an app could help.
 
@@ -44,4 +44,4 @@ Who must want it (Q7): parent / child / both
 Quote (consent y/n): ____________________
 ```
 
-**Pre-registered read:** ≥6 of 10 name a BUFF-scope pain in their top-2 AND have paid for something before → the problem is worth solving; go fix the handoff (H1). Real pain but no belief in apps and no prior spend → reposition before any code. Pain not top-2 → pause.
+**Read (revised 2026-09-14):** saturation, not counts. The existential track. BUFF-scope pain in the top-2, told unprompted by most, with prior spend on something → the problem is worth solving. Real pain but no belief in apps and no spend → reposition before any code. Pain not top-2 → pause. Split → no build, add 5 interviews.
