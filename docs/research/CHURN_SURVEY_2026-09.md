@@ -11,7 +11,7 @@
 
 | Rule | Why | Source |
 |---|---|---|
-| 5 questions, ~60 seconds | churn surveys are answered by people who already left; length kills completion | [VWO](https://vwo.com/blog/churn-survey/), [Userpilot](https://userpilot.com/blog/churn-surveys-saas/), [Olvy](https://olvy.co/blog/churn-survey-best-practices/) |
+| 5 core questions (+2 use-case, +2 conditional for families whose child used it), ~60–90 seconds | churn surveys are answered by people who already left; length kills completion | [VWO](https://vwo.com/blog/churn-survey/), [Userpilot](https://userpilot.com/blog/churn-surveys-saas/), [Olvy](https://olvy.co/blog/churn-survey-best-practices/) |
 | Open question **first**, closed list second | a list shown first anchors people to our categories; self-generated answers are the discovery signal. We have zero interviews yet, so our list is a hypothesis list | [Maze](https://maze.co/guides/ux-surveys/questions/), [CleverX](https://cleverx.com/blog/multiple-choice-questions-design-best-practices-for-surveys/) |
 | Shuffle the closed options; keep "Other" fixed last | primacy/recency bias in option order | [CleverX](https://cleverx.com/blog/multiple-choice-questions-design-best-practices-for-surveys/), [Formfacade](https://formfacade.com/embed/google-forms-shuffle-answer-choices.html) |
 | Ask about a specific moment ("after you set it up", "the last time it was open") | recall bias; people remember recent, frequent, emotional moments | [NN/G survey challenges](https://www.nngroup.com/articles/10-survey-challenges/), [Lensym](https://lensym.com/blog/recall-bias-survey/) |
@@ -41,6 +41,24 @@ Which of these is closest to the main reason it didn't stick?
 - It wasn't what I thought it was
 - I ran into a paywall before I could see what it does
 - Other: ______
+
+**Q2a · multiple choice · shuffle ON · last two fixed**
+Which of these did you set up in BUFF? (tick all that apply)
+- A school task: homework, a test, or daily practice, with points
+- A home responsibility: taking out the trash, walking the dog
+- Sport or movement: 6,000 steps a day, a training session
+- Packing the bag the night before, with the gear entered in the app
+- Screens off on time
+- Morning routine: ready before being asked
+- Evening and bedtime routine
+- I didn't know that was the idea
+- None of these
+
+**Q2b · single choice**
+Did you know BUFF was meant for things like these?
+- Yes, that was clear
+- Partly
+- No, I thought it was a to-do list
 
 **Q3 · single choice · required**
 Did your child ever open BUFF?
@@ -97,6 +115,24 @@ Would you like a first call with me, where I help you set BUFF up and make it wo
 - זה לא היה מה שחשבתי שזה
 - נתקלתי בפייוול לפני שהספקתי לראות מה זה עושה
 - אחר: ______
+
+**ש2א · בחירה מרובה · ערבוב מופעל · שתי האחרונות קבועות**
+אילו מאלה הגדרתם ב-BUFF? (אפשר לסמן כמה)
+- משימה לימודית: עבודה, מבחן או תרגול יומי, עם נקודות
+- משימת אחריות בבית: להוריד את הפח, לטייל עם הכלב
+- ספורט או תנועה: 6,000 צעדים ביום, אימון
+- הכנת תיק מראש, עם הציוד שהוזן במערכת
+- כיבוי מסכים בזמן
+- שגרת בוקר: מוכן/ה לפני שביקשו
+- שגרת ערב ושינה
+- לא ידעתי שזו הכוונה
+- אף אחד מאלה
+
+**ש2ב · בחירה אחת**
+ידעת ש-BUFF מיועדת לדברים כאלה?
+- כן, זה היה ברור
+- חלקית
+- לא, חשבתי שזו רשימת מטלות
 
 **ש3 · בחירה אחת · חובה**
 הילד/ה פתח/ה פעם את BUFF?
@@ -155,6 +191,7 @@ CC generates the links into the mail-merge CSV (scratchpad, never the repo). The
 - Q1 verbatims → coding sheet in `INTERVIEW_LOG_2026-09.md` under "סקר נטישה". Read for saturation, same rule as the interviews.
 - Q2 option → hypothesis map (below). Check for a primacy artefact: distribution across first-shown position should be roughly flat.
 - Q3 vs DB: if a parent says "a few days" and the DB shows zero child login, that gap is itself a finding (shared-device use we don't see, or memory).
+- Q2a × Q2b: "none / didn't know" + "thought it was a to-do list" = expectation gap. Cross with DB task titles for that family (do the entered tasks look like chores or like the use cases?).
 - Q3a verbatims → H4 column in the log. Q3b → "loop entered the home?" column.
 - Q5 "Yes" → concierge pilot list (setup call), logged separately from Track A interviews (founder hand-holding is not research evidence — Gemini review 2026-09-14).
 
