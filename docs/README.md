@@ -22,6 +22,7 @@
 | **`BUFF_GAP_ANALYSIS.md`** ⭐ | **PRD ↔ קוד + תוכנית עבודה** | תמיד — לפני החלטות |
 | **`BUFF_DECISIONS_LOG.md`** ⭐ | **תיעוד החלטות עם תאריך ונימוק** | תמיד |
 | `INTEGRATION_LEARNINGS.md` | זיכרון ארוך טווח, FLAGs פתוחים | במהלך כל סשן (קריאה + הוספה) |
+| `research/` | מחקר ערך (VALUE_VALIDATION, יומן ראיונות, מדריכי ראיון) + תקצירי מאמרים (`PAPER_DIGEST_*`) + עותקי PDF ב-`research/papers/` עם רישיון ואטריבוציה | לפני קופי "מבוסס מחקר", לפני ראיונות, לפני החלטת המשך |
 | **`BUFF_BUDDY_SYSTEM.md`** ⭐ | **מערכת BUDDY מלאה** | בעבודה על BUDDY/Teen |
 | `sessions/_template/` | תבנית חבילת שיפור — להעתקה לכל חבילה חדשה | בתחילת חבילה חדשה |
 | `teen-ui-design/` | **Mockups של Stitch + design notes** | בעבודה על Teen UI |

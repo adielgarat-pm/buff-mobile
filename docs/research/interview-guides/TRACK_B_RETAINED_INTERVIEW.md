@@ -17,6 +17,8 @@
 | 5 | What does your child say about it? Has anything changed at home that you'd attribute to it? | מה הילד/ה אומר/ת על זה? משהו השתנה בבית שהיית מייחסת לזה? | Outcome evidence. Specific events (bag packed alone, mornings calmer), not adjectives. |
 | 6 | Would you pay $60 a year for it? $10 a month? What would make it a no? | היית משלמת 60 דולר לשנה? 10 לחודש? מה היה הופך את זה ל-לא? | Willingness to pay, from people who already have lifetime access (so answers are hypothetical, weigh accordingly). |
 | 7 | *(stopped-in-July family only)* You used it for 33 days and then stopped on July 22. What changed? | השתמשת 33 ימים ואז הפסקת ב-22 ביולי. מה השתנה? | Summer? Child outgrew it (a success per Pillar 3)? Something broke? Boredom? |
+| 8 *(added 2026-09-17)* | What happens in your house in the ten minutes after a bad morning? Does your child bring it up again later that day? | מה קורה אצלכם בבית בעשר הדקות אחרי בוקר גרוע? הילד/ה מעלה את זה שוב מאוחר יותר באותו יום? | The after-moment (Grinblat & Rosenblum 2025: emotional aftermath predicts QoL more than the disorganization). Tests whether a kid-only end-of-day feel check has a real slot. See research digest §4.1. |
+| 9 *(added 2026-09-17, teen families)* | Does your teen plan tomorrow, or react to it? If BUFF stopped reminding and instead asked them to plan, would they? | הנער/ה שלך מתכנן/ת את מחר או מגיב/ה לו? אם BUFF הייתה מפסיקה להזכיר ובמקום זה מבקשת מהם לתכנן, הם היו? | Metacognition scaffold hypothesis (digest §4.2). |
 
 **Closing:** "If a stranger asked you 'does it actually work?', what would you say, word for word?" / "אם מישהי זרה הייתה שואלת אותך 'זה באמת עובד?', מה היית אומרת, מילה במילה?"
 

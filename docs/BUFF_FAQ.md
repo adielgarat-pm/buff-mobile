@@ -258,6 +258,8 @@
 
 **Long:** *BUFF's design draws from established work on executive function (Russell Barkley, Smart but Scattered), positive coaching (research on positive reinforcement vs punishment for ADHD), and reinforcement scheduling (the "always close to a win" principle). We don't claim BUFF itself has been through clinical trials — we claim the principles BUFF is built on are research-supported. Important distinction to keep clean.*
 
+**Citable study (added 2026-09-17, ⚠ proposed wording — Adi approves before public use):** *A 2025 open-access study of adults with ADHD (Grinblat & Rosenblum, University of Haifa, Brain Sciences, CC BY 4.0) found that emotional reactions after a disorganized day, and planning/self-monitoring skills, predicted quality of life far more than speed did — pace predicted nothing. BUFF's no-timer, no-failure-count design follows that logic. The study is of adults and is associative; it's a design rationale, not a claim about BUFF's results.* Full digest and license: [research/PAPER_DIGEST_time-organization-adhd-qol_2025.md](research/PAPER_DIGEST_time-organization-adhd-qol_2025.md).
+
 ---
 
 ### Q29. Does it work without medication? / עובד גם בלי תרופות?

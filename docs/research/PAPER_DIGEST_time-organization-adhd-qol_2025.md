@@ -30,6 +30,25 @@ Second sentence, for Teen Mode: **the executive-function profile flips between c
 
 **Hard rule for every asset derived from this paper:** say "a 2025 study of adults with ADHD" — never imply it studied kids, never imply BUFF was tested, never use "proven." P2 and P5 personas read ADDitude and check sources; misquoting one Israeli study costs more trust than it buys. This is the same distinction FAQ Q28 already draws ("principles are research-supported, BUFF is not clinically tested").
 
+### 1.5 Can we use it? License and access (checked 2026-09-17)
+
+**Yes. It is open access under Creative Commons Attribution 4.0 (CC BY 4.0).** The license statement is printed on page 1 of the PDF itself:
+
+> "Copyright: © 2025 by the authors. Licensee MDPI, Basel, Switzerland. This article is an open access article distributed under the terms and conditions of the Creative Commons Attribution (CC BY) license (https://creativecommons.org/licenses/by/4.0/)."
+
+Brain Sciences is a fully open-access MDPI journal; every article in it is CC BY. Verification note: CC's remote session could not reach mdpi.com / doi.org / PubMed (network egress blocked), so the license was read from the PDF, not the live page. Adi can confirm in ten seconds by opening the DOI link below; the same sentence appears in the sidebar of the article page.
+
+**What CC BY 4.0 allows:** quote it, translate it (Hebrew posts are fine), reproduce tables and figures, redistribute the PDF, use it in commercial marketing. **The one obligation:** attribute. Minimum attribution on any public asset:
+
+> Grinblat & Rosenblum, *Brain Sciences* 2025, 15, 1262 (CC BY 4.0) — https://doi.org/10.3390/brainsci15121262
+
+Short form for a carousel slide or Reel caption: *"Source: Grinblat & Rosenblum, Brain Sci. 2025 (open access)"*. If we translate or summarize, say so ("adapted from"); do not imply the authors endorse BUFF. Do not use the University of Haifa or MDPI logos.
+
+**Where the paper lives:**
+- Canonical: https://doi.org/10.3390/brainsci15121262 (resolves to the MDPI article page, HTML + PDF, no login).
+- Repo copy: `docs/research/papers/Grinblat-Rosenblum-2025-brainsci15121262.pdf` (277 KB, redistributable under CC BY). Extracted text is regenerable with any PDF text tool.
+- How it reached us: shared in an ADHD influencer's group (2026-09), forwarded by Adi.
+
 ---
 
 ## 2. The findings, ranked by usefulness to BUFF

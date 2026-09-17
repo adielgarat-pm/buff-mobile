@@ -67,6 +67,13 @@
 | H8 | "Coach mode, not cop mode." | "Coach, לא שוטרים." | P4 Teen-Lost-Control | Landing H1, Reel CTA | Positive Coaching |
 | H9 | "Until they don't need us." | "עד שהם כבר לא יזדקקו לנו." | P5, all | Footer, About, brand | Independence-Building |
 | H10 | "Stop fighting task time. Start coaching it." | "להפסיק להילחם על כל משימה. להתחיל לאמן אותה." | P1, P4 | Landing hero | Positive Coaching |
+| H11 ⚠ | "Being late isn't what hurts. The twenty minutes of shame afterwards is." | "האיחור לא מה שכואב. עשרים הדקות של בושה אחריו — כן." | P1, P3 | FB / Reddit post opener | Positive Coaching |
+| H12 ⚠ | "Your kid isn't slow. Their day is unorganized. That's an executive-function thing, not a character thing." | "הילד שלך לא איטי. היום שלו לא מאורגן. זה עניין של תפקודים ניהוליים, לא של אופי." | P2 | FB carousel / Reddit reply | Positive Coaching |
+| H13 ⚠ | "Speed didn't predict quality of life. Shame did. So we didn't build a timer." | "מהירות לא ניבאה איכות חיים. בושה כן. אז לא בנינו טיימר." | P5 | LinkedIn / philosophy page | Positive Coaching |
+| H14 ⚠ | "By 6 they need help doing. By 16 they need help planning. Most apps stop at 12." | "בגיל 6 הם צריכים עזרה לעשות. בגיל 16 — עזרה לתכנן. רוב האפליקציות עוצרות ב-12." | P4 | Teen-mode ad / blog | Independence-Building |
+| H15 ⚠ | "A good day isn't every task on time. It's a day you end without hating yourself." | "יום טוב זה לא כל משימה בזמן. זה יום שנגמר בלי לשנוא את עצמך." | P1, P3, C3 | Reel text-on-screen | Positive Coaching |
+
+⚠ **H11–H15 (added 2026-09-17):** proposed, not yet approved or used. Anchored to Grinblat & Rosenblum 2025 (adults, CC BY 4.0) — see [research/PAPER_DIGEST_time-organization-adhd-qol_2025.md](research/PAPER_DIGEST_time-organization-adhd-qol_2025.md) §3 for the honest-wording rules and attribution line. H15's "hating yourself" is strong; softer variant: "a day that ends calm."
 
 **כלל ברזל:** הוק תמיד נבחר לפי **persona × channel**. לא מערבבים — H4 ב-FB ad של P1 לא יעבוד, כי P1 לא מחפשת "vs Joon".
 
@@ -123,6 +130,10 @@
 
 **T10 — "Won't my smart kid game the system?":**
 > *"They can't self-issue BUFFs — parent approves each task completion. And the goal isn't to prevent gaming, it's to channel their cleverness toward proposing their own tasks and rewards. Kids who 'game' systems are usually under-stimulated by the system. BUFF lets them propose."*
+
+**T11 ⚠ (proposed 2026-09-17) — "Isn't this just a time-management app?":**
+> *"Time management is the part that matters least, it turns out. A 2025 study of adults with ADHD found pace didn't predict quality of life at all; what did was the emotional reaction after a disorganized day, and planning/self-monitoring. BUFF is built around that: no timers, about 3 tasks is a good day, and coming back after a bad week gets 'welcome back', not a missed-days count. The time stuff (timetable, bag packing) is there — it's just not the point."*
+> Source line if asked: Grinblat & Rosenblum, Brain Sci. 2025 (open access). Adults, not kids — say so.
 
 ---
 
