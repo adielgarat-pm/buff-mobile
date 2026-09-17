@@ -20,29 +20,28 @@
 
 ---
 
-## Noa (Track A, peer-PM version, 2026-09-17)
+## Noa (Track A, peer-PM version, final after Gemini review 2026-09-17)
 
-> Context: senior product manager; teen (15) + sibling; 4 active days over a week in July, then stopped. The only H4-shaped case we have. Peer framing, Hebrew, the five study questions inline so she can answer by reply, and both paths (survey / call). No flattery beyond one honest sentence. Free year attached to the call only.
+> Context: senior product manager; teen (15) + sibling; 4 active days over a week in July, then stopped. The only H4-shaped case we have.
+> Gemini review (as the recipient): the first draft's opening line quoted her kids' drop-off and triggered mother-guilt; "worth twenty interviews" read as CRM flattery; a free year of Pro for a product that didn't work for her reads as a chore; five questions is too many for an inline reply; listing categories in Q4 anchors; "the sharp version" is hustle copy. All accepted. Survey link removed for her (it splits attention; the survey is for the batch). No incentive.
 
 **נושא:** שאלת מוצר, מ-PM ל-PM
 
 > היי נועה,
 >
-> אני עדי, מייסדת BUFF. ראיתי שנרשמת ביולי, הילדים נכנסו כמה ימים, ואז זה נעצר. הנפילה הזו בשבוע הראשון היא בדיוק מה שאני חוקרת עכשיו, לפני שאני כותבת עוד שורת קוד.
+> אני עדי, מייסדת BUFF. ראיתי שניסיתם את האפליקציה ביולי לזמן קצר.
 >
-> את מנהלת מוצר בכירה, אז הקריאה שלך שווה לי יותר מעשרים ראיונות. יש שתי דרכים, ואת בוחרת:
+> אני יודעת כמה קשה להכניס כלי חדש לשגרה של משפחה כמו שלנו. אני מנסה להבין איפה המוצר נשבר בשבוע הראשון, לפני שאני כותבת עוד שורת קוד, והקריאה שלך כ-PM וכאמא היא בדיוק מה שחסר לי.
 >
-> **60 שניות:** סקר של 5 שאלות, [לינק]. בלי שם, רק קוד משפחה.
-> **15 דקות:** שיחה, ואני נותנת שנה חינם של BUFF Pro כתודה, בין אם תחזרו להשתמש ובין אם לא.
+> אם נוח לך לענות פה במייל, שני דברים:
 >
-> ואם הכי נוח לך פשוט לענות במייל, אלה השאלות שאני באמת רוצה לדעת:
+> 1. מה הייתה הציפייה שלך כשהורדת את האפליקציה?
+> 2. איפה הרגשת שהמוצר מאבד אתכם?
 >
-> 1. מה קרה בבית בשבוע שהתקנת, ומה ציפית שהמוצר יעשה?
-> 2. עד איפה הגעתם באמת: מי מהילדים פתח, כמה פעמים, ומה עשה שם?
-> 3. הרגע שבו זה נעצר: מה היה ביום או בשבוע הזה?
-> 4. כ-PM: איפה לדעתך המוצר מאבד את המשפחה, בהגדרה, במסירה לילד, או בערך של יום 2?
-> 5. מה הייתם צריכים לראות בשבוע הראשון כדי שזה יישאר?
+> ואם עדיף לך לדבר, 15 דקות בטלפון, מתי שנוח.
 >
-> בלי גרסה מנומסת. אני צריכה את הגרסה החדה.
+> תודה, אמא לאמא.
 >
 > עדי
+
+**Carry-over to the batch (pending Adi's decision on the incentive):** open with "ניסית את BUFF לזמן קצר" rather than "נרשמת ועצרת"; no usage metrics in the first line; consider dropping the free-year offer everywhere and relying on the 60-second survey as the low-friction path.
