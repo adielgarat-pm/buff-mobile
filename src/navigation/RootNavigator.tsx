@@ -155,6 +155,26 @@ export default function RootNavigator() {
       ? restoredSnap
       : null;
 
+  // Shared-computer child join (bug 2026-09-17): when a parent session already
+  // exists in a browser, branches 4/5 below used to register ONLY the parent
+  // surfaces, so a child on the same shared computer had no route to the family-
+  // code entry — the smart join link (/join/:code) and the /RoleSelection deep
+  // link the marketing site promises both fell through to the parent default
+  // (Welcome / ParentApp), blocking the child entirely (churn case: family 37f4).
+  // Registering the auth-entry screens in the parent-authed branches makes those
+  // routes resolve regardless of session; picking a child in ChildJoin signs in
+  // with the child's credentials, which replaces the parent session and routes to
+  // ChildApp. Screen names are unique within each (mutually-exclusive) branch, so
+  // there is no duplicate-registration; the first Screen in each branch stays the
+  // initial route, so the normal parent flow is unchanged. Both platforms.
+  const sharedDeviceAuthScreens = (
+    <>
+      <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
+      <Stack.Screen name="Login"         component={LoginScreen} />
+      <Stack.Screen name="ChildJoin"     component={ChildJoinScreen} />
+    </>
+  );
+
   return (
     <NavigationContainer
       linking={linking}
@@ -276,6 +296,8 @@ export default function RootNavigator() {
               component={ParentInsightsScreen}
               options={{ headerShown: false }}
             />
+            {/* Shared-computer child join — see note above sharedDeviceAuthScreens. */}
+            {sharedDeviceAuthScreens}
             <Stack.Group screenOptions={{ presentation: 'modal', headerShown: false }}>
               <Stack.Screen name="UStep1"            component={UStep1_ChildProfile} />
               <Stack.Screen name="UStep2_Goal"       component={UStep2_Goal} />
@@ -306,6 +328,10 @@ export default function RootNavigator() {
             <Stack.Screen name="UStep6_FirstTask"  component={UStep6_FirstTask} />
             <Stack.Screen name="ChildAccessStep"   component={ChildAccessStep} />
             <Stack.Screen name="UStep8_Complete"   component={UStep8_Complete} />
+            {/* Shared-computer child join — see note above sharedDeviceAuthScreens.
+                Welcome is the screen the churned family lands on; the affordance
+                added there navigates to ChildJoin, now registered here. */}
+            {sharedDeviceAuthScreens}
           </>
         )}
 
