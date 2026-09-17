@@ -1,6 +1,7 @@
 # BUFF — Churn survey (Track A, low-effort path)
 
 > **Purpose:** a 60-second, 5-question survey for parents who signed up and stopped. Complements the 10-minute call; never replaces it. Responses are joined to the DB funnel by a hidden family code, so we can compare *what they say* with *what they did*.
+> **Forms (live):** EN `https://tally.so/r/2E2BKg` · HE `https://tally.so/r/ODRl7k`
 > **Tool:** Tally, free plan ($0: unlimited forms/responses, hidden URL fields, RTL Hebrew, one question per page, CSV/Sheets export). Two forms, HE and EN, identical structure.
 > **Approved:** Adi, 2026-09-17. No app code, no schema, no PII in the repo.
 
@@ -23,7 +24,7 @@
 ## 2. The form — English (paste into Tally, one block per page)
 
 **Title:** You tried BUFF and stopped. 60 seconds, 5 questions.
-**Intro (small text):** This is about your experience, not your child. Answers are linked to a family code, not your name. Leave your email only if you want Adi to call.
+**Intro (small text):** This is about your experience, not your child. Answers are linked to a family code, not your name. Leave your phone number only if you want Adi to call.
 
 **Q1 · short text · required**
 In one or two sentences: what happened after you set BUFF up?
@@ -48,6 +49,16 @@ Did your child ever open BUFF?
 - A few days
 - More than a week
 
+**Q3a · short text · shown only if Q3 ≠ "Never" (conditional logic)**
+If your child did use it: what do you think made them stop?
+
+**Q3b · single choice · shown only if Q3 ≠ "Never"**
+Did the conversation at home around tasks and routine change because of BUFF?
+- Yes, for the better, even briefly
+- Not really
+- It actually created friction
+- Other: ______
+
 **Q4 · single choice + text on "Other"**
 The thing that made you look for BUFF in the first place: what are you doing about it today?
 - Nothing has changed
@@ -57,10 +68,10 @@ The thing that made you look for BUFF in the first place: what are you doing abo
 - A medication change
 - It got better on its own
 
-**Q5 · single choice · optional · email field appears on "Yes"**
-Would you take a 10-minute call with Adi? No pitch, just questions.
-- Yes, here's my email: ______
-- No, this is enough
+**Q5 · single choice · optional · phone field appears on "Yes"**
+Would you like a first call with me, where I help you set BUFF up and make it work at home?
+- Yes, here's my phone number: ______
+- No, thanks
 
 **Thank-you page:** Thank you. If you'd rather just write, reply to Adi's email.
 
@@ -69,7 +80,7 @@ Would you take a 10-minute call with Adi? No pitch, just questions.
 ## 3. הטופס — עברית (להדביק ב-Tally, RTL מופעל, בלוק לכל עמוד)
 
 **כותרת:** ניסית את BUFF ועצרת. 60 שניות, 5 שאלות.
-**שורת פתיחה (טקסט קטן):** זה על החוויה שלך, לא על הילד/ה. התשובות מקושרות לקוד משפחה, לא לשם. מייל משאירים רק אם רוצים שעדי תתקשר.
+**שורת פתיחה (טקסט קטן):** זה על החוויה שלך, לא על הילד/ה. התשובות מקושרות לקוד משפחה, לא לשם. טלפון משאירים רק אם רוצים שעדי תתקשר.
 
 **ש1 · טקסט קצר · חובה**
 במשפט או שניים: מה קרה אחרי שהגדרת את BUFF?
@@ -94,6 +105,16 @@ Would you take a 10-minute call with Adi? No pitch, just questions.
 - כמה ימים
 - יותר משבוע
 
+**ש3א · טקסט קצר · מוצגת רק אם ש3 ≠ "אף פעם" (לוגיקה מותנית)**
+אם הילד/ה השתמש/ה: מה לדעתכם גרם לו/לה להפסיק?
+
+**ש3ב · בחירה אחת · מוצגת רק אם ש3 ≠ "אף פעם"**
+השיח בבית סביב משימות ושגרה, השתנה בעקבות BUFF?
+- כן, לטובה, גם אם לזמן קצר
+- לא ממש השתנה
+- זה דווקא יצר חיכוך
+- אחר: ______
+
 **ש4 · בחירה אחת + טקסט על "אחר"**
 הדבר שגרם לך לחפש את BUFF מלכתחילה: מה את/ה עושה איתו היום?
 - שום דבר לא השתנה
@@ -103,10 +124,10 @@ Would you take a 10-minute call with Adi? No pitch, just questions.
 - שינוי בתרופות
 - זה השתפר מעצמו
 
-**ש5 · בחירה אחת · לא חובה · שדה מייל נפתח על "כן"**
-שיחה של 10 דקות עם עדי? בלי מכירה, רק שאלות.
-- כן, הנה המייל שלי: ______
-- לא, זה מספיק
+**ש5 · בחירה אחת · לא חובה · שדה טלפון נפתח על "כן"**
+רוצה שיחה ראשונית איתי, שבה אעזור לכם להקים את BUFF ולהצליח איתה בבית?
+- כן, הנה הטלפון שלי: ______
+- לא, תודה
 
 **עמוד תודה:** תודה. אם נוח יותר פשוט לכתוב, אפשר להשיב למייל של עדי.
 
@@ -122,7 +143,7 @@ CC generates the links into the mail-merge CSV (scratchpad, never the repo). The
 
 1. tally.so → sign up (free) → New form → blank.
 2. Paste §2 (EN form). Set each question as its own page (`/page` block between questions). Q2: options → "Shuffle options" ON; drag "Other" to the end and mark it fixed if available, else accept it may shuffle.
-3. Q5: add conditional logic "show email field if answer = Yes".
+3. Q3a + Q3b: conditional logic "show if Q3 is not Never". Q5: conditional logic "show phone field if answer = Yes".
 4. Settings → Hidden fields → add `fam`, `seg`, `lang`.
 5. Duplicate the form → replace with §3 (HE). Settings → Language/Direction → RTL. Same hidden fields.
 6. Publish both. Send CC the two `tally.so/r/…` URLs.
@@ -134,7 +155,8 @@ CC generates the links into the mail-merge CSV (scratchpad, never the repo). The
 - Q1 verbatims → coding sheet in `INTERVIEW_LOG_2026-09.md` under "סקר נטישה". Read for saturation, same rule as the interviews.
 - Q2 option → hypothesis map (below). Check for a primacy artefact: distribution across first-shown position should be roughly flat.
 - Q3 vs DB: if a parent says "a few days" and the DB shows zero child login, that gap is itself a finding (shared-device use we don't see, or memory).
-- Q5 "Yes" → Track A call list.
+- Q3a verbatims → H4 column in the log. Q3b → "loop entered the home?" column.
+- Q5 "Yes" → concierge pilot list (setup call), logged separately from Track A interviews (founder hand-holding is not research evidence — Gemini review 2026-09-14).
 
 | Q2 option | Hypothesis |
 |---|---|
