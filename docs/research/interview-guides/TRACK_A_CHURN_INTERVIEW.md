@@ -2,7 +2,8 @@
 
 **Who:** parents in segments `A_churned_at_handoff`, `A0_no_child`, `A2_activated_then_stopped`.
 **Format:** 15-minute call, or 5 WhatsApp voice-note questions. One question at a time. No pitch, no demo, no "did you know that…".
-**Incentive:** a small thank-you ($20 voucher or a free year) for "10 minutes of brutal feedback". Without it only the guilty and the angry reply (Gemini review, 2026-09-14).
+**Incentive:** a free year of BUFF Pro for the 10-minute call (no cash: bootstrap rule). Without an incentive only the guilty and the angry reply (Gemini review, 2026-09-14).
+**Low-effort path (added 2026-09-17):** a 60-second, 5-question survey with a hidden family code, see `docs/research/CHURN_SURVEY_2026-09.md`. Every outreach offers both: the survey link for the busy, the call for the willing.
 **Goal:** find out which hypothesis is true for *this* family: H1 handoff broken / H2 pain not urgent / H4 the child didn't want it.
 **Values guard:** the parent did nothing wrong by stopping. Never "why didn't you…". Always "what happened".
 
@@ -11,10 +12,10 @@
 ## Outreach message (personal, from Adi)
 
 **EN**
-> Hi [Name], I'm Adi, founder of BUFF. You signed up on [date] and stopped, and I'd like to know why — not to win you back, to learn. 10 minutes of brutal feedback, by voice note or a quick call, and I'll send you a $20 [voucher] as thanks. Reply with a time that suits you, or just one line on what happened.
+> Hi [Name], I'm Adi, founder of BUFF. You signed up on [date] and stopped, and I'd like to know why — not to win you back, to learn. Two ways, your pick: a 60-second survey ([link]), or a 10-minute call with a free year of BUFF Pro as thanks. Or just reply with one line on what happened.
 
 **HE**
-> היי [שם], אני עדי, המייסדת של BUFF. נרשמת ב-[תאריך] ועצרת, ואני רוצה להבין למה. לא כדי להחזיר אותך, כדי ללמוד. 10 דקות של פידבק בלי פילטרים, בהודעה קולית או בשיחה קצרה, ואשלח לך [שובר 20$ / שנה חינם] כתודה. תכתבי מתי נוח לך, או פשוט שורה אחת על מה קרה.
+> היי [שם], אני עדי, המייסדת של BUFF. נרשמת ב-[תאריך] ועצרת, ואני רוצה להבין למה. לא כדי להחזיר אותך, כדי ללמוד. שתי דרכים, לבחירתך: סקר של 60 שניות ([לינק]), או שיחה של 10 דקות עם שנה חינם של BUFF Pro כתודה. או פשוט שורה אחת בתשובה על מה קרה.
 
 ---
 
