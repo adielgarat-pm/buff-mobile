@@ -105,7 +105,16 @@ Best ranking opportunity. Most ADHD content stops at age 12.
 | 30 | *Why a senior PM built an app she wants users to leave* | [FOUNDING_100_KIT §4](BUFF_FOUNDING_100_KIT.md) outline | PM, P5 | brand-builder, LinkedIn-shared |
 | 31 | *Building BUFF in public — the bootstrap diary* | Recurring series — low effort per post | All | brand-builder |
 
-**Total:** 31 posts (one bonus). Realistic publishing scope for ~6 months.
+### Cluster 7 — Research-anchored (added 2026-09-17)
+Source: [research/PAPER_DIGEST_time-organization-adhd-qol_2025.md](research/PAPER_DIGEST_time-organization-adhd-qol_2025.md) (Grinblat & Rosenblum 2025, adults with ADHD, CC BY 4.0 — attribute, never present as evidence about kids or about BUFF). Also strengthens #13, #18, #27 with a current citation.
+
+| # | Title | Source anchor | Target persona | Target keyword |
+|---|---|---|---|---|
+| 32 | *It's not how slow your ADHD kid is. It's how they feel afterwards.* | Digest §2 F1–F2 + [VALUES Pillar 2](BUFF_VALUES.md) | P1, P3, P5 | "adhd shame after being late", "adhd time blindness kids" |
+| 33 | *Why we didn't put a timer in BUFF* | Digest §2 F2 + [BRAND §7.7](BUFF_BRAND.md) Spaceship Test | P5 | "adhd timer app kids", "visual timer adhd" (contrarian) |
+| 34 | *ADHD at 6 vs ADHD at 16: the executive-function shift most apps ignore* | Digest §2 F3 + [PERSONAS §C1–C4](BUFF_PERSONAS.md) | P4, P2 | "adhd teenager executive function" |
+
+**Total:** 34 posts. Realistic publishing scope for ~6 months.
 
 ---
 

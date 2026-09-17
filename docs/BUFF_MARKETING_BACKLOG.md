@@ -131,6 +131,8 @@ Three candidates, **not built**. Requires its own session SPEC with Values Check
 
 **Goal of this track:** לתרגם את הדפוסים ש-Ohana הוכיח לסדרת פוסטים בעברית בקול-מייסדת של Adi, ספציפיים ל-ADHD — *מבלי* להעתיק את ה-framing שלו ומבלי לאבד את ה-ADHD wedge.
 
+**Post idea added 2026-09-17 — the Haifa study.** מחקר ישראלי (אוניברסיטת חיפה, ריפוי בעיסוק, מימון ביטוח לאומי, 2025, open access CC BY) שמצא שהרגש אחרי יום לא מאורגן מנבא איכות חיים יותר מהארגון עצמו, ומהירות לא מנבאת כלום. אף אחד בקבוצות לא מצטט אותו. פוסט בעברית בקול של עדי, בלי אזכור BUFF בגוף, עם שורת מקור. טיוטה + כללי ניסוח: [research/PAPER_DIGEST_time-organization-adhd-qol_2025.md](research/PAPER_DIGEST_time-organization-adhd-qol_2025.md) §3.3.
+
 ### Patterns to ADOPT
 
 1. **Personal mom-to-mom voice** — לא promoter. כלל הטון של [MESSAGING §8.1](BUFF_MESSAGING.md) ("if copy reads like an ad — blocks the action").
