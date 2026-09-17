@@ -79,6 +79,8 @@ The question "does BUFF have value?" **cannot be answered from usage data today*
 
 A fourth, uncomfortable one: **H4 — the child doesn't want it.** Parent sets it up, child tries once, doesn't return. Data: 8 of 12 activated families stopped after 1–2 days.
 
+**H8 — paywall-before-value (added 2026-09-17, now the leading hypothesis).** The FREE parent hits locked surfaces while still trying to understand what BUFF is, and abandons before the habit loop can start. Source: Noa (family d111), first Track A interview — "hit the paywall fast, no way to explore, it killed the whole thing" — cross-checked against code (a FREE Android parent meets a locked card within a minute: "+ Add Child", 7th task, Insights/coach, timetable, activities) and DB (her family defined 4 rewards, 0 redemptions: the task→BUFFs→reward loop never closed). Cheap check: the cognitive walkthrough (below) now also counts every locked surface a FREE parent sees on day 1, Android vs web (web hides paywalls, `noIapPaywallHidden`). **Spec-sync flag (Adi's doc, not changed here):** D-2026-06-19 assumed "free = the whole habit loop"; Noa's account is that the parent's *exploration* is gated before the loop begins. Flagged for Adi; a proposed amendment will be drafted, not applied.
+
 ---
 
 ## 3. The research plan (3 weeks, development frozen)

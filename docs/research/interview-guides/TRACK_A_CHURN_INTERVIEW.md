@@ -29,6 +29,10 @@
 | 4 | Did your child see it? What did they say or do? | הילד/ה ראו את זה? מה אמרו או עשו? | Child's reaction verbatim. Age. Which device they would have used. |
 | 5 | What are you doing about [the pain from Q1] now? | מה את/ה עושה עם [הכאב משאלה 1] היום? | Alternative solutions, spend, resignation. "Nothing" = pain not urgent enough to act on. |
 
+**Follow-ups when the child touched the app (added 2026-09-17 after Noa):**
+- Paywall probe (tests H8, non-leading): "Did you hit a paywall at any point? What were you trying to do when you did?" / "נתקלת בפייוול באיזשהו שלב? מה ניסית לעשות כשזה קרה?"
+- At-home probe (Adi's question to Noa): "Did BUFF become a topic at home — the tasks, what each is worth, the rewards — or did it stay something that happens on the phone?" / "BUFF הפך לנושא בבית — המשימות, כמה כל אחת שווה, הפרסים — או שנשאר משהו שקורה בטלפון?"
+
 **Closing:** "If BUFF did one thing differently, what would have made you show it to your child that same evening?" / "אם BUFF הייתה עושה דבר אחד אחרת, מה היה גורם לך להראות אותה לילד/ה באותו ערב?"
 
 ---

@@ -38,6 +38,7 @@ Which of these is closest to the main reason it didn't stick?
 - Life got in the way that week; nothing to do with the app
 - Something didn't work or crashed
 - It wasn't what I thought it was
+- I ran into a paywall before I could see what it does
 - Other: ______
 
 **Q3 · single choice · required**
@@ -83,6 +84,7 @@ Would you take a 10-minute call with Adi? No pitch, just questions.
 - החיים השתלטו באותו שבוע, לא קשור לאפליקציה
 - משהו לא עבד או קרס
 - זה לא היה מה שחשבתי שזה
+- נתקלתי בפייוול לפני שהספקתי לראות מה זה עושה
 - אחר: ______
 
 **ש3 · בחירה אחת · חובה**
@@ -144,6 +146,7 @@ CC generates the links into the mail-merge CSV (scratchpad, never the repo). The
 | life got in the way | H2 |
 | something didn't work | bug (check Sentry for that family's window) |
 | not what I thought | expectation gap (listing / messaging) |
+| ran into a paywall before seeing value | **H8 paywall-before-value** (leading hypothesis after Noa, 2026-09-17) |
 
 ## 7. Not in scope
 No in-app survey, no code, no schema. If the survey performs, an in-app version at the day-3 drop is a separate package after the study.
