@@ -44,4 +44,4 @@
 >
 > עדי
 
-**Carry-over to the batch (pending Adi's decision on the incentive):** open with "ניסית את BUFF לזמן קצר" rather than "נרשמת ועצרת"; no usage metrics in the first line; consider dropping the free-year offer everywhere and relying on the 60-second survey as the low-friction path.
+**Carried over to the batch (Adi, 2026-09-17):** open with "ניסית את BUFF לזמן קצר" rather than "נרשמת ועצרת"; no usage metrics in the first line; no incentive anywhere; the 60-second survey is the low-friction path.

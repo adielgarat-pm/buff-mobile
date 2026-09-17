@@ -2,7 +2,7 @@
 
 **Who:** parents in segments `A_churned_at_handoff`, `A0_no_child`, `A2_activated_then_stopped`.
 **Format:** 15-minute call, or 5 WhatsApp voice-note questions. One question at a time. No pitch, no demo, no "did you know that…".
-**Incentive:** a free year of BUFF Pro for the 10-minute call (no cash: bootstrap rule). Without an incentive only the guilty and the angry reply (Gemini review, 2026-09-14).
+**Incentive:** none (Adi, 2026-09-17). The 60-second survey is the low-friction path; the call is offered plainly. Gemini's recipient review: a free year of a product that didn't work for you reads as a chore, not a gift.
 **Low-effort path (added 2026-09-17):** a 60-second, 5-question survey with a hidden family code, see `docs/research/CHURN_SURVEY_2026-09.md`. Every outreach offers both: the survey link for the busy, the call for the willing.
 **Goal:** find out which hypothesis is true for *this* family: H1 handoff broken / H2 pain not urgent / H4 the child didn't want it.
 **Values guard:** the parent did nothing wrong by stopping. Never "why didn't you…". Always "what happened".
@@ -12,10 +12,10 @@
 ## Outreach message (personal, from Adi)
 
 **EN**
-> Hi [Name], I'm Adi, founder of BUFF. You signed up on [date] and stopped, and I'd like to know why — not to win you back, to learn. Two ways, your pick: a 60-second survey ([link]), or a 10-minute call with a free year of BUFF Pro as thanks. Or just reply with one line on what happened.
+> Hi [Name], I'm Adi, founder of BUFF. I saw you tried BUFF briefly in [month]. I know how hard it is to bring a new tool into a family's routine, and I'm trying to understand where the app loses families in the first week, before I write more code. Two ways, your pick: a 60-second survey ([link]), or a 10-minute call. Or just reply with one line on what happened.
 
 **HE**
-> היי [שם], אני עדי, המייסדת של BUFF. נרשמת ב-[תאריך] ועצרת, ואני רוצה להבין למה. לא כדי להחזיר אותך, כדי ללמוד. שתי דרכים, לבחירתך: סקר של 60 שניות ([לינק]), או שיחה של 10 דקות עם שנה חינם של BUFF Pro כתודה. או פשוט שורה אחת בתשובה על מה קרה.
+> היי [שם], אני עדי, המייסדת של BUFF. ראיתי שניסית את BUFF לזמן קצר ב[חודש]. אני יודעת כמה קשה להכניס כלי חדש לשגרה של משפחה, ואני מנסה להבין איפה האפליקציה מאבדת משפחות בשבוע הראשון, לפני שאני כותבת עוד קוד. שתי דרכים, לבחירתך: סקר של 60 שניות ([לינק]), או שיחה של 10 דקות. או פשוט שורה אחת בתשובה על מה קרה.
 
 ---
 

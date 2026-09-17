@@ -14,7 +14,7 @@
 | Open question **first**, closed list second | a list shown first anchors people to our categories; self-generated answers are the discovery signal. We have zero interviews yet, so our list is a hypothesis list | [Maze](https://maze.co/guides/ux-surveys/questions/), [CleverX](https://cleverx.com/blog/multiple-choice-questions-design-best-practices-for-surveys/) |
 | Shuffle the closed options; keep "Other" fixed last | primacy/recency bias in option order | [CleverX](https://cleverx.com/blog/multiple-choice-questions-design-best-practices-for-surveys/), [Formfacade](https://formfacade.com/embed/google-forms-shuffle-answer-choices.html) |
 | Ask about a specific moment ("after you set it up", "the last time it was open") | recall bias; people remember recent, frequent, emotional moments | [NN/G survey challenges](https://www.nngroup.com/articles/10-survey-challenges/), [Lensym](https://lensym.com/blog/recall-bias-survey/) |
-| No incentive on the survey; free year of Pro only on the call | guaranteed beats lottery, prepaid beats promised; a 60-second ask needs none | [Singer & Ye meta-analysis via SurveyMonkey](https://www.surveymonkey.com/curiosity/academic-research-on-incentives/), [46-RCT meta-analysis](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9844858/) |
+| No incentive anywhere (Adi, 2026-09-17: "whoever wants a product that works for their kids will invest without one") | a 60-second ask needs none; a free year of a product that didn't work reads as a chore (Gemini recipient review) | [Singer & Ye meta-analysis via SurveyMonkey](https://www.surveymonkey.com/curiosity/academic-research-on-incentives/), [46-RCT meta-analysis](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9844858/) |
 | Parent-report only; no child names or fields; hidden code instead of name | minors' data; COPPA-style notice principle; Pillar 2 | [Online pediatric research: consent models](https://journals.sagepub.com/doi/full/10.1177/1073110520917038) |
 | Tally over Google Forms | hidden fields, RTL, per-page questions, free | [Tally features](https://tally.so/features), [Tally hidden fields](https://tally.so/help/hidden-fields), [Google Forms vs Tally](https://www.softr.io/blog/google-forms-vs-tally-forms) |
 
@@ -57,7 +57,7 @@ The thing that made you look for BUFF in the first place: what are you doing abo
 - It got better on its own
 
 **Q5 · single choice · optional · email field appears on "Yes"**
-Would you take a 10-minute call with Adi? A free year of BUFF Pro as thanks, whether or not you use it again.
+Would you take a 10-minute call with Adi? No pitch, just questions.
 - Yes, here's my email: ______
 - No, this is enough
 
@@ -102,7 +102,7 @@ Would you take a 10-minute call with Adi? A free year of BUFF Pro as thanks, whe
 - זה השתפר מעצמו
 
 **ש5 · בחירה אחת · לא חובה · שדה מייל נפתח על "כן"**
-שיחה של 10 דקות עם עדי? שנה חינם של BUFF Pro כתודה, בין אם תחזרו להשתמש ובין אם לא.
+שיחה של 10 דקות עם עדי? בלי מכירה, רק שאלות.
 - כן, הנה המייל שלי: ______
 - לא, זה מספיק
 
