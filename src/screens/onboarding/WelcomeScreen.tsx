@@ -196,6 +196,20 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
           )}
 
+          {/* Shared-computer child join (bug 2026-09-17): on a shared computer the
+              parent is already signed in, so a child reaching the web app lands
+              here (parent onboarding) with no way to the family-code entry. This
+              quiet link routes them to ChildJoin — picking their profile signs the
+              child in and swaps the session. Invitation, not a demand (Pillar 2). */}
+          <TouchableOpacity
+            testID="welcome-child-join"
+            style={styles.childJoinLink}
+            onPress={() => navigation.navigate('ChildJoin')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.childJoinText}>{t('welcome.sharedDevice.childJoin')}</Text>
+          </TouchableOpacity>
+
         </ScrollView>
       </Animated.View>
     </SafeAreaView>
@@ -316,6 +330,20 @@ const styles = StyleSheet.create({
     color:              TEXT_MUTED,
     fontSize:           14,
     fontWeight:         '700',
+    textDecorationLine: 'underline',
+  },
+
+  // ── Shared-computer child join affordance ─────────────────────────────────
+  childJoinLink: {
+    marginTop:       20,
+    paddingVertical: 10,
+    alignItems:      'center',
+  },
+  childJoinText: {
+    color:              ACCENT,
+    fontSize:           14,
+    fontWeight:         '600',
+    textAlign:          'center',
     textDecorationLine: 'underline',
   },
 });

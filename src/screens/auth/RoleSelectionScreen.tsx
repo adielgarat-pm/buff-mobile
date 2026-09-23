@@ -82,8 +82,22 @@ export default function RoleSelectionScreen() {
           <Text style={styles.cardSub}>{t('auth.childSub')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginLink}>
-          <Text style={styles.loginLinkText}>{t('roleSelection.alreadyHaveAccount')}</Text>
+        {/* Returning-user login entry. This is the ONLY path back into an
+            existing account from the web entry screen: both role cards above lead
+            forward into new setup (parent → Signup, child → ChildJoin), so a
+            returning user who cannot find this control is funneled into
+            onboarding with no way back in (bug 2026-09-23). It was previously a
+            faint text link that returning users missed; promoted to a full-width
+            outlined button so it reads as a first-class choice without competing
+            with the primary "new here" cards. Both platforms. */}
+        <TouchableOpacity
+          testID="rolesel-login"
+          onPress={() => navigation.navigate('Login')}
+          style={styles.loginBtn}
+          activeOpacity={0.75}
+          accessibilityRole="button"
+        >
+          <Text style={styles.loginBtnText}>{t('roleSelection.alreadyHaveAccount')}</Text>
         </TouchableOpacity>
 
       </Animated.View>
@@ -139,6 +153,17 @@ const styles = StyleSheet.create({
   cardTitle: { color: TEXT_DARK,  fontSize: 20, fontWeight: '800', marginBottom: 6, textAlign: 'center' },
   cardSub:   { color: TEXT_MUTED, fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
-  loginLink:     { marginTop: 12 },
-  loginLinkText: { color: ACCENT, fontSize: 14, fontWeight: '600' },
+  // Returning-user login button — prominent, full-width, outlined so it is
+  // unmistakable but visually subordinate to the filled primary cards.
+  loginBtn: {
+    width:            '100%',
+    marginTop:        8,
+    paddingVertical:  16,
+    borderRadius:     16,
+    borderWidth:      1.5,
+    borderColor:      ACCENT,
+    backgroundColor:  'transparent',
+    alignItems:       'center',
+  },
+  loginBtnText: { color: ACCENT, fontSize: 16, fontWeight: '800', textAlign: 'center' },
 });

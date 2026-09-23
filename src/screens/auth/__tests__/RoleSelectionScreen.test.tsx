@@ -10,7 +10,13 @@
  * Covered:
  *   - Parent card → Signup with { initialRole: 'parent' }
  *   - Child card  → ChildJoin (unchanged)
- *   - Footer "Already have an account?" link → Login (unchanged)
+ *   - Returning-user "Already have an account?" control → Login
+ *
+ * Also guards the 2026-09-23 fix (existing user redirected to onboarding instead
+ * of login): the returning-user login entry must be a real, present control on
+ * this web entry screen (promoted from a faint text link to a prominent button),
+ * reachable by testID as well as by its label — both role cards lead forward into
+ * new setup, so this is the only path back into an existing account.
  */
 import { render, fireEvent } from '@testing-library/react-native';
 import RoleSelectionScreen from '../RoleSelectionScreen';
@@ -66,10 +72,22 @@ describe('RoleSelectionScreen', () => {
     expect(mockNavigate).toHaveBeenCalledWith('ChildJoin');
   });
 
-  test('footer "Already have an account?" link still navigates to Login', () => {
+  test('returning-user "Already have an account?" control navigates to Login', () => {
     const { getByText } = render(<RoleSelectionScreen />);
 
     fireEvent.press(getByText('roleSelection.alreadyHaveAccount'));
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith('Login');
+  });
+
+  test('the login entry is a present, tappable control (reachable on the web entry screen)', () => {
+    const { getByTestId } = render(<RoleSelectionScreen />);
+
+    // The prominent returning-user control exists and routes to Login — an
+    // existing user is never forced through Signup/onboarding to get back in.
+    const loginBtn = getByTestId('rolesel-login');
+    fireEvent.press(loginBtn);
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('Login');

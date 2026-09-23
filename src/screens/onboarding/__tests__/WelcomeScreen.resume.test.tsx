@@ -90,3 +90,24 @@ describe('WelcomeScreen resume prompt', () => {
     expect(queryByTestId('welcome-resume')).toBeNull();
   });
 });
+
+// Shared-computer child join (bug 2026-09-17). Welcome ONLY renders when a
+// parent user session exists (RootNavigator branch 5), so proving the affordance
+// here reaches ChildJoin proves a child on a shared computer can reach the
+// family-code entry even while a parent is signed in.
+describe('WelcomeScreen shared-computer child join', () => {
+  it('always exposes the child-join affordance (no snapshot)', () => {
+    const { getByTestId } = render(<WelcomeScreen />);
+    fireEvent.press(getByTestId('welcome-child-join'));
+    expect(mockNavigate).toHaveBeenCalledWith('ChildJoin');
+  });
+
+  it('exposes the child-join affordance alongside the resume prompt', () => {
+    routeState.params = {
+      resumeSnapshot: { route: 'UStep3_Challenges', params: { childName: 'Maya' }, t: Date.now() },
+    };
+    const { getByTestId } = render(<WelcomeScreen />);
+    fireEvent.press(getByTestId('welcome-child-join'));
+    expect(mockNavigate).toHaveBeenCalledWith('ChildJoin');
+  });
+});
