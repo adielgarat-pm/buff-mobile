@@ -12,6 +12,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import EditFocusScreen from '../EditFocusScreen';
 import { supabase } from '../../../integrations/supabase/client';
 import { generateStarterTasks } from '../../onboarding/unified/starterTasks';
+import { pickLang } from '../../../lib/i18nString';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string, v?: Record<string, unknown>) => (v && 'count' in v ? `${key}:${v.count}` : key), i18n: { language: 'en' } }),
@@ -141,7 +142,7 @@ describe('EditFocusScreen', () => {
     expect(spies.taskInsert).toHaveBeenCalledTimes(1);
     const rows = spies.taskInsert.mock.calls[0][0] as Record<string, unknown>[];
     expect(rows).toEqual([expect.objectContaining({
-      family_id: 'fam-1', assigned_to: 'child-1', title: first.title.en, time: first.time,
+      family_id: 'fam-1', assigned_to: 'child-1', title: pickLang(first.title, 'en'), time: first.time,
       category: first.category, credits: first.buff_value, schedule_days: [0, 1, 2, 3, 4, 5, 6],
     })]);
     expect(spies.rewardInsert).not.toHaveBeenCalled();
@@ -152,7 +153,7 @@ describe('EditFocusScreen', () => {
 
   test('a task the child already has (stored in Hebrew) is not suggested again', async () => {
     const first = expectedTasks()[0];
-    install({ existingTasks: [first.title.he] });
+    install({ existingTasks: [pickLang(first.title, 'he')] });
     const utils = render(<EditFocusScreen />);
     await saveNewFocus(utils);
     expect(utils.queryByTestId(`edit-focus-task-${first.id}`)).toBeNull();

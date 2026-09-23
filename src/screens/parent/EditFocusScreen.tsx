@@ -34,7 +34,7 @@ import {
 } from '../onboarding/unified/onboardingData';
 import { generateStarterTasks, type GeneratedTask } from '../onboarding/unified/starterTasks';
 import { buildSeedRewards } from '../onboarding/unified/seedRewards';
-import { pickLang, bilingualForDb, resolveChildLang } from '../../lib/i18nString';
+import { pickLang, pickI18nColumn, bilingualForDb, resolveChildLang } from '../../lib/i18nString';
 import { diffSuggestions, mergeFocusIntoProSettings, type FocusSuggestions } from '../../lib/focusSuggestions';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'EditFocus'>;
@@ -167,8 +167,8 @@ export default function EditFocusScreen() {
       supabase.from('tasks').select('title').eq('assigned_to', params.childId),
       supabase.from('store_rewards').select('title, title_he').eq('child_id', params.childId),
     ]);
-    const existingRewardTitles = ((rewardRows ?? []) as { title: string | null; title_he: string | null }[])
-      .flatMap(r => [r.title, r.title_he]);
+    const existingRewardTitles = ((rewardRows ?? []) as { title: string; title_he: string | null }[])
+      .flatMap(r => [pickI18nColumn(r, 'en'), pickI18nColumn(r, 'he')]);
     setSuggestions(diffSuggestions({
       tasks: genTasks,
       rewards: genRewards,
