@@ -25,9 +25,9 @@ const PLANS = [
     highlight: true,
     features: [
       'Everything in Free',
-      'AI coach: weekly insights about your child',
-      'Recommendations for what to try next',
-      'AI capture: turn a photo or a note into tasks',
+      'A weekly look at what worked for your child — and why',
+      'One clear next step, tailored to your child',
+      'Snap a school note — the tasks set themselves up',
     ],
     note:
       'Every family gets 14 days of BUFF Coach free, starting when your child completes their first task. No card needed, and nothing is charged when it ends. After that, one free coach insight every week.',

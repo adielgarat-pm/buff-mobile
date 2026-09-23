@@ -234,11 +234,12 @@ export default function ParentInsightsScreen() {
         <View style={styles.centered}>
           <Text style={styles.lockedIcon}>📊</Text>
           <Text style={[styles.lockedTitle, { color: T.text }]}>{t('dashboard.insightsPremiumTitle')}</Text>
+          <Text style={[styles.lockedHint, { color: T.textMuted }]}>{t('dashboard.insightsPremiumHint')}</Text>
           <TouchableOpacity
             style={[styles.cta, { backgroundColor: T.accent }]}
             onPress={() => navigation.navigate('Paywall', { childName: firstName || undefined })}
           >
-            <Text style={styles.ctaText}>{t('dashboard.insightsPremiumHint')}</Text>
+            <Text style={styles.ctaText}>{t('dashboard.insightsUnlockCta')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -647,6 +648,7 @@ const styles = StyleSheet.create({
   scrollView:  { flex: 1 },
   lockedIcon:  { fontSize: 40 },
   lockedTitle: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
+  lockedHint:  { fontSize: 14, textAlign: 'center', marginTop: 8, marginBottom: 16, paddingHorizontal: 24, lineHeight: 20 },
   pausedMsg:   { fontSize: 14, textAlign: 'center', lineHeight: 20 },
 
   // Smart Insight card
