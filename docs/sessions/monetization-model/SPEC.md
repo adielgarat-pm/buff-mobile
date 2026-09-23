@@ -1,3 +1,5 @@
+> **⚠ Superseded 2026-09-23 by Freemium v2** (`docs/sessions/freemium-v2/SPEC.md`): no task or child limits; the paid tier is "BUFF Coach" = AI coach + AI capture only; 14-day reverse trial from the first real completed task. Kept for history.
+
 # SPEC — Monetization Model Fix (gate on value, not child count)
 
 > **Status:** PROPOSED — awaiting Adi's `approved, proceed`.

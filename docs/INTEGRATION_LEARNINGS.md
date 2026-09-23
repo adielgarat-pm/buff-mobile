@@ -1542,6 +1542,23 @@ CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: 
 
 ---
 
+### Lesson 2026-09-23 — Freemium v2: the reverse trial already existed, and three hidden interactions (IN-2026-09-23-01)
+
+- **תאריך:** 2026-09-23
+- **מקור:** CC — `docs/sessions/freemium-v2/`
+- **תיאור:**
+  1. **The 14-day trial was already built** (migration 037, `start_trial_on_activation` on `daily_progress`) but fired on the family's *2nd distinct completion date*. The strategy doc assumed it had to be built. Freemium v2 only changed the bar (migration 058).
+  2. **The onboarding seed row would have started the trial at signup.** `UStep6_FirstTask` writes a real `daily_progress` row (`source='onboarding_first_task'`). With a "first completion" bar the trial would start inside onboarding — exactly what the strategy rejects. 058 ignores `onboarding_first_task` and `seed` rows.
+  3. **The free AI "taste" was lifetime, and the trial spends it.** `generate-child-insights` gated non-payers on `smart_insight_total_count < 1`; every trial generation increments it, so a post-trial family would have had *zero* free insights. Switched to the existing weekly counter (1/child/week) — no schema change (function v19).
+  4. **Backfilled trial clocks are distinguishable exactly.** 037 backfilled `trial_started_at = created_at` for pre-2026-07-01 families; a real activation writes `now()` at completion time, never equal to `created_at`. Verified in prod (221 exact backfills, 0 real trials among them), so the Q5 reset (192 families, lifetime/premium excluded) needed no guessing.
+- **השפעה:** DB function + one-time data reset (approved), edge function, client taste gate, dashboard trial notes.
+- **Pattern to watch:** before designing "new" monetization mechanics, grep `migrations/` + live `pg_proc` — the mechanism may already exist with a different threshold. And any rule keyed on "first X" must ask which rows are synthetic (seed / onboarding / view-as-child).
+- **Also:** `supabase/migrations` could not be Deno-typechecked in this environment (no deno); checked with a TS program against stubs instead. Direct HTTPS to `*.supabase.co` is blocked by the sandbox proxy, so the deployed function could not be smoke-called — Adi verifies live.
+- **סטטוס:** `resolved` (this package)
+- **קשור ל:** D-2026-09-23-02 (draft), migration 037/048/058, FREEMIUM_STRATEGY_2026-09
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
