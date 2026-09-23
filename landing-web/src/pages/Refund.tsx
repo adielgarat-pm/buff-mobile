@@ -25,14 +25,14 @@ export default function Refund() {
 
           <section>
             <h2 className="text-lg font-semibold text-foreground">2. 14-day money-back guarantee</h2>
-            <p>If BUFF Premium isn't right for your family, you can request a full refund within <strong>14 days</strong> of your purchase, no questions asked. This applies to your first payment on a new subscription or a lifetime plan.</p>
+            <p>If BUFF Coach (our paid plan) isn't right for your family, you can request a full refund within <strong>14 days</strong> of your purchase, no questions asked. This applies to your first payment on a new subscription or a lifetime plan.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-foreground">3. Subscriptions &amp; renewals</h2>
             <ul className="list-disc pl-5 space-y-1">
               <li>Monthly and annual plans renew automatically at the end of each period until you cancel.</li>
-              <li>You can cancel at any time — see section 4. Cancelling stops future renewals; you keep Premium access until the end of the period you already paid for.</li>
+              <li>You can cancel at any time — see section 4. Cancelling stops future renewals; you keep BUFF Coach until the end of the period you already paid for, and the free BUFF app stays available to your family after that.</li>
               <li>Renewal payments (after the 14-day window) are generally non-refundable, except where required by law or at our discretion for genuine billing errors.</li>
             </ul>
           </section>

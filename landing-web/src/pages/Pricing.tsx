@@ -5,29 +5,32 @@ const PLANS = [
   {
     name: 'Free',
     price: '$0',
-    cadence: 'forever',
+    cadence: 'for your whole family · no card needed',
     highlight: false,
     features: [
-      'One child',
-      'Daily routines & tasks',
+      'Unlimited children',
+      'Unlimited tasks',
       'BUDDY companion + skins',
-      'Vibe Check & Pause Mode',
-      'Rewards shop',
+      'BUFFs, rewards shop & real rewards',
+      'Vibe Check, SOS & Pause Mode',
+      'Timetable (incl. import from a photo)',
+      'Activities, bag prep & reminders',
     ],
+    note: null as string | null,
   },
   {
-    name: 'BUFF Premium',
-    price: '$9.99',
-    cadence: 'per month — or $59.99 / year',
+    name: 'BUFF Coach',
+    price: '$59.99',
+    cadence: 'per year — or $9.99 / month. Renews automatically; cancel anytime.',
     highlight: true,
     features: [
       'Everything in Free',
-      'Unlimited children',
-      'Unlimited tasks per child',
-      'Parent Insights',
-      'Timetable import & Backpack prep',
-      'Activities & seasonal lists',
+      'AI coach: weekly insights about your child',
+      'Recommendations for what to try next',
+      'AI capture: turn a photo or a note into tasks',
     ],
+    note:
+      'Every family gets 14 days of BUFF Coach free, starting when your child completes their first task. No card needed, and nothing is charged when it ends. After that, one free coach insight every week.',
   },
   {
     name: 'Founding Member',
@@ -35,11 +38,12 @@ const PLANS = [
     cadence: 'one-time · lifetime (launch only, 100 spots)',
     highlight: false,
     features: [
-      'All Premium features, forever',
+      'BUFF Coach, for life',
       'No subscription, ever',
       'Founding member badge',
       'Family-wide access',
     ],
+    note: null as string | null,
   },
 ];
 
@@ -58,7 +62,7 @@ export default function Pricing() {
 
         <h1 className="text-3xl font-bold text-foreground mb-2">Pricing</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          Simple plans for families. Cancel anytime. Payments are securely handled by Paddle.
+          Free for your whole family. Optional AI coach. Payments are securely handled by Paddle.
         </p>
         <hr className="mb-8 border-border" />
 
@@ -84,6 +88,12 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
+
+              {plan.note && (
+                <p className="mt-5 text-xs text-muted-foreground border-t border-border pt-4">
+                  {plan.note}
+                </p>
+              )}
             </div>
           ))}
         </div>
