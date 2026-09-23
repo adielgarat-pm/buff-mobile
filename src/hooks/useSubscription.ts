@@ -1,9 +1,13 @@
 /**
- * useSubscription — BUFF subscription model
+ * useSubscription — BUFF subscription model (Freemium v2, D: Adi 2026-09-23)
  *
- * Business model: gate on NUMBER OF CHILDREN, not features.
- *   Free tier  — 1 child (always free)
- *   BUFF Premium — $9/month or yearly, unlimited children (RevenueCat)
+ * Business model: the whole family habit loop is FREE with no limits (unlimited
+ * children, unlimited tasks, BUDDY, shop, Vibe/SOS/Pause/Anchor, timetable).
+ * The paid tier "BUFF Coach" is AI only: the AI coach / smart insights
+ * (generate-child-insights) and AI capture (parse-capture). Every family gets a
+ * 14-day reverse trial from the child's first real completed task (DB trigger
+ * start_trial_on_activation → premium_until), then one free insight per child
+ * per week. See docs/sessions/freemium-v2/SPEC.md.
  *
  * Subscription state (in priority order):
  *   1. is_lifetime_access on profile  → always subscribed, never sees paywall
@@ -29,9 +33,6 @@ import {
 } from '../services/purchaseService';
 
 export const GRACE_PERIOD_END = new Date('2026-05-01T23:59:59');
-
-export const FREE_CHILD_LIMIT = 1;
-export const FREE_TASK_LIMIT  = 6;
 
 export function useSubscription() {
   const { profile, user, refreshProfile } = useAuth();
@@ -142,10 +143,9 @@ export function useSubscription() {
   // generate-child-insights never exempted iOS at all, and its web exemption
   // keyed on a client-supplied platform field (spoofable) — both superseded
   // 2026-07-29 by the platform-uniform taste-then-gate (#404). Free families
-  // now reach the AI via the taste path (totalCount < FREE_INSIGHTS_PER_CHILD
-  // in useAutoCoachInsight), not via a platform flag. Distinct from
-  // isSubscribed (which still carries the web/iOS paywall-hiding for
-  // child-limit gating) so this card matches the server's 402 exactly.
+  // now reach the AI via the weekly taste path (useAutoCoachInsight), not via
+  // a platform flag. Distinct from isSubscribed (which still carries the
+  // web/iOS paywall-hiding) so this card matches the server's 402 exactly.
   const insightsUnlocked = hasRealEntitlement;
 
   const isTrialActive = isReferralPremium && !isLifetimeAccess && !isFoundingMember && !rcSubscribed;
@@ -154,7 +154,6 @@ export function useSubscription() {
     : 0;
 
   const childCount   = children.length;
-  const needsUpgrade = !isSubscribed && childCount >= FREE_CHILD_LIMIT;
 
   // ── Purchase helpers ────────────────────────────────────────────────────────
   const purchaseMonthly = useCallback(async () => {
@@ -203,13 +202,9 @@ export function useSubscription() {
     isIapAvailable,
     isTrialActive,
     trialDaysLeft,
-    needsUpgrade,
     isLoading: rcLoading,
     customerInfo,
-    // Plan limits
     childCount,
-    FREE_CHILD_LIMIT,
-    FREE_TASK_LIMIT,
     // Purchase actions
     purchaseMonthly,
     purchaseYearly,

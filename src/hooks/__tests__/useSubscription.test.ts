@@ -14,6 +14,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 import Purchases from 'react-native-purchases';
 import { getIsSubscribed } from '../../services/purchaseService';
+import * as subscriptionModule from '../useSubscription';
 import { useSubscription } from '../useSubscription';
 
 jest.mock('../../contexts/AuthContext', () => ({
@@ -61,7 +62,6 @@ describe('useSubscription — iOS paywall gate', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.isSubscribed).toBe(true);
-    expect(result.current.needsUpgrade).toBe(false);
   });
 
   it('does NOT touch the RevenueCat SDK on iOS (never configured there)', async () => {
@@ -107,5 +107,18 @@ describe('useSubscription — isIapAvailable (H4: no iOS/web paywall dead-end)',
     const { result } = renderHook(() => useSubscription());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.isIapAvailable).toBe(false);
+  });
+});
+
+describe('useSubscription — Freemium v2: no child / task limits', () => {
+  it('no longer exposes FREE_CHILD_LIMIT / FREE_TASK_LIMIT / needsUpgrade', async () => {
+    (Platform as { OS: string }).OS = 'android';
+    const mod = subscriptionModule;
+    expect((mod as Record<string, unknown>).FREE_CHILD_LIMIT).toBeUndefined();
+    expect((mod as Record<string, unknown>).FREE_TASK_LIMIT).toBeUndefined();
+    const { result } = renderHook(() => useSubscription());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect((result.current as Record<string, unknown>).needsUpgrade).toBeUndefined();
+    expect((result.current as Record<string, unknown>).FREE_TASK_LIMIT).toBeUndefined();
   });
 });
