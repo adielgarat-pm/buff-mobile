@@ -7,7 +7,7 @@ export default function Terms() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-left" dir="ltr">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6">
           <ArrowLeft className="w-4 h-4" /> Back
