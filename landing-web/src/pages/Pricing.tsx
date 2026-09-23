@@ -51,7 +51,7 @@ export default function Pricing() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-left" dir="ltr">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <button
           onClick={() => navigate(-1)}
