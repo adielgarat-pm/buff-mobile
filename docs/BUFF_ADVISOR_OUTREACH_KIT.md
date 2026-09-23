@@ -103,6 +103,15 @@ If pursued: pitch is **fundamentally different** — not "advise our app," it's 
 
 Adi to provide 2–3 names. Israeli market is highest-trust + lowest-competition channel. 96% of beta is Israeli per PRD §4.3 — under-served by current target list.
 
+### Bucket G — Occupational therapists (added 2026-09-17)
+
+Not in the original list. Rationale: Grinblat & Rosenblum 2025 (see [research/PAPER_DIGEST_time-organization-adhd-qol_2025.md](research/PAPER_DIGEST_time-organization-adhd-qol_2025.md)) comes from an OT department (University of Haifa, CHAP lab, Prof. Sara Rosenblum) and uses an OT instrument (TOPS). In Israel, מרפאות בעיסוק are a primary profession for ADHD kids' daily-function work — time organization, bag packing, morning routine, i.e. BUFF's task list — and they recommend tools to parents.
+
+| # | Who | Why | Ask | Fit |
+|---|---|---|---|---|
+| 11 | **Prof. Sara Rosenblum** — CHAP lab, Dept. of Occupational Therapy, Univ. of Haifa; corresponding author of the 2025 paper | Her lab's finding (emotional aftermath > pace) is BUFF's Pillar 2 in data. Academic, not commercial. | Brief feedback request on how BUFF's no-timer / "good day" design maps to TOPS domains. **Not** an endorsement ask. Same caution as the Maeir special case above: this is a possible clinical-anchor conversation, so Adi decides framing first. | 4/5 |
+| 12 | Israeli pediatric OTs who post in ADHD parent groups (names: Adi to supply) | Trusted by P2 parents post-diagnosis; work on exactly BUFF's tasks. | Try-and-recommend; a Hebrew one-pager "BUFF for OT practice". | 4/5 |
+
 ---
 
 ## 4. Personalization Template

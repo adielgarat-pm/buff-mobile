@@ -1530,6 +1530,18 @@ CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: 
 
 ---
 
+### Lesson 2026-09-17 — First peer-reviewed anchor for Pillar 2: Grinblat & Rosenblum 2025
+
+- **תאריך:** 2026-09-17
+- **מקור:** Adi (received in an ADHD influencer's group) → CC digest session
+- **תיאור:** Open-access study (Brain Sci. 2025, 15, 1262, CC BY 4.0, University of Haifa OT dept.) of 69 adults with ADHD vs 52 controls. Emotional response after disorganized time explained 9% of quality-of-life variance, metacognition 15%, actual organization 1.8%, **pace 0%**. Adults' dominant EF deficit is metacognition; the authors note children's is behavioral regulation. Adults, self-report, associative — never cite as evidence about kids or about BUFF outcomes.
+- **השפעה:** marketing (hooks H11–H15, T11, FAQ Q28 line, blog #32–34, LinkedIn essay 002 outline, Hebrew Track G post), outreach (OT channel, Bucket G), research (Track B Q8–9, Track C Q8), product hypotheses parked until the 2026-10-02 decision gate (kid-only end-of-day feel check; Gamer Mode framed as metacognition scaffold).
+- **איפה:** digest + license + attribution rules: `docs/research/PAPER_DIGEST_time-organization-adhd-qol_2025.md`. PDF: `docs/research/papers/Grinblat-Rosenblum-2025-brainsci15121262.pdf`. DOI: https://doi.org/10.3390/brainsci15121262
+- **סטטוס:** `open` — proposed copy (marked ⚠) awaits Adi approval; product items await the value-validation gate.
+- **קשור ל:** VALUE_VALIDATION_2026-09 §3–4, BUFF_VALUES Pillar 2, BRAND §7.7, D-2026-06-14
+
+---
+
 ## איך למלא ערך חדש
 
 CC, Claude.ai, או Adi — מי שמגלה את ההפתעה רושם. הפורמט:
