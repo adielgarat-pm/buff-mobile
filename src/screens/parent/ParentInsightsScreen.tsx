@@ -94,7 +94,7 @@ export default function ParentInsightsScreen() {
     generate: generateSmartInsight,
     error: smartError,
     generationsLeft,
-    totalCount: coachTotalCount,
+    tasteWeeklyUsed: coachTasteWeeklyUsed,
     loadingState: smartLoading,
     userVote,
     submitVote,
@@ -112,7 +112,7 @@ export default function ParentInsightsScreen() {
     generationsLeft,
     hasRealEntitlement,
     activeDays: stats.activeDays,
-    totalCount: coachTotalCount,
+    tasteWeeklyUsed: coachTasteWeeklyUsed,
     generate: generateSmartInsight,
   });
 

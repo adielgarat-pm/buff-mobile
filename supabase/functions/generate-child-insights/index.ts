@@ -1,6 +1,7 @@
 // generate-child-insights — Smart Insights Edge Function
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { FREE_INSIGHTS_PER_WEEK, hasFreeWeeklyTaste, weeklyCountThisWeek } from './tasteGate.ts';
 
 const ANTHROPIC_API_KEY     = Deno.env.get('ANTHROPIC_API_KEY') ?? '';
 const GEMINI_API_KEY        = Deno.env.get('GEMINI_API_KEY') ?? '';
@@ -15,13 +16,8 @@ const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const WEEKLY_LIMIT = 3;
 
-/**
- * Free "taste" insights per child, for families with NO entitlement (red team
- * F1, Adi approved 2026-07-28). Lifetime, not weekly — see migration 048.
- * Raising this raises token spend on non-payers linearly, so treat it as a
- * pricing decision, not a tuning knob.
- */
-const FREE_INSIGHTS_PER_CHILD = 1;
+// Free "taste" for families with NO entitlement: FREE_INSIGHTS_PER_WEEK per
+// child per week (Freemium v2, D: Adi 2026-09-23) — see ./tasteGate.ts.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -227,16 +223,8 @@ async function getWeeklyCount(svc: ReturnType<typeof createClient>, childId: str
     .eq('child_id', childId)
     .maybeSingle();
 
-  if (!data) return 0;
-
-  // Reset if we're in a new week (Monday-based)
-  const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7)); // Monday
-  weekStart.setHours(0, 0, 0, 0);
-  const rowWeekStart = new Date(data.smart_insight_week_start);
-  if (rowWeekStart < weekStart) return 0;
-
-  return data.smart_insight_weekly_count ?? 0;
+  // Reset if we're in a new week (Monday-based, UTC — same as the DB upsert).
+  return weeklyCountThisWeek(data, new Date());
 }
 
 /** Gemini call — primary model. Returns the raw model text or null on failure. */
@@ -377,33 +365,27 @@ Deno.serve(async (req: Request) => {
   // — any Android client sending platform:'web' got free generations — and was
   // superseded once the taste gate (#404) gave every family a real free taste.
   if (!entitled) {
-    // ── Taste-then-gate (pkg/ai-taste-gate, red team F1) ──────────────────────
-    // The first FREE_INSIGHTS_PER_CHILD are generated for EVERY family, paid or
-    // not. Nobody pays for a capability they have never felt, and before this the
-    // AI coach was visible almost exclusively to families holding a lifetime
-    // GRANT — i.e. to people who can never convert. A free parent who has read one
-    // real insight about their own child is a qualified lead; one looking at a
-    // generic lock card is not.
-    //
-    // Cost is bounded by construction: one call per child, once, ever. The
-    // counter is the lifetime one (migration 048) precisely because
-    // smart_insight_weekly_count resets and would hand out a fresh freebie every
-    // week. Fail CLOSED on a read error — an unreadable counter must not become
+    // ── Weekly taste-then-gate (pkg/ai-taste-gate → Freemium v2) ──────────────
+    // A family with no entitlement (trial over, never paid) still gets
+    // FREE_INSIGHTS_PER_WEEK real insight per child per week — the product's
+    // promise after the 14-day reverse trial (D: Adi 2026-09-23). Nobody pays for
+    // a capability they have stopped feeling. Entitled generations in the same
+    // week count toward it (one shared weekly counter, reset per Monday).
+    // Fail CLOSED on a read error — an unreadable counter must not become
     // unlimited free generations.
     const { data: taste, error: tasteErr } = await svc
       .from('child_insights')
-      .select('smart_insight_total_count')
+      .select('smart_insight_weekly_count, smart_insight_week_start')
       .eq('child_id', child_id)
       .maybeSingle();
-    const used = taste?.smart_insight_total_count ?? 0;
-    if (tasteErr || used >= FREE_INSIGHTS_PER_CHILD) {
+    if (tasteErr || !hasFreeWeeklyTaste(taste, new Date())) {
       if (tasteErr) console.error('taste counter read failed', JSON.stringify(tasteErr));
       return new Response(
-        JSON.stringify({ error: 'premium_required', free_insights: FREE_INSIGHTS_PER_CHILD }),
+        JSON.stringify({ error: 'premium_required', free_insights_per_week: FREE_INSIGHTS_PER_WEEK }),
         { status: 402, headers: { ...corsHeaders, 'content-type': 'application/json' } },
       );
     }
-    console.log(`free taste insight ${used + 1}/${FREE_INSIGHTS_PER_CHILD} for child ${child_id} (platform=${platform ?? 'unknown'})`);
+    console.log(`free weekly taste insight for child ${child_id} (platform=${platform ?? 'unknown'})`);
   }
 
   // Rate limit check — 3 generations per child per week

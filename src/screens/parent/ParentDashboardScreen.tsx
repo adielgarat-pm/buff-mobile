@@ -308,7 +308,7 @@ export default function ParentDashboardScreen() {
   const { stats: weeklyStats } = useWeeklyStats(firstChildId);
   const {
     smartInsight, computedAt, generating: coachGenerating,
-    loadingState: coachLoading, generationsLeft, totalCount: coachTotalCount,
+    loadingState: coachLoading, generationsLeft, tasteWeeklyUsed: coachTasteWeeklyUsed,
     userVote, submitVote, generate: generateCoach, reload: reloadCoach,
   } = useSmartInsights(firstChildId);
   // Tab screens stay mounted, so a generate/vote on the Insights screen would
@@ -347,7 +347,7 @@ export default function ParentDashboardScreen() {
     generationsLeft,
     hasRealEntitlement,
     activeDays: weeklyStats.activeDays,
-    totalCount: coachTotalCount,
+    tasteWeeklyUsed: coachTasteWeeklyUsed,
     generate:   generateCoach,
   });
   // "Valid as of" stamp (D: Adi 2026-07-14 — an insight is valid until the
