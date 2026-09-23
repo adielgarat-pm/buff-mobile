@@ -16,6 +16,7 @@ import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
+import { CoachTrialNote } from '../../components/parent/CoachTrialNote';
 import { ParentActivitiesEntry } from '../../components/parent/ParentActivitiesEntry';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import MarketingConsentSheet from '../../components/parent/MarketingConsentSheet';
@@ -659,6 +660,10 @@ export default function ParentDashboardScreen() {
         </View>
         <ParentNotificationBell />
       </View>
+
+      {/* ── BUFF Coach trial moments (Freemium v2) — one-time, dismissible,
+           parent-only; renders nothing outside the started/ending/ended days. ── */}
+      <CoachTrialNote childName={firstChild?.displayName ?? ''} childId={firstChildId} />
 
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
