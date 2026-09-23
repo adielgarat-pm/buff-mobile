@@ -25,8 +25,9 @@ jest.mock('react-i18next', () => ({
 }));
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute:      () => ({ params: { childId: 'child-1' } }),
 }));
 
@@ -147,6 +148,14 @@ describe('EditChildScreen', () => {
     await waitFor(() => expect(getByDisplayValue('Lia')).toBeTruthy());
     const unicornBtn = getByTestId('edit-child-avatar-🦄');
     expect(unicornBtn.props.accessibilityState).toEqual({ selected: true });
+  });
+
+  test('"Focus & rewards" opens Edit focus with the age group being edited (Freemium v2)', async () => {
+    installSupabaseMock({ loadRow: baseChild });
+    const { getByTestId } = render(<EditChildScreen />);
+    await waitFor(() => expect(getByTestId('edit-child-focus')).toBeTruthy());
+    fireEvent.press(getByTestId('edit-child-focus'));
+    expect(mockNavigate).toHaveBeenCalledWith('EditFocus', { childId: 'child-1', ageGroup: '9-11' });
   });
 
   test('shows error fallback when the load query fails', async () => {

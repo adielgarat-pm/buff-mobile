@@ -360,6 +360,24 @@ export default function EditChildScreen() {
         {/* ── Off-routine day (per-child) ──────────────────────────────── */}
         <OffRoutineCard childId={params.childId} ageGroup={ageGroup} childLang={language} />
 
+        {/* ── Focus & rewards (Freemium v2 edit-focus) — change the onboarding
+             focus later and optionally add fitting task/reward ideas. ────── */}
+        <TouchableOpacity
+          style={[styles.focusRow, { flexDirection: rowDirection }]}
+          onPress={() => navigation.navigate('EditFocus', { childId: params.childId, ageGroup })}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          testID="edit-child-focus"
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.focusTitle, { textAlign }]}>{t('editChild.focusRow')}</Text>
+            <Text style={[styles.helperNote, { textAlign, marginTop: 2 }]}>
+              {t('editChild.focusRowHint', { name: name.trim() || t('editChild.thisChild') })}
+            </Text>
+          </View>
+          <Text style={styles.focusChevron}>{isRTL ? '‹' : '›'}</Text>
+        </TouchableOpacity>
+
         {saveErr && (
           <Text style={[styles.errorText, { marginTop: 16 }]}>{saveErr}</Text>
         )}
@@ -468,6 +486,9 @@ const styles = StyleSheet.create({
   pillTextActive: { color: '#fff' },
 
   helperNote:   { color: T.textMuted, fontSize: 12, lineHeight: 17, marginTop: 8 },
+  focusRow:     { marginTop: 24, backgroundColor: T.card, borderRadius: 14, borderWidth: 1, borderColor: T.cardBorder, padding: 14, alignItems: 'center' },
+  focusTitle:   { color: T.text, fontSize: 15, fontWeight: '700' },
+  focusChevron: { color: T.accent, fontSize: 24, marginHorizontal: 6 },
 
   errorText:    { color: '#DC2626', fontSize: 13, textAlign: 'center' },
 

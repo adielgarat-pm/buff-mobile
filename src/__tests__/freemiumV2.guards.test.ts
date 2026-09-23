@@ -43,7 +43,15 @@ describe('Freemium v2 guards', () => {
       expect({ f, paywall: /navigate\(\s*['"](Paywall|FoundingHundred)['"]/.test(src) })
         .toEqual({ f, paywall: false });
       expect({ f, price: /\$\d/.test(src) }).toEqual({ f, price: false });
+      // Edit focus is a post-onboarding, parent-settings flow only.
+      expect({ f, editFocus: /EditFocus/.test(src) }).toEqual({ f, editFocus: false });
     }
+  });
+
+  test('EditFocus is registered exactly once (parent stack), reachable from Edit Child', () => {
+    const nav = read('navigation/RootNavigator.tsx');
+    expect(nav.match(/name="EditFocus"/g)?.length).toBe(1);
+    expect(read('screens/parent/EditChildScreen.tsx')).toContain("navigate('EditFocus'");
   });
 
   test('no free task / child limit survives anywhere in src', () => {
