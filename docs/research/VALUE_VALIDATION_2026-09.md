@@ -196,7 +196,34 @@ Adi ran `GEMINI_REVIEW_PROMPT_2026-09.md`. Reconciliation, point by point. **Acc
 - **H6 — Blank-slate dead end after the wizard.** Parent lands on a dashboard with no obvious "now hand it to your child" step. Check: cognitive walkthrough of the exact screens after `child_created` on Android and web, screenshots into `docs/research/walkthrough/`, no code. **Owner: CC, this week.**
 - **H7 — Privacy/trust friction at the access step.** 8 saw the invite/access screen, 2 sent. Check: same walkthrough documents what the access-mode screen asks for and how it reads to a parent who is protective of a minor's data.
 
-## 7. Caveats on the numbers
+## 8. Synthesis (2026-09-23) — it is one funnel, and it breaks at the first win
+
+Three investigations (paywall H8, reward loop, plus the two interviews) converge on a single conclusion, and it corrects an earlier framing in this study that treated "paywall" and "reward loop" as competing problems. They are not competing. They are the **same funnel seen at different depths.**
+
+**The break is upstream of everything: the child opens the app but never completes a first task, so the value mechanic is never fed.** From 51 real families since 2026-06-01 (reward-loop DB pull):
+- **68% of children (30/44) opened the app but never completed a single task.** Opening ≠ earning.
+- **91% (40/44) never earned enough BUFFs to afford their cheapest reward**, so they never even saw a working redeem button.
+- Only **4/44 reached 3 active days.**
+- Only **1 family of 51 ever redeemed a reward** — and that family's two siblings account for every redemption in the whole base.
+- Rewards are priced days-away, not weeks, so "aspirational by design" is ruled out. There is **no code bug** in the reward flow — the RPC works, the button appears when affordable.
+
+So the ~3% redemption rate is a **symptom, not the root**. The reward loop is not broken; it never starts. The paywall (H8) touches ≤10 families; the reward loop touches 36/37; but both sit downstream of the real event that almost never happens: **a child completing their first task and feeling a first win.**
+
+Every hypothesis we raised is a facet of this one break:
+- **H8 (paywall):** parent abandons before value → child never onboarded into a daily loop.
+- **H4 (child resists):** child opens, doesn't do tasks (Noa's son; 68% base-wide).
+- **H9 (no device / parent not the conduit):** child can't even get in (Keren).
+- **Handoff / session bugs:** child can't reach their login on a shared computer.
+- **Reward loop 3%:** the downstream proof that the loop is never fed.
+
+**What this means for the decision gate.** The study set out to answer "does BUFF have value?" The mechanic itself is sound — the one family that reached a first win redeemed 8 times and retained. The problem is not the product's core loop; it is that **almost no child reaches the first win**, especially strangers (0 stranger children reached 3 active days). That reframes the gate from "is the product valuable?" to "can we get a child to a first win without the founder in the room?"
+
+**Highest-leverage move, if anything ships (proposed, not decided):** target the first completed task and first win directly — a first-task nudge, a seeded ~1-day "first-win" reward at onboarding so the first loop closes within a day, and teaching the finish line on locked reward cards before affordability. This is upstream of both the paywall and the redeem UX, so it addresses the actual break. Details in `REWARD_LOOP_2026-09.md` options memo. The paywall decision (`DRAFT_DECISION_paywall_H8.md`, Option A) stays secondary.
+
+**Spec-relevant note (Adi's docs, not changed):** the C0b/C0c reward-loop parent-insight nudge in `insightFraming.ts` only fires for active+affordable children (~4 today), so it is effectively dormant — flagged for a possible Spec Sync.
+
+## 9. Caveats on the numbers
+
 
 - "Real family" = name-based exclusion only. A few friends-and-family and internal accounts are inside the 53; the funnel is if anything slightly *worse* for strangers than shown.
 - `daily_progress` before the 2026-06 upsert fix under-counted mobile completions for ~48 days (IN-2026-06 entry), so early-June activation may be understated by a few families. Does not change the shape.
