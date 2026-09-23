@@ -17,11 +17,12 @@ import { useEffect } from 'react';
  */
 
 /**
- * Free "taste" insights per child for a family with no entitlement. MUST match
- * FREE_INSIGHTS_PER_CHILD in supabase/functions/generate-child-insights — the
- * server is the authority; a mismatch here only costs a wasted 402.
+ * Free "taste" insights per child PER WEEK for a family with no entitlement
+ * (Freemium v2, D: Adi 2026-09-23 — after the 14-day reverse trial). MUST match
+ * FREE_INSIGHTS_PER_WEEK in supabase/functions/generate-child-insights/
+ * tasteGate.ts — the server is the authority; a mismatch only costs a wasted 402.
  */
-export const FREE_INSIGHTS_PER_CHILD = 1;
+export const FREE_INSIGHTS_PER_WEEK = 1;
 
 /** Monday (local) of the current week as YYYY-MM-DD — mirrors the server's week window. */
 function currentWeekMonday(): string {
@@ -44,12 +45,12 @@ export interface AutoCoachInsightOpts {
   hasRealEntitlement: boolean;
   activeDays:         number;
   /**
-   * Lifetime insights already generated for this child (migration 048).
-   * Below FREE_INSIGHTS_PER_CHILD the entitlement gate is skipped — see the
+   * Insights already generated for this child THIS WEEK (shared weekly counter).
+   * Below FREE_INSIGHTS_PER_WEEK the entitlement gate is skipped — see the
    * taste-gate note above. Defaults to "already used" so a caller that has not
    * loaded it yet cannot accidentally spend a free generation.
    */
-  totalCount?:        number;
+  tasteWeeklyUsed?:   number;
   generate:           () => Promise<void>;
 }
 
@@ -57,7 +58,7 @@ export function useAutoCoachInsight(opts: AutoCoachInsightOpts): void {
   const {
     childId, smartInsight, computedAt, loadingState, generating,
     generationsLeft, hasRealEntitlement, activeDays, generate,
-    totalCount = FREE_INSIGHTS_PER_CHILD,
+    tasteWeeklyUsed = FREE_INSIGHTS_PER_WEEK,
   } = opts;
 
   useEffect(() => {
@@ -66,13 +67,12 @@ export function useAutoCoachInsight(opts: AutoCoachInsightOpts): void {
     // A current-week insight is fresh — reuse it. A previous-week one stays on
     // screen (with its date stamp) but is eligible for a weekly refresh.
     if (smartInsight && (!computedAt || computedAt.slice(0, 10) >= monday)) return;
-    // Taste-then-gate: the first FREE_INSIGHTS_PER_CHILD are generated for every
-    // family, entitled or not (red team F1 — before this, a free Android parent
-    // could never see the AI at all, so we were asking people to pay for a thing
-    // they had never experienced). Mirrors the server gate in
-    // generate-child-insights; the server is the authority, this only avoids a
-    // call we know would 402.
-    const hasFreeTaste = totalCount < FREE_INSIGHTS_PER_CHILD;
+    // Weekly taste-then-gate: FREE_INSIGHTS_PER_WEEK per child per week are
+    // generated for every family, entitled or not (red team F1 → Freemium v2 —
+    // a family keeps feeling the coach after its trial). Mirrors the server gate
+    // in generate-child-insights; the server is the authority, this only avoids
+    // a call we know would 402.
+    const hasFreeTaste = tasteWeeklyUsed < FREE_INSIGHTS_PER_WEEK;
     if (!hasRealEntitlement && !hasFreeTaste) return;
     if (generationsLeft <= 0) return;                    // respect the weekly cap
     if (activeDays < 2) return;                          // need real data
@@ -81,5 +81,5 @@ export function useAutoCoachInsight(opts: AutoCoachInsightOpts): void {
     attemptedThisWeek.add(key);
     void generate();
   }, [childId, smartInsight, computedAt, loadingState, generating,
-      generationsLeft, hasRealEntitlement, activeDays, generate]);
+      generationsLeft, hasRealEntitlement, activeDays, generate, tasteWeeklyUsed]);
 }

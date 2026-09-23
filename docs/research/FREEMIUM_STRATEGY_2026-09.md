@@ -63,6 +63,7 @@ Reading: the AI is effectively invisible, not rejected. The 2nd-child gate and t
 - Price unchanged: **$9.99/month, $59.99/year** (annual foregrounded). Founding-100 lifetime can stay as an optional one-off.
 
 ### The reverse trial (the piece that makes AI revenue possible)
+> Design review (2026-09-23) found the trial already exists: `migrations/037_trial_clock_and_activation.sql` starts a 14-day `premium_until` on the family's 2nd completion day. v2 is a one-line threshold change (first real completion, skipping the onboarding seed row `source='onboarding_first_task'`) — still a function change, so it needs Adi's approval as schema.
 - **Every new family gets 14 days of BUFF Coach free, starting when their child completes the first task** — not at signup. Our data says most families don't reach the first task on day 1; a trial that starts at signup would expire unused, and the AI coach needs a few days of completions before it has anything to say.
 - Day 10: a gentle in-app note to the parent: "Your coach trial ends in 4 days — here's what it found so far."
 - Day 14: the family drops to free. They keep everything they had, lose only the AI. One free AI insight per week stays as a taste (the existing taste gate).
@@ -89,7 +90,7 @@ Reading: the AI is effectively invisible, not rejected. The 2nd-child gate and t
 1. **Revenue will stay small until activation is fixed.** At ~15 new families a month and ~20% activation, 2–5% conversion is 0–1 paying family a month. Freemium is a bet on volume; the lever is the first-win work, not the paywall.
 2. **The whole revenue line depends on the AI.** If, 60 days after launch, fewer than 1% of families that finish the trial pay, the paid tier is too thin. Pre-agreed response: reintroduce one scale lever that only engaged families meet (e.g. a family plan with co-parent + history, or a high task cap) rather than adding friction early.
 3. **AI cost on the free tier.** A 14-day trial for every activated family costs tokens. The existing rate limits (3 insights/child/week, daily schedule-parse cap, free capture runs) bound it. At current volume the cost is negligible; recheck monthly.
-4. **Web and iOS can't sell today** (`noIapPaywallHidden`). On those platforms everything stays free, including the AI (D-2026-07-04). Acceptable for now; revisit when web payments or Apple IAP ship.
+4. **Web and iOS can't sell today** (`noIapPaywallHidden`). Correction (2026-09-23, from the design review): since 2026-07-29 the AI gate is the same on every platform in code (`useSubscription.ts` `hasRealEntitlement`, server `generate-child-insights`), superseding D-2026-07-04. So the trial and the weekly taste apply on web too; a web parent who wants BUFF Coach after the trial is routed to the Play Store. Code is ground truth; D-2026-07-04 vs code is flagged for Adi's DECISIONS_LOG.
 
 ## 7. What changes in the app (for a later build package, not now)
 

@@ -407,6 +407,20 @@ export default function CaptureScreen() {
               )}
             </Text>
           )}
+          {/* Freemium v2: AI capture is part of BUFF Coach. After the free runs /
+              trial, the parent (this screen is parent-only) gets ONE quiet way to
+              see it — never a forced paywall; manual entry is always there. */}
+          {parseError === 'premium_required' && (
+            <TouchableOpacity
+              testID="capture-see-coach"
+              accessibilityRole="button"
+              onPress={() => navigation.navigate('Paywall', {})}
+            >
+              <Text style={[styles.fileHint, { color: T.accent, fontWeight: '700' }]}>
+                {t('capture.seeCoach')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
       ) : (
         <>

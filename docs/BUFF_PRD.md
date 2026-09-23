@@ -122,6 +122,26 @@ Child with ADHD, ages 6–18. The product has **three modes** — one for the bu
 ### 5.1 Pricing Tiers
 
 
+> **Updated 2026-09-23 — Freemium v2** (approved by Adi; implementation `docs/sessions/freemium-v2/`). Supersedes the tier table below it and the child/task gates of D-2026-06-19-01.
+
+| | Free (forever) | BUFF Coach ($9.99/mo · $59.99/yr) |
+|---|---|---|
+| Children | Unlimited | Unlimited |
+| Tasks | Unlimited | Unlimited |
+| BUDDY + skins, BUFFs, rewards shop | ✅ | ✅ |
+| Vibe Check / SOS / Pause / Anchor, notifications | ✅ | ✅ |
+| Manual timetable + **AI timetable import**, activities, bag prep, off-routine | ✅ | ✅ |
+| Edit focus (change the child's focus after onboarding) | ✅ | ✅ |
+| AI coach / smart insights | 1 insight per child per week | Up to 3 per child per week |
+| AI capture (photo/text → tasks) | 3 free runs | ✅ |
+| Ads | None (ever) | None |
+
+- **Reverse trial:** every family gets 14 days of BUFF Coach, starting at the child's first real completed task (not signup, not the onboarding seed task). DB trigger `start_trial_on_activation` (migration 058). Dashboard notes: started / 4 days left / ended — no loss framing.
+- **Paywall placement:** never in onboarding, never to a child; only on a parent's AI action after the trial, plus the one soft end-of-trial note. Founding-100 lifetime stays available.
+- **Web / iOS:** no in-app purchase yet (`noIapPaywallHidden`). The trial and weekly taste apply on every platform (server gate is platform-uniform since 2026-07-29); the web Paywall routes to the Android app, iOS shows an info panel.
+
+<details><summary>Previous tier table (pre-2026-09-23, historical)</summary>
+
 | Tier | Free | Family ($9/mo) | Family Pro ($19/mo) |
 |---|---|---|---|
 | Children | 1 child | Up to 3 children | Unlimited children |
@@ -129,6 +149,8 @@ Child with ADHD, ages 6–18. The product has **three modes** — one for the bu
 | Buddy & Skins | Basic buddy only | Full buddy + skins | Full buddy + all skins |
 | Push notifications | Basic | Smart reminders | Smart reminders + weekly reports |
 | Ads | None (ever) | None | None |
+
+</details>
 
 No ads policy: BUFF will never show ads. The audience is parents of children with ADHD under stress. Ads would destroy trust.
 
@@ -361,7 +383,7 @@ The MVP is considered successful when the following metrics are achieved within 
 
 | Question | Options | To be validated by |
 |---|---|---|
-| Free trial length for freemium conversion? | 7 days / 14 days / 30 days | Community survey + A/B test |
+| Free trial length for freemium conversion? | **Decided 2026-09-23: 14-day reverse trial of BUFF Coach from the first real completed task** (Freemium v2) | Watch trial→paid after 60 days (FREEMIUM_STRATEGY §6) |
 | Exact beta users eligible for free-for-life? | Survey respondents / all with tasks created | Owner decision (Adi) |
 | Community survey before or after MVP build? | Before (validate MVP) / After (feature requests) | Decided: validate MVP first, then survey |
 

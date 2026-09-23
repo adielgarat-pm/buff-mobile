@@ -59,6 +59,7 @@ import BuffCatchScreen from '../screens/child/BuffCatchScreen';
 import NotificationFeedScreen from '../screens/parent/NotificationFeedScreen';
 import ManageChildrenScreen  from '../screens/parent/ManageChildrenScreen';
 import EditChildScreen       from '../screens/parent/EditChildScreen';
+import EditFocusScreen       from '../screens/parent/EditFocusScreen';
 import CaptureScreen         from '../screens/parent/CaptureScreen';
 import ThisWeekScreen        from '../screens/parent/ThisWeekScreen';
 import ParentInsightsScreen  from '../screens/parent/ParentInsightsScreen';
@@ -271,6 +272,11 @@ export default function RootNavigator() {
               name="EditChild"
               component={EditChildScreen}
               options={{ presentation: 'modal', headerShown: false }}
+            />
+            <Stack.Screen
+              name="EditFocus"
+              component={EditFocusScreen}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="Activities"

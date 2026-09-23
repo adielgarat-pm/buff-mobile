@@ -23,12 +23,8 @@ import { PARENT_THEME as T } from '../../../theme';
 import { ONBOARDING_CONFIG } from '../../../config/onboardingConfig';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
-import {
-  REWARD_PICKS,
-  FALLBACK_REWARDS,
-  calcRewardCreditsDefault,
-} from './onboardingData';
-import type { AgeGroup } from './onboardingData';
+import { calcRewardCreditsDefault } from './onboardingData';
+import { buildSeedRewards } from './seedRewards';
 import { generateStarterTasks } from './starterTasks';
 import { isTeenAgeGroup } from '../../../lib/activities/childMode';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
@@ -83,43 +79,10 @@ export default function UStep5_Preview() {
     additionalChallenges: params.additionalChallenges,
   });
 
-  // motivators can be any length. Seed rewards from EVERY selected motivator's
-  // list (both the small + large pick), so the menu scales with — and reflects —
-  // everything the child chose (Pillar 1: a rich menu of real, child-chosen
-  // rewards, always close to a win). No cap: Adi's spec is "redeem as many as
-  // possible". This only INSERTS seed rewards; it never touches balances/ledger.
-  const buildRewards = () => {
-    const motivators = params.motivators ?? [];
-
-    const combined = motivators.flatMap(motivatorId =>
-      (REWARD_PICKS[motivatorId] as Record<AgeGroup, typeof FALLBACK_REWARDS> | undefined)
-        ?.[params.ageGroup] ?? []
-    );
-
-    // Dedupe by English title, NOT id: the picks lists reuse the same reward
-    // under different ids across motivators (e.g. gaming + sports both include
-    // "Game Night" / "Special sports outing"), so id-dedupe would leave visible
-    // duplicates + duplicate rows. store_rewards has no unique constraint, so
-    // this is a UX/data-cleanliness guard. Surviving titles carry unique ids,
-    // keeping the `key={reward.id}` render collision-free.
-    const seen = new Set<string>();
-    const deduped = combined.filter(r => {
-      // Dedupe by the English title as a stable, language-independent key
-      // (via the sanctioned accessor — no direct .en access; check:i18n-access).
-      const key = pickLang(r.title, 'en');
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-    // Empty when no motivators were picked, or only "money" was — money is
-    // intentionally absent from REWARD_PICKS (real cash is never auto-seeded,
-    // Pillar 1); the parent adds it deliberately from the Rewards screen.
-    return deduped.length > 0
-      ? deduped
-      : FALLBACK_REWARDS.slice(0, ONBOARDING_CONFIG.DEFAULT_REWARDS_COUNT);
-  };
-  const rewards = buildRewards();
+  // Seed rewards from EVERY selected motivator (see seedRewards.ts — shared
+  // with Edit focus). This only INSERTS seed rewards; it never touches
+  // balances/ledger.
+  const rewards = buildSeedRewards(params.motivators, params.ageGroup);
 
   // ── Staggered fade-in animations ──────────────────────────────────────────
   const totalCards = tasks.length + rewards.length;

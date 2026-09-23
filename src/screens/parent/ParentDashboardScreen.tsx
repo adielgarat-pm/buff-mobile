@@ -3,7 +3,7 @@
  *
  * FIX 1  — Insights empty state: shows "unlock after 3 days" when no data yet
  * FIX 2B — Greeting uses first name (display_name || email prefix || 'there')
- * FIX 3  — "+ Add Child" button; always shows paywall (isSubscribed = false)
+ * FIX 3  — "+ Add Child" button; unlimited children are free (Freemium v2)
  * FIX 4  — Bonus modal (amount + note → credit_vault + bonus_log)
  *           Send Sticker → Alert placeholder
  */
@@ -16,6 +16,7 @@ import AppModal from '../../components/AppModal';
 import { BatteryGlyph } from '../../components/BatteryGlyph';
 import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
+import { CoachTrialNote } from '../../components/parent/CoachTrialNote';
 import { ParentActivitiesEntry } from '../../components/parent/ParentActivitiesEntry';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import MarketingConsentSheet from '../../components/parent/MarketingConsentSheet';
@@ -107,7 +108,7 @@ export default function ParentDashboardScreen() {
   // One-time email opt-in ask. Suppressed in View-as-Child: that session runs
   // as the parent, so the sheet would otherwise pop over the child's screen.
   const consentAsk = useMarketingConsentAsk();
-  const { isSubscribed, insightsUnlocked, hasRealEntitlement, isTrialActive, trialDaysLeft } = useSubscription();
+  const { insightsUnlocked, hasRealEntitlement, isTrialActive, trialDaysLeft } = useSubscription();
   const { unlinked, linkable, linkChild }  = useUnlinkedChildren();
   // Today's parent_sos signals per child — surfaces an inline message +
   // soft dot on the child's card. Auto-clears at midnight (filter is
@@ -308,7 +309,7 @@ export default function ParentDashboardScreen() {
   const { stats: weeklyStats } = useWeeklyStats(firstChildId);
   const {
     smartInsight, computedAt, generating: coachGenerating,
-    loadingState: coachLoading, generationsLeft, totalCount: coachTotalCount,
+    loadingState: coachLoading, generationsLeft, tasteWeeklyUsed: coachTasteWeeklyUsed,
     userVote, submitVote, generate: generateCoach, reload: reloadCoach,
   } = useSmartInsights(firstChildId);
   // Tab screens stay mounted, so a generate/vote on the Insights screen would
@@ -347,7 +348,7 @@ export default function ParentDashboardScreen() {
     generationsLeft,
     hasRealEntitlement,
     activeDays: weeklyStats.activeDays,
-    totalCount: coachTotalCount,
+    tasteWeeklyUsed: coachTasteWeeklyUsed,
     generate:   generateCoach,
   });
   // "Valid as of" stamp (D: Adi 2026-07-14 — an insight is valid until the
@@ -426,14 +427,9 @@ export default function ParentDashboardScreen() {
     }
   };
 
-  // ── FIX 3: paywall ──────────────────────────────────────────────────────
+  // ── FIX 3: add child — unlimited children are free (Freemium v2,
+  // D: Adi 2026-09-23). The paywall only meets a parent on an AI action.
   const handleAddChild = () => {
-    if (!isSubscribed && children.length >= 1) {
-      navigation.navigate('Paywall', {
-        childName: children[0]?.displayName ?? undefined,
-      });
-      return;
-    }
     navigation.navigate('UStep1');
   };
 
@@ -665,12 +661,16 @@ export default function ParentDashboardScreen() {
         <ParentNotificationBell />
       </View>
 
+      {/* ── BUFF Coach trial moments (Freemium v2) — one-time, dismissible,
+           parent-only; renders nothing outside the started/ending/ended days. ── */}
+      <CoachTrialNote childName={firstChild?.displayName ?? ''} childId={firstChildId} />
+
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
 
       {/* ── Insights & recommendations — Premium (gated). Free users see an upgrade card. ──
            Gate on insightsUnlocked (real entitlement only, every platform — 2026-07-29) so the
-           card can't diverge from the server 402 gate. isSubscribed still governs the child-limit paywall.
+           card can't diverge from the server 402 gate.
 
            EXCEPT when a real AI insight exists (`&& !smartInsight`): a free family that spent
            its one free taste (pkg/ai-taste-gate) has a genuine insight about their own child,
@@ -720,7 +720,7 @@ export default function ParentDashboardScreen() {
             <Text style={styles.insightLockedTitle}>{t('dashboard.insightsPremiumTitle')}</Text>
             <Text style={styles.insightLockedHint}>{t('dashboard.insightsPremiumHint')}</Text>
             <View style={styles.insightUnlockBtn}>
-              <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
+              <Text style={styles.insightUnlockText}>{t('dashboard.insightsUnlockCta')}</Text>
             </View>
           </TouchableOpacity>
         )

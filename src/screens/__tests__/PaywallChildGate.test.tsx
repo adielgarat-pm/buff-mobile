@@ -14,7 +14,7 @@
  */
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking, Platform } from 'react-native';
-import PaywallScreen, { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../PaywallScreen';
+import PaywallScreen, { FEATURES, PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '../PaywallScreen';
 import FoundingHundredScreen from '../FoundingHundredScreen';
 
 const originalOS = Platform.OS;
@@ -88,7 +88,7 @@ describe('purchase screens — child role gate (Pillar 1)', () => {
     const { toJSON, queryByText } = render(<PaywallScreen />);
 
     expect(toJSON()).toBeNull();
-    expect(queryByText('Unlock BUFF Premium')).toBeNull();
+    expect(queryByText('paywall.title')).toBeNull();
     expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 
@@ -106,8 +106,8 @@ describe('purchase screens — child role gate (Pillar 1)', () => {
     setOS('android'); // IAP is wired on Android → real purchase cards render
     const { getByText } = render(<PaywallScreen />);
 
-    expect(getByText('Unlock BUFF Premium')).toBeTruthy();
-    expect(getByText('Monthly')).toBeTruthy();
+    expect(getByText('paywall.title')).toBeTruthy();
+    expect(getByText('paywall.monthly')).toBeTruthy();
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
@@ -116,10 +116,10 @@ describe('purchase screens — child role gate (Pillar 1)', () => {
     const { getByText, queryByText } = render(<PaywallScreen />);
 
     // In the test env react-i18next returns the key, so assert on the key.
-    expect(getByText('Unlock BUFF Premium')).toBeTruthy();  // hero (hardcoded) still shows
+    expect(getByText('paywall.title')).toBeTruthy();        // hero still shows
     expect(getByText('paywall.iosTitle')).toBeTruthy();     // iOS non-purchasing panel
-    expect(queryByText('Monthly')).toBeNull();              // no purchase card
-    expect(queryByText('Yearly')).toBeNull();
+    expect(queryByText('paywall.monthly')).toBeNull();      // no purchase card
+    expect(queryByText('paywall.yearly')).toBeNull();
     expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
@@ -153,7 +153,7 @@ describe('PaywallScreen — legal footer links', () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
     const { getByText } = render(<PaywallScreen />);
-    fireEvent.press(getByText('Privacy Policy'));
+    fireEvent.press(getByText('paywall.privacy'));
 
     expect(openURL).toHaveBeenCalledWith(PRIVACY_POLICY_URL);
   });
@@ -162,8 +162,37 @@ describe('PaywallScreen — legal footer links', () => {
     const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
     const { getByText } = render(<PaywallScreen />);
-    fireEvent.press(getByText('Terms of Use'));
+    fireEvent.press(getByText('paywall.terms'));
 
     expect(openURL).toHaveBeenCalledWith(TERMS_OF_USE_URL);
+  });
+});
+
+describe('PaywallScreen — Freemium v2 "BUFF Coach" (AI only)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAuth.profile = { id: 'p-1', role: 'parent' };
+  });
+
+  test('sells only the AI (coach + capture) — no BUDDY, shop, skins, children or timetable', () => {
+    const keys = FEATURES.map(f => f.key);
+    expect(keys).toEqual(['paywall.feature.coach', 'paywall.feature.tips', 'paywall.feature.capture']);
+    const en = require('../../i18n/en.json') as Record<string, string>;
+    const sold = keys.map(k => en[k]).join(' ');
+    expect(sold).not.toMatch(/buddy|shop|skin|children|timetable|schedule/i);
+  });
+
+  test('every platform shows the "everything else stays free" footer', () => {
+    for (const os of ['android', 'ios', 'web'] as const) {
+      setOS(os);
+      const { getByTestId, unmount } = render(<PaywallScreen />);
+      expect(getByTestId('paywall-free-footer')).toBeTruthy();
+      unmount();
+    }
+  });
+
+  test('the approved Hebrew footer copy is used verbatim', () => {
+    const he = require('../../i18n/he.json') as Record<string, string>;
+    expect(he['paywall.freeFooter']).toBe('כל השאר ב-BUFF נשאר חינם לכל המשפחה.');
   });
 });

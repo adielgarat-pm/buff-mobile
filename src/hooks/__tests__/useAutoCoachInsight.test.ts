@@ -5,17 +5,18 @@
  * These rules spend real money and drive the paywall, so the ones worth guarding
  * are the ones where being wrong is expensive in one direction or fatal in the
  * other:
- *   - a NON-entitled family gets FREE_INSIGHTS_PER_CHILD and no more (spend);
+ *   - a NON-entitled family gets FREE_INSIGHTS_PER_WEEK per child per WEEK and no
+ *     more (spend) — Freemium v2, D: Adi 2026-09-23;
  *   - ... but it does get them, on native, where before this package it could
  *     never see the AI at all (the whole point of pkg/ai-taste-gate);
- *   - an unloaded totalCount must not hand out a free generation (render race);
+ *   - an unloaded tasteWeeklyUsed must not hand out a free generation (render race);
  *   - the weekly cap, the activeDays floor, and the once-per-week attempt guard
  *     all still hold — the taste gate must not become a hole in the cost guards.
  */
 import { renderHook } from '@testing-library/react-native';
 import { Platform } from 'react-native';
 
-import { useAutoCoachInsight, FREE_INSIGHTS_PER_CHILD, type AutoCoachInsightOpts } from '../useAutoCoachInsight';
+import { useAutoCoachInsight, FREE_INSIGHTS_PER_WEEK, type AutoCoachInsightOpts } from '../useAutoCoachInsight';
 
 /** Distinct child per test: the hook keeps a module-level once-per-week guard. */
 let seq = 0;
@@ -29,7 +30,7 @@ function opts(over: Partial<AutoCoachInsightOpts> = {}): AutoCoachInsightOpts {
     generationsLeft:    3,
     hasRealEntitlement: false,
     activeDays:         5,
-    totalCount:         0,
+    tasteWeeklyUsed:         0,
     generate:           jest.fn().mockResolvedValue(undefined),
     ...over,
   };
@@ -46,24 +47,31 @@ describe('useAutoCoachInsight — free-taste gate', () => {
   it('generates for a NON-entitled family that has never had an insight', () => {
     // The regression this package exists for: before the taste gate this
     // returned early and a free Android parent never saw the AI.
-    expect(run(opts({ hasRealEntitlement: false, totalCount: 0 }))).toHaveBeenCalled();
+    expect(run(opts({ hasRealEntitlement: false, tasteWeeklyUsed: 0 }))).toHaveBeenCalled();
+  });
+
+  it('a family after its trial gets a fresh free insight in a new week', () => {
+    // The trial spent generations LAST week; this week's counter is 0 again
+    // (weekly_count is reset per Monday by get_smart_insight_state).
+    expect(run(opts({ hasRealEntitlement: false, tasteWeeklyUsed: 0, smartInsight: { headline: 'x' },
+      computedAt: '2026-01-05T10:00:00Z' }))).toHaveBeenCalled();
   });
 
   it('does NOT generate once the free taste is spent', () => {
-    expect(run(opts({ hasRealEntitlement: false, totalCount: FREE_INSIGHTS_PER_CHILD })))
+    expect(run(opts({ hasRealEntitlement: false, tasteWeeklyUsed: FREE_INSIGHTS_PER_WEEK })))
       .not.toHaveBeenCalled();
   });
 
-  it('does not spend a free generation when totalCount has not loaded', () => {
-    // totalCount omitted -> defaults to "already used". A render race must cost
+  it('does not spend a free generation when tasteWeeklyUsed has not loaded', () => {
+    // tasteWeeklyUsed omitted -> defaults to "already used". A render race must cost
     // nothing; the worst case is one delayed insight, not one leaked call.
     const o = opts({ hasRealEntitlement: false });
-    delete (o as Partial<AutoCoachInsightOpts>).totalCount;
+    delete (o as Partial<AutoCoachInsightOpts>).tasteWeeklyUsed;
     expect(run(o)).not.toHaveBeenCalled();
   });
 
   it('still generates for an entitled family past the free taste', () => {
-    expect(run(opts({ hasRealEntitlement: true, totalCount: 99 }))).toHaveBeenCalled();
+    expect(run(opts({ hasRealEntitlement: true, tasteWeeklyUsed: 99 }))).toHaveBeenCalled();
   });
 
   it('does NOT generate on web past the free taste (platform-uniform gate, 2026-07-29)', () => {
@@ -71,7 +79,7 @@ describe('useAutoCoachInsight — free-taste gate', () => {
     // on a client-supplied platform field — spoofable, superseded by the taste
     // gate. Web now follows the exact same rules as Android.
     Platform.OS = 'web';
-    expect(run(opts({ hasRealEntitlement: false, totalCount: 99 }))).not.toHaveBeenCalled();
+    expect(run(opts({ hasRealEntitlement: false, tasteWeeklyUsed: 99 }))).not.toHaveBeenCalled();
   });
 });
 

@@ -483,8 +483,8 @@
 
 ### 4.5 "What's the price? Is it free?"
 
-> *"Free tier supports 1 child and 5 tasks. Family plan ($9/mo) covers up to 3 kids unlimited tasks. No ads, ever — the audience is parents of ADHD kids under stress, ads would destroy trust."*
-> (זה תלוי במצב payment system — לאמת מול PRD §5 ו-status ה-grace period.)
+> *"It's free for your whole family — unlimited kids, unlimited tasks, the buddy, real rewards, no card. The only paid part is an optional AI coach for parents (weekly insights + turning a photo or note into tasks): $9.99/month or $59.99/year, renews until you cancel. Every family gets 14 days of it free after their kid's first task — no card, nothing charged unless you subscribe. No ads, ever — the audience is parents of ADHD kids under stress, ads would destroy trust."*
+> (עודכן 2026-09-23 — Freemium v2, `docs/research/FREEMIUM_STRATEGY_2026-09.md`. זהה ל-BUFF_MESSAGING T8 ול-BUFF_FAQ Q18.)
 
 ### 4.6 "How is this different from a sticker chart / paper system?"
 

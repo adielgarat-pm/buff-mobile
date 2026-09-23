@@ -41,7 +41,6 @@ jest.mock('../../../hooks/useChildrenDashboard', () => ({
 }));
 
 jest.mock('../../../hooks/useSubscription', () => ({
-  FREE_TASK_LIMIT: 8,
   useSubscription: () => ({ isSubscribed: true }),
 }));
 

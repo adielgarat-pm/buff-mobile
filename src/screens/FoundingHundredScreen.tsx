@@ -197,7 +197,7 @@ export default function FoundingHundredScreen() {
 
         {/* What you get */}
         <View style={styles.featureCard}>
-          <FeatureRow text="Family Plan equivalent — 3 kids, unlimited tasks" />
+          <FeatureRow text="BUFF Coach for life — AI coach & Smart Organizer for the whole family" />
           <FeatureRow text="Founding Member badge in your profile" />
           <FeatureRow text="Priority email channel direct to Adi" />
           <FeatureRow text="All future features included free" />

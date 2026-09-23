@@ -3,7 +3,7 @@
 > ספריית הקופי המעשי: pitches, hooks, forum replies, Play Store copy, Reels scripts, AI video prompts.
 > כל יוצר נכס שיווקי (אנושי או AI) שואב מפה.
 
-**עודכן:** 2026-05-30
+**עודכן:** 2026-09-23 (pricing aligned to Freemium v2 — §1.3, T8, §4.5, §5.3) · 2026-05-30
 **מקור:** BUFF_BRAND.md (זהות + טאגליינים), BUFF_PERSONAS.md (קהל), BUFF_COMPETITORS.md (positioning + creative execution research §3.9 — added 2026-05-30), BUFF_VALUES.md (Values Check)
 **שפה:** קופי באנגלית ראשונה (US/UK/AU priority). עברית כתרגום שני. הסברים בעברית.
 
@@ -32,10 +32,10 @@
 
 ### 1.3 One-paragraph (Play Store short description, podcast intro)
 **EN:**
-> *BUFF helps families of kids with ADHD (ages 6–18) end the daily nagging cycle. Built on positive coaching principles, BUFF scaffolds independence so that over time, kids no longer need the app. Unlike Joon — which uses virtual pet coins and stops at age 12 — BUFF builds intrinsic motivation through real-life rewards the child chooses, with a separate teen interface co-designed by an actual teen with ADHD. Free tier supports 1 child and 5 tasks. No ads, ever.*
+> *BUFF helps families of kids with ADHD (ages 6–18) end the daily nagging cycle. Built on positive coaching principles, BUFF scaffolds independence so that over time, kids no longer need the app. Unlike Joon — which uses virtual pet coins and stops at age 12 — BUFF builds intrinsic motivation through real-life rewards the child chooses, with a separate teen interface co-designed by an actual teen with ADHD. Free for your whole family — unlimited children, unlimited tasks, BUDDY included. Optional AI coach for parents ($59.99/year or $9.99/month, renews automatically). No ads, ever.*
 
 **HE:**
-> *BUFF עוזרת למשפחות של ילדים עם ADHD (גילים 6–18) לסיים את מעגל הנדנודים היומיומי. בנויה על עקרונות coaching חיובי, BUFF בונה עצמאות כך שעם הזמן הילדים לא צריכים אותה יותר. בניגוד ל-Joon — שמשתמשת במטבעות וירטואליים לחיית מחמד ועוצרת בגיל 12 — BUFF בונה מוטיבציה פנימית דרך פרסים אמיתיים מהחיים שהילד בחר, עם ממשק נפרד למתבגרים שעוצב יחד עם נער עם ADHD. שכבת חינם עם ילד 1 ועד 5 משימות. ללא פרסומות. לעולם.*
+> *BUFF עוזרת למשפחות של ילדים עם ADHD (גילים 6–18) לסיים את מעגל הנדנודים היומיומי. בנויה על עקרונות coaching חיובי, BUFF בונה עצמאות כך שעם הזמן הילדים לא צריכים אותה יותר. בניגוד ל-Joon — שמשתמשת במטבעות וירטואליים לחיית מחמד ועוצרת בגיל 12 — BUFF בונה מוטיבציה פנימית דרך פרסים אמיתיים מהחיים שהילד בחר, עם ממשק נפרד למתבגרים שעוצב יחד עם נער עם ADHD. חינם לכל המשפחה — ילדים ומשימות בלי הגבלה, כולל BUDDY. מאמן AI להורים לבחירה (‎$59.99 לשנה או ‎$9.99 לחודש, מתחדש אוטומטית). ללא פרסומות. לעולם.*
 
 ### 1.4 Three-paragraph (long-form ad, About page, blog intro)
 **EN:**
@@ -122,8 +122,8 @@
 > *"BUFF was built around three explicit principles: intrinsic motivation (not extrinsic coins), positive coaching only (no punishment, no sad buddy, no streak penalties), and independence-building (kids outgrow the app). The pillars are public — they're in the product docs. If it ever drifts from them, that's a bug, not a feature."*
 
 **T8 — "Is it free?":**
-> *"Yes — free tier supports 1 child and 5 tasks, which is enough to test if it works for your family. Family plan ($9/mo) is for 3 kids, unlimited tasks. No ads ever — the audience is parents of ADHD kids under stress, ads would destroy trust."*
-> **⚠ FLAG:** verify against PRD §5 + current grace period status before quoting prices in the wild.
+> *"Yes — it's free for your whole family: unlimited kids, unlimited tasks, the buddy, real rewards, Vibe Check and Pause. No card needed. The only paid part is an optional AI coach for parents (weekly insights about your kid + turning a photo or text into tasks) — $9.99/month or $59.99/year, renews until you cancel. Every family gets 14 days of the coach free once their kid finishes a first task; no card, and nothing is charged afterwards unless you choose to subscribe. No ads ever — the audience is parents of ADHD kids under stress, ads would destroy trust."*
+> _Freemium v2 (approved 2026-09-23) — see `docs/research/FREEMIUM_STRATEGY_2026-09.md`. Always quote price + renewal when mentioning the paid coach._
 
 **T9 — "How is BUFF different from Joon?":**
 > *"Three big differences. (1) Rewards: Joon is virtual pet coins, BUFF is real-life rewards your kid chose. (2) Age range: Joon stops at 12, BUFF goes 6–18 with a teen mode. (3) Goal: Joon wants engagement, BUFF wants outgrowing. If your kid is under 10 and you want quick gamified fun, Joon is fine. For longer-term independence-building, BUFF."*
@@ -156,52 +156,59 @@
 
 ---
 
-## 4.5 Paywall Copy — by Parent's Stated Pain (AHA-triggered)
+## 4.5 BUFF Coach Copy — trial ending, by Parent's Stated Pain (parent only)
 
-הפיירוול נורה אחרי שה-AHA event מזוהה (ראי [BUFF_BRAND.md §4](BUFF_BRAND.md)). ה-copy חייב להתייחס ל-*specific trophy task* שהילד הרגע השלים — לא ל-generic outcome. השם של הילד וה-task הספציפי מוטמעים דינמית.
+> **Updated 2026-09-23 — Freemium v2** (`docs/research/FREEMIUM_STRATEGY_2026-09.md`). The old "Family Plan $9/mo after the AHA moment" paywall is retired. Everything the family uses stays free. The only paid tier is **BUFF Coach** (AI weekly insights + AI capture), $59.99/year or $9.99/month, renews automatically until cancelled. Every family gets **14 days of BUFF Coach free**, starting when the child completes a first task — no card, and nothing is charged when it ends. After it: one free coach insight per week.
+>
+> **Where this copy may appear:** the parent's day-10 "trial ends in 4 days" note, the one soft message when the trial ends, and when a parent taps an AI action after the trial. **Never** in onboarding, **never** to a child.
+>
+> **Guard (Pillar 2):** never frame loss ("you lost your coach", "keep your progress"). The child's progress, BUDDY, BUFFs and rewards are free and stay — copy must never imply paying keeps them.
 
-### תבניות לפי קטגוריית כאב
+ה-copy עדיין מתייחס ל-*specific trophy task* שהילד השלים (ראי [BUFF_BRAND.md §4](BUFF_BRAND.md)) — אבל כמה שהמאמן *ראה*, לא כמה שההורה "עלול לאבד". השם של הילד וה-task הספציפי מוטמעים דינמית.
+
+### תבניות לפי קטגוריית כאב (day-10 note / trial end)
 
 **Pain category 1: Morning chaos**
-> *"This morning, {kid_name} got ready for school before you had to ask. Not a small thing. That's the change you came here for — and you've earned the chance to keep it going."*
-> CTA: *"Continue with Family Plan — $9/mo"*
+> *"This morning, {kid_name} got ready for school before you had to ask. Your coach spotted what made those mornings work — here's what it found so far. Your free coach days end in {days_left} days; everything else in BUFF stays free."*
+> CTA: *"Keep BUFF Coach — $59.99/year or $9.99/month, renews automatically"* · secondary: *"Not now"*
 
 **Pain category 2: Bedtime battles**
-> *"Last night, {kid_name} started the bedtime routine themselves. You didn't have to negotiate. That moment is why you signed up — keep building it."*
-> CTA: *"Continue with Family Plan — $9/mo"*
+> *"Last night, {kid_name} started the bedtime routine themselves. Your coach has a few notes on what's helping. Your free coach days end in {days_left} days; everything else stays free."*
+> CTA: *"Keep BUFF Coach — $59.99/year or $9.99/month, renews automatically"* · secondary: *"Not now"*
 
 **Pain category 3: Bag / forgetting things** *(the trophy moment — most universal)*
-> *"Last night, {kid_name} packed their bag for tomorrow — without you asking. That hasn't been a small thing in your house. It's exactly the moment you signed up for."*
-> CTA: *"Continue with Family Plan — $9/mo"*
+> *"Last night, {kid_name} packed their bag for tomorrow — without you asking. Your coach noticed the pattern behind it. Your free coach days end in {days_left} days; the bag routine, the buddy and the rewards stay free."*
+> CTA: *"Keep BUFF Coach — $59.99/year or $9.99/month, renews automatically"* · secondary: *"Not now"*
 
 **Pain category 4: Homework wars**
-> *"Today, {kid_name} started homework on their own. No reminders, no argument. That's the version of after-school you came here for."*
-> CTA: *"Continue with Family Plan — $9/mo"*
+> *"Today, {kid_name} started homework on their own. Your coach has an idea for what to try next week. Your free coach days end in {days_left} days; everything else stays free."*
+> CTA: *"Keep BUFF Coach — $59.99/year or $9.99/month, renews automatically"* · secondary: *"Not now"*
 
 **Pain category 5: General independence (fallback or "all of it")**
-> *"This week, {kid_name} completed {N} routine tasks without you reminding them. The pattern you came here for is starting. Keep it going."*
-> CTA: *"Continue with Family Plan — $9/mo"*
+> *"This week, {kid_name} completed {N} tasks without a reminder. Your coach summed up what's working. Your free coach days end in {days_left} days; everything else stays free."*
+> CTA: *"Keep BUFF Coach — $59.99/year or $9.99/month, renews automatically"* · secondary: *"Not now"*
 
-### תבנית "Preliminary AHA" — אם ה-trophy event לא נורה ב-12 הימים הראשונים
+### Trial ended (the one soft message)
 
-> *"You're 12 days in. {kid_name} has had an active day ({goal} tasks done) {N} days in a row. That's the foundation that turns into the unprompted moments. Keep going — your subscription helps lock in the system."*
-> CTA: *"Continue with Family Plan — $9/mo"*
+> *"Your 14 free coach days are done. BUFF stays free for your whole family — tasks, kids, buddy, rewards, all of it. You'll still get one coach insight every week. Want the full coach back? $59.99/year or $9.99/month, renews automatically, cancel anytime."*
+> CTA: *"See BUFF Coach"* · secondary: *"I'm good for now"*
 
 ### עברית
 
-תבניות מקבילות בעברית לקופי הישראלי. עיקרון זהה — שם הילד + ה-task הספציפי + ה-acknowledgment של ה-pain שההורה ציינה ב-onboarding.
+תבניות מקבילות בעברית לקופי הישראלי. עיקרון זהה — שם הילד + ה-task הספציפי + מה שהמאמן ראה, בלי מסגור של אובדן.
 
 **Bag-packing (HE):**
-> *"אתמול בלילה, {kid_name} ארז את התיק למחר — בלי שביקשת. זה לא דבר קטן בבית שלך. זה הרגע שבגללו נרשמת."*
-> CTA: *"להמשיך עם Family Plan — $9 לחודש"*
+> *"אתמול בלילה, {kid_name} ארז את התיק למחר — בלי שביקשת. המאמן זיהה מה עזר לזה לקרות. ימי המאמן בחינם מסתיימים בעוד {days_left} ימים; כל השאר ב-BUFF נשאר חינם."*
+> CTA: *"להמשיך עם BUFF Coach — ‎$59.99 לשנה או ‎$9.99 לחודש, מתחדש אוטומטית"*
 
-### Anti-patterns ב-paywall copy
+### Anti-patterns ב-coach copy
 
 - ❌ *"Loved your free trial?"* — generic, doesn't reference what actually changed
-- ❌ *"Unlock all features"* — features-first framing kills the emotional moment
-- ❌ *"Your child is making progress!"* — vague, doesn't anchor to a SPECIFIC event
-- ❌ Paywall fires more than 24 hours after AHA — emotional moment cools, conversion drops
-- ❌ Paywall fires WITHOUT specific task reference — defeats the entire pain-targeting strategy
+- ❌ *"Unlock all features"* — false under v2 (everything but the AI is already free) and features-first
+- ❌ *"Don't lose your progress / your coach"* — loss framing; progress is never paywalled (Pillar 2)
+- ❌ Any price or upsell on a child's screen — ever
+- ❌ Mentioning the paid coach without price + auto-renewal, or the 14 days without "no card, nothing charged unless you subscribe"
+- ❌ Copy WITHOUT a specific task reference — defeats the pain-targeting strategy
 
 ### Engineering requirements (out of MVP scope, on the list)
 
@@ -209,7 +216,7 @@
 2. `was_prompted` flag per task completion (true if reminder fired within X hours before completion)
 3. AHA event listener — fires when `is_pain_target=true AND was_prompted=false AND completed=true` (first occurrence per family)
 4. Push notification to parent within 2-4 hours of AHA event (with the trophy framing)
-5. Paywall trigger 24 hours after AHA, with task name + kid name interpolated into copy
+5. ~~Paywall trigger 24 hours after AHA~~ — superseded by Freemium v2 (2026-09-23): the AHA trophy task is interpolated into the day-10 coach-trial note instead (see above)
 
 ---
 
@@ -253,13 +260,13 @@ WHO BUFF IS FOR
 
 Parents who are tired of repeating themselves five times every morning. Parents whose kid lost interest in Joon. Parents of teens who say ADHD apps are "babyish." Parents who already follow positive discipline and want a tool that aligns with their values.
 
-FREE TIER
+FREE FOR YOUR WHOLE FAMILY
 
-1 child, 5 tasks, basic buddy. Enough to see if BUFF works for your family.
+Unlimited kids and tasks, the buddy and all its skins, BUFFs and real rewards, Vibe Check, SOS and Pause Mode, reminders, the class timetable (including importing it from a photo), activities and bag prep. No card needed.
 
-FAMILY PLAN ($9/mo)
+OPTIONAL AI COACH (BUFF COACH)
 
-Up to 3 kids, unlimited tasks, full buddy + skins, smart reminders.
+Weekly insights about your child and what to try next, plus turning a photo or a note into tasks. $59.99/year or $9.99/month, renews automatically until you cancel. Every family gets 14 days of BUFF Coach free once their child completes a first task — no card, and nothing is charged when it ends. After that, one free coach insight every week.
 
 FOUNDED BY A MOM WITH A MISSION
 
@@ -330,7 +337,7 @@ Until they don't need us.
 - LEFT: mom yelling at door, kid distracted, lost bag, frantic
 - RIGHT: kid checking task off on phone, putting bag by door, mom reading paper
 **Payoff (00:13-00:18):** Both screens at 7:25am. LEFT: chaos. RIGHT: in the car, calm.
-**CTA (00:18-00:20):** *"Same family. Different morning. BUFF — free to start."*
+**CTA (00:18-00:20):** *"Same family. Different morning. BUFF — free for your whole family."*
 
 ---
 

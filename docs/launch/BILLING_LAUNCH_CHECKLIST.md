@@ -108,6 +108,7 @@ https://gfrongfnyigxsexuofrg.supabase.co/functions/v1/rc-webhook
 1. Add a Play **license tester** (Play Console → Setup → License testing).
 2. On a test device: open paywall → confirm real prices show.
 3. Buy monthly (sandbox) → confirm premium unlocks (buddy/insights/2nd child).
+   _Superseded by Freemium v2 (2026-09-23), see `docs/research/FREEMIUM_STRATEGY_2026-09.md`: BUDDY and extra children are free; the purchase now unlocks BUFF Coach (AI insights + AI capture) only. Price note: the approved list price is $9.99/mo and $59.99/yr._
 4. Buy `lifetime_founding_99` → confirm: Founding badge appears, member #N set,
    webhook log shows "granted #N", DB `is_lifetime_founding=true`.
 5. Test **Restore purchases** after reinstall.

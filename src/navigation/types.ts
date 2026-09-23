@@ -83,6 +83,8 @@ export type RootStackParamList = {
   // ── Family / child management (parent-only, pushed above ParentApp) ──
   ManageChildren: undefined;
   EditChild:      { childId: string };
+  /** Freemium v2 edit-focus — parent-only, reached from EditChild (never onboarding). */
+  EditFocus:      { childId: string; ageGroup?: string | null };
 
   // ── Activities & seasonal packing (parent + child add, modal above app) ──
   Activities:     { childId?: string } | undefined;
