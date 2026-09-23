@@ -18,6 +18,7 @@ import { useChildrenDashboard } from '../hooks/useChildrenDashboard';
 import type { RootStackParamList } from './types';
 import { linking } from './linking';
 import { isOnboardingRoute, type OnboardingSnapshot } from './onboardingRoutes';
+import { isParentOnboarded } from './parentRouting';
 import { setCurrentRoute } from '../lib/currentRoute';
 import {
   ONBOARDING_PERSISTENCE_ENABLED,
@@ -139,7 +140,7 @@ export default function RootNavigator() {
 
   const hasChildren        = children.length > 0;
   const onboardingComplete = !!(profile?.pro_settings?.onboarding_complete);
-  const parentOnboarded    = onboardingComplete && hasChildren;
+  const parentOnboarded    = isParentOnboarded({ onboardingComplete, hasChildren });
 
   console.log('[RootNavigator] role:', profile?.role, 'onboardingComplete:', onboardingComplete, 'hasChildren:', hasChildren);
 
