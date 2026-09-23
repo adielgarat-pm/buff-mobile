@@ -1,5 +1,9 @@
 /**
- * PaywallScreen — "Unlock BUFF Premium ✨"
+ * PaywallScreen — "BUFF Coach" (Freemium v2, D: Adi 2026-09-23)
+ *
+ * The paid tier is AI only: the AI coach / insights and AI capture. Everything
+ * else in BUFF (tasks, children, BUDDY, shop, Vibe/SOS/Pause, timetable) is
+ * free, and the screen says so. All copy is i18n (en/he).
  *
  * Reached via navigation only:  navigation.navigate('Paywall', { childName })
  * — registered exclusively in RootNavigator's PARENT branch. Never register
@@ -35,13 +39,13 @@ type Route = RouteProp<RootStackParamList, 'Paywall'>;
 export const PRIVACY_POLICY_URL = 'https://buffadhd.com/privacy';
 export const TERMS_OF_USE_URL   = 'https://buffadhd.com/terms';
 
-const FEATURES = [
-  { emoji: '🐾', text: 'Buddy pet — grows with consistency' },
-  { emoji: '🛍️', text: 'Rewards shop — motivates with real prizes' },
-  { emoji: '📊', text: 'Insights — track patterns over time' },
-  { emoji: '🎨', text: 'Skins & themes — personalise the experience' },
-  { emoji: '👨‍👩‍👧', text: 'Unlimited children' },
-];
+// BUFF Coach = AI only. Timetable import stays FREE (D: Adi 2026-07-29,
+// reconfirmed 2026-09-23), so it is deliberately NOT listed here.
+export const FEATURES = [
+  { emoji: '🧠', key: 'paywall.feature.coach' },
+  { emoji: '💡', key: 'paywall.feature.tips' },
+  { emoji: '📸', key: 'paywall.feature.capture' },
+] as const;
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
 
@@ -70,7 +74,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
     if (isChild && navigation.canGoBack()) navigation.goBack();
   }, [isChild, navigation]);
 
-  const [monthlyLabel, setMonthlyLabel] = useState('$9.99 / month');
+  const [monthlyLabel, setMonthlyLabel] = useState(t('paywall.perMonth', { price: '$9.99' }));
   const [yearlyLabel,  setYearlyLabel]  = useState('');
   const [savingsPct,   setSavingsPct]   = useState(0);
   const [purchasing,   setPurchasing]   = useState<'monthly' | 'yearly' | 'restore' | null>(null);
@@ -84,7 +88,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
       const yearly  = offerings?.current?.annual;
 
       if (monthly?.product?.priceString) {
-        setMonthlyLabel(`${monthly.product.priceString} / month`);
+        setMonthlyLabel(t('paywall.perMonth', { price: monthly.product.priceString }));
       }
 
       if (yearly?.product?.priceString) {
@@ -92,7 +96,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
         const monthlyPrice    = monthly?.product?.price ?? 9.99;
         const annualIfMonthly = monthlyPrice * 12;
         const savings = Math.round((1 - yearlyPrice / annualIfMonthly) * 100);
-        setYearlyLabel(`${yearly.product.priceString} / year`);
+        setYearlyLabel(t('paywall.perYear', { price: yearly.product.priceString }));
         if (savings > 0) setSavingsPct(savings);
       }
     });
@@ -108,7 +112,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
       if (navigation.canGoBack()) navigation.goBack();
     } catch (err: unknown) {
       if (!(err as { userCancelled?: boolean })?.userCancelled) {
-        setError(err instanceof Error ? err.message : 'Purchase failed. Please try again.');
+        setError(err instanceof Error ? err.message : t('paywall.purchaseFailed'));
       }
     } finally {
       setPurchasing(null);
@@ -122,7 +126,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
       await restorePurchases();
       if (navigation.canGoBack()) navigation.goBack();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Restore failed. Please try again.');
+      setError(err instanceof Error ? err.message : t('paywall.restoreFailed'));
     } finally {
       setPurchasing(null);
     }
@@ -151,25 +155,23 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
 
         {/* Hero */}
         <Text style={styles.crown}>✨</Text>
-        <Text style={styles.heading}>Unlock BUFF Premium</Text>
-        {childName ? (
-          <Text style={styles.sub}>
-            Help <Text style={styles.subName}>{childName}</Text> build habits that stick
-          </Text>
-        ) : (
-          <Text style={styles.sub}>Build habits that stick, together</Text>
-        )}
+        <Text style={styles.heading}>{t('paywall.title')}</Text>
+        <Text style={styles.sub}>
+          {childName ? t('paywall.subWithName', { name: childName }) : t('paywall.sub')}
+        </Text>
 
         {/* Feature list */}
         <View style={styles.featureCard}>
           {FEATURES.map(f => (
-            <View key={f.text} style={styles.featureRow}>
+            <View key={f.key} style={styles.featureRow}>
               <Text style={styles.featureEmoji}>{f.emoji}</Text>
-              <Text style={styles.featureText}>{f.text}</Text>
+              <Text style={styles.featureText}>{t(f.key)}</Text>
               <Text style={styles.featureCheck}>✅</Text>
             </View>
           ))}
         </View>
+        {/* Freemium v2: the parent must see that nothing they use is at stake. */}
+        <Text testID="paywall-free-footer" style={styles.freeFooter}>{t('paywall.freeFooter')}</Text>
 
         {/* Inline error */}
         {error && (
@@ -223,9 +225,9 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
           activeOpacity={0.85}
         >
           <View style={styles.foundingBannerLeft}>
-            <Text style={styles.foundingBannerEyebrow}>FOUNDING 100</Text>
-            <Text style={styles.foundingBannerTitle}>One-time payment · Lifetime</Text>
-            <Text style={styles.foundingBannerSub}>From $99 · Limited to first 100</Text>
+            <Text style={styles.foundingBannerEyebrow}>{t('paywall.foundingEyebrow')}</Text>
+            <Text style={styles.foundingBannerTitle}>{t('paywall.foundingTitle')}</Text>
+            <Text style={styles.foundingBannerSub}>{t('paywall.foundingSub')}</Text>
           </View>
           <Text style={styles.foundingBannerArrow}>›</Text>
         </TouchableOpacity>
@@ -240,14 +242,14 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
           >
             {savingsPct > 0 && (
               <View style={styles.savingsBadge}>
-                <Text style={styles.savingsBadgeText}>Save {savingsPct}%</Text>
+                <Text style={styles.savingsBadgeText}>{t('paywall.save', { pct: savingsPct })}</Text>
               </View>
             )}
             {purchasing === 'yearly' ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <>
-                <Text style={styles.priceCardTitleLight}>Yearly</Text>
+                <Text style={styles.priceCardTitleLight}>{t('paywall.yearly')}</Text>
                 <Text style={styles.priceCardPriceLight}>{yearlyLabel}</Text>
               </>
             )}
@@ -265,16 +267,14 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
             <ActivityIndicator color={T.accent} />
           ) : (
             <>
-              <Text style={[styles.priceCardTitle, { color: T.text }]}>Monthly</Text>
+              <Text style={[styles.priceCardTitle, { color: T.text }]}>{t('paywall.monthly')}</Text>
               <Text style={[styles.priceCardPrice, { color: T.accent }]}>{monthlyLabel}</Text>
             </>
           )}
         </TouchableOpacity>
 
         {/* Fine print */}
-        <Text style={styles.finePrint}>
-          Subscriptions auto-renew. Cancel any time in your App Store / Play Store settings.
-        </Text>
+        <Text style={styles.finePrint}>{t('paywall.finePrint')}</Text>
         </>
         )}
 
@@ -286,7 +286,7 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
                 {purchasing === 'restore' ? (
                   <ActivityIndicator color={T.textMuted} size="small" />
                 ) : (
-                  <Text style={styles.footerLink}>Restore purchases</Text>
+                  <Text style={styles.footerLink}>{t('paywall.restore')}</Text>
                 )}
               </TouchableOpacity>
               <Text style={styles.footerDivider}>|</Text>
@@ -296,14 +296,14 @@ function PaywallScreenContent({ childName = '' }: { childName?: string }) {
             onPress={() => { openExternalUrl(PRIVACY_POLICY_URL); }}
             accessibilityRole="link"
           >
-            <Text style={styles.footerLink}>Privacy Policy</Text>
+            <Text style={styles.footerLink}>{t('paywall.privacy')}</Text>
           </TouchableOpacity>
           <Text style={styles.footerDivider}>|</Text>
           <TouchableOpacity
             onPress={() => { openExternalUrl(TERMS_OF_USE_URL); }}
             accessibilityRole="link"
           >
-            <Text style={styles.footerLink}>Terms of Use</Text>
+            <Text style={styles.footerLink}>{t('paywall.terms')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -335,7 +335,6 @@ const styles = StyleSheet.create({
   crown:   { fontSize: 52, marginBottom: 8 },
   heading: { color: T.text, fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 8 },
   sub:     { color: T.textMuted, fontSize: 16, textAlign: 'center', marginBottom: 28, lineHeight: 22 },
-  subName: { color: T.accent, fontWeight: '700' },
 
   featureCard: {
     width: '100%', backgroundColor: T.card, borderRadius: 16,
@@ -368,6 +367,7 @@ const styles = StyleSheet.create({
   featureEmoji: { fontSize: 20, width: 30 },
   featureText:  { flex: 1, color: T.text, fontSize: 14, fontWeight: '500' },
   featureCheck: { fontSize: 16 },
+  freeFooter:   { color: T.textMuted, fontSize: 14, textAlign: 'center', marginTop: -12, marginBottom: 24, lineHeight: 20 },
 
   errorBox:  {
     width: '100%', backgroundColor: '#FEF2F2', borderRadius: 12, padding: 14,

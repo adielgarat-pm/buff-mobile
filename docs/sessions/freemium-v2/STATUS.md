@@ -6,3 +6,4 @@
 |---|---|---|---|---|---|
 | 1 — SPEC / SPEC_SYNC / Values Check | _passed_ | 2026-09-23 | (this commit) | docs only | — |
 | 2 — Remove task cap + 2nd-child wall | _passed_ | 2026-09-23 | (this commit) | tsc clean; ParentTasks (pickers/dirtyGuard/noCap), useSubscription, freemiumV2 guards green | — |
+| 3 — Paywall "BUFF Coach" copy (AI only) + renames + capture CTA | _passed_ | 2026-09-23 | (this commit) | tsc clean; PaywallChildGate (+3 v2 tests), parent screens, guards green; i18n-key-check clean | — |

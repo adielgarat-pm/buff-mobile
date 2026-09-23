@@ -715,7 +715,7 @@ export default function ParentDashboardScreen() {
             <Text style={styles.insightLockedTitle}>{t('dashboard.insightsPremiumTitle')}</Text>
             <Text style={styles.insightLockedHint}>{t('dashboard.insightsPremiumHint')}</Text>
             <View style={styles.insightUnlockBtn}>
-              <Text style={styles.insightUnlockText}>Unlock with Premium ✨</Text>
+              <Text style={styles.insightUnlockText}>{t('dashboard.insightsUnlockCta')}</Text>
             </View>
           </TouchableOpacity>
         )
