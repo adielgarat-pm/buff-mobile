@@ -91,7 +91,9 @@ The answer turns out to be the same thing that makes a good therapist work.
 
 We're launching BUFF in Q3 2026. Two interfaces — Pastel for younger kids, Gamer for teens (co-designed by my 15-year-old, who has ADHD and is brutally honest about which apps feel "babyish"). Real-world rewards the kid chooses themselves. Pause Mode for the weeks when life disrupts the routine. 70%-is-success math everywhere.
 
-Right now I'm running **Founding 100** — the first 50 supporters get lifetime Family Plan access at $99, the next 50 at $149. Capped at 100. After that, it's a normal $9/mo subscription.
+BUFF is free for your whole family. The only paid part is an optional AI coach for parents — $9.99/month or $59.99/year, renewing until you cancel. Right now I'm also running **Founding 100** — the first 50 supporters get the AI coach for life at $99, the next 50 at $149. Capped at 100.
+
+<!-- Updated 2026-09-23 to Freemium v2 (was: lifetime Family Plan; then a normal $9/mo subscription). See docs/research/FREEMIUM_STRATEGY_2026-09.md -->
 
 If you're a PM, a parent of a kid with ADHD, or both — I'd love to send you the link. DM me here, or visit buffadhd.com/founding-100.
 

@@ -13,6 +13,7 @@
 
 ## The test
 1. Open the app → reach the **Paywall** (e.g. as a non-subscribed parent: add a 2nd child, or tap Insights once chunk 3a is in a build).
+   _Superseded by Freemium v2 (2026-09-23), see `docs/research/FREEMIUM_STRATEGY_2026-09.md`: adding a 2nd child no longer shows a paywall — reach it by tapping an AI action (Insights / AI capture) after the 14-day coach grant._
 2. ✅ Confirm **real prices** show (₪/$ for Monthly $9.99 + Annual $59.99) — this alone proves the offering/products are wired.
 3. Buy **Monthly** (sandbox) → confirm premium unlocks (no charge).
 4. Tap **Founding 100** → buy `$99` (sandbox) → confirm:

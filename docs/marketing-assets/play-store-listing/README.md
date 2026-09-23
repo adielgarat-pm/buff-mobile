@@ -51,6 +51,8 @@ Experiment, not a blind swap.
 
 ## Full description (revised — paste-ready)
 
+> Pricing block updated 2026-09-23 to Freemium v2 (`docs/research/FREEMIUM_STRATEGY_2026-09.md`). The live Play listing still needs Adi to paste it in Play Console.
+
 ```
 Stop fighting task time. Start coaching it.
 
@@ -78,13 +80,13 @@ WHO BUFF IS FOR
 
 Parents tired of repeating themselves all day long. Parents whose kids quickly lose interest in typical reward apps. Parents of teens who say ADHD apps are "babyish." Parents who already follow positive discipline and want a tool that aligns with their values.
 
-FREE TIER
+FREE FOR YOUR WHOLE FAMILY
 
-1 child, 5 tasks, basic buddy. Enough to see if BUFF works for your family.
+Unlimited kids and tasks, the buddy and all its skins, BUFFs and real rewards, Vibe Check, SOS and Pause Mode, reminders, the class timetable (including importing it from a photo), activities and bag prep. No card needed.
 
-FAMILY PLAN ($9.99/mo)
+OPTIONAL AI COACH (BUFF COACH)
 
-Up to 3 kids, unlimited tasks, full buddy + skins, reminders.
+Weekly insights about your child and what to try next, plus turning a photo or a note into tasks. $59.99/year or $9.99/month, renews automatically until you cancel. Every family gets 14 days of BUFF Coach free once their child completes a first task — no card, and nothing is charged when it ends. After that, one free coach insight every week.
 
 FOUNDED BY A MOM WITH A MISSION
 

@@ -3,7 +3,7 @@
 > תשובות אחידות לכל שאלה נפוצה — לפורומים, מכירות, About page, חנות אפליקציות, ראיונות, פרסומות.
 > בלי המסמך הזה: כל ערוץ ממציא תשובה ויוצאת drift. עם המסמך: עקביות.
 
-**עודכן:** 11 במאי 2026
+**עודכן:** 23 בספטמבר 2026 (Q18/Q20/Q21 — Freemium v2) · 11 במאי 2026
 **מקור:** BUFF_PRD, BUFF_VALUES, BUFF_BRAND, BUFF_COMPETITORS, BUFF_BUDDY_SYSTEM + landing page (Landing.tsx)
 **שפה:** שאלות ותשובות מובאות באנגלית ראשונה (קהל יעד US/UK/AU). תרגום עברי לכל שאלה. הסברים פנימיים בעברית.
 
@@ -168,11 +168,14 @@
 
 ### Q18. Is it free? / זה חינם?
 
-**Short:** *Free tier supports 1 child and 5 tasks. Family plan is $9/month for 3 kids unlimited tasks. ⚠*
+**Short:** *Yes — free for your whole family. Optional AI coach.*
+**HE:** *כן — חינם לכל המשפחה. מאמן AI לבחירה.*
 
-**Long:** ⚠ *Currently in MVP phase — verify against current pricing structure. Per the PRD: Free tier (1 child, 5 tasks, basic buddy, basic notifications, no ads). Family ($9/mo, up to 3 kids, unlimited tasks, full buddy + skins, smart reminders, no ads). Family Pro ($19/mo, unlimited kids, all skins, weekly reports, no ads). No advertising, ever — the audience is parents of ADHD kids under stress, ads would destroy trust.*
+**Long:** *Everything the family uses day to day is free, with no time limit and no card: unlimited children, unlimited tasks, BUDDY and its skins, BUFFs, the rewards shop and real-reward redemption, Vibe Check, SOS, Pause Mode and Anchor, notifications, the class timetable (including importing it from a photo), activities, bag prep and off-routine days. The only paid part is **BUFF Coach**, for parents: the AI coach (weekly insights about your child and recommendations) and AI capture (a photo or a note turned into tasks). It costs $59.99/year or $9.99/month and renews automatically until you cancel. Every family gets 14 days of BUFF Coach free, starting when their child completes a first task — no card is needed and nothing is charged when the 14 days end; you only pay if you choose to subscribe. After that you still get one free coach insight every week. No ads, ever.*
 
-⚠ **Internal note:** verify current grace period status and active payment system before quoting in any paid ad / press / Play Store listing. Source: BUFF_PRD §5.
+**HE (long):** *כל מה שהמשפחה משתמשת בו ביום-יום חינם, בלי הגבלת זמן ובלי כרטיס: ילדים ומשימות בלי הגבלה, BUDDY והסקינים, BUFFs, חנות הפרסים ומימוש פרסים אמיתיים, Vibe Check, SOS, Pause ו-Anchor, התראות, מערכת שעות (כולל ייבוא מתמונה), פעילויות, הכנת תיק וימים מחוץ לשגרה. החלק היחיד בתשלום הוא **BUFF Coach** להורים: מאמן ה-AI (תובנות שבועיות על הילד והמלצות) וקליטה חכמה (תמונה או טקסט שהופכים למשימות). ‎$59.99 לשנה או ‎$9.99 לחודש, מתחדש אוטומטית עד שמבטלים. כל משפחה מקבלת 14 יום של BUFF Coach בחינם מהרגע שהילד משלים משימה ראשונה — בלי כרטיס, ושום דבר לא מחויב בסוף 14 הימים; משלמים רק אם בוחרים להירשם. אחרי זה עדיין מקבלים תובנה אחת בחינם כל שבוע. בלי פרסומות, לעולם.*
+
+**Internal note:** Freemium v2, approved 2026-09-23 — `docs/research/FREEMIUM_STRATEGY_2026-09.md`. Ad/store rules: don't say "100% free" or "free forever" for everything; any mention of BUFF Coach states price + auto-renewal; any mention of the 14 days states the length and that it isn't auto-charged. Never show pricing to a child.
 
 ---
 
@@ -188,7 +191,8 @@
 
 **Short:** *Yes — cancel anytime, no commitment.*
 
-**Long:** ⚠ *Verify against current implementation. Subscription is monthly by default; you can cancel from the app's account section or through Google Play / App Store. No annual lock-in. Your tasks and history remain accessible in read-only mode after cancellation for a grace period.*
+**Long:** *BUFF Coach renews automatically (monthly or yearly) until you cancel. Cancel any time in your Google Play / App Store subscription settings; you keep the coach until the end of the period you paid for. After that your family simply stays on free BUFF — every child, task, reward, BUFF balance and BUDDY stays exactly as it was. Only the full AI coach stops (one free coach insight a week continues).*
+**HE:** *BUFF Coach מתחדש אוטומטית (חודשי או שנתי) עד שמבטלים. מבטלים מתי שרוצים בהגדרות המנויים של Google Play / App Store, והמאמן נשאר עד סוף התקופה ששולמה. אחרי זה המשפחה פשוט ממשיכה ב-BUFF החינמי — כל הילדים, המשימות, הפרסים, ה-BUFFs וה-BUDDY נשארים בדיוק כמו שהיו.*
 
 ---
 
@@ -197,6 +201,8 @@
 **Short:** *Yes — beta users who completed setup get free-for-life access. ⚠*
 
 **Long:** ⚠ *Beta users who completed family setup + child setup AND created at least 1 task, OR responded to the beta survey, get free-for-life access (is_lifetime_access flag in DB). This is a thank-you to the founding community. After grace period ends, this becomes permanent for qualifying users. Verify the current grace period status before promising publicly.*
+
+_Note 2026-09-23 (Freemium v2): the core app is now free for every family, so "lifetime access" in practice means BUFF Coach (the AI coach + AI capture) for life. Founding-100 lifetime purchase stays optional._
 
 ---
 

@@ -4,6 +4,9 @@
 > Defensible defaults applied 2026-05-11 per Adi's "decide for me" — override anytime by editing this doc, but **consistency across channels matters** (different price across channels = trust loss).
 
 **עודכן:** 2026-05-11
+
+> **Note 2026-09-23 — pricing superseded by Freemium v2 (2026-09-23), see `docs/research/FREEMIUM_STRATEGY_2026-09.md`.** The core app (unlimited children + tasks, BUDDY, rewards) is now free for every family, and the only subscription is **BUFF Coach** ($9.99/mo or $59.99/yr, renews automatically). The Founding-100 lifetime offer stays optional; what it buys is **BUFF Coach for life**. "Family Plan / 3 kids / unlimited tasks" wording below is retired — the offer row and email bullets were updated; the Facebook-reply examples in §3 still lead with the $99 deal — under v2, lead with "it's free for your whole family" and mention Founding 100 only if asked.
+
 **מקור:** [BUFF_GO_TO_MARKET.md](BUFF_GO_TO_MARKET.md) §1 + BUFF_MESSAGING T-templates + Adi's bootstrap plan
 **שפה:** טמפלייטים EN ראשי + HE לישראל. הסברים בעברית.
 **Sister kits (Phase 2 execution):** [BUFF_ADVISOR_OUTREACH_KIT.md](BUFF_ADVISOR_OUTREACH_KIT.md) · [BUFF_BLOG_CONTENT_MAP.md](BUFF_BLOG_CONTENT_MAP.md) · [BUFF_MARKETING_BACKLOG.md](BUFF_MARKETING_BACKLOG.md)
@@ -33,7 +36,7 @@
 | **Price (1–50 sales)** | **$99** lifetime |
 | **Price (51–100 sales)** | **$149** lifetime |
 | **Cap** | Hard 100 — after sale #100, pricing reverts to standard subscription |
-| **What they get** | Family Plan equivalent (3 kids, unlimited tasks, full features) — **lifetime, forever** |
+| **What they get** | ~~Family Plan equivalent (3 kids, unlimited tasks, full features)~~ **BUFF Coach (AI coach + AI capture) — lifetime** _(updated 2026-09-23, Freemium v2: children/tasks are free for everyone)_ |
 | **In-app badge** | "Founding Member" — visible on profile + dashboard |
 | **Priority feedback channel** | Direct email to Adi — SLA 48h response |
 | **Future features** | All future features included free — no future tier upsells |
@@ -48,7 +51,7 @@
 3. "Founding Member" badge UI in profile (Phase 0 nice-to-have; can ship in v1.1)
 4. `priority_email_channel` routing — when a Founding Member emails support, prioritize
 
-**Pricing rationale:** $99 anchored against $9/mo Family Plan = ~11 months equivalent. Cheap signal that this is a "thanks for early support" not "premium tier." The $149 second-tier creates scarcity ("first 50 spots are gone in 2 weeks") and price-anchored social proof.
+_(Superseded by Freemium v2 (2026-09-23), see docs/research/FREEMIUM_STRATEGY_2026-09.md — the anchor is now BUFF Coach at $59.99/yr.)_ **Pricing rationale:** $99 anchored against $9/mo Family Plan = ~11 months equivalent. Cheap signal that this is a "thanks for early support" not "premium tier." The $149 second-tier creates scarcity ("first 50 spots are gone in 2 weeks") and price-anchored social proof.
 
 ---
 
@@ -90,7 +93,7 @@ outgrown.
 Here's the offer just for the 47 of you, before public launch:
 
 → $99 Founding Member lifetime access
-→ Family Plan equivalent — 3 kids, unlimited tasks — forever
+→ BUFF Coach (the AI coach) for life — the rest of BUFF is free for everyone
 → Priority email channel direct to me
 → All future features included free
 → Permanent immunity to future price increases
@@ -135,7 +138,7 @@ launches. If you have data you want to export, reply and I'll help.
 הנה ההצעה רק ל-47 מכם, לפני ההשקה הפומבית:
 
 ← $99 גישה Lifetime כ-Founding Member
-← Family Plan — 3 ילדים, משימות ללא הגבלה — לתמיד
+← BUFF Coach (מאמן ה-AI) לכל החיים — כל השאר ב-BUFF חינם לכולם
 ← ערוץ priority email ישיר אליי
 ← כל הפיצ'רים העתידיים כלולים בחינם
 ← נעילת מחיר קבועה — לא משלמים יותר בעתיד

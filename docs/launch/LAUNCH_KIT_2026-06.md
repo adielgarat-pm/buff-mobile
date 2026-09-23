@@ -8,6 +8,7 @@
 > 2. **Both audiences in parallel** — Hebrew warm circle (Day 3–4), English organic (Day 5+).
 >
 > ⚠️ **Verify before any public price quote:** pricing carries a FLAG in `BUFF_MESSAGING.md` (T8) — confirm against current PRD §5 + grace-period state before posting a number publicly.
+> _Update 2026-09-23: pricing settled by Freemium v2 — use `BUFF_FAQ.md` Q18 / `BUFF_MESSAGING.md` T8 verbatim ("Free for your whole family. Optional AI coach."; BUFF Coach $59.99/yr or $9.99/mo, renews automatically). See `docs/research/FREEMIUM_STRATEGY_2026-09.md`._
 > ⚠️ **Confidence gate:** per Adi's standing rule — prep everything, but do not fire broad outreach until the app *feels* shippable to her.
 
 ---
@@ -162,7 +163,7 @@ Do **not** paste pitches into groups. Answer a real question helpfully, then add
 |---|---|---|---|
 | 1 | **Founder story (long form)** still `[NEEDS INPUT]` | **Adi** | Short version exists (`MESSAGING §1.4`); long version needs your input — can't be invented |
 | 2 | Landing page made device-aware | CC (snippet ready, §3) + Adi (deploy on Lovable → **Publish → Update**) | Lovable deploy requires Adi to click Publish |
-| 3 | Public price verified before quoting | Adi | FLAG in MESSAGING T8 |
+| 3 | Public price verified before quoting | Adi | FLAG in MESSAGING T8 — _resolved 2026-09-23 by Freemium v2 (T8 rewritten)_ |
 | 4 | Web-app entry route confirmed | Adi | fills `WEB_APP` in snippet |
 
 > **Lovable reminder:** any change to the buffadhd.com landing page must end with **clicking "Publish → Update" in the Lovable editor** — GitHub sync alone does not deploy it live.

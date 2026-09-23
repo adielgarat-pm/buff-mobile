@@ -41,7 +41,7 @@
 | 0:03–0:08 | Every morning was a fight. Not because he didn't care — | Hand rubbing forehead (no face), scattered shoes. |
 | 0:08–0:13 | because "just remember" isn't a plan for an ADHD brain. | Toothbrush, blank checklist on the fridge. |
 | 0:13–0:18 | So we stopped nagging and started coaching. Now he runs his own morning. | Screen-rec (purple UI): child checks off their own tasks; backpack now picked up, ready. |
-| 0:18–0:24 | BUFF — a coach, not a cop. Free to start. | End-card + CTA. |
+| 0:18–0:24 | BUFF — a coach, not a cop. Free for your whole family. | End-card + CTA. |
 
 ---
 

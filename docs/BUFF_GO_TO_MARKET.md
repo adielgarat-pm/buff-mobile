@@ -62,6 +62,8 @@ This reorders the authority playbook from "spend to build credibility" to **"ear
 
 ### 1.1 The Offer
 
+> _Note 2026-09-23: Superseded by Freemium v2 (2026-09-23), see `docs/research/FREEMIUM_STRATEGY_2026-09.md`. "Family Plan $9/mo" and "3 kids, unlimited tasks" no longer exist as a paid tier — children and tasks are free for every family; the only subscription is BUFF Coach ($9.99/mo or $59.99/yr, renews automatically), and Founding 100 (optional) now means BUFF Coach for life. The plan below is kept as the historical record._
+
 **"Founding 100"** — paid lifetime access, capped at 100 sales.
 
 **Pricing options (Adi decides):**
