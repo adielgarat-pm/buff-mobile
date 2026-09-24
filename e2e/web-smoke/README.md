@@ -15,6 +15,7 @@ npx expo export -p web --output-dir /tmp/webdist           # ~1–2 min
 node e2e/web-smoke/run.mjs --dist /tmp/webdist             # full matrix (~15 min)
 node e2e/web-smoke/run.mjs --dist /tmp/webdist --vp m390 --lang en   # quick pass (~2 min)
 node e2e/web-smoke/run.mjs --dist /tmp/webdist --flows B1,A6         # just some flows
+node e2e/web-smoke/report.mjs e2e/web-smoke/.out/results.json         # markdown matrix
 ```
 
 Output: one `PASS/FAIL flow viewport lang` line per case, `results.json` with
@@ -36,10 +37,13 @@ git-ignored). Exit code 1 if any case failed.
 |----|----------------|
 | A1 | RoleSelection → I'm a parent → Signup → Welcome → Steps 1–5 → first task → child access → Complete → ParentApp; every CTA reachable |
 | A2 | same, starting with ANOTHER parent signed in on the device (#479) |
-| A3 | RoleSelection while a CHILD is signed in (currently fails — see docs/qa) |
+| A3 | child signed in → Child Settings "Grown-up sign-in" → "Back to BUFF" → parent login → ParentApp → "Hand back to {name}" → card picker → child again |
 | A4 | Google buttons reachable; authorize redirect_to = origin/ |
-| A5 | Google return (tokens in fragment, no profile) → role picker → parent → Welcome |
+| A5 | Google return (tokens in fragment, no profile) → picker (no "Teen", shows the account) → parent → Welcome |
 | A6 | parent mid-wizard re-types an existing child's name → duplicate dialog "Open" continues |
+| A7 | parent B signs up where parent A stopped mid-wizard → B is NOT offered A's flow |
+| A8 | Google picker → "I have a family code" → ChildJoin → ChildApp, no profile for the Google account |
+| A9 | Google picker → "Not you? Use a different account" → RoleSelection, signed out |
 | B1 | returning onboarded parent login → ParentApp (regression 2026-09-24) |
 | B2 | parent who stopped at Step 3 logs in → Welcome offers resume → Step 3 |
 | B3 | legacy parent (children, no onboarding_complete) → Welcome (documented gap) |
@@ -57,8 +61,8 @@ git-ignored). Exit code 1 if any case failed.
 
 ## CTA checks
 
-* **pinned** CTAs (footer outside the ScrollView — Steps 1/3/4/5): must be fully
-  inside the viewport as rendered.
+* **pinned** CTAs (footers — Welcome, Steps 1/3/4/5, Complete — and RoleSelection's
+  returning-user login): must be fully inside the viewport as rendered.
 * every other CTA: must be **reachable** — scrolled into view it fits the
   viewport. Whether it starts below the fold is logged as a `fold:` note.
 

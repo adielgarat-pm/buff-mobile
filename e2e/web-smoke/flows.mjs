@@ -36,6 +36,18 @@ export function seedChildLinked(db, fam) {
 export const childCreds = { stableEmail: null, stablePassword: null };
 
 // ── shared walkers ─────────────────────────────────────────────────────────
+/** Child app greets with the Vibe Check (and other one-time sheets): answer "later". */
+async function dismissChildSheets(c) {
+  const later = c.page.getByText(c.lang === 'he' ? 'אולי אחר כך' : 'Maybe later', { exact: true });
+  for (let i = 0; i < 3; i++) {
+    if (!(await later.first().isVisible().catch(() => false))) {
+      await c.page.waitForTimeout(800);
+      if (!(await later.first().isVisible().catch(() => false))) return;
+    }
+    await later.first().click().catch(() => {});
+  }
+}
+
 async function gate(c, label, fn) {
   const ok = await c.check(label, fn);
   if (!ok) throw new Error(`gate failed: ${label}`);
@@ -47,7 +59,9 @@ async function gate(c, label, fn) {
  * viewport. Whether a scroll-content CTA starts below the fold is recorded as
  * an informational `fold:` note, not a failure.
  */
-const PINNED = new Set(['onb1-next', 'onb3-next', 'onb4-continue', 'onb5-continue']);
+// Must be on screen as rendered: footer CTAs (steps 1–5, Welcome, Complete) and
+// RoleSelection's returning-user login (UX review 2026-09-24).
+const PINNED = new Set(['onb1-next', 'onb3-next', 'onb4-continue', 'onb5-continue', 'welcome-cta', 'welcome-resume', 'onb8-cta', 'rolesel-login']);
 async function ctaInView(c, testIdOrLoc, label) {
   const loc = typeof testIdOrLoc === 'string' ? c.tid(testIdOrLoc) : testIdOrLoc;
   if (typeof testIdOrLoc === 'string' && PINNED.has(testIdOrLoc)) {
@@ -173,12 +187,39 @@ export const flows = {
     await walkOnboarding(c);
   },
 
-  async A3_signup_withChildSession(c) {
+  async A3_grownUpSignIn_fromChildSession(c) {
+    // Shared device, kid signed in last. The child UI has no logout by design;
+    // the parent gets in via Child Settings → "Grown-up sign-in", then gives the
+    // device back with Settings → "Hand back to {name}".
     const { fam } = seedOnboardedParent(c.db);
-    const { user } = seedChildLinked(c.db, fam);
+    const { user, child } = seedChildLinked(c.db, fam);
     await c.open({ sessionUser: user });
-    await c.goto('/RoleSelection');
-    await gate(c, 'RoleSelection reachable while a CHILD is signed in', () => c.visible(c.text(c.s.iAmParent), 20000));
+    await c.goto('/');
+    await gate(c, 'child session → ChildApp', () => c.visible(c.page.locator('[role="tablist"]').first(), 20000));
+    await dismissChildSheets(c);
+    await c.page.getByRole('tab').last().click();
+    const row = c.tid('child-grownup-signin');
+    await gate(c, '"Grown-up sign-in" row in Child Settings', async () => { await row.scrollIntoViewIfNeeded({ timeout: 10000 }); await c.visible(row, 5000); });
+    await row.click();
+    await gate(c, 'grown-up Login shown', () => c.visible(c.text(c.lang === 'he' ? 'היי! כניסה של מבוגר' : 'Hi! Sign in as a grown-up'), 10000));
+    // A curious tap loses nothing: "Back to BUFF" returns to the child app.
+    await c.tid('login-grownup-back').click();
+    await gate(c, '"Back to BUFF" → still the child', async () => { await dismissChildSheets(c); await c.visible(c.tid('child-grownup-signin'), 10000); });
+    await c.tid('child-grownup-signin').click();
+    await loginAs(c, 'adi.elgarat+e2e-returning@gmail.com', PW);
+    await gate(c, 'parent signs in → ParentApp', () => assertParentApp(c));
+    await c.page.getByRole('tab').last().click();
+    const hb = c.page.getByText(c.lang === 'he' ? `החזרה ל${child.display_name}` : `Hand back to ${child.display_name}`, { exact: true });
+    await gate(c, '"Hand back to TestLinked" in parent Settings', async () => { await hb.scrollIntoViewIfNeeded({ timeout: 10000 }); await c.visible(hb, 5000); });
+    await hb.click();
+    const card = c.page.locator(`text="${child.display_name}" >> visible=true`).first(); // screens behind the picker also carry the name
+    await gate(c, 'hand back → card picker (code pre-filled, found)', () => c.visible(card, 10000));
+    await card.click();
+    await gate(c, 'child back in → ChildApp', () => c.visible(c.tid('child-grownup-signin').or(c.page.locator('[role="tablist"]')).first(), 15000));
+    await c.check('child is the signed-in user again', async () => {
+      const tok = await c.page.evaluate((k) => JSON.parse(localStorage.getItem(k) || '{}').user?.id, 'sb-gfrongfnyigxsexuofrg-auth-token');
+      if (tok !== user.id) throw new Error(`session user ${tok}`);
+    });
   },
 
   async A4_google_button(c) {
@@ -208,9 +249,48 @@ export const flows = {
     const { sessionFor } = await import('./lib/mockSupabase.mjs');
     const s = sessionFor(u);
     await c.goto(`/#access_token=${s.access_token}&refresh_token=${s.refresh_token}&expires_in=3600&token_type=bearer&type=signup`);
-    await gate(c, 'AuthCallback role picker shown', () => c.visible(c.text(c.s.teen), 20000));
-    await c.page.getByText(c.lang === 'he' ? 'הורה' : 'Parent', { exact: true }).click();
+    await gate(c, 'AuthCallback picker shown', () => c.visible(c.tid('authcb-parent'), 20000));
+    await c.check('no "Teen" (no-family child) option', async () => {
+      if (await c.page.getByText(c.s.teen, { exact: true }).count()) throw new Error('Teen option still shown');
+    });
+    await c.check('shows which Google account is signed in', () => c.visible(c.text('adi.elgarat+e2e-google@gmail.com'), 5000));
+    await c.tid('authcb-parent').click();
     await gate(c, 'Google parent → Welcome', () => c.visible(c.tid('welcome-cta'), 20000));
+  },
+
+  async A8_google_familyCodeExit(c) {
+    // A kid who tapped Google by mistake: "I have a family code" → ChildJoin.
+    const { fam } = seedOnboardedParent(c.db);
+    void fam;
+    const u = addUser(c.db, { email: 'adi.elgarat+e2e-google-kid@gmail.com' });
+    await c.open();
+    const s = (await import('./lib/mockSupabase.mjs')).sessionFor(u);
+    await c.goto(`/#access_token=${s.access_token}&refresh_token=${s.refresh_token}&expires_in=3600&token_type=bearer`);
+    await gate(c, 'AuthCallback picker shown', () => c.visible(c.tid('authcb-family-code'), 20000));
+    await c.tid('authcb-family-code').click();
+    await gate(c, 'ChildJoin shown', () => c.visible(c.page.getByPlaceholder(c.s.codePh), 10000));
+    await c.page.getByPlaceholder(c.s.codePh).fill('TSTFAM');
+    await c.page.getByText(c.s.continue, { exact: true }).last().click();
+    await c.text('TestKid').click();
+    await gate(c, 'child → ChildApp', () => c.visible(c.page.locator('[role="tablist"]').first(), 15000));
+    await c.check('no profile created for the Google account', () => {
+      if (c.db.tables.profiles.some((p) => p.user_id === u.id)) throw new Error('profile created for Google user');
+    });
+  },
+
+  async A9_google_differentAccountExit(c) {
+    const u = addUser(c.db, { email: 'adi.elgarat+e2e-google-wrong@gmail.com' });
+    await c.open();
+    const s = (await import('./lib/mockSupabase.mjs')).sessionFor(u);
+    await c.goto(`/#access_token=${s.access_token}&refresh_token=${s.refresh_token}&expires_in=3600&token_type=bearer`);
+    await gate(c, 'AuthCallback picker shown', () => c.visible(c.tid('authcb-other-account'), 20000));
+    await ctaInView(c, 'authcb-other-account', 'authcb-other-account');
+    await c.tid('authcb-other-account').click();
+    await gate(c, '"Use a different account" → RoleSelection, signed out', async () => {
+      await c.visible(c.text(c.s.iAmParent), 15000);
+      const tok = await c.page.evaluate((k) => localStorage.getItem(k), 'sb-gfrongfnyigxsexuofrg-auth-token');
+      if (tok) throw new Error('session still stored');
+    });
   },
 
   async A6_restart_sameChildName_duplicate(c) {

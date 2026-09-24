@@ -14,6 +14,17 @@
 
 ## Implementation Notes
 
+### IN-2026-09-24-01: Registering auth screens in signed-in branches turns the entry URL into a trap — "login succeeded, still on Login"
+
+- **תאריך:** 2026-09-24
+- **מקור:** CC — סבב E2E מלא על זרימות auth/onboarding/join (`docs/qa/AUTH_FLOWS_E2E_2026-09.md`), סמוק web חדש `e2e/web-smoke/`
+- **תיאור:** התיקון ל-shared-device (#475/#479) רשם את RoleSelection/Login/Signup/ChildJoin גם בענפים של הורה מחובר. כל sign-in מפרק ומרכיב מחדש את ה-NavigationContainer (loading gate ב-AuthContext), ובהרכבה מחדש React Navigation בונה את ה-state מה-URL — ב-web זה `window.location` (useLinking.web מתעלם מ-`getInitialURL`). מכיוון ש-`/Login` קיים עכשיו גם בענף ההורה, הורה חוזר שהתחבר עם אימייל+סיסמה נשאר על טופס Login ריק (הטוקן נשמר, אין ParentApp). Signup "עבד" רק במקרה — הוא עובר דרך AuthCallback (הפרופיל עוד לא קיים ב-fetch הראשון), וזה איפס את המסלול. **הכלל:** ברגע שזהות המשתמש משתנה, ה-entry URL "נוצל" — צורכים אותו (`authTransition.ts`), וה-container ממופתח לפי זהות. **שני:** `navigate()` ליעד לא-רשום הוא no-op שקט בפרודקשן — אותה צורה גם בדיאלוג כפילות-ילד ב-UStep5 (ParentApp לא רשום בענף 5). הבדיקה הסטטית `navigateTargetsRegistered.test.ts` תופסת עכשיו את הצורה הזו בכל הענפים. **שלישי:** ה-snapshot של onboarding נשמר per-device ולא per-account — הורה B שנרשם בדפדפן של הורה A קיבל "Pick up where you left off with <הילד של A>" (#483).
+- **רביעי:** בדיקת "reachable" ב-web יכולה להטעות — RoleSelection עבר כי הדף עצמו גלל, אבל ב-native אין ScrollView והכפתור נחתך. מסך בלי ScrollView שנבדק רק ב-web = סיכון Android.
+- **הפתעות סביבה (סמוק web):** (1) ה-export רושם service worker שהבקשות שלו עוקפות את `context.route` → חובה `serviceWorkers: 'block'`; (2) `access-control-allow-headers: *` לא מכסה `Authorization` → preflight נכשל כ-`net::ERR_FAILED` אם לא מפרטים headers.
+- **השפעה:** כל שינוי עתידי שרושם מסך בכמה ענפים צריך לעבור את הסמוק (B1) + את הבדיקה הסטטית. Android: ההרכבה מחדש מתעלמת מ-`getInitialURL` אחרי החלפת זהות — לאמת על מכשיר (צ'קליסט ב-docs/qa).
+- **סטטוס:** `resolved` (web) — #481 (login), #482 (duplicate dialog), #483 (snapshot per user) merged 2026-09-24; UX follow-ups #485 (Google picker exits, no-family Teen removed), #486 (Grown-up sign-in + Hand back), #487 (Welcome pinned CTA), #488 (RoleSelection ScrollView — was clipped on native, Complete pinned CTA) merged the same day. Android: pending Adi's device checklist in `docs/qa/AUTH_FLOWS_E2E_2026-09.md` §5.
+- **קשור ל:** #475, #479, IN (shared-device join 2026-09-17), `src/navigation/authTransition.ts`
+
 ### 🚩 F-2026-09-04-01: "70% = success" drift is repo-wide — needs a Spec Sync package (`pkg/count-rule-spec-sync`)
 
 - **תאריך:** 2026-09-04
