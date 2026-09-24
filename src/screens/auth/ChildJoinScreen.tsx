@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   View, Text, Image, TextInput, TouchableOpacity,
   ActivityIndicator, KeyboardAvoidingView,
@@ -82,6 +82,17 @@ export default function ChildJoinScreen() {
     setChildren(result.children);
     setStep('pick');
   };
+
+  // Parent's "Hand back to {name}" (src/lib/handBack.ts): the code is known, so
+  // skip straight to the card picker — the child just taps their own card.
+  const autoFound = useRef(false);
+  useEffect(() => {
+    if (params?.autoFind && initialCode.length === 6 && !autoFound.current) {
+      autoFound.current = true;
+      void handleFindFamily();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Step 2 → resolve the picked profile to its auth account.
   const handlePickChild = async (child: ChildCard) => {

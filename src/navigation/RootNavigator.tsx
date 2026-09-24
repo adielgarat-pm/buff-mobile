@@ -260,6 +260,12 @@ export default function RootNavigator() {
               component={BuffCatchScreen}
               options={{ headerShown: false }}
             />
+            {/* "Grown-up sign-in" from Child Settings (shared device): the
+                child UI has no logout by design, so this is the parent's way
+                in. The child session is replaced only when the parent's
+                sign-in succeeds. See src/lib/handBack.ts. */}
+            <Stack.Screen name="Login"  component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
           </>
 
         ) : parentOnboarded ? (
