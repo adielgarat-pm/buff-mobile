@@ -122,7 +122,7 @@ Child with ADHD, ages 6–18. The product has **three modes** — one for the bu
 ### 5.1 Pricing Tiers
 
 
-> **Updated 2026-09-23 — Freemium v2** (approved by Adi; implementation `docs/sessions/freemium-v2/`). Supersedes the tier table below it and the child/task gates of D-2026-06-19-01.
+> **Updated 2026-09-24 — Freemium v2** (D-2026-09-24-01; implementation `docs/sessions/freemium-v2/`). Review again at ≥100 active users. Supersedes the tier table below it and the child/task gates of D-2026-06-19-01.
 
 | | Free (forever) | BUFF Coach ($9.99/mo · $59.99/yr) |
 |---|---|---|
@@ -130,7 +130,9 @@ Child with ADHD, ages 6–18. The product has **three modes** — one for the bu
 | Tasks | Unlimited | Unlimited |
 | BUDDY + skins, BUFFs, rewards shop | ✅ | ✅ |
 | Vibe Check / SOS / Pause / Anchor, notifications | ✅ | ✅ |
-| Manual timetable + **AI timetable import**, activities, bag prep, off-routine | ✅ | ✅ |
+| Manual timetable, activities, bag prep, off-routine | ✅ | ✅ |
+| AI timetable import (photo/PDF/text → timetable) | 1 free import (first import day) | ✅ |
+| Insights screen stats (weekly map, what works, task timeline) | ✅ | ✅ |
 | Edit focus (change the child's focus after onboarding) | ✅ | ✅ |
 | AI coach / smart insights | 1 insight per child per week | Up to 3 per child per week |
 | AI capture (photo/text → tasks) | 3 free runs | ✅ |

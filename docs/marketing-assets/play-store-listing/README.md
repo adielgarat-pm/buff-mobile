@@ -82,11 +82,11 @@ Parents tired of repeating themselves all day long. Parents whose kids quickly l
 
 FREE FOR YOUR WHOLE FAMILY
 
-Unlimited kids and tasks, the buddy and all its skins, BUFFs and real rewards, Vibe Check, SOS and Pause Mode, reminders, the class timetable (including importing it from a photo), activities and bag prep. No card needed.
+Unlimited kids and tasks, the buddy and all its skins, BUFFs and real rewards, Vibe Check, SOS and Pause Mode, reminders, the class timetable, activities and bag prep. No card needed.
 
 OPTIONAL AI COACH (BUFF COACH)
 
-Weekly insights about your child and what to try next, plus turning a photo or a note into tasks. $59.99/year or $9.99/month, renews automatically until you cancel. Every family gets 14 days of BUFF Coach free once their child completes a first task — no card, and nothing is charged when it ends. After that, one free coach insight every week.
+Weekly insights about your child and what to try next, turning a photo or a note into tasks, and importing the class timetable from a photo (one free import for every family). $59.99/year or $9.99/month, renews automatically until you cancel. Every family gets 14 days of BUFF Coach free once their child completes a first task — no card, and nothing is charged when it ends. After that, one free coach insight every week.
 
 FOUNDED BY A MOM WITH A MISSION
 

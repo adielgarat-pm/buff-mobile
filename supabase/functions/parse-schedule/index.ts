@@ -9,8 +9,13 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // profile (never from the body — deployed clients don't send it and a body
 // value would just be one more client-supplied field to distrust), and runs
 // are capped per family per day via schedule_parse_runs (migration 049).
-// Deliberately NO entitlement gate (D: Adi 2026-07-29) — timetable import
-// stays free core onboarding; this only closes the anonymous/unbounded hole.
+// Entitlement (Freemium v2, D: Adi 2026-09-24 — supersedes the 2026-07-29
+// "no gate" call): AI timetable import is part of BUFF Coach. Entitled families
+// (trial / paid / lifetime / referral, via family_is_entitled) import freely
+// within the daily cap. A family WITHOUT entitlement gets ONE free import: the
+// calendar day (UTC) of its first parse run, retries included, so a failed
+// parse or a second page never burns the only try. Later days → 402.
+// Manual timetable entry stays free.
 const DAILY_SCHEDULE_PARSE_CAP = 10;
 
 const corsHeaders = {
@@ -518,6 +523,37 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "rate_limited", daily_cap: DAILY_SCHEDULE_PARSE_CAP }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ── Entitlement gate: one free import day for non-entitled families ─────
+    // Fail CLOSED on read errors with a 500 (not 402) so a payer sees a retry,
+    // not a paywall — same posture as parse-capture.
+    const { data: entitled, error: entErr } = await svc.rpc("family_is_entitled", {
+      p_family_id: caller.family_id,
+    });
+    if (entErr) {
+      console.error("entitlement check failed", JSON.stringify(entErr));
+      return new Response(JSON.stringify({ error: "entitlement_check_failed" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!entitled) {
+      const { count: earlierRuns, error: freeErr } = await svc
+        .from("schedule_parse_runs")
+        .select("id", { count: "exact", head: true })
+        .eq("family_id", caller.family_id)
+        .lt("created_at", todayStart.toISOString());
+      if (freeErr) {
+        console.error("free-import read failed", JSON.stringify(freeErr));
+        return new Response(JSON.stringify({ error: "entitlement_check_failed" }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if ((earlierRuns ?? 0) > 0) {
+        return new Response(JSON.stringify({ error: "premium_required", free_imports: 1 }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const { imageBase64, excelData, fileType, extractedText, pdfBase64 } = await req.json();

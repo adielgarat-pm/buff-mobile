@@ -45,6 +45,7 @@ export const FEATURES = [
   { emoji: '🧠', key: 'paywall.feature.coach' },
   { emoji: '💡', key: 'paywall.feature.tips' },
   { emoji: '📸', key: 'paywall.feature.capture' },
+  { emoji: '🗓️', key: 'paywall.feature.timetable' },
 ] as const;
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────

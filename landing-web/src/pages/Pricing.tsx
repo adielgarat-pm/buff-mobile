@@ -13,8 +13,8 @@ const PLANS = [
       'BUDDY companion + skins',
       'BUFFs, rewards shop & real rewards',
       'Vibe Check, SOS & Pause Mode',
-      'Timetable (incl. import from a photo)',
-      'Activities, bag prep & reminders',
+      'Class timetable & bag prep',
+      'Activities & reminders',
     ],
     note: null as string | null,
   },
@@ -28,6 +28,7 @@ const PLANS = [
       'A weekly look at what worked for your child — and why',
       'One clear next step, tailored to your child',
       'Snap a school note — the tasks set themselves up',
+      'Import the school timetable from a photo (one free import for everyone)',
     ],
     note:
       'Every family gets 14 days of BUFF Coach free, starting when your child completes their first task. No card needed, and nothing is charged when it ends. After that, one free coach insight every week.',

@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 // SDK 54: readAsStringAsync lives in the legacy entry — the root export throws
 // at runtime (broke Android file capture, 2026-07-22).
 import * as FileSystem from 'expo-file-system/legacy';
@@ -92,11 +93,27 @@ function isRateLimited(error: unknown): boolean {
   return (error as { context?: { status?: number } })?.context?.status === 429;
 }
 
+/** 402 = AI import is part of BUFF Coach and this family's free import day is
+ *  used (Freemium v2). Manual entry stays free. */
+function isPremiumRequired(error: unknown): boolean {
+  return (error as { context?: { status?: number } })?.context?.status === 402;
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function TimetableScreen() {
   const { t, i18n } = useTranslation();
+  const navigation  = useNavigation<{ navigate: (screen: 'Paywall', params: object) => void }>();
   const isHebrew    = i18n.language === 'he';
+
+  // Parent-only screen, so the paywall offer never reaches a child. Manual
+  // entry is the first (default) action — the free path stays one tap away.
+  const showPremiumRequired = useCallback(() => {
+    crossAlert(t('timetable.premiumTitle'), t('timetable.premiumMsg'), [
+      { text: t('timetable.premiumManual'), style: 'cancel' },
+      { text: t('capture.seeCoach'), onPress: () => navigation.navigate('Paywall', {}) },
+    ]);
+  }, [t, navigation]);
   const dayLabels   = isHebrew ? WEEK_DAY_LABELS : WEEK_DAY_LABELS_EN;
 
   // Fixed footers must clear the system nav / gesture area — edge-to-edge
@@ -304,6 +321,7 @@ export default function TimetableScreen() {
 
       if (error) {
         if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); setMode('choose'); return; }
+        if (isPremiumRequired(error)) { showPremiumRequired(); setMode('choose'); return; }
         throw new Error(error.message);
       }
       if (!data?.tasks?.length) {
@@ -321,7 +339,7 @@ export default function TimetableScreen() {
       crossAlert(t('timetable.parseError'), (err instanceof Error ? err.message : ''));
       setMode('choose');
     }
-  }, [t, openReview]);
+  }, [t, openReview, showPremiumRequired]);
 
   const cancelProcessing = useCallback(() => {
     abortRef.current?.abort();
@@ -366,6 +384,7 @@ export default function TimetableScreen() {
 
       if (error) {
         if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); setMode('choose'); return; }
+        if (isPremiumRequired(error)) { showPremiumRequired(); setMode('choose'); return; }
         throw new Error(error.message);
       }
       if (!data?.tasks?.length) {
@@ -388,7 +407,7 @@ export default function TimetableScreen() {
       crossAlert(t('timetable.parseError'), err instanceof Error ? err.message : '');
       setMode('choose');
     }
-  }, [t, openReview]);
+  }, [t, openReview, showPremiumRequired]);
 
   // ─── Paste mode ──────────────────────────────────────────────────────────────
 
@@ -406,6 +425,7 @@ export default function TimetableScreen() {
       );
       if (error) {
         if (isRateLimited(error)) { crossAlert(t('timetable.rateLimitTitle'), t('timetable.rateLimitMsg')); return; }
+        if (isPremiumRequired(error)) { showPremiumRequired(); return; }
         throw new Error(error.message);
       }
       if (!data?.tasks?.length) {
@@ -426,7 +446,7 @@ export default function TimetableScreen() {
     } finally {
       setPastePending(false);
     }
-  }, [pasteText, t, openReview]);
+  }, [pasteText, t, openReview, showPremiumRequired]);
 
   // ─── Review mutations ─────────────────────────────────────────────────────────
 

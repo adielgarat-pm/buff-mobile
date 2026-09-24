@@ -58,7 +58,12 @@ export default function ParentInsightsScreen() {
   const navigation = useNavigation<Nav>();
   const route      = useRoute<Route>();
   const { t, i18n } = useTranslation();
-  const { isSubscribed, hasRealEntitlement } = useSubscription();
+  // Freemium v2 (D: Adi 2026-09-24): the rule-based stats on this screen are
+  // free core for every parent; only the AI coach (generate / context) is
+  // BUFF Coach. Gate AI on insightsUnlocked — the same real-entitlement signal
+  // the server 402s on — never on isSubscribed, which also carries the web/iOS
+  // paywall-hiding flag and made web look "subscribed" while the server refused.
+  const { hasRealEntitlement, insightsUnlocked } = useSubscription();
 
   const { children, loading: childrenLoading } = useChildrenDashboard();
 
@@ -125,7 +130,7 @@ export default function ParentInsightsScreen() {
     familyId,
     childId,
     computedAt,
-    visible:   isSubscribed && !!smartInsight,
+    visible:   !!smartInsight,
     placement: 'insights_screen',
   });
 
@@ -224,27 +229,6 @@ export default function ParentInsightsScreen() {
       <View style={{ width: 48 }} />
     </View>
   );
-
-  // Defense-in-depth: the entry is already gated, but never render premium
-  // content to a non-subscriber who reaches here some other way.
-  if (!isSubscribed) {
-    return (
-      <View style={[styles.container, { backgroundColor: T.bg }]}>
-        {Header}
-        <View style={styles.centered}>
-          <Text style={styles.lockedIcon}>📊</Text>
-          <Text style={[styles.lockedTitle, { color: T.text }]}>{t('dashboard.insightsPremiumTitle')}</Text>
-          <Text style={[styles.lockedHint, { color: T.textMuted }]}>{t('dashboard.insightsPremiumHint')}</Text>
-          <TouchableOpacity
-            style={[styles.cta, { backgroundColor: T.accent }]}
-            onPress={() => navigation.navigate('Paywall', { childName: firstName || undefined })}
-          >
-            <Text style={styles.ctaText}>{t('dashboard.insightsUnlockCta')}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
 
   if (loading) {
     return (
@@ -495,8 +479,26 @@ export default function ParentInsightsScreen() {
           </View>
         )}
 
+        {/* BUFF Coach upsell for families without entitlement — shown after the
+            free stats above, never instead of them. Parent-only screen. */}
+        {!insightsUnlocked && (
+          <View
+            testID="insights-coach-locked"
+            style={[styles.contextCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}
+          >
+            <Text style={[styles.contextLabel, { color: T.text }]}>{t('dashboard.insightsPremiumTitle')}</Text>
+            <Text style={[styles.contextHint, { color: T.textMuted }]}>{t('dashboard.insightsPremiumHint')}</Text>
+            <TouchableOpacity
+              style={[styles.cta, { backgroundColor: T.accent, marginTop: 4 }]}
+              onPress={() => navigation.navigate('Paywall', { childName: firstName || undefined })}
+            >
+              <Text style={styles.ctaText}>{t('dashboard.insightsUnlockCta')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Parent context input — "מה כדאי שנדע על השבוע שהיה?" */}
-        {isSubscribed && (
+        {insightsUnlocked && (
           <View style={[styles.contextCard, { backgroundColor: T.card, borderColor: T.cardBorder }]}>
             <Text style={[styles.contextLabel, { color: T.text }]}>
               {t('insights.smart.contextLabel')}
