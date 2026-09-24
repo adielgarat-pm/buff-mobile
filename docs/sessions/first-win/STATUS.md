@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | C0 — SPEC + baseline | _in_progress_ (awaiting Adi approval) | 2026-09-24 | — | baseline SQL run (read-only) | — |
 | C0b — adversarial review (4 lenses) → plan v2 | _done_; D1 = counts, D2 = no trial at handoff, D3 = 6–12 (Adi) | 2026-09-24 | — | REVIEW.md, TESTS.md | F1 last_seen_at artifact (to log in INTEGRATION_LEARNINGS at P0) |
-| P0 — measurement (plan v2) | _passed_ (PR open, not merged) | 2026-09-24 | see PR | jest 133/133 suites (1161 tests) · tsc 0 · i18n-access ✓ · no-raw-alert ✓ · web mocked E2E 9/9 · funnel SQL reproduces baseline (51/5; strangers 19/2) · NULL trap checked (837 legacy rows) | IN-2026-09-24-01/02/03, F-2026-09-24-01 |
+| P0 — measurement (plan v2) | _passed_ (PR #484 open, not merged) | 2026-09-24 | 54294cc · #484 | jest 133/133 suites (1161 tests) · tsc 0 · i18n-access ✓ · no-raw-alert ✓ · web mocked E2E 9/9 · funnel SQL reproduces baseline (51/5; strangers 19/2) · NULL trap checked (837 legacy rows) | IN-2026-09-24-01/02/03, F-2026-09-24-01 |
 | C2 — same-sitting real handoff | _pending_ | — | — | — | — |
 | C3 — first mission + reward progress | _pending_ | — | — | — | — |
 | C4 — 24h parent nudge | _pending_ (needs DB-function approval) | — | — | — | — |
