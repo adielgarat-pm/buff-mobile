@@ -1557,6 +1557,16 @@ CC recovered both times by following the Lesson 2026-05-04 mitigation playbook: 
 - **סטטוס:** `resolved` (this package)
 - **קשור ל:** D-2026-09-23-02 (draft), migration 037/048/058, FREEMIUM_STRATEGY_2026-09
 
+### Lesson 2026-09-24 — Mobile web: pinned Continue pushed off-screen by React Navigation "page" mode (IN-2026-09-24-01)
+
+- **תאריך:** 2026-09-24
+- **מקור:** Adi (בדיקת חשבון טסט בווב בטלפון) → CC reproduced with a local web export + Playwright (mocked Supabase)
+- **תיאור:** When the root stack fills the whole browser window (phones), `@react-navigation/stack` renders each card in "page" mode (`CardContent` → `minHeight: 100%`, grows with content, expects the document to scroll). Expo Web's `body { overflow: hidden }` propagates to the viewport, so the user cannot scroll the document. Screens with an absolute bottom CTA (onboarding step 4 motivators, step 5 preview) had the button below the fold and unreachable. Desktop was fine because the app renders in a centered column (stack width ≠ body width → normal bounded card). Telemetry: since step logging began (2026-08-31), 3 of 4 real web families stalled at `4_motivator` with no child created.
+- **השפעה:** Fix in `RootNavigator` — web-only `cardStyle: { flex: 1, overflow: 'hidden' }` bounds the card like native, so each screen's own ScrollView scrolls and pinned footers stay on screen. Verified at 360×560, 390×664, 412×780, 1280×800 (EN + HE).
+- **Pattern to watch:** web QA of any new screen must include a phone viewport (≤ 414 wide, short height), not only desktop. A bottom-pinned CTA that looks fine on desktop can be unreachable on mobile web.
+- **סטטוס:** `resolved`
+- **קשור ל:** `src/navigation/RootNavigator.tsx`, onboarding funnel (`onboarding_events.variant = '4_motivator'`)
+
 ---
 
 ## איך למלא ערך חדש
