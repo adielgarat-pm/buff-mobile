@@ -1,7 +1,7 @@
 # First Win — SPEC
 
 > Target state for this package. Authoritative during the package; canonical docs are synced at the end per `SPEC_SYNC.md`.
-> **Status:** DRAFT, awaiting Adi's `approved, proceed`. No code has been written.
+> **Status:** v1 DRAFT — **superseded in part by `REVIEW.md` (2026-09-24 adversarial review)**. §1 metric, §3 ranking and §7 Values Check are replaced by REVIEW.md §3–§5 and TESTS.md §A. Awaiting Adi's decisions D1–D3 and `approved, proceed`. No code has been written.
 > **Source finding:** `docs/research/VALUE_VALIDATION_2026-09.md` §8. The funnel breaks at the first win, not at the paywall. Also `REWARD_LOOP_2026-09.md` and `INTERVIEW_LOG_2026-09.md` (d111 Noa, 37f4 Keren).
 
 ---
