@@ -115,14 +115,30 @@ export default function UStep5_Preview() {
   // feedback) — we reassure that the child already exists and offer to open
   // them, rather than silently creating a second profile (which also breaks the
   // child's family-code login by making two same-name profiles pickable).
-  const promptDuplicate = (existingName: string) => {
+  // ParentApp is registered only for an onboarded parent (RootNavigator branch
+  // 4 — the add-child / empty-state re-entry). A parent still in the first-run
+  // wizard (branch 5: reload + "Start fresh", or a legacy account routed to
+  // Welcome) does not have it, and React Navigation silently ignores a navigate
+  // to an unregistered route — the dialog's Open/Cancel did nothing and the
+  // next Continue re-prompted forever (bug 2026-09-24).
+  const canExitToParentApp = () =>
+    !!navigation.getState()?.routeNames?.includes('ParentApp');
+
+  const promptDuplicate = (existingName: string, existingId?: string) => {
+    const inApp = canExitToParentApp();
     crossAlert(
       t('onboarding.step5.duplicateTitle', { name: existingName }),
       t('onboarding.step5.duplicateBody', { name: existingName }),
       [
         {
           text: t('onboarding.step5.duplicateOpen', { name: existingName }),
-          onPress: () => navigation.navigate('ParentApp', { screen: 'ParentTasks' }),
+          // In the wizard, "open" = carry on with the child that already exists:
+          // attach this plan to them (task/reward inserts are idempotent) and let
+          // Continue proceed with their id. No second profile is created.
+          onPress: () => {
+            if (inApp) navigation.navigate('ParentApp', { screen: 'ParentTasks' });
+            else if (existingId) { hasSaved.current = true; saveAll(false, existingId); }
+          },
         },
         {
           text: t('onboarding.step5.duplicateAddAnyway'),
@@ -134,15 +150,19 @@ export default function UStep5_Preview() {
           // Return to the parent app, NOT navigation.goBack(): the previous
           // screen in the add-child stack is the transient "Building plan"
           // loading screen, which doesn't re-advance and would strand the
-          // parent. Exit cleanly to the parent Tasks tab instead.
-          onPress: () => navigation.navigate('ParentApp', { screen: 'ParentTasks' }),
+          // parent. Exit cleanly to the parent Tasks tab instead. In the
+          // first-run wizard, go back to Step 1 so the name can be changed.
+          onPress: () => {
+            if (inApp) navigation.navigate('ParentApp', { screen: 'ParentTasks' });
+            else navigation.navigate('UStep1');
+          },
         },
       ],
       { cancelable: true },
     );
   };
 
-  const saveAll = async (force = false) => {
+  const saveAll = async (force = false, reuseChildId?: string) => {
     console.log(`${TAG} saveAll started (force=${force})`);
     console.log(`${TAG} familyId=${familyId ?? 'null'}, user=${user?.id ?? 'null'}`);
 
@@ -164,8 +184,9 @@ export default function UStep5_Preview() {
       // duplicate-profile guard — see IN-2026-05-14-03.
       let id: string;
 
-      if (params.existingChildId) {
-        id = params.existingChildId;
+      const reuseId = params.existingChildId ?? reuseChildId;
+      if (reuseId) {
+        id = reuseId;
         console.log(`${TAG} [1/3] Reusing existing child profile — childProfileId: ${id} (skipping insert)`);
         setChildProfileId(id);
       } else if (childProfileId) {
@@ -228,7 +249,7 @@ export default function UStep5_Preview() {
 
         if (res?.status === 'duplicate') {
           console.log(`${TAG} [1/3] Duplicate active child "${res.existing_child_name}" — prompting parent`);
-          promptDuplicate(res.existing_child_name ?? params.childName);
+          promptDuplicate(res.existing_child_name ?? params.childName, res.existing_child_id);
           return; // parent decides via dialog: open existing / add anyway / cancel
         }
 
