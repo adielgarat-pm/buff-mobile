@@ -9,7 +9,7 @@
  *   5. role === 'parent', otherwise → Onboarding stack (Welcome → UStep…)
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { NavigationContainer, type NavigationState } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useAuth } from '../contexts/AuthContext';
@@ -67,6 +67,17 @@ import ActivitiesScreen      from '../screens/parent/ActivitiesScreen';
 import ChildAddActivityScreen from '../screens/child/ChildAddActivityScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
+
+// Web: when the stack fills the whole browser window (phones), React Navigation
+// switches each card to "page" mode (minHeight 100%, grows with its content and
+// expects the document to scroll). Expo Web locks body scrolling, so screens with
+// a pinned bottom CTA pushed it below the fold — mobile-web parents could not
+// tap Continue on onboarding step 4. Bounding the card like native keeps every
+// screen's own ScrollView in charge and the footer on screen.
+const ROOT_SCREEN_OPTIONS = {
+  headerShown: false,
+  ...(Platform.OS === 'web' ? { cardStyle: { flex: 1, overflow: 'hidden' as const } } : null),
+};
 
 
 export default function RootNavigator() {
@@ -182,7 +193,7 @@ export default function RootNavigator() {
       linking={linking}
       onStateChange={onNavStateChange}
     >
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={ROOT_SCREEN_OPTIONS}>
 
         {!user ? (
           // ─── 1. UNAUTHENTICATED ──────────────────────────────────────
