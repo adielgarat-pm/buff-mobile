@@ -180,10 +180,15 @@ export default function RootNavigator() {
   // ChildApp. Screen names are unique within each (mutually-exclusive) branch, so
   // there is no duplicate-registration; the first Screen in each branch stays the
   // initial route, so the normal parent flow is unchanged. Both platforms.
+  // Signup belongs here too: RoleSelection's parent card and Login's "create
+  // account" link both navigate to it, and without it those taps were silent
+  // no-ops whenever any session existed on the device (bug 2026-09-24). A
+  // successful signUp replaces the current session, same as ChildJoin.
   const sharedDeviceAuthScreens = (
     <>
       <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
       <Stack.Screen name="Login"         component={LoginScreen} />
+      <Stack.Screen name="Signup"        component={SignupScreen} />
       <Stack.Screen name="ChildJoin"     component={ChildJoinScreen} />
     </>
   );
