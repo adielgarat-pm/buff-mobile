@@ -20,6 +20,7 @@ import { linking } from './linking';
 import { isOnboardingRoute, type OnboardingSnapshot } from './onboardingRoutes';
 import { isParentOnboarded } from './parentRouting';
 import { setCurrentRoute } from '../lib/currentRoute';
+import { identityChanged, consumeAuthEntryUrl } from './authTransition';
 import {
   ONBOARDING_PERSISTENCE_ENABLED,
   loadOnboardingSnapshot,
@@ -126,6 +127,9 @@ export default function RootNavigator() {
     }
   }, []);
 
+  // Identity the NavigationContainer was last mounted for — see authTransition.ts.
+  const mountedIdentityRef = useRef<string | null | undefined>(undefined);
+
   // Re-fetch children whenever the profile object changes (e.g. after refreshProfile()
   // is called at the end of onboarding — family_id may not have changed but a new
   // child profile was inserted during UStep5_Preview).
@@ -193,9 +197,25 @@ export default function RootNavigator() {
     </>
   );
 
+  // Sign-in / sign-up / child pick on a shared device / sign-out: the entry
+  // URL (/Login, /join/CODE…) that brought the user here is spent. Without this
+  // the remounted container re-resolved /Login — registered in the parent
+  // branch for shared devices — and a signed-in parent sat on an empty Login
+  // form (bug 2026-09-24). Keyed by identity so the container always remounts
+  // on a switch, starting at the new branch's first screen. A cold start
+  // (never mounted) still honours the URL.
+  const authIdentity = user?.id ?? null;
+  const switchedIdentity = identityChanged(mountedIdentityRef.current, authIdentity);
+  if (switchedIdentity) consumeAuthEntryUrl();
+  mountedIdentityRef.current = authIdentity;
+  const containerLinking = switchedIdentity
+    ? { ...linking, getInitialURL: async () => null }
+    : linking;
+
   return (
     <NavigationContainer
-      linking={linking}
+      key={authIdentity ?? 'signed-out'}
+      linking={containerLinking}
       onStateChange={onNavStateChange}
     >
       <Stack.Navigator screenOptions={ROOT_SCREEN_OPTIONS}>
