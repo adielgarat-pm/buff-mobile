@@ -2,7 +2,7 @@
 
 > Adi asked for a critical review of CC's own proposals, from several disciplines, plus a plan to test the work and define success.
 > Method: four independent reviewer agents, each given SPEC v1 + code + research docs, told to be harsh: **Clinical** (pediatric ADHD / child development), **Data** (experiment design / statistics), **UX + Growth**, and **Engineering + QA**. CC then re-verified the highest-severity claims in code/DB itself (marked ✔ verified) before accepting them, and added its own self-critique (§2).
-> **Result: SPEC v1 is not approvable as written.** §3 lists the three decisions that block it. §4 is the revised plan (v2) proposed for approval. The test plan and success metrics are in `TESTS.md`.
+> **Result: SPEC v1 is not approvable as written.** §3 records Adi's decisions D1–D3 (2026-09-24). §4 is the revised plan (v2) proposed for approval. The test plan and success metrics are in `TESTS.md`.
 
 ---
 
@@ -39,16 +39,16 @@
 6. **Too many levers for the N.** Four or five levers at ~10 signups/month means no single one can be attributed.
 7. **I ignored the research doc's own gate:** "an ambiguous demand signal is not fixed by a feature". v2 below keeps product change small and measurable.
 
-## 3. Decisions that block approval (Adi)
+## 3. Decisions (Adi, 2026-09-24)
 
-- **D1: Does a parent-device (`view_as_child`) completion count as a first win?**
-  - The code says it never counts.
-  - CC recommends: the primary metric is **`child_device` only**, with `view_as_child` reported as secondary. It counts as progress, not as the child using BUFF independently.
-- **D2: May a handoff completion inside onboarding start the trial?**
-  - 058 Q3 says no.
-  - CC recommends: **no**. Exclude completions that happen within the onboarding sitting, via a `source='onboarding_handoff'` tag on the handoff session's rows. That needs a 1-line change to the 058 function, which is a **DB function change for approval**.
-  - Alternative: accept that the trial starts at onboarding for shared-device families.
-- **D3: Age split.** CC recommends that the guided handoff is for **ages 6–12 only**. For 13+, this package changes nothing and a 🚩 flag is raised for a teen-first path (the teen picks their reward first, writes or chooses their own first task).
+| # | Question | Decision | Consequence |
+|---|---|---|---|
+| **D1** | Does a parent-device (`view_as_child`) completion count as a first win? | **Yes, it counts as success** (Adi). CC had recommended `child_device`-only; Adi decided otherwise. | Primary metric = first win from `child_device`, legacy `NULL`, `view_as_child` or `onboarding_handoff`. `child_device`-only stays as a **secondary** metric plus the anti-gaming counter-metrics (TESTS §A), so independence is still visible. The code comment `useChildProgress.ts:427-429` ("never counts") is updated in P0 to name both definitions (IN-2026-09-24-02). |
+| **D2** | May a handoff completion inside onboarding start the trial? | **No, CC's recommendation accepted.** | Completions in the onboarding handoff sitting are written with `source='onboarding_handoff'`. They count for the metric (D1) but do **not** start the trial. This needs a one-line change to `start_trial_on_activation()` (058) in a new migration. The approach is approved; the migration diff is still shown to Adi before it is applied (CLAUDE.md schema rule). |
+| **D3** | Guided handoff for ages 6–12 only? | **Yes.** | 13+ sees no handoff step; 🚩 flag for a teen-first path package. |
+
+**Proposed `BUFF_DECISIONS_LOG.md` entry (Adi's doc, for Adi to add):**
+> D-2026-09-24-xx — First Win: (1) a first win counts from the child's device or from the parent's device in View-as-Child; child-device-only is tracked as a secondary independence metric. (2) The onboarding handoff completion does not start the 14-day trial (keeps 058 Q3). (3) The guided handoff is for ages 6–12; teens get a separate package.
 
 ## 4. Revised plan (v2), smallest and most measurable first
 
@@ -56,7 +56,7 @@
 |---|---|---|---|---|
 | **P0 — Measure first** | Add `onboarding_step_reached` for UStep6 / ChildAccessStep / UStep8. Add `presence_answered{together, not_now, said_no}`. Log UStep8 CTA taps, `child_first_open`, and a once-only `first_task_complete{source}` from the child app. Put UStep6 in `ONBOARDING_ROUTES`. Add `scripts/first-win-funnel.sql` (NULL-safe, stranger vs friend, per-family timeline). Adi keeps the friend list **outside the repo**. | Locate the real drop (F8). Immutable metric (F14). Nothing else is judgeable without it. | S | none |
 | **P1 — Fix what's broken on the path (S)** | (a) The preview banner shows the **child's** name, and exiting asks "Hand back to parent?". (b) UStep8's shared-device CTA moves above the code card. (c) The first mission is chosen by **time of day** from the child's visible tasks, not the 08:00 task. | These are defects on the path the child will walk (F11, F12). | S | none |
-| **P2 — Coached handoff, ages 6–12** | UStep6 "together" shows a short parent script card ("Try: 'Want to pick what you're working toward?' No 'you have to'. If they say no, that's fine."). Then "Hand the phone to {name}", which goes to the child screens with the chosen mission. Add a gentle "They said no" button (logged, never framed as failure). Remove the parent-tap seed write. Tag the sitting per D2. | Keren's path. Fixes F9/F10 and the gaming in F3/F5 via D1/D2. | M | 058 tweak (D2) |
+| **P2 — Coached handoff, ages 6–12 (D3)** | UStep6 "together" shows a short parent script card ("Try: 'Want to pick what you're working toward?' No 'you have to'. If they say no, that's fine."). Then "Hand the phone to {name}", which goes to the child screens with the chosen mission. Add a gentle "They said no" button (logged, never framed as failure). Remove the parent-tap seed write. Tag the sitting `source='onboarding_handoff'` (D2): counts as a win, doesn't start the trial. | Keren's path. Fixes F9/F10; F5 via D2; F3 accepted by D1 and watched via counter-metrics. | M | 058 function tweak (D2, approach approved; diff shown before apply) |
 | **P3 — First reward within a day (C5)** | The cheapest seeded reward is priced at about 1 day of tasks. On the child screen, a warm line: "{n} BUFFs to {reward}". | ADHD delay aversion (F13). Economy decision is Adi's. | S | none |
 | **Adi — concierge test (no code)** | Personally message the next 10 stranger signups within ~1h: "5 minutes tonight: hand {name} the phone, here's what to say." | Cheapest test of whether a human nudge moves first wins, **before** building any automated nudge. | Adi's time | — |
 | **Deferred (🚩 flags, not silent)** | **C4 push** (reach ~20%, taps go nowhere: F6/F7) → separate infra package "push tap routing". **C3 dashboard card** (reach, F2) → revisit once P0 shows children logging in. **Teen path** (D3). **Email reminder** (no sender). | | | |
@@ -71,7 +71,7 @@
 | P1-Q2 toward a reward they chose? | **Partly: onboarding rewards are parent-seeded from the child's motivators.** → Adi. Recommendation: a follow-up where the child picks or edits their first reward (existing child-suggest flow) as the first thing they do. |
 | P1-Q3 "I want" vs "I must"? | Yes, with the script (no "you have to") and a no-penalty "They said no". |
 | P2-Q1/Q2/Q3 | Pass. No failure counts; refusal is logged neutrally, with no follow-up pressure; no BUDDY consequences. |
-| P3-Q1 more capable without the app? | Honest answer: **not yet**. The handoff is a scaffold on the parent's device. The measure of progress is the later `child_device` completion (primary metric). |
+| P3-Q1 more capable without the app? | Honest answer: **not yet**. The handoff is a scaffold on the parent's device. Under D1 it counts as success, so independence is tracked by the secondary `child_device` metric and the "only-ever view_as_child" counter-metric. |
 | P3-Q2 child's voice? | **Partly** (parent's task list). Mitigation: the child chooses among 2–3 tasks for the mission. → Adi. |
 | P3-Q3 needed in 6 months? | No. It is one-time and self-removing. |
 

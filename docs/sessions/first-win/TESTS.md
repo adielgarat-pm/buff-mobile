@@ -5,12 +5,12 @@
 ## A. Success metrics (pre-registered before any product change ships)
 
 ### Primary
-**`first_win_48h_child`**: among **stranger** families (not on Adi's friend list, not internal/test) that created a child profile, the share whose **first `child_device` completion** happens ≤48h after `families.created_at`.
+**`first_win_48h`** (per D1, Adi 2026-09-24): among **stranger** families (not on Adi's friend list, not internal/test) that created a child profile, the share whose **first child-screen completion**, meaning `source` in `child_device`, legacy `NULL`, `view_as_child` or `onboarding_handoff` (not `onboarding_first_task`, `seed` or `parent`), happens ≤48h after `families.created_at`.
 - Timestamp source: the once-only `first_task_complete` event (P0), not the upsertable `daily_progress` row.
 - Baseline (DB, 2026-09-24, NULL-safe, stranger = no lifetime-access parent as a proxy until Adi's list exists): **2 / 19 stranger families with a child** (~11%, 95% CI ≈1–33%); by month July 2/9, Aug 0/9, Sep 0/1. All stranger families (with or without child): 2/27.
 
 ### Secondary (reported, not decisive)
-- `first_win_48h_any`: counts `view_as_child` too, reported separately.
+- **`first_win_48h_child`** (independence): the same, but `child_device` only. It is always reported next to the primary metric; it is not a gate, but a primary rise with a flat secondary is surfaced to Adi explicitly.
 - `child_first_open_48h`: the child app opened by the child (login or handoff).
 - UStep6 answer mix: together / not now / said no.
 - Hours from signup to first win (median).
@@ -25,13 +25,13 @@
 - **Zero** pricing/paywall surfaces reachable from the child screens (automated test, §B).
 
 ### Counter-metrics (anti-gaming)
-- Share of day 0–14 completions that are `view_as_child`.
+- Share of day 0–14 completions that are `view_as_child` / `onboarding_handoff`.
 - Families whose only win is `view_as_child` and who never have a later `child_device` completion.
 - Wins <10 min after the wizard ends, and bursts of ≥2 completions within 60 s.
 
 ### Pre-registered decision rule
 - Prior Beta(3, 18) (the stranger baseline 2/19). Read at **n = 20 stranger families with a child** after P2 ships, **or on 2026-12-31**, whichever comes first.
-- **Keep:** ≥6 / 20 `child_device` wins (30% vs ~11% baseline) **and** no guardrail breached. Exact posterior probabilities recomputed and frozen in P0, before P2 ships.
+- **Keep:** ≥6 / 20 first wins (primary definition) (30% vs ~11% baseline) **and** no guardrail breached. Exact posterior probabilities recomputed and frozen in P0, before P2 ships.
 - **Revert / rethink:** ≤1 / 20.
 - **In between:** inconclusive. Extend the sample; do not claim a win.
 - **Stop early only for harm:** ≥2 nudge/notification opt-outs attributable to the flow, or any parent complaint about pressure.
@@ -60,7 +60,7 @@
 - [ ] Playwright (web, mocked): after the UStep8 CTA, View-as-Child opens with the child's name in the banner.
 
 ### P2 — coached handoff (6–12)
-- [ ] Jest: age ≥13 never sees the handoff; "They said no" logs `presence_answered{said_no}` and writes **no** progress; no `onboarding_first_task` write remains; handoff-session completions carry the D2 tag.
+- [ ] Jest: age ≥13 never sees the handoff; "They said no" logs `presence_answered{said_no}` and writes **no** progress; no `onboarding_first_task` write remains; handoff-session completions carry `source='onboarding_handoff'` (D2).
 - [ ] **Reachability E2E (web, mocked):** starting from the signup entry → wizard → UStep6 "together" → script card → child screen → Vibe Check → complete the mission → confetti/BUFFs → `first_task_complete` logged → BUFFs visible. No direct screen navigation or injected session.
 - [ ] If D2 = no-trial: a SQL test on a Supabase **branch** (not prod) shows a handoff-tagged completion does not set `trial_started_at`, and a later `child_device` completion does.
 - [ ] Child-safety test: from the handoff child screen, no route to the paywall/pricing within 2 taps, excluding the confirm-gated exit.
@@ -74,7 +74,7 @@
 3. Repeat and tap "They said no": you land on the handoff options, nothing is marked done, and the tone is fine.
 4. Child aged 14: no handoff step appears.
 5. Hebrew + girl: gendered strings are correct, and RTL is correct.
-6. Check that the trial did **or did not** start (Settings → plan), per D2.
+6. After the handoff mission, check the trial did **not** start (Settings → plan). After a later completion outside onboarding, it does (D2).
 
 ## D. When the numbers are read
 - **Weekly:** Adi + CC review per-family timelines (5 minutes).

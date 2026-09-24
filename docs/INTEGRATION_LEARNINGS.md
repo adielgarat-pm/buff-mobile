@@ -23,6 +23,24 @@
 - **סטטוס:** `open` — proposed package `pkg/count-rule-spec-sync` (docs-only, one PR; BRAND §6 + PRD §6.1 need Adi's wording decision).
 - **קשור ל:** D-2026-06-14-01, BUFF_VALUES.md § Pillar 1, IN-2026-09-04-01, `docs/marketing-scout/TARGETS.md` § Claims blocklist
 
+### IN-2026-09-24-01: `last_seen_at` on child profiles is stamped at creation — "the child opened the app" was a data artifact
+
+- **תאריך:** 2026-09-24
+- **מקור:** CC: pkg/first-win adversarial review (`docs/sessions/first-win/REVIEW.md` F1), re-verified with read-only SQL
+- **תיאור:** `profiles.last_seen_at` for a child gets a value when the parent creates the child profile, not only when the child opens the app. Research (`REWARD_LOOP_2026-09.md` §2.2, `VALUE_VALIDATION_2026-09.md` §8) read "all 44 children have `last_seen_at`" as "every child opened the app", and concluded "68% opened but never completed". Re-query: only **13/44 ever logged in**; 28 of the 30 who never completed **never logged in at all**. The 68% "never completed" stands; the "opened" reading does not.
+- **השפעה:** The drop is mostly **before** the child app (handoff), not inside it. A child-dashboard card cannot reach those children (first-win C3 deferred). Research docs corrected in place (strikethrough + dated correction). Rule: "child opened the app" = `user_id IS NOT NULL` (login) or a `child_first_open` event (first-win P0), never `last_seen_at` alone. A second lesson: CC must re-verify inherited research numbers before building a plan on them (Snapshot Protocol Rule 1).
+- **סטטוס:** `resolved` (docs corrected 2026-09-24). `child_first_open` logging tracked in first-win P0.
+- **קשור ל:** pkg/first-win, `docs/research/REWARD_LOOP_2026-09.md` §2.2, `docs/research/VALUE_VALIDATION_2026-09.md` §8
+
+### IN-2026-09-24-02: `view_as_child` completions: code comment says "never counts", Adi decided they count as a first win
+
+- **תאריך:** 2026-09-24
+- **מקור:** CC: pkg/first-win review F4; decision by Adi (D1)
+- **תיאור:** `src/hooks/useChildProgress.ts:427-429` documents `'view_as_child'` as "a parent driving the child screens (never counts)" (AHA proxy from pkg/parent-ia-and-aha). Adi decided (2026-09-24, D1) that for the first-win success metric a `view_as_child` completion **counts**. `child_device`-only is still reported as a secondary metric.
+- **השפעה:** Two definitions coexist: AHA proxy (child_device only) vs first-win metric (child_device + view_as_child + handoff). The comment will be updated in first-win P0 to name both, so no one re-reads it as a contradiction.
+- **סטטוס:** `open` until P0 lands
+- **קשור ל:** pkg/first-win D1, `058_trial_on_first_real_completion.sql`
+
 ### IN-2026-09-04-02: Unattended cloud Routine "succeeded" but did nothing — permission prompts with no human present
 
 - **תאריך:** 2026-09-04
