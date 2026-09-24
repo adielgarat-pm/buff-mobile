@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import {
-  View, Text, Image, TouchableOpacity,
-  StyleSheet, Animated, Platform,
+  View, Text, Image, TouchableOpacity, StyleSheet, Animated, Platform, ScrollView, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,6 +25,7 @@ const TEXT_MUTED = PASTEL_MODE.textMuted;  // #6B5B8A
 export default function RoleSelectionScreen() {
   const navigation = useNavigation<Nav>();
   const { t }      = useTranslation();
+  const compact    = useWindowDimensions().height < 640;
   const fadeAnim   = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -40,14 +40,19 @@ export default function RoleSelectionScreen() {
     <SafeAreaView edges={['top']} style={styles.safe}>
       <LanguagePicker />
 
-      <Animated.View style={[styles.inner, webAuthColumn(440), { opacity: fadeAnim }]}>
+      {/* Scrollable (was a plain View): on short phones the centred column
+          overflowed and, natively, clipped the "Already have an account? Log
+          in" button with no way to reach it. Compact spacing below 640px
+          keeps it on screen at 360×560 (UX review 2026-09-24). */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+      <Animated.View style={[styles.inner, compact && styles.innerCompact, webAuthColumn(440), { opacity: fadeAnim }]}>
 
         {/* Native-install strip (web-only; null on native + non-Android) — slim
             and subordinate, above the logo so it never competes with the choice */}
         <GetTheAppCta placement="entry" />
 
         {/* Logo */}
-        <View style={styles.logoWrap as object}>
+        <View style={[styles.logoWrap, compact && styles.logoWrapCompact] as object}>
           <Image
             source={require('../../../assets/BUFF_LOGO_LAVENDER.png')}
             style={styles.logoImage}
@@ -62,22 +67,22 @@ export default function RoleSelectionScreen() {
             preselected. Returning parents use the "Already have an account?"
             footer link below, which still routes to Login. */}
         <TouchableOpacity
-          style={styles.card}
+          style={[styles.card, compact && styles.cardCompact]}
           activeOpacity={0.75}
           onPress={() => navigation.navigate('Signup', { initialRole: 'parent' })}
         >
-          <Text style={styles.cardEmoji}>⚡</Text>
+          <Text style={[styles.cardEmoji, compact && styles.cardEmojiCompact]}>⚡</Text>
           <Text style={styles.cardTitle}>{t('auth.iAmParent')}</Text>
           <Text style={styles.cardSub}>{t('auth.parentSub')}</Text>
         </TouchableOpacity>
 
         {/* Child card */}
         <TouchableOpacity
-          style={styles.card}
+          style={[styles.card, compact && styles.cardCompact]}
           activeOpacity={0.75}
           onPress={() => navigation.navigate('ChildJoin')}
         >
-          <Text style={styles.cardEmoji}>🎯</Text>
+          <Text style={[styles.cardEmoji, compact && styles.cardEmojiCompact]}>🎯</Text>
           <Text style={styles.cardTitle}>{t('auth.iAmChild')}</Text>
           <Text style={styles.cardSub}>{t('auth.childSub')}</Text>
         </TouchableOpacity>
@@ -101,6 +106,7 @@ export default function RoleSelectionScreen() {
         </TouchableOpacity>
 
       </Animated.View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -114,6 +120,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical:   32,
   },
+
+  // Short screens (< 640px tall, e.g. 360×560): same content, tighter rhythm.
+  innerCompact:     { paddingVertical: 16 },
+  logoWrapCompact:  { marginBottom: 16 },
+  cardCompact:      { padding: 16 },
+  cardEmojiCompact: { fontSize: 40, marginBottom: 6 },
 
   logoWrap: {
     alignItems:   'center',
