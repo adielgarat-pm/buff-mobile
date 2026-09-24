@@ -5,6 +5,7 @@
 | Chunk | State | Date | Commit / PR | Tests | Learnings |
 |---|---|---|---|---|---|
 | C0 — SPEC + baseline | _in_progress_ (awaiting Adi approval) | 2026-09-24 | — | baseline SQL run (read-only) | — |
+| C0b — adversarial review (4 lenses) → plan v2 | _done_, awaiting D1–D3 | 2026-09-24 | — | REVIEW.md, TESTS.md | F1 last_seen_at artifact (to log in INTEGRATION_LEARNINGS at P0) |
 | C1 — measurement | _pending_ | — | — | — | — |
 | C2 — same-sitting real handoff | _pending_ | — | — | — | — |
 | C3 — first mission + reward progress | _pending_ | — | — | — | — |
