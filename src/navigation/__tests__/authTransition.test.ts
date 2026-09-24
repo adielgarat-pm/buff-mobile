@@ -35,7 +35,8 @@ describe('RootNavigator wiring', () => {
   const root = fs.readFileSync(path.join(__dirname, '..', 'RootNavigator.tsx'), 'utf8');
   it('remounts the container per identity and consumes the entry URL on a switch', () => {
     expect(root).toMatch(/<NavigationContainer\s+key=\{authIdentity/);
-    expect(root).toMatch(/if \(switchedIdentity\) consumeAuthEntryUrl\(\)/);
+    // sign-in only — after a sign-out the entry path is where the user wants to be
+    expect(root).toMatch(/if \(switchedIdentity && authIdentity\) consumeAuthEntryUrl\(\)/);
     expect(root).toMatch(/linking=\{containerLinking\}/);
   });
 });

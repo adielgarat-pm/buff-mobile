@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import { useAuth } from '../../contexts/AuthContext';
+import type { RootStackParamList } from '../../navigation/types';
 import { crossAlert } from '../../platform';
 import { supabase } from '../../integrations/supabase/client';
 import { resolveAcquisition } from '../../lib/acquisitionCapture';
@@ -19,7 +22,8 @@ import GetTheAppCta from '../../components/install/GetTheAppCta';
  */
 export default function AuthCallbackScreen() {
   const { t, i18n } = useTranslation();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'AuthCallback'>>();
   const [creating, setCreating] = useState(false);
 
   // Show role selection when user exists but profile has no role set.
@@ -146,19 +150,31 @@ export default function AuthCallbackScreen() {
     );
   }
 
+  // Ways out (UX review 2026-09-24): the picker used to offer only Parent /
+  // Teen, so someone who tapped Google with the wrong account — or a kid who
+  // meant to use the family code — was stuck until they cleared site data. And
+  // "Teen" created a child profile with NO family (no code step): no parent, no
+  // tasks, a dead end. It is gone; a child joins through their family code.
+  // Both exits are registered in this branch (RootNavigator branch 2).
+  const goFamilyCode = () => navigation.navigate('ChildJoin');
+  const useDifferentAccount = async () => {
+    // Land on RoleSelection first, then drop the Google session: the signed-out
+    // navigator re-opens at the current path (see authTransition.ts).
+    navigation.navigate('RoleSelection');
+    await signOut();
+  };
+
   return (
     <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 24, backgroundColor: T.canvas }}>
-      <Text style={{ color: T.accent, fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 12 }}>
-        {t('auth.iAm')}
-      </Text>
-      <Text style={{ color: T.textMuted, textAlign: 'center', marginBottom: 40 }}>
-        {t('auth.googleRoleSelection')}
+      <Text style={{ color: T.accent, fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 32 }}>
+        {t('auth.googleWhoIsJoining')}
       </Text>
 
       {/* Native-install CTA (web-only; null on native + non-Android) */}
       <GetTheAppCta placement="post-signup" />
 
       <TouchableOpacity
+        testID="authcb-parent"
         onPress={() => createProfile('parent')}
         disabled={creating}
         style={{
@@ -170,11 +186,12 @@ export default function AuthCallbackScreen() {
           opacity: creating ? 0.7 : 1,
         }}
       >
-        <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>{t('auth.parent')}</Text>
+        <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>{t('auth.iAmParent')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => createProfile('child')}
+        testID="authcb-family-code"
+        onPress={goFamilyCode}
         disabled={creating}
         style={{
           backgroundColor: T.card,
@@ -186,10 +203,22 @@ export default function AuthCallbackScreen() {
           opacity: creating ? 0.7 : 1,
         }}
       >
-        <Text style={{ color: T.accent, fontSize: 20, fontWeight: '700' }}>{t('auth.teen')}</Text>
+        <Text style={{ color: T.accent, fontSize: 20, fontWeight: '700' }}>{t('auth.iHaveFamilyCode')}</Text>
       </TouchableOpacity>
 
       {creating && <ActivityIndicator color={T.accent} style={{ marginTop: 24 }} />}
+
+      <TouchableOpacity
+        testID="authcb-other-account"
+        onPress={useDifferentAccount}
+        disabled={creating}
+        style={{ marginTop: 32, paddingVertical: 8, alignItems: 'center' }}
+        accessibilityRole="button"
+      >
+        <Text style={{ color: T.textMuted, textAlign: 'center' }}>
+          {t('auth.useDifferentAccount', { email: user?.email ?? '' })}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
