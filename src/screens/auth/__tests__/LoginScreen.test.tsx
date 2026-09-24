@@ -23,8 +23,11 @@ jest.mock('react-i18next', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+let mockRouteParams: { grownUp?: boolean } | undefined;
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack, canGoBack: () => true }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 const mockSignIn = jest.fn();
@@ -151,6 +154,25 @@ describe('LoginScreen password reset feedback', () => {
 
     await waitFor(() => expect(utils.getByText('auth.checkEmail')).toBeTruthy());
     expect(mockCrossAlert).not.toHaveBeenCalled();
+  });
+});
+
+describe('LoginScreen grown-up variant (Child Settings → "Grown-up sign-in")', () => {
+  beforeEach(() => { jest.clearAllMocks(); mockRouteParams = undefined; });
+  afterAll(() => { mockRouteParams = undefined; });
+
+  test('normal login shows the tagline and no way back', () => {
+    const utils = render(<LoginScreen />);
+    expect(utils.getByText('app.tagline')).toBeTruthy();
+    expect(utils.queryByText('auth.backToBuff')).toBeNull();
+  });
+
+  test('grown-up login greets the grown-up and "Back to BUFF" returns to the child app', () => {
+    mockRouteParams = { grownUp: true };
+    const utils = render(<LoginScreen />);
+    expect(utils.getByText('auth.grownUpTitle')).toBeTruthy();
+    fireEvent.press(utils.getByText('auth.backToBuff'));
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });
 

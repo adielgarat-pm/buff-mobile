@@ -237,7 +237,7 @@ export default function UStep8_Complete() {
   const showManualInput    = saved && (refState === 'no_code' || refState === 'manual_loading');
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safe}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -299,42 +299,8 @@ export default function UStep8_Complete() {
           </View>
         )}
 
-        {/* Go to Dashboard — shown after save completes */}
-        {saved && (
-          <>
-            <DisclaimerFooter variant="short" />
-            <TouchableOpacity
-              testID="onb8-cta"
-              style={styles.dashboardBtn}
-              onPress={() => {
-                void logOnboardingEvent({
-                  familyId: profile?.family_id, eventType: 'onboarding_complete_cta',
-                  method: params.accessMode ?? null, childId: params.childProfileId,
-                });
-                navigation.reset({
-                  index: 0,
-                  // shared_device: land on the dashboard AND immediately enter
-                  // View-as-Child (previewChildId). Other paths: plain dashboard.
-                  // Reset first, preview second — the viewMode tree-swap only works
-                  // once the navigator is settled on ParentApp (see ModeContext).
-                  routes: [{
-                    name: 'ParentApp',
-                    params: params.accessMode === 'shared_device'
-                      ? { screen: 'ParentDashboard', params: { previewChildId: params.childProfileId } }
-                      : undefined,
-                  }],
-                });
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.dashboardBtnText}>
-                {params.accessMode === 'shared_device'
-                  ? t('onboarding.complete.startTogether', { name: params.childName })
-                  : t('onboarding.complete.cta')}
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
+        {/* Disclaimer after save; the Dashboard CTA is pinned below the ScrollView. */}
+        {saved && <DisclaimerFooter variant="short" />}
 
         {/* Referral success banner — purple tones, shown after auto or manual redemption */}
         {showSuccessBanner && (
@@ -399,6 +365,44 @@ export default function UStep8_Complete() {
           </View>
         )}
       </ScrollView>
+
+      {/* Go to Dashboard — pinned (UX review 2026-09-24): the only way forward
+          from the last onboarding screen sat below the fold on 360×560; same
+          footer pattern as steps 1–5. Shown after save completes. */}
+      {saved && (
+        <View style={styles.footer}>
+          <TouchableOpacity
+            testID="onb8-cta"
+            style={styles.dashboardBtn}
+            onPress={() => {
+              void logOnboardingEvent({
+                familyId: profile?.family_id, eventType: 'onboarding_complete_cta',
+                method: params.accessMode ?? null, childId: params.childProfileId,
+              });
+              navigation.reset({
+                index: 0,
+                // shared_device: land on the dashboard AND immediately enter
+                // View-as-Child (previewChildId). Other paths: plain dashboard.
+                // Reset first, preview second — the viewMode tree-swap only works
+                // once the navigator is settled on ParentApp (see ModeContext).
+                routes: [{
+                  name: 'ParentApp',
+                  params: params.accessMode === 'shared_device'
+                    ? { screen: 'ParentDashboard', params: { previewChildId: params.childProfileId } }
+                    : undefined,
+                }],
+              });
+            }}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.dashboardBtnText}>
+              {params.accessMode === 'shared_device'
+                ? t('onboarding.complete.startTogether', { name: params.childName })
+                : t('onboarding.complete.cta')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -434,7 +438,8 @@ const styles = StyleSheet.create({
   retryBtn:  { backgroundColor: '#DC2626', borderRadius: 8, paddingHorizontal: 20, paddingVertical: 8 },
   retryText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 
-  dashboardBtn:     { width: '100%', backgroundColor: T.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  footer:           { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16, backgroundColor: T.bg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.cardBorder },
+  dashboardBtn:     { width: '100%', backgroundColor: T.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   dashboardBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
   // Referral banners — BUFF purple tones (auto_success, manual_success, already_premium)

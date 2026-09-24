@@ -213,7 +213,10 @@ export default function RootNavigator() {
   // (never mounted) still honours the URL.
   const authIdentity = user?.id ?? null;
   const switchedIdentity = identityChanged(mountedIdentityRef.current, authIdentity);
-  if (switchedIdentity) consumeAuthEntryUrl();
+  // Consume on sign-IN only: after a sign-out the entry path (e.g. /RoleSelection
+  // from the Google picker's "Use a different account") is where the user wants
+  // to be, and `/` would bounce them to the marketing site.
+  if (switchedIdentity && authIdentity) consumeAuthEntryUrl();
   mountedIdentityRef.current = authIdentity;
   const containerLinking = switchedIdentity
     ? { ...linking, getInitialURL: async () => null }
@@ -239,7 +242,12 @@ export default function RootNavigator() {
 
         ) : !profile || !profile.role ? (
           // ─── 2. NO ROLE YET (Google OAuth / partial profile) ────────
-          <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} />
+          <>
+            <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} />
+            {/* Ways out of the Google role picker: "I have a family code" →
+                ChildJoin, "Use a different account" → RoleSelection. */}
+            {sharedDeviceAuthScreens}
+          </>
 
         ) : profile.role === 'child' ? (
           // ─── 3. CHILD — always goes straight to the child app ────────
@@ -260,6 +268,12 @@ export default function RootNavigator() {
               component={BuffCatchScreen}
               options={{ headerShown: false }}
             />
+            {/* "Grown-up sign-in" from Child Settings (shared device): the
+                child UI has no logout by design, so this is the parent's way
+                in. The child session is replaced only when the parent's
+                sign-in succeeds. See src/lib/handBack.ts. */}
+            <Stack.Screen name="Login"  component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
           </>
 
         ) : parentOnboarded ? (
