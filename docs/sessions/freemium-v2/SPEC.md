@@ -8,12 +8,13 @@
 
 ### FREE forever (never gated)
 Tasks (no cap), unlimited children, BUDDY + skins, BUFFs / shop / redemption,
-Vibe Check / SOS / Pause / Anchor, notifications, manual timetable, **AI timetable
-import (Q1 — stays free per Adi 2026-07-29)**, activities, bag prep, off-routine,
+Vibe Check / SOS / Pause / Anchor, notifications, manual timetable, activities,
+bag prep, off-routine, the Insights screen stats,
 and the new **Edit focus** flow.
 
 ### PAID — "BUFF Coach" (price unchanged: $9.99/mo, $59.99/yr; Founding-100 kept — Q4)
 - AI coach / smart insights (`generate-child-insights`)
+- AI timetable import (`parse-schedule`) — one free import day per family, then BUFF Coach (Adi 2026-09-24, supersedes Q1)
 - AI capture, photo/text → tasks (`parse-capture`)
 
 ### Reverse trial

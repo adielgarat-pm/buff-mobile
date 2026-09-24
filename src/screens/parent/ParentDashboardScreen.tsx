@@ -736,12 +736,9 @@ export default function ParentDashboardScreen() {
              Tap opens the full Insights screen; CTA + 👍👎 act inline. ── */
         <TouchableOpacity
           style={[styles.insightCard, { backgroundColor: T.accent }]}
-          onPress={() => insightsUnlocked
-            // A free family reached this card through the taste gate; the Insights
-            // screen would early-return its own lock screen for them, so send them
-            // to the Paywall directly instead of through a dead end.
-            ? navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })
-            : navigation.navigate('Paywall', { childName: firstChild?.displayName ?? undefined })}
+          // The Insights screen is free core (its stats); only its AI section is
+          // gated, so every parent — taste insight or entitled — opens it.
+          onPress={() => navigation.navigate('ParentInsights', { childId: firstChildId ?? undefined })}
           activeOpacity={0.85}
         >
           <View style={styles.teaserTagRow}>

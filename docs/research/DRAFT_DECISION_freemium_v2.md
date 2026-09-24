@@ -38,4 +38,4 @@
 - קוד (חבילה נפרדת): `useSubscription.ts`, `ParentDashboardScreen.tsx`, `ParentTasksScreen.tsx`, `PaywallScreen.tsx`, `en.json`/`he.json`, טריגר ניסיון ב-Supabase
 - Play Console: תיאור החנות
 
-**סטטוס:** DRAFT — ממתין לאישור Adi.
+**סטטוס:** אושר ע"י Adi (2026-09-24) עם תוספות: ייבוא מערכת שעות מתמונה בפרימיום אחרי ייבוא חינמי אחד; הנתונים במסך התובנות חינם; בחינה מחדש ב-100 משתמשים פעילים. הוכנס ל-`BUFF_DECISIONS_LOG.md` כ-D-2026-09-24-01.

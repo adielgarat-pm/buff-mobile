@@ -11,7 +11,7 @@
  *   2. the equipment field is bounded multiline (grows, never unbounded)
  *   3. manual mode is reachable and its footer renders (smoke)
  */
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import TimetableScreen from '../TimetableScreen';
 
@@ -54,6 +54,9 @@ jest.mock('../../../components/parent/ParentNotificationBell', () => ({
 }));
 
 jest.mock('../../../platform', () => ({ crossAlert: jest.fn() }));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({ useNavigation: () => ({ navigate: mockNavigate }) }));
 
 // Handles to the shared mocks (factories above are hoisted; grab lazily).
 const crossAlertMock = () =>
@@ -267,5 +270,34 @@ describe('TimetableScreen — copy day (pkg/timetable-copy-day)', () => {
 
     const confirm = api.getByTestId('copy-day-confirm');
     expect(confirm.props.accessibilityState?.disabled).toBe(true);
+  });
+});
+
+describe('TimetableScreen — AI import is BUFF Coach after the free import (Freemium v2)', () => {
+  beforeEach(() => {
+    crossAlertMock().mockClear();
+    mockNavigate.mockClear();
+  });
+
+  test('a 402 from parse-schedule offers manual entry first and BUFF Coach second', async () => {
+    const invoke = (jest.requireMock('../../../integrations/supabase/client') as {
+      supabase: { functions: { invoke: jest.Mock } };
+    }).supabase.functions.invoke;
+    invoke.mockResolvedValueOnce({ data: null, error: { message: 'x', context: { status: 402 } } });
+
+    const api = render(<TimetableScreen />);
+    fireEvent.press(api.getByText('timetable.importBtn'));
+    fireEvent.press(api.getByText('timetable.methodPaste'));
+    fireEvent.changeText(api.getByPlaceholderText('timetable.pastePlaceholder'), 'Sun 08:00 Math');
+    fireEvent.press(api.getByText('timetable.pasteParseBtn'));
+
+    await waitFor(() => expect(crossAlertMock()).toHaveBeenCalled());
+    const [title, message, buttons] = crossAlertMock().mock.calls[0];
+    expect(title).toBe('timetable.premiumTitle');
+    expect(message).toBe('timetable.premiumMsg');
+    expect(buttons[0]).toMatchObject({ text: 'timetable.premiumManual', style: 'cancel' });
+    expect(buttons[1].text).toBe('capture.seeCoach');
+    buttons[1].onPress();
+    expect(mockNavigate).toHaveBeenCalledWith('Paywall', {});
   });
 });

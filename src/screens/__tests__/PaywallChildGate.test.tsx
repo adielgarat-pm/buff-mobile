@@ -174,12 +174,16 @@ describe('PaywallScreen — Freemium v2 "BUFF Coach" (AI only)', () => {
     mockAuth.profile = { id: 'p-1', role: 'parent' };
   });
 
-  test('sells only the AI (coach + capture) — no BUDDY, shop, skins, children or timetable', () => {
+  test('sells only the AI (coach + capture + photo timetable import) — no BUDDY, shop, skins or children', () => {
     const keys = FEATURES.map(f => f.key);
-    expect(keys).toEqual(['paywall.feature.coach', 'paywall.feature.tips', 'paywall.feature.capture']);
+    expect(keys).toEqual([
+      'paywall.feature.coach', 'paywall.feature.tips', 'paywall.feature.capture', 'paywall.feature.timetable',
+    ]);
     const en = require('../../i18n/en.json') as Record<string, string>;
     const sold = keys.map(k => en[k]).join(' ');
-    expect(sold).not.toMatch(/buddy|shop|skin|children|timetable|schedule/i);
+    expect(sold).not.toMatch(/buddy|shop|skin|children/i);
+    // Timetable is sold only as the AI photo import; manual entry stays free (D: Adi 2026-09-24).
+    expect(en['paywall.feature.timetable']).toMatch(/photo/i);
   });
 
   test('every platform shows the "everything else stays free" footer', () => {

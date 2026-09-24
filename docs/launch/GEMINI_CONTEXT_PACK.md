@@ -96,7 +96,7 @@ Verified present in the code on 2026-06-20. These are safe to reference in posts
 - **Stickers** — parent sends encouragement stickers to the child.
 - **Daily Win Bonus** — parent can hand out bonus BUFFs to acknowledge invisible effort.
 - **Family Overview** — real-time view of each child's day, with coaching recommendation cards for the parent.
-- **Bag Prep / "My Gear" + Timetable** — parent enters the school schedule (or imports it from a photo — free); the child gets a night-before packing checklist for tomorrow.
+- **Bag Prep / "My Gear" + Timetable** — parent enters the school schedule (or imports it from a photo — one free import, then BUFF Coach); the child gets a night-before packing checklist for tomorrow.
 - **Activities & camp packing lists** — out-of-school activities + seasonal packing templates; kids can add their own activities.
 - **Per-task day-of-week scheduling** — tasks can run only on chosen weekdays.
 - **Push notifications** — gentle, context-aware reminders (opt-in).
@@ -107,7 +107,7 @@ Verified present in the code on 2026-06-20. These are safe to reference in posts
 ### Pricing (Freemium v2 — approved 2026-09-23; safe to say exactly like this)
 
 - **Headline:** "Free for your whole family. Optional AI coach." / "חינם לכל המשפחה. מאמן AI לבחירה."
-- **Free (no card, no time limit):** unlimited children, unlimited tasks, BUDDY + skins, BUFFs + shop + real-reward redemption, Vibe Check / SOS / Pause / Anchor, notifications, timetable (including importing it from a photo), activities, bag prep, off-routine days.
+- **Free (no card, no time limit):** unlimited children, unlimited tasks, BUDDY + skins, BUFFs + shop + real-reward redemption, Vibe Check / SOS / Pause / Anchor, notifications, timetable (typed in; photo import is BUFF Coach after one free import), activities, bag prep, off-routine days.
 - **BUFF Coach (paid):** the AI coach (weekly insights + recommendations) and AI capture. **$59.99/year or $9.99/month, renews automatically until cancelled** — always say the renewal when you give the price.
 - **14 coach days free:** every family gets 14 days of BUFF Coach free, starting when their child completes a first task. **No card, and nothing is charged when it ends** — they only pay if they choose to subscribe. After that: one free coach insight per week; everything else stays free.
 - **Founding 100** lifetime offer is optional and separate — only mention it if I ask.
