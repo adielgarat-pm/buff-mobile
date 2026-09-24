@@ -3,7 +3,7 @@
  * Account, family management, mode switching, preferences.
  */
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Switch, Modal } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { crossAlert } from '../../platform';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
@@ -27,6 +27,7 @@ import { useInstallPrompt } from '../../hooks/useInstallPrompt';
 import ReferralSheet from '../../components/ReferralSheet';
 import RateBuffSheet from '../../components/rate/RateBuffSheet';
 import { openCommunity, COMMUNITY_LINK_KEY } from '../../lib/community';
+import { loadHandBack, clearHandBack, type HandBackNote } from '../../lib/handBack';
 
 interface SettingsRow {
   label: string;
@@ -53,6 +54,10 @@ export default function ParentSettingsScreen() {
   const [installInstructionsOpen, setInstallInstructionsOpen] = useState(false);
   const [referralSheetOpen, setReferralSheetOpen] = useState(false);
   const [rateOpen, setRateOpen] = useState(false);
+  // Set when this parent signed in via a child's "Grown-up sign-in" on this
+  // device — offers a one-tap way to give the device back (src/lib/handBack.ts).
+  const [handBack, setHandBack] = useState<HandBackNote | null>(null);
+  useEffect(() => { loadHandBack().then(setHandBack); }, []);
 
   // "Rating & feedback" row — opens the unified in-app sheet (real 1–5★ + note +
   // publish consent), which writes a first-party review. On Android the sheet
@@ -142,6 +147,18 @@ export default function ParentSettingsScreen() {
     {
       title: t('settings.sectionFamily'),
       rows: [
+        ...(handBack
+          ? [{
+              label: t('settings.rowHandBack', { name: handBack.childName }),
+              icon:  'swap-horizontal-outline' as const,
+              onPress: () => {
+                const code = handBack.familyCode;
+                setHandBack(null);
+                void clearHandBack();
+                navigation.navigate('ChildJoin', { code, autoFind: true });
+              },
+            }]
+          : []),
         { label: t('settings.rowAddChild'),       onPress: () => navigation.navigate('UStep1') },
         { label: t('settings.rowManageChildren'), onPress: () => navigation.navigate('ManageChildren') },
         { label: t('settings.rowActivities'),     onPress: () => navigation.navigate('Activities') },

@@ -21,6 +21,7 @@ import { useChildData } from '../../hooks/useChildProgress';
 import { usePetState } from '../../hooks/usePetState';
 import { PET_SKINS, getSkinsForTheme, getDefaultSkin } from '../../types/pet';
 import type { RootStackParamList } from '../../navigation/types';
+import { saveHandBack } from '../../lib/handBack';
 import { formatNum } from '../../lib/uiLocale';
 import { crossAlert } from '../../platform/crossAlert';
 
@@ -36,7 +37,7 @@ const THEME_OPTIONS: { name: ChildThemeName; labelKey: string; descKey: string; 
 
 export default function ChildSettingsScreen() {
   const navigation  = useNavigation<Nav>();
-  const { profile } = useAuth();
+  const { profile, familyShortCode } = useAuth();
   const { isChildPreview, exitChildPreview, viewMode, previewChildId, previewChildName } = useMode();
   const T = useChildTheme();
   const { themeName, setTheme } = useTheme();
@@ -252,6 +253,26 @@ export default function ChildSettingsScreen() {
         </>
       )}
 
+      {/* Grown-up sign-in — the parent's way in on a shared device (no child
+          logout by design). Real child session only; a parent previewing the
+          child view already has the exit banner above. Quiet, last row. */}
+      {profile?.role === 'child' && !isChildPreview && (
+        <TouchableOpacity
+          style={[styles.settingRow, styles.grownUpRow, { borderColor: T.border, flexDirection: rowDirection }]}
+          onPress={async () => {
+            if (familyShortCode) await saveHandBack(profile.display_name, familyShortCode);
+            navigation.navigate('Login', { grownUp: true });
+          }}
+          accessibilityRole="button"
+          testID="child-grownup-signin"
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.settingLabel, { color: T.mutedForeground }]}>🔒 {t('childSettings.grownUpSignIn')}</Text>
+            <Text style={{ color: T.mutedForeground, fontSize: 12, marginTop: 2 }}>{t('childSettings.grownUpSignInSub')}</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       <BuddyToggleModal
         visible={toggleModalVisible}
         mode={toggleMode}
@@ -314,6 +335,7 @@ const styles = StyleSheet.create({
   skinLocked:          { opacity: 0.4 },
   lockOverlay:         { position: 'absolute', bottom: 0, right: 0, fontSize: 10 },
 
+  grownUpRow:          { marginTop: 24, backgroundColor: 'transparent' },
   settingRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1 },
   settingLabel:        { fontSize: 15 },
   settingStatus:       { fontSize: 13, maxWidth: 140 },

@@ -35,9 +35,9 @@ export type RootStackParamList = {
   // ── Auth ──────────────────────────────────────────────────────────────
   Landing:       undefined;
   RoleSelection: undefined;
-  Login:         undefined;
+  Login:         { grownUp?: boolean } | undefined; // grownUp: opened from a child's "Grown-up sign-in"
   Signup:        { initialRole?: 'parent' | 'child' } | undefined;
-  ChildJoin:     { code?: string } | undefined;
+  ChildJoin:     { code?: string; autoFind?: boolean } | undefined; // autoFind: parent's "Hand back" skips to the card picker
   AuthCallback:  undefined;
 
   // ── Unified onboarding flow ───────────────────────────────────────────

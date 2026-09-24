@@ -17,7 +17,7 @@ import { useMode } from '../contexts/ModeContext';
 import { useChildrenDashboard } from '../hooks/useChildrenDashboard';
 import type { RootStackParamList } from './types';
 import { linking } from './linking';
-import { isOnboardingRoute, type OnboardingSnapshot } from './onboardingRoutes';
+import { isOnboardingRoute, snapshotBelongsTo, type OnboardingSnapshot } from './onboardingRoutes';
 import { isParentOnboarded } from './parentRouting';
 import { setCurrentRoute } from '../lib/currentRoute';
 import { identityChanged, consumeAuthEntryUrl } from './authTransition';
@@ -106,6 +106,11 @@ export default function RootNavigator() {
     });
   }, []);
 
+  // Current auth user for the (stable) nav-state callback below, so each
+  // snapshot is stamped with its owner — see snapshotBelongsTo.
+  const userIdRef = useRef<string | undefined>(user?.id);
+  userIdRef.current = user?.id;
+
   // Snapshot the focused route as the parent advances through onboarding; drop
   // the snapshot once they leave the flow for the real app. No-op on native.
   const onNavStateChange = useCallback((state: NavigationState | undefined) => {
@@ -121,6 +126,7 @@ export default function RootNavigator() {
         route:  route.name,
         params: (route.params ?? {}) as OnboardingSnapshot['params'],
         t:      Date.now(),
+        uid:    userIdRef.current,
       });
     } else if (route && (route.name === 'ParentApp' || route.name === 'ChildApp')) {
       clearOnboardingSnapshot();
@@ -169,6 +175,7 @@ export default function RootNavigator() {
   // now too — see onboardingPersistence.ts).
   const resumeSnapshot =
     restoredSnap && !parentOnboarded && profile?.role === 'parent'
+      && snapshotBelongsTo(restoredSnap, user?.id)
       ? restoredSnap
       : null;
 
@@ -206,7 +213,10 @@ export default function RootNavigator() {
   // (never mounted) still honours the URL.
   const authIdentity = user?.id ?? null;
   const switchedIdentity = identityChanged(mountedIdentityRef.current, authIdentity);
-  if (switchedIdentity) consumeAuthEntryUrl();
+  // Consume on sign-IN only: after a sign-out the entry path (e.g. /RoleSelection
+  // from the Google picker's "Use a different account") is where the user wants
+  // to be, and `/` would bounce them to the marketing site.
+  if (switchedIdentity && authIdentity) consumeAuthEntryUrl();
   mountedIdentityRef.current = authIdentity;
   const containerLinking = switchedIdentity
     ? { ...linking, getInitialURL: async () => null }
@@ -232,7 +242,12 @@ export default function RootNavigator() {
 
         ) : !profile || !profile.role ? (
           // ─── 2. NO ROLE YET (Google OAuth / partial profile) ────────
-          <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} />
+          <>
+            <Stack.Screen name="AuthCallback" component={AuthCallbackScreen} />
+            {/* Ways out of the Google role picker: "I have a family code" →
+                ChildJoin, "Use a different account" → RoleSelection. */}
+            {sharedDeviceAuthScreens}
+          </>
 
         ) : profile.role === 'child' ? (
           // ─── 3. CHILD — always goes straight to the child app ────────
@@ -253,6 +268,12 @@ export default function RootNavigator() {
               component={BuffCatchScreen}
               options={{ headerShown: false }}
             />
+            {/* "Grown-up sign-in" from Child Settings (shared device): the
+                child UI has no logout by design, so this is the parent's way
+                in. The child session is replaced only when the parent's
+                sign-in succeeds. See src/lib/handBack.ts. */}
+            <Stack.Screen name="Login"  component={LoginScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
           </>
 
         ) : parentOnboarded ? (

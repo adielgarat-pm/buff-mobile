@@ -12,7 +12,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,6 +34,10 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const { signIn, signInWithGoogle } = useAuth();
   const navigation = useNavigation<Nav>();
+  // Opened from a child's "Grown-up sign-in" (Child Settings, shared device):
+  // friendly header + a way back to the child's app. The child session stays
+  // until this sign-in succeeds. See src/lib/handBack.ts.
+  const grownUp = !!useRoute<RouteProp<RootStackParamList, 'Login'>>().params?.grownUp;
 
   const [email,         setEmail]         = useState('');
   const [password,      setPassword]      = useState('');
@@ -111,7 +115,7 @@ export default function LoginScreen() {
         {/* Logo / Title */}
         <View style={styles.logoBlock}>
           <Text style={styles.logo}>BUFF</Text>
-          <Text style={styles.tagline}>{t('app.tagline')}</Text>
+          <Text style={styles.tagline}>{grownUp ? t('auth.grownUpTitle') : t('app.tagline')}</Text>
         </View>
 
         {/* Email */}
@@ -210,6 +214,18 @@ export default function LoginScreen() {
             <Text style={styles.signupLink}>{t('auth.signup')}</Text>
           </Text>
         </TouchableOpacity>
+
+        {grownUp && navigation.canGoBack() && (
+          <TouchableOpacity
+            testID="login-grownup-back"
+            onPress={() => navigation.goBack()}
+            style={styles.signupRow}
+            hitSlop={LINK_HIT_SLOP}
+            accessibilityRole="button"
+          >
+            <Text style={styles.signupLink}>{t('auth.backToBuff')}</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* ── Forgot Password Modal ─────────────────────────────────────── */}

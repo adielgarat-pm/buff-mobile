@@ -106,7 +106,7 @@ export default function WelcomeScreen() {
   }, [navigation]);
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safe}>
+    <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
       <Animated.View style={[styles.animWrap, { opacity: fadeAnim }]}>
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -152,6 +152,27 @@ export default function WelcomeScreen() {
             ))}
           </View>
 
+          {/* Shared-computer child join (bug 2026-09-17): on a shared computer the
+              parent is already signed in, so a child reaching the web app lands
+              here (parent onboarding) with no way to the family-code entry. This
+              quiet link routes them to ChildJoin — picking their profile signs the
+              child in and swaps the session. Invitation, not a demand (Pillar 2). */}
+          <TouchableOpacity
+            testID="welcome-child-join"
+            style={styles.childJoinLink}
+            onPress={() => navigation.navigate('ChildJoin')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.childJoinText}>{t('welcome.sharedDevice.childJoin')}</Text>
+          </TouchableOpacity>
+
+        </ScrollView>
+
+        {/* Pinned footer (UX review 2026-09-24): on 390×664 / 360×560 phones the
+            start CTA sat below the fold on the first screen after signup. Same
+            pattern as onboarding steps 1–5 (_OnboardingShell): content scrolls,
+            the primary action stays on screen. */}
+        <View style={styles.footer}>
           {/* ── 4. CTA ───────────────────────────────────────────────────
               Resume path: a parent who left mid-wizard gets an invitation to
               continue (encouraging, never "you abandoned" — Pillar 2), plus a
@@ -195,22 +216,7 @@ export default function WelcomeScreen() {
               <Text style={styles.ctaText}>{t('welcome.cta')}</Text>
             </TouchableOpacity>
           )}
-
-          {/* Shared-computer child join (bug 2026-09-17): on a shared computer the
-              parent is already signed in, so a child reaching the web app lands
-              here (parent onboarding) with no way to the family-code entry. This
-              quiet link routes them to ChildJoin — picking their profile signs the
-              child in and swaps the session. Invitation, not a demand (Pillar 2). */}
-          <TouchableOpacity
-            testID="welcome-child-join"
-            style={styles.childJoinLink}
-            onPress={() => navigation.navigate('ChildJoin')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.childJoinText}>{t('welcome.sharedDevice.childJoin')}</Text>
-          </TouchableOpacity>
-
-        </ScrollView>
+        </View>
       </Animated.View>
     </SafeAreaView>
   );
@@ -225,6 +231,14 @@ const styles = StyleSheet.create({
   },
   animWrap: {
     flex: 1,
+  },
+  footer: {
+    paddingHorizontal: 28,
+    paddingTop:        12,
+    paddingBottom:     16,
+    borderTopWidth:    StyleSheet.hairlineWidth,
+    borderTopColor:    'rgba(109, 40, 217, 0.12)',
+    backgroundColor:   BG,
   },
   scroll: {
     flexGrow:          1,
