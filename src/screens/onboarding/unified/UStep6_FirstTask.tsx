@@ -28,7 +28,8 @@ import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 import { getTodayKey } from '../../../utils/vibeUtils';
-import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
+import { logOnboardingEvent, type PresenceAnswer } from '../../../lib/onboardingFunnel';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { crossAlert } from '../../../platform';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep6_FirstTask'>;
@@ -44,13 +45,23 @@ export default function UStep6_FirstTask() {
   const [task, setTask]   = useState<{ id: string; title: string } | null>(null);
   const [busy, setBusy]   = useState(false);
 
+  useStepReachedLog('6_first_task', familyId);
+
+  const logAnswer = (answer: PresenceAnswer) => {
+    void logOnboardingEvent({
+      familyId, eventType: 'presence_answered', method: answer,
+      variant: phase, childId: params.childProfileId,
+    });
+  };
+
   const goHandoff = () => navigation.navigate('ChildAccessStep', params);
 
   // "Not right now" → skip the together-moment, write nothing.
-  const skip = () => goHandoff();
+  const skip = () => { logAnswer('not_now'); goHandoff(); };
 
   // "Yes, we're together" → fetch one starter task to do right now.
   const startTogether = async () => {
+    logAnswer('together');
     setBusy(true);
     // Onboarding tasks are stored with a plain (child-language) title, so no
     // bilingual resolution needed here.

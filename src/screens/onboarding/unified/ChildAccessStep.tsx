@@ -32,6 +32,7 @@ import { BUFF_URLS, buildJoinUrl } from '../../../lib/buffConfig';
 import { shareInvite } from '../../../lib/shareInvite';
 import { logOnboardingEvent, type AccessMode } from '../../../lib/onboardingFunnel';
 import { crossAlert } from '../../../platform/crossAlert';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'ChildAccessStep'>;
 type Route = RouteProp<RootStackParamList, 'ChildAccessStep'>;
@@ -51,6 +52,8 @@ export default function ChildAccessStep() {
   const { t }              = useTranslation();
   const { isRTL }          = useRTLStyles();
   const { familyShortCode, familyId } = useAuth();
+
+  useStepReachedLog('7_access', familyId);
 
   const progress = (STEP + 1) / (TOTAL + 1);
   const g = genderSuffix(params.gender);

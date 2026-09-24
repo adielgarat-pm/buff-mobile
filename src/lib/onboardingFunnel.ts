@@ -87,7 +87,18 @@ export type OnboardingEventType =
   | 'access_step_abandoned'
   | 'day1_push_scheduled'
   | 'day1_push_sent'
-  | 'day1_push_opened';
+  | 'day1_push_opened'
+  // First Win funnel (pkg/first-win P0, 2026-09-24). UStep6 asks whether the
+  // child is here; nothing recorded the answer, so "not right now" was
+  // invisible. `method` = PresenceAnswer, `variant` = the UStep6 phase the
+  // answer was given in ('presence' | 'task'). child_id = the new child.
+  /** Parent answered UStep6's "is {child} with you?" (or skipped the task). */
+  | 'presence_answered'
+  /** Parent tapped UStep8's final CTA; `method` = AccessMode if one was chosen. */
+  | 'onboarding_complete_cta';
+
+/** UStep6 answer. 'said_no' is reserved for the P2 coached handoff. */
+export type PresenceAnswer = 'together' | 'not_now' | 'said_no';
 
 /** How the parent tried to hand BUFF to the child's device. */
 export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';
@@ -108,7 +119,7 @@ interface LogArgs {
   familyId: string | null | undefined;
   eventType: OnboardingEventType;
   childId?: string | null;
-  method?: InviteMethod | TabViewMethod | AccessMode | null;
+  method?: InviteMethod | TabViewMethod | AccessMode | PresenceAnswer | null;
   /** For first_task_complete: 'onboarding_first_task' (seed) vs 'child_authored'. */
   source?: string | null;
   /** Feature-flag / A-B cohort. */

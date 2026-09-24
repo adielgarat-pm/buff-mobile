@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import {
   createBottomTabNavigator,
@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useMode } from '../contexts/ModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useExperienceBand } from '../hooks/useExperienceBand';
+import { logChildFirstOpen } from '../lib/firstWinTelemetry';
 
 import ChildDashboardScreen from '../screens/child/ChildDashboardScreen';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
@@ -52,10 +53,24 @@ export default function ChildTabs() {
   const T               = useChildTheme();
   const insets          = useSafeAreaInsets();
   const { t }           = useTranslation();
-  const { isChildPreview, exitChildPreview } = useMode();
-  const { profile }     = useAuth();
+  const { isChildPreview, previewChildId, exitChildPreview } = useMode();
+  const { profile, familyId } = useAuth();
   const band            = useExperienceBand();
   const isTeenBand      = band === 'teen';
+
+  // First Win telemetry (pkg/first-win P0): the child app was opened for this
+  // child. ChildTabs is the single root of the child app for both the child's
+  // own login and a View-as-Child handover.
+  const openedChildId = isChildPreview
+    ? previewChildId
+    : profile?.role === 'child' ? profile.id : null;
+  useEffect(() => {
+    logChildFirstOpen({
+      familyId,
+      childId: openedChildId,
+      source:  isChildPreview ? 'view_as_child' : 'child_device',
+    });
+  }, [familyId, openedChildId, isChildPreview]);
 
   // Memoize the global screenOptions function so its identity is stable
   // across renders that don't change visual tokens (e.g. previewBanner show/

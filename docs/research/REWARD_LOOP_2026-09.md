@@ -111,8 +111,16 @@ revoked_at IS NULL` (a true peak, independent of any deduction):
 | Median cheapest-reward cost | 126 |
 | Avg cheapest-reward cost | 185 |
 
-All 44 child profiles have `last_seen_at` set (the app was opened for every one),
-yet 68% never completed a task — opening ≠ earning.
+~~All 44 child profiles have `last_seen_at` set (the app was opened for every one),
+yet 68% never completed a task — opening ≠ earning.~~
+
+> **Correction (2026-09-24, first-win review, re-queried read-only):** `last_seen_at` is
+> stamped when the child profile is **created**, so it is not evidence that the child
+> opened the app. Of these 44 children, only **13 ever logged in**; 31 have a
+> `last_seen_at` only at creation time. Of the 30 who never completed a task, **28 never
+> logged into the child app at all**, and only 2 logged in without completing. The 68%
+> "never completed" figure stands; the reading "they opened but didn't earn" does not.
+> Most children **never got in**. The break is at the handoff, before the child app.
 
 ### 2.3 The 4 children who did earn enough
 
@@ -165,8 +173,8 @@ loop breaks upstream of it.**
 - **(e) Aspirational / long-term by design — NO.** §2.4 rules this out; rewards are
   reachable in a few days.
 
-**Dominant cause:** an upstream **task-completion / earning collapse**. Children
-open the app but 68% never complete a task, so they never earn, never reach the
+**Dominant cause:** an upstream **task-completion / earning collapse**. 68% of
+children never complete a task (most never even log in; see the correction in §2.2), so they never earn, never reach the
 redeem threshold, and the ~3% redemption rate is a *symptom*. This is itself
 downstream of the paywall-before-value abandonment already logged as **H8**
 (`H8_PAYWALL_BEFORE_VALUE_2026-09.md`, `VALUE_VALIDATION_2026-09.md`): the parent
