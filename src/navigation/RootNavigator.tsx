@@ -17,7 +17,7 @@ import { useMode } from '../contexts/ModeContext';
 import { useChildrenDashboard } from '../hooks/useChildrenDashboard';
 import type { RootStackParamList } from './types';
 import { linking } from './linking';
-import { isOnboardingRoute, type OnboardingSnapshot } from './onboardingRoutes';
+import { isOnboardingRoute, snapshotBelongsTo, type OnboardingSnapshot } from './onboardingRoutes';
 import { isParentOnboarded } from './parentRouting';
 import { setCurrentRoute } from '../lib/currentRoute';
 import { identityChanged, consumeAuthEntryUrl } from './authTransition';
@@ -106,6 +106,11 @@ export default function RootNavigator() {
     });
   }, []);
 
+  // Current auth user for the (stable) nav-state callback below, so each
+  // snapshot is stamped with its owner — see snapshotBelongsTo.
+  const userIdRef = useRef<string | undefined>(user?.id);
+  userIdRef.current = user?.id;
+
   // Snapshot the focused route as the parent advances through onboarding; drop
   // the snapshot once they leave the flow for the real app. No-op on native.
   const onNavStateChange = useCallback((state: NavigationState | undefined) => {
@@ -121,6 +126,7 @@ export default function RootNavigator() {
         route:  route.name,
         params: (route.params ?? {}) as OnboardingSnapshot['params'],
         t:      Date.now(),
+        uid:    userIdRef.current,
       });
     } else if (route && (route.name === 'ParentApp' || route.name === 'ChildApp')) {
       clearOnboardingSnapshot();
@@ -169,6 +175,7 @@ export default function RootNavigator() {
   // now too — see onboardingPersistence.ts).
   const resumeSnapshot =
     restoredSnap && !parentOnboarded && profile?.role === 'parent'
+      && snapshotBelongsTo(restoredSnap, user?.id)
       ? restoredSnap
       : null;
 
