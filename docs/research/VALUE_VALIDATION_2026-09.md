@@ -218,6 +218,8 @@ Every hypothesis we raised is a facet of this one break:
 
 **What this means for the decision gate.** The study set out to answer "does BUFF have value?" The mechanic itself is sound — the one family that reached a first win redeemed 8 times and retained. The problem is not the product's core loop; it is that **almost no child reaches the first win**, especially strangers (0 stranger children reached 3 active days). That reframes the gate from "is the product valuable?" to "can we get a child to a first win without the founder in the room?"
 
+**→ Package opened 2026-09-24: `docs/sessions/first-win/` (baseline: strangers with a child, first win ≤48h = 2/19; metric source `scripts/first-win-funnel.sql`).**
+
 **Highest-leverage move, if anything ships (proposed, not decided):** target the first completed task and first win directly — a first-task nudge, a seeded ~1-day "first-win" reward at onboarding so the first loop closes within a day, and teaching the finish line on locked reward cards before affordability. This is upstream of both the paywall and the redeem UX, so it addresses the actual break. Details in `REWARD_LOOP_2026-09.md` options memo. The paywall decision (`DRAFT_DECISION_paywall_H8.md`, Option A) stays secondary.
 
 **Spec-relevant note (Adi's docs, not changed):** the C0b/C0c reward-loop parent-insight nudge in `insightFraming.ts` only fires for active+affordable children (~4 today), so it is effectively dormant — flagged for a possible Spec Sync.

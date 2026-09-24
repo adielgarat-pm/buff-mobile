@@ -34,7 +34,12 @@ export type OnboardingStepId =
   | '2_goal'
   | '3_challenges'
   | '4_motivator'
-  | '5_preview';
+  | '5_preview'
+  // Post-save steps (pkg/first-win P0): the child exists from Step 5 on, so
+  // these locate the drop between "setup finished" and "child handed over".
+  | '6_first_task'
+  | '7_access'
+  | '8_complete';
 
 /** `familyId|stepId` keys already logged in this JS session. */
 const loggedThisSession = new Set<string>();

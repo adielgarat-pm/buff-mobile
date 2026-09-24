@@ -8,6 +8,7 @@ import { isOffRoutineActive, isTaskInActivePlan } from '../utils/offRoutineUtils
 import { applyTaskCompletionToPet } from './usePetState';
 import { emitConfetti } from '../lib/confetti';
 import { localDayKey } from '../lib/dayKey';
+import { isFirstCountedCompletion, logFirstWin } from '../lib/firstWinTelemetry';
 
 // ג”€ג”€ג”€ Types ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€ג”€
 
@@ -422,21 +423,36 @@ export function useChildData(childId: string | null) {
       t.id === taskId ? { ...t, completed: true, completedAt: now } : t
     ));
 
-    // Actor attribution (pkg/parent-ia-and-aha Phase 1) — the AHA proxy needs to
-    // know WHO completed the task. 'child_device' = an authenticated child on
-    // their own device (the only value that counts as unprompted); 'view_as_child'
-    // = a parent driving the child screens (never counts); 'parent' = a parent
-    // marking on a parent surface. Written on completion only, never on
-    // uncomplete, so an undo can't clobber the original completer's source.
+    // Actor attribution (pkg/parent-ia-and-aha Phase 1) — WHO completed the task.
+    // 'child_device' = an authenticated child on their own device; 'view_as_child'
+    // = the child screens on a parent's device (a handover, or a parent driving
+    // them); 'parent' = a parent marking on a parent surface. Written on
+    // completion only, never on uncomplete, so an undo can't clobber the
+    // original completer's source.
+    // Two metrics read this column differently (IN-2026-09-24-02):
+    //   - AHA proxy / "unprompted": child_device only.
+    //   - First Win (pkg/first-win, Adi D1 2026-09-24): child_device, NULL,
+    //     view_as_child and onboarding_handoff all count; 'parent' never does.
     const source =
       profile?.role === 'child' ? 'child_device'
       : isChildPreview          ? 'view_as_child'
       : 'parent';
 
+    // First Win telemetry: decided BEFORE the write, so this completion's own
+    // row isn't counted. Only child-screen sources can be a first win.
+    const firstWin = !wasComplete && source !== 'parent'
+      ? await isFirstCountedCompletion(childId)
+      : false;
+
     const { error } = await supabase.from('daily_progress').upsert(
       { family_id: familyId, child_id: childId, date: todayKey, task_id: taskId, completed: true, completed_at: now.toISOString(), source },
       { onConflict: 'family_id,child_id,date,task_id' }
     );
+
+    if (!error && firstWin && source !== 'parent') {
+      // (source check narrows the type; firstWin already implies it)
+      logFirstWin({ familyId, childId, source });
+    }
 
     if (!error && !wasComplete) {
       const task = tasks.find(t => t.id === taskId);

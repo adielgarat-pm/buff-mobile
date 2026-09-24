@@ -32,13 +32,22 @@
 - **סטטוס:** `resolved` (docs corrected 2026-09-24). `child_first_open` logging tracked in first-win P0.
 - **קשור ל:** pkg/first-win, `docs/research/REWARD_LOOP_2026-09.md` §2.2, `docs/research/VALUE_VALIDATION_2026-09.md` §8
 
+### IN-2026-09-24-03: Mocked-Supabase Playwright on the web export: block the service worker, or writes never reach `context.route`
+
+- **תאריך:** 2026-09-24
+- **מקור:** CC: pkg/first-win P0 web verification (`e2e/mocked/first-win-p0.web.mjs`)
+- **תיאור:** With the Supabase boundary mocked via `context.route`, GETs were intercepted, but POSTs after an in-app navigation failed with `net::ERR_FAILED` and never reached the handler. Cause: the PWA service worker takes control and its fetches bypass page-level routing. Cross-origin fulfils also need CORS headers plus an `OPTIONS` preflight answer.
+- **השפעה:** Any mocked web E2E must use `browser.newContext({ serviceWorkers: 'block' })` and answer CORS. Otherwise telemetry/writes silently look "not sent", which is a false fail, or a false pass if you only assert GETs.
+- **סטטוס:** `resolved` (pattern in `e2e/mocked/first-win-p0.web.mjs`)
+- **קשור ל:** pkg/first-win P0
+
 ### IN-2026-09-24-02: `view_as_child` completions: code comment says "never counts", Adi decided they count as a first win
 
 - **תאריך:** 2026-09-24
 - **מקור:** CC: pkg/first-win review F4; decision by Adi (D1)
 - **תיאור:** `src/hooks/useChildProgress.ts:427-429` documents `'view_as_child'` as "a parent driving the child screens (never counts)" (AHA proxy from pkg/parent-ia-and-aha). Adi decided (2026-09-24, D1) that for the first-win success metric a `view_as_child` completion **counts**. `child_device`-only is still reported as a secondary metric.
 - **השפעה:** Two definitions coexist: AHA proxy (child_device only) vs first-win metric (child_device + view_as_child + handoff). The comment will be updated in first-win P0 to name both, so no one re-reads it as a contradiction.
-- **סטטוס:** `open` until P0 lands
+- **סטטוס:** `resolved` in first-win P0: the comment now names both definitions.
 - **קשור ל:** pkg/first-win D1, `058_trial_on_first_real_completion.sql`
 
 ### IN-2026-09-04-02: Unattended cloud Routine "succeeded" but did nothing — permission prompts with no human present
@@ -910,6 +919,20 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
 ---
 
 ## FLAGs פתוחים
+
+### F-2026-09-24-01: 🚩 first-win deferred scope (pkg/first-win REVIEW.md §4)
+
+- **תאריך:** 2026-09-24
+- **מקור:** CC: pkg/first-win adversarial review; deferred with Adi's plan-v2 approval
+- **תיאור:** Deferred from pkg/first-win and **not** shipped in it:
+  1. **Push tap routing (all platforms).** Tapping any push goes nowhere: `resolveRouteAction` is only used by the in-app feed; no native notification-response listener; the web service worker opens `/` and ignores the payload. The 36 `activation_nudge` pushes sent since 06-15 could not route anyone. → separate infra package before any new nudge.
+  2. **24h parent come-back nudge (C4).** Reach ~20% (few parents have a push token/subscription); the cron runs 06:10 UTC (school hours IL, night US). Blocked by (1). Adi's concierge test first.
+  3. **First-mission card on the child dashboard (C3).** Most children never log in (IN-2026-09-24-01), so reach is low. Revisit after P0 data shows children entering.
+  4. **Teen (13+) first-win path** (D3): the teen picks their reward first and writes or chooses their own first task. The guided handoff is 6–12 only.
+  5. **Email reminder.** No email sender exists (only `email-unsubscribe`).
+- **השפעה:** If first-win "works", it does not mean the handoff is fixed for teens, for no-device families (H9), or for parents reachable only by email.
+- **סטטוס:** `open`
+- **קשור ל:** pkg/first-win, IN-2026-09-24-01
 
 ### IN-2026-08-30-01 (RESOLVED 2026-08-30): מדריך "חזרה לבית הספר" — פער עיתוי בהפצת Sept 1
 

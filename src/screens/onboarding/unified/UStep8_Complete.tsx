@@ -27,6 +27,8 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
+import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
+import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
 import { captureRefFromUrl, getRefCode, clearRefCode } from '../../../lib/referralCapture';
 import {
   openCommunity, COMMUNITY_LINK_KEY,
@@ -65,6 +67,8 @@ export default function UStep8_Complete() {
   const [addChildFlow,   setAddChildFlow]   = useState(false);
   const [communitySeen,  setCommunitySeen]  = useState(true);
   const hasSaved = useRef(false);
+
+  useStepReachedLog('8_complete', profile?.family_id);
 
   // On web: capture ref from URL into sessionStorage; then check storage for either path
   useEffect(() => {
@@ -302,19 +306,25 @@ export default function UStep8_Complete() {
             <TouchableOpacity
               testID="onb8-cta"
               style={styles.dashboardBtn}
-              onPress={() => navigation.reset({
-                index: 0,
-                // shared_device: land on the dashboard AND immediately enter
-                // View-as-Child (previewChildId). Other paths: plain dashboard.
-                // Reset first, preview second — the viewMode tree-swap only works
-                // once the navigator is settled on ParentApp (see ModeContext).
-                routes: [{
-                  name: 'ParentApp',
-                  params: params.accessMode === 'shared_device'
-                    ? { screen: 'ParentDashboard', params: { previewChildId: params.childProfileId } }
-                    : undefined,
-                }],
-              })}
+              onPress={() => {
+                void logOnboardingEvent({
+                  familyId: profile?.family_id, eventType: 'onboarding_complete_cta',
+                  method: params.accessMode ?? null, childId: params.childProfileId,
+                });
+                navigation.reset({
+                  index: 0,
+                  // shared_device: land on the dashboard AND immediately enter
+                  // View-as-Child (previewChildId). Other paths: plain dashboard.
+                  // Reset first, preview second — the viewMode tree-swap only works
+                  // once the navigator is settled on ParentApp (see ModeContext).
+                  routes: [{
+                    name: 'ParentApp',
+                    params: params.accessMode === 'shared_device'
+                      ? { screen: 'ParentDashboard', params: { previewChildId: params.childProfileId } }
+                      : undefined,
+                  }],
+                });
+              }}
               activeOpacity={0.85}
             >
               <Text style={styles.dashboardBtnText}>
