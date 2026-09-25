@@ -137,6 +137,40 @@
 
 ---
 
+## 3.5 Sounding Human on Facebook / Reddit (avoid the "AI wrote this" tell)
+
+> **When to apply:** every Facebook / Reddit / forum comment or post drafted for Adi. The goal is not to beat a machine detector — it's to not lose the trust of a real parent reading the thread who thinks *"this smells like ChatGPT / like an ad."* That human read is the actual risk, and it's higher in supportive parent groups.
+
+### Platform reality (checked 2026-09)
+- Facebook/Meta does **not** auto-scan short text comments and label them AI. Meta's "AI info" labels target **images/video** (via C2PA / IPTC metadata + watermarks), not a mom's comment in a parenting thread. So the platform-side flag risk on text is ~nil.
+- **The real risk is human**, not algorithmic. Optimize for "a tired parent typed this on their phone," not for a detector score.
+
+### The 2026 AI tells to strip out
+- **Hedging / filler verbs** — `ensures`, `ensuring` (strongest single tell, ~4× over-represented), `highlights`, `reflects`, `supports`, `it's worth noting`, `generally`, `may`, `could`.
+- **Formulaic sentence shapes** — anything like *"X plays a crucial/important role in shaping Y."* Over-balanced, polished constructions.
+- **Rule-of-three** — perfectly balanced triplets (three examples, three clauses, three emojis). Classic model habit — break it, use one or two or an uneven count.
+- **Emotional over-polish** — coined phrases like *"the real magic,"* *"moved the needle"* delivered too neatly; zero typos; every sentence the same length.
+- **Emoji clusters** — 🙌✨😅 stacked in one short comment reads as slop. A real parent usually drops **one**, not three.
+- **Em-dash** — *no longer* a strong tell on its own (only ~18% of AI text has one), but two or three in a short comment still stand out. Prefer commas / periods / "and."
+
+### The human-signal checklist (what to put IN)
+1. **Specific first-person detail** only she would write — her son, the paper chart, losing track of the tracking. Lived specifics are the single strongest "a human wrote this" signal.
+2. **Lowercase / casual openers** — "ok honestly…", "lol", "yeah" — and let a comma run where a period "should" be.
+3. **One imperfection** — a slightly run-on sentence, a trailing "but yeah…". Don't polish it flat.
+4. **One emoji max**, and only where a person would actually react (😅 after "it's so hard").
+5. **Uneven rhythm** — mix a long sentence with a 3-word one. Avoid three balanced clauses.
+6. **No pitch-voice** — share, don't sell. Mention the app the way a parent mentions a thing that helped, not the way a brand does. Link/name only if someone asks (also safer re: group self-promo rules — many parent groups ban promo).
+
+### Quick before/after
+- ❌ *"It's free and open to anyone if you ever want something that runs itself — happy to share. But honestly, the 'catch them doing good' idea is the real magic ✨"* (em-dash + "the real magic" + polished)
+- ✅ *"its free if anyone wants to try, happy to send it. but yeah paper or app, the 'catch them being good' part is what actually moved the needle for us"* (lowercase, one imperfection, specific, no polish)
+
+> **Self-promo placement rule (carried from the consequences-thread reply):** don't reply *directly under* another parent's showcase post with "I built an app" — it reads as one-upping. Reply to the **original asker**, credit the other parent, frame as sharing. Name/link BUFF only if asked.
+>
+> _Sources: Originality.AI "Can Meta Detect AI Content"; Dataconomy 2026-08 "Em Dash… has changed"; WriteHuman "AI tells in 2026". Added 2026-09-25 at Adi's request._
+
+---
+
 ## 4. Pain → Solution Mapping (quick reference)
 
 טבלה מהירה לבחירת קופי לפי כאב ספציפי:
