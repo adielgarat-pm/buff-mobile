@@ -1,0 +1,95 @@
+# Web smoke — auth / onboarding / child-join flows (e2e/web-smoke/README.md).
+#
+# Drives the real `expo export -p web` bundle in Chromium against the
+# in-memory Supabase mock. No secrets, no staging backend, no network to
+# Supabase: every *.supabase.co request is answered by the mock
+# (e2e/web-smoke/lib/mockSupabase.mjs), every other external host is stubbed.
+#
+# Why a separate workflow instead of ci.yml's `e2e-web` job: that job runs a
+# DIFFERENT suite (e2e/*.spec.ts via `playwright test`) against a real STAGING
+# Supabase with a captured parent session, and is intentionally opt-in
+# (vars.RUN_E2E + staging secrets, which don't exist yet), hence always
+# skipped. This suite needs neither, so it gets its own always-on trigger with
+# a native `paths` filter; `e2e-web` is left untouched for when staging exists.
+#
+# Playwright is CI-only here: it arrives with the EXISTING devDependency
+# @playwright/test (lockfile-pinned), so package.json is not changed; only the
+# Chromium binary is installed in this job.
+name: Web smoke
+
+on:
+  pull_request:
+    paths:
+      - 'src/navigation/**'
+      - 'src/contexts/AuthContext.tsx'
+      - 'src/screens/auth/**'
+      - 'src/screens/onboarding/**'
+      - 'src/lib/handBack.ts'
+      - 'src/components/NotificationGate.tsx'
+      - 'e2e/web-smoke/**'
+      - '.github/workflows/web-smoke.yml'
+
+concurrency:
+  group: web-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  web-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Resolve the lockfile-pinned playwright from node_modules explicitly
+      # (the harness otherwise tries the cloud-sandbox global path first).
+      PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright/index.js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-chromium-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: Install Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: Install Chromium system deps (browser restored from cache)
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # No EXPO_PUBLIC_SUPABASE_* override: the bundle must carry the committed
+      # .env project URL, because the mock derives the auth storage key
+      # (sb-<ref>-auth-token) from that project ref. Requests never leave the
+      # browser context — the mock fulfils them.
+      - name: Build web
+        run: npx expo export -p web --output-dir dist-smoke
+
+      - name: Run web smoke (quick matrix — m390,m360 × en,he)
+        run: node e2e/web-smoke/run.mjs --dist dist-smoke --vp m390,m360 --lang en,he
+
+      - name: Matrix summary
+        if: always()
+        run: |
+          if [ -f e2e/web-smoke/.out/results.json ]; then
+            node e2e/web-smoke/report.mjs e2e/web-smoke/.out/results.json >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload smoke output (screenshots + results.json)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-smoke-out
+          path: e2e/web-smoke/.out
+          if-no-files-found: ignore
+          retention-days: 14

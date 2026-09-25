@@ -60,6 +60,16 @@ export class Case {
     await installMocks(this.ctx, this.db);
     const storage = { buff_language: this.lang, ...extraStorage };
     if (sessionUser) storage[AUTH_STORAGE_KEY] = JSON.stringify(sessionFor(sessionUser));
+    // Pin the web Notification permission. Its initial value differs between
+    // Playwright/Chromium builds ('denied' in the cloud sandbox's 1.56, 'default'
+    // with the lockfile's 1.61 used in CI), and 'default' makes NotificationGate
+    // open the push pre-prompt modal over whatever the flow is clicking. The
+    // flows were validated with 'denied'; the pre-prompt path is not covered here.
+    await this.ctx.addInitScript(() => {
+      if (typeof Notification === 'undefined') return;
+      Object.defineProperty(Notification, 'permission', { configurable: true, get: () => 'denied' });
+      Notification.requestPermission = async () => 'denied';
+    });
     await this.ctx.addInitScript((kv) => {
       if (sessionStorage.getItem('__smoke_seeded')) return; // only before the first load
       sessionStorage.setItem('__smoke_seeded', '1');
