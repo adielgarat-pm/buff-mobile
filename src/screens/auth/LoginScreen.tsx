@@ -219,8 +219,9 @@ export default function LoginScreen() {
           <TouchableOpacity
             testID="login-grownup-back"
             onPress={() => navigation.goBack()}
-            style={styles.signupRow}
-            hitSlop={LINK_HIT_SLOP}
+            // Own row with a gap: it sat flush under "Sign Up" and its hitSlop
+            // reached into that link (Android run 2026-09-24).
+            style={styles.backToBuffRow}
             accessibilityRole="button"
           >
             <Text style={styles.signupLink}>{t('auth.backToBuff')}</Text>
@@ -312,6 +313,7 @@ const styles = StyleSheet.create({
   googleHint:     { color: T.textMuted, fontSize: 12, textAlign: 'center', marginBottom: 24 },
 
   signupRow:      { alignItems: 'center' },
+  backToBuffRow:  { alignItems: 'center', marginTop: 28, paddingVertical: 10, paddingHorizontal: 16 },
   signupText:     { color: T.textMuted, fontSize: 14 },
   signupLink:     { color: T.accent, fontWeight: '600' },
 

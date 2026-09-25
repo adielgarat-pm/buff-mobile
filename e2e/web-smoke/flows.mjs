@@ -79,11 +79,13 @@ async function ctaInView(c, testIdOrLoc, label) {
 
 /** From a Signup screen (parent role preselected), create an account. */
 async function fillSignup(c, email) {
-  await gate(c, 'signup screen shown', () => c.visible(c.page.getByPlaceholder(c.s.displayName)));
-  await c.page.getByPlaceholder(c.s.displayName).fill('Test Parent');
-  await c.page.getByPlaceholder(c.s.email).fill(email);
-  await c.page.getByPlaceholder(c.s.password, { exact: true }).fill(PW);
-  const btn = c.page.getByText(c.s.createAccount, { exact: true }).last();
+  // visible=true: when Signup is pushed over Login, both screens' fields are in the DOM.
+  const field = (ph) => c.page.getByPlaceholder(ph, { exact: true }).locator('visible=true').first();
+  await gate(c, 'signup screen shown', () => c.visible(field(c.s.displayName)));
+  await field(c.s.displayName).fill('Test Parent');
+  await field(c.s.email).fill(email);
+  await field(c.s.password).fill(PW);
+  const btn = c.page.getByText(c.s.createAccount, { exact: true }).locator('visible=true').last();
   await ctaInView(c, btn, 'signup-create');
   await btn.click();
 }
@@ -239,6 +241,29 @@ export const flows = {
       const r = new URL(req.url()).searchParams.get('redirect_to');
       if (r !== c.baseUrl + '/') throw new Error(`redirect_to=${r}`);
       return r;
+    });
+  },
+
+  async A10_grownUp_signUp_fromChildSession(c) {
+    // Android run 2026-09-24 finding: Grown-up sign-in → "Sign Up" → Create
+    // Account did nothing. A NEW parent on a shared device (kid signed in) must
+    // be able to create an account from here.
+    const { fam } = seedOnboardedParent(c.db);
+    const { user } = seedChildLinked(c.db, fam);
+    await c.open({ sessionUser: user });
+    await c.goto('/');
+    await gate(c, 'child session → ChildApp', () => c.visible(c.page.locator('[role="tablist"]').first(), 20000));
+    await dismissChildSheets(c);
+    await c.page.getByRole('tab').last().click();
+    const row = c.tid('child-grownup-signin');
+    await row.scrollIntoViewIfNeeded({ timeout: 10000 });
+    await row.click();
+    await gate(c, 'grown-up Login shown', () => c.visible(c.page.getByPlaceholder(c.s.email), 10000));
+    await c.page.getByText(c.s.signup, { exact: true }).last().click();
+    await fillSignup(c, 'adi.elgarat+e2e-signup-from-child@gmail.com');
+    await gate(c, 'new parent → Welcome (not stuck on Signup)', () => c.visible(c.tid('welcome-cta'), 20000));
+    await c.check('new parent account created', () => {
+      if (!c.db.users.some((u) => u.email === 'adi.elgarat+e2e-signup-from-child@gmail.com')) throw new Error('no auth user');
     });
   },
 

@@ -44,6 +44,7 @@ git-ignored). Exit code 1 if any case failed.
 | A7 | parent B signs up where parent A stopped mid-wizard → B is NOT offered A's flow |
 | A8 | Google picker → "I have a family code" → ChildJoin → ChildApp, no profile for the Google account |
 | A9 | Google picker → "Not you? Use a different account" → RoleSelection, signed out |
+| A10 | child signed in → Grown-up sign-in → "Sign Up" → new parent account → Welcome |
 | B1 | returning onboarded parent login → ParentApp (regression 2026-09-24) |
 | B2 | parent who stopped at Step 3 logs in → Welcome offers resume → Step 3 |
 | B3 | legacy parent (children, no onboarding_complete) → Welcome (documented gap) |
