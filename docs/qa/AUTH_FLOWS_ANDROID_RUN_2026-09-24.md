@@ -189,3 +189,108 @@ both hold on native.
 - The real `https://buffadhd.com/join` App Link (item 2) — needs a preview/release build.
 - The Google "new user" role picker (items 4 and 12) — needs a Google account with no BUFF profile.
 - RLS for a brand-new parent under a rolled-back transaction — still not run (§4 carried this over).
+
+---
+
+# Re-run 2026-09-25 — after #491
+
+Re-tests the three findings #491 fixed, on `main` @ `6c067c0` (same `Pixel_7`, same dev-client
+shell, production backend). Screenshots: `docs/qa/img/android-2026-09-25/`.
+
+**All four re-tested items pass.** One new issue found, unrelated to the fixes.
+
+| # | item | 2026-09-24 | now | evidence |
+|---|------|:---:|:---:|---|
+| 8a | Signup — keyboard open, 360×640dp | ❌ | ✅ | `r20_signup_kbd_360.png`, `r21_signup_kbd_360_scrolled.png` |
+| 8a′ | Signup — marketing checkbox with keyboard open, no jump | — | ✅ | `r22_signup_checkbox_kbd.png` |
+| 8b | ChildJoin — code field + Continue while typing | ❌ | ✅ | `r23_childjoin_typing_360.png`, `r24_childjoin_scrolled_360.png` |
+| 8c | Login — keyboard open (regression check) | ✅ | ✅ | `r25_login_kbd_360.png` |
+| A | Sign up from a child session → Welcome | ❌ | ✅ | `r18_child_signup_kbd.png`, `r19_child_signup_welcome.png` |
+| B | Denied-notifications banner — Welcome, steps 1–7, Complete | ❌ | ✅ | `r02_welcome.png`, `r11_step5.png`, `r14_complete.png` |
+| B′ | Banner appears in ParentApp, above the tab bar | — | ✅ | `r15_parentapp_banner.png` |
+| C | Grown-up login — "Sign Up" / "Back to BUFF" separate targets | ⚠️ | ✅ | `r16_grownup_login.png` |
+
+## Detail
+
+### 8a — Signup, keyboard open (360×640dp) ✅
+
+On focus, "Create Account" still starts below the keyboard, but the form now **scrolls** with the
+keyboard up: one swipe puts it at `[48,497][672,604]`, clear of the keyboard top (`y=682`), and the
+keyboard stays shown throughout (`mInputShown=true`). On 2026-09-24 the scroll was already at its
+end and the button could not be reached at all. Item 8's criterion — "visible or reachable by
+scrolling" — is met.
+
+**Checkbox with the keyboard open:** tapped "I'd love to receive tips and updates…" while typing.
+It toggled (`content-desc` gained `✓`) and **nothing moved** — the two inputs, "Show password",
+the checkbox row and "Create Account" all report byte-identical bounds before and after, and the
+keyboard stayed up. No jump.
+
+### 8b — ChildJoin while typing (360×640dp) ✅
+
+Clear improvement: the code field is now **visible while typing** (it was completely hidden
+before — you could not see what you were entering). Continue starts just below the keyboard, and a
+single short swipe brings **both** onto the screen together — code field `[56,299][664,471]`,
+Continue `[56,527][664,645]`, keyboard still open. On 2026-09-24 a swipe here dismissed the keyboard
+instead of scrolling.
+
+Minor nuance against the stricter wording "both visible while typing": Continue needs that one
+scroll; it is not on screen the instant the field takes focus.
+
+### 8c — Login ✅ (unchanged)
+
+Same behaviour as before the fix: "Log In" is clipped at the keyboard top on focus, then fully
+visible at `[48,516][672,623]` after one scroll. No regression.
+
+### A — Sign up from a child session ✅
+
+Child session → Menu → "🔒 Grown-up sign-in" → "Sign Up" → filled `+e2e-otherB` → **Create Account
+reached Welcome**, and the user row exists in `auth.users`. On 2026-09-24 this was a dead end with
+no row created. #491's diagnosis was right: the button was under the keyboard, not a navigation
+fault.
+
+### B — Denied-notifications banner ✅
+
+Fresh state (`pm clear` + `POST_NOTIFICATIONS` revoked → `granted=false`), then a new parent signup.
+The banner is **absent** on Welcome, steps 1/7 → 7/7 (including the first-task and child-access
+screens) and Complete, and **every pinned CTA advanced the flow on a single tap** — Welcome's
+"Let's start ➔", each step's "Continue", "Skip for now", "Not right now", "I'll send it tonight",
+and Complete's "Go to Dashboard 🏠".
+
+In ParentApp the banner is back where it belongs: `[32,2002][1049,2159]`, entirely **above** the tab
+bar at `y=2193`, overlapping nothing.
+
+### C — Grown-up login tap targets ✅
+
+The two links are now separate rows with a 73px gap — "Don't have an account? Sign Up"
+`[63,1787][1017,1838]`, "Back to BUFF" `[63,1911][1017,2015]` (previously flush at `y=1901`).
+Thumb-tested both at their row centres: `(540,1812)` opens Signup, `(540,1963)` returns to the child
+app. Neither misfires into the other.
+
+## New issue — red-box crash during onboarding transitions
+
+Twice in a single onboarding pass the dev build hit a fatal:
+
+```
+com.facebook.react.bridge.JSApplicationIllegalArgumentException:
+connectAnimatedNodeToView: Animated node with tag [545] does not exist
+  at NativeAnimatedNodesManager.connectAnimatedNodeToView(NativeAnimatedNodesManager.kt:375)
+```
+
+- first on the step 3 → step 4 transition (`r09_redbox_step4.png`)
+- again on the step 5 → child-access transition, tag `[375]` (`r13_redbox_step5.png`)
+
+Both times "Reload" recovered and the resume snapshot brought the wizard back correctly. It is
+**intermittent** — the same two transitions were clean on the following pass.
+
+Not seen in any of the ~6 wizard passes on 2026-09-24 (`03ccdd1`), which makes #491 a plausible
+trigger (it changes `KeyboardAvoidingView` on these screens, and `behavior="height"` animates
+layout). That is circumstantial, not established — intermittent enough that a fair A/B needs several
+passes on each commit. Worth triaging before this reaches a release build, since in a release build
+there is no red box: the screen would simply go blank or the animation would drop.
+
+## Test data
+
+Created for this run and deleted afterwards: `+e2e-signup` (family "TestParentA's Family", child
+"TestKid"), `+e2e-otherB`, plus one child auth user. Post-cleanup: 0 leftover `+e2e` users,
+0 leftover families, 0 leftover Test profiles — 406 profiles / 254 families of real data untouched,
+unchanged from the previous run.
