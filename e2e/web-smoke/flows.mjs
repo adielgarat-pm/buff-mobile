@@ -242,6 +242,11 @@ export const flows = {
       if (r !== c.baseUrl + '/') throw new Error(`redirect_to=${r}`);
       return r;
     });
+    await c.check('google authorize asks for the account chooser (prompt=select_account)', () => {
+      const p = new URL(req.url()).searchParams.get('prompt');
+      if (p !== 'select_account') throw new Error(`prompt=${p}`);
+      return p;
+    });
   },
 
   async A10_grownUp_signUp_fromChildSession(c) {

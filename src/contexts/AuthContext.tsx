@@ -18,6 +18,13 @@ import { resolveAcquisition } from '../lib/acquisitionCapture';
 import { logOnboardingEvent } from '../lib/onboardingFunnel';
 import i18n from '../i18n';
 
+// Always show Google's account chooser. Without it Google silently reuses the
+// only signed-in browser session: on a shared device a parent (or a second
+// parent) could not pick a different Google account, and a test run twice went
+// straight into the founder's real account (Android runs 2026-09-24/25). Costs
+// returning users one tap on the chooser. Both platforms.
+export const GOOGLE_ACCOUNT_CHOOSER = { prompt: 'select_account' } as const;
+
 // Required for expo-web-browser OAuth completion
 WebBrowser.maybeCompleteAuthSession();
 
@@ -413,7 +420,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : undefined;
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: { redirectTo },
+          options: { redirectTo, queryParams: GOOGLE_ACCOUNT_CHOOSER },
         });
         return { error };
       }
@@ -427,6 +434,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           redirectTo: redirectUri,
           skipBrowserRedirect: true,
+          queryParams: GOOGLE_ACCOUNT_CHOOSER,
         },
       });
 
