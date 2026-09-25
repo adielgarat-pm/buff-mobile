@@ -13,6 +13,7 @@ import { useMode } from '../contexts/ModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useExperienceBand } from '../hooks/useExperienceBand';
 import { logChildFirstOpen } from '../lib/firstWinTelemetry';
+import { confirmExitPreview } from '../lib/confirmExitPreview';
 
 import ChildDashboardScreen from '../screens/child/ChildDashboardScreen';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
@@ -53,7 +54,7 @@ export default function ChildTabs() {
   const T               = useChildTheme();
   const insets          = useSafeAreaInsets();
   const { t }           = useTranslation();
-  const { isChildPreview, previewChildId, exitChildPreview } = useMode();
+  const { isChildPreview, previewChildId, previewChildName, exitChildPreview } = useMode();
   const { profile, familyId } = useAuth();
   const band            = useExperienceBand();
   const isTeenBand      = band === 'teen';
@@ -118,11 +119,11 @@ export default function ChildTabs() {
       {isChildPreview && (
         <TouchableOpacity
           style={[banner.strip, { paddingTop: insets.top || 12 }]}
-          onPress={exitChildPreview}
+          onPress={() => confirmExitPreview(t, previewChildName, exitChildPreview)}
           activeOpacity={0.85}
         >
           <Text style={banner.text}>
-            {t('childTabs.previewBanner', { name: profile?.display_name ?? '' })}
+            {t('childTabs.previewBanner', { name: previewChildName ?? t('childTabs.previewChildFallback') })}
           </Text>
           <Text style={banner.exit}>{t('childTabs.exitPreview')}</Text>
         </TouchableOpacity>

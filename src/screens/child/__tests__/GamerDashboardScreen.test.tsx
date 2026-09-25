@@ -11,6 +11,7 @@
  *      (same contract as the Pastel ChildDashboardScreen banner).
  */
 import { render, fireEvent } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import GamerDashboardScreen from '../GamerDashboardScreen';
 
@@ -251,14 +252,26 @@ describe('GamerDashboardScreen — daily-loop fixes', () => {
     expect(getByTestId('streak-value').props.children).toBe(4);
   });
 
-  test('parent-preview banner is tappable and calls exitChildPreview', () => {
+  test('parent-preview banner confirms before exiting (first-win P1a)', () => {
     const exitChildPreview = jest.fn();
     setHooks({ isChildPreview: true, exitChildPreview });
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
 
     const { getByTestId } = render(<GamerDashboardScreen />);
 
+    // Tapping the banner no longer exits directly — it asks first, so a child
+    // holding the phone can't one-tap out into the parent app.
     fireEvent.press(getByTestId('preview-banner'));
+    expect(exitChildPreview).not.toHaveBeenCalled();
+    expect(alertSpy).toHaveBeenCalledTimes(1);
+
+    // Pressing the confirm button in the alert performs the exit.
+    const buttons = alertSpy.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+    const confirm = buttons.find(b => b.text === 'childTabs.exitConfirmYes');
+    confirm?.onPress?.();
     expect(exitChildPreview).toHaveBeenCalledTimes(1);
+
+    alertSpy.mockRestore();
   });
 
   test('no preview banner outside child preview', () => {

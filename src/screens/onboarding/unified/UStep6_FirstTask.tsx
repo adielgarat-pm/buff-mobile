@@ -31,6 +31,7 @@ import { getTodayKey } from '../../../utils/vibeUtils';
 import { logOnboardingEvent, type PresenceAnswer } from '../../../lib/onboardingFunnel';
 import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { crossAlert } from '../../../platform';
+import { pickFirstMission } from './pickFirstMission';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'UStep6_FirstTask'>;
 type Route = RouteProp<RootStackParamList, 'UStep6_FirstTask'>;
@@ -68,12 +69,16 @@ export default function UStep6_FirstTask() {
     const { data } = await supabase
       .from('tasks')
       .select('id, title, time')
-      .eq('assigned_to', params.childProfileId)
-      .order('time', { ascending: true })
-      .limit(1);
+      .eq('assigned_to', params.childProfileId);
     setBusy(false);
 
-    const first = (data ?? [])[0] as { id: string; title: string } | undefined;
+    // Pick the mission nearest to now, not the earliest of the day (P1c) — an
+    // evening signup shouldn't hand the child "morning routine".
+    const now = new Date();
+    const first = pickFirstMission(
+      (data ?? []) as { id: string; title: string; time?: string | null }[],
+      now.getHours() * 60 + now.getMinutes(),
+    );
     if (!first) {
       // No task to offer (shouldn't happen — UStep5 guarantees starter tasks) —
       // don't strand the parent; go to handoff.

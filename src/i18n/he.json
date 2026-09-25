@@ -1828,7 +1828,7 @@
   "gamerRewards.boostersTitle": "בוסטרים מהבאדי",
   "gamerRewards.boostersSubtitle": "צברי בוסטרים על שמירת רצף. הם נותנים יתרונות בתוך האפליקציה כמו לבבות נוספים או דילוג על משימות.",
   "gamerRewards.comingSoon": "בקרוב",
-  "childTabs.previewBanner": "👁 צופה כהורה — {{name}}",
+  "childTabs.previewBanner": "👁 המסך של {{name}}",
   "childTabs.exitPreview": "✕ יציאה",
   "timetable.tabLabel": "מערכת",
   "timetable.title": "מערכת שעות",
@@ -2271,5 +2271,10 @@
   "referral.onboardingErrorSelf": "לא ניתן להשתמש בקוד שלך",
   "referral.onboardingErrorGeneric": "שגיאה, נסו שוב",
   "referral.sheetBannerTitle": "חבר הצטרף!",
-  "referral.sheetBannerSub": "שניכם מקבלים 14 ימים של המאמן של BUFF"
+  "referral.sheetBannerSub": "שניכם מקבלים 14 ימים של המאמן של BUFF",
+  "childTabs.previewChildFallback": "הילד/ה",
+  "childTabs.exitConfirmTitle": "לצאת מהמסך של {{name}}?",
+  "childTabs.exitConfirmBody": "זה חוזר לתצוגת המבוגר.",
+  "childTabs.exitConfirmYes": "כן, לצאת",
+  "childTabs.exitConfirmCancel": "נשארים"
 }

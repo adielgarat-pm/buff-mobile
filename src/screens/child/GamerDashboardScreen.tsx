@@ -63,6 +63,7 @@ import NextTaskCard, { type NextTaskPalette } from '../../components/child/NextT
 import type { Task } from '../../types/task';
 import type { RootStackParamList, ChildTabsParamList } from '../../navigation/types';
 import { formatNum } from '../../lib/uiLocale';
+import { confirmExitPreview } from '../../lib/confirmExitPreview';
 
 // This screen renders inside the ChildTabs navigator (as the ChildDashboard
 // tab) — the composite prop lets it navigate both sibling tabs (ChildSettings)
@@ -389,7 +390,7 @@ export default function GamerDashboardScreen() {
       {isChildPreview && (
         <TouchableOpacity
           style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}
-          onPress={exitChildPreview}
+          onPress={() => confirmExitPreview(t, previewChildName, exitChildPreview)}
           activeOpacity={0.8}
           accessibilityRole="button"
           accessibilityLabel={t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}

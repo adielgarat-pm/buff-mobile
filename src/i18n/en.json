@@ -1828,7 +1828,7 @@
   "gamerRewards.boostersTitle": "Boosters from Buddy",
   "gamerRewards.boostersSubtitle": "Earn boosters by keeping your streak alive. They give you in-app perks like extra hearts or task skips.",
   "gamerRewards.comingSoon": "Coming Soon",
-  "childTabs.previewBanner": "👁 Viewing as parent — {{name}}",
+  "childTabs.previewBanner": "👁 {{name}}'s screen",
   "childTabs.exitPreview": "✕ Exit",
   "timetable.tabLabel": "Schedule",
   "timetable.title": "Schedule",
@@ -2271,5 +2271,10 @@
   "referral.onboardingErrorSelf": "You can't use your own code",
   "referral.onboardingErrorGeneric": "Something went wrong, try again",
   "referral.sheetBannerTitle": "A friend joined!",
-  "referral.sheetBannerSub": "You both get 14 days of BUFF Coach"
+  "referral.sheetBannerSub": "You both get 14 days of BUFF Coach",
+  "childTabs.previewChildFallback": "your child",
+  "childTabs.exitConfirmTitle": "Leave {{name}}'s screen?",
+  "childTabs.exitConfirmBody": "This goes back to the grown-up view.",
+  "childTabs.exitConfirmYes": "Yes, exit",
+  "childTabs.exitConfirmCancel": "Stay"
 }

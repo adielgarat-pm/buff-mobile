@@ -41,6 +41,7 @@ import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowP
 import type { RootStackParamList } from '../../navigation/types';
 import type { Task } from '../../types/task';
 import { formatNum } from '../../lib/uiLocale';
+import { confirmExitPreview } from '../../lib/confirmExitPreview';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -168,7 +169,7 @@ function PastelChildDashboard() {
       {isChildPreview && (
         <TouchableOpacity
           style={[styles.previewBanner, { backgroundColor: T.accent }]}
-          onPress={exitChildPreview}
+          onPress={() => confirmExitPreview(t, previewChildName, exitChildPreview)}
         >
           <Text style={[styles.previewText, { color: T.primaryForeground }]}>
             {t('childDashboard.previewBanner', { name: previewChildName ?? t('childDashboard.previewName') })}
