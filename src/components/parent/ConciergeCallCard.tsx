@@ -8,57 +8,41 @@
  * (lib/firstWinTelemetry.ts COUNTED_SOURCES_FILTER), so the card and the metric
  * can never disagree about who has started.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { PARENT_THEME as T } from '../../theme';
 import { useAuth } from '../../contexts/AuthContext';
 import { useMode } from '../../contexts/ModeContext';
-import { supabase } from '../../integrations/supabase/client';
-import { COUNTED_SOURCES_FILTER } from '../../lib/firstWinTelemetry';
+import { useConciergeState } from '../../hooks/useConciergeState';
 import {
-  CONCIERGE_LINK_KEY, dismissConcierge, isConciergeDismissed, logConciergeSeen,
-  openConcierge, shouldShowDashboardOffer,
+  CONCIERGE_LINK_KEY, logConciergeSeen, openConcierge, shouldShowDashboardOffer,
 } from '../../lib/concierge';
 
 interface Props {
   /** created_at of the family's children (from useChildrenDashboard). */
   childCreatedAts: readonly (string | null)[];
-  /** The resume-handoff banner is showing and already carries the offer. */
-  suppressed?: boolean;
+  /**
+   * The resume-handoff banner is showing (true) and already carries the offer,
+   * or hasn't decided yet (null) — both hide the card, so it never flashes
+   * before the banner appears.
+   */
+  suppressed?: boolean | null;
+  /** Changes when the dashboard refetches (children array identity) → re-check the first win. */
+  refreshKey?: unknown;
 }
 
-export const ConciergeCallCard: React.FC<Props> = ({ childCreatedAts, suppressed = false }) => {
+export const ConciergeCallCard: React.FC<Props> = ({ childCreatedAts, suppressed = false, refreshKey }) => {
+  const hiddenByBanner = suppressed !== false;
   const { t } = useTranslation();
   const { familyId } = useAuth();
   const { isChildPreview } = useMode();
-  const [hasFirstWin, setHasFirstWin] = useState<boolean | null>(null);
-  const [dismissed, setDismissed] = useState(true); // hidden until storage answers
-
-  useEffect(() => {
-    let alive = true;
-    if (!familyId) return;
-    void isConciergeDismissed(familyId).then((d) => { if (alive) setDismissed(d); });
-    void (async () => {
-      try {
-        const { count, error } = await supabase
-          .from('daily_progress')
-          .select('id', { count: 'exact', head: true })
-          .eq('family_id', familyId)
-          .eq('completed', true)
-          .is('revoked_at', null)
-          .or(COUNTED_SOURCES_FILTER);
-        // Unknown (error) stays null → card stays hidden.
-        if (alive && !error && count != null) setHasFirstWin(count > 0);
-      } catch { /* stay hidden */ }
-    })();
-    return () => { alive = false; };
-  }, [familyId]);
+  const { hasFirstWin, dismissed, dismiss } = useConciergeState(familyId, refreshKey);
 
   const url = t(CONCIERGE_LINK_KEY);
   const visible = shouldShowDashboardOffer({
-    url, isChildPreview, childCreatedAts, hasFirstWin, dismissed, suppressed,
+    url, isChildPreview, childCreatedAts, hasFirstWin, dismissed, suppressed: hiddenByBanner,
   });
 
   useEffect(() => {
@@ -68,7 +52,7 @@ export const ConciergeCallCard: React.FC<Props> = ({ childCreatedAts, suppressed
   if (!visible) return null;
 
   const onPick = () => { openConcierge({ url, placement: 'dashboard', familyId }); };
-  const onNotNow = () => { setDismissed(true); void dismissConcierge(familyId); };
+  const onNotNow = dismiss;
 
   return (
     <View testID="concierge-card" style={[styles.card, { backgroundColor: T.card, borderColor: T.cardBorder }]}>

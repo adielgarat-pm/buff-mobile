@@ -61,7 +61,18 @@ it('stays hidden when previously dismissed, and in View-as-Child', async () => {
   await waitFor(() => expect(b.queryByTestId('concierge-card')).toBeNull());
 });
 
-it('stays hidden while the handoff banner carries the offer (one card)', async () => {
-  const { queryByTestId } = render(<ConciergeCallCard childCreatedAts={recent} suppressed />);
+it('stays hidden while the handoff banner carries the offer, and while it is still deciding (no flash)', async () => {
+  const a = render(<ConciergeCallCard childCreatedAts={recent} suppressed />);
+  await waitFor(() => expect(a.queryByTestId('concierge-card')).toBeNull());
+  const b = render(<ConciergeCallCard childCreatedAts={recent} suppressed={null} />);
+  await waitFor(() => expect(b.queryByTestId('concierge-card')).toBeNull());
+});
+
+it('re-checks the first win when the dashboard refetches (refreshKey) and then hides', async () => {
+  const first = {};
+  const { findByTestId, queryByTestId, rerender } = render(<ConciergeCallCard childCreatedAts={recent} refreshKey={first} />);
+  await findByTestId('concierge-card');
+  mockCount.value = 1;
+  rerender(<ConciergeCallCard childCreatedAts={recent} refreshKey={{}} />);
   await waitFor(() => expect(queryByTestId('concierge-card')).toBeNull());
 });

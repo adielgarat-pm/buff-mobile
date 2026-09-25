@@ -15,6 +15,10 @@ jest.mock('../../integrations/supabase/client', () => {
   chain.eq = jest.fn(() => chain);
   return { supabase: { from: jest.fn(() => chain) } };
 });
+const mockConcierge = { hasFirstWin: false as boolean | null, dismissed: false };
+jest.mock('../../hooks/useConciergeState', () => ({
+  useConciergeState: () => ({ ...mockConcierge, dismiss: jest.fn() }),
+}));
 const mockOpen = jest.fn(() => true);
 jest.mock('../../lib/concierge', () => {
   const actual = jest.requireActual('../../lib/concierge');
@@ -28,7 +32,7 @@ const child = (daysAgo: number) => ({
   tasksCompleted: 0, tasksTotal: 3, totalBalance: 0, accessMode: null,
 });
 
-beforeEach(() => { jest.clearAllMocks(); mockRows.value = []; });
+beforeEach(() => { jest.clearAllMocks(); mockRows.value = []; mockConcierge.hasFirstWin = false; mockConcierge.dismissed = false; });
 
 it('shows the call line inside the banner in the first 14 days and books via handoff_banner', async () => {
   const onVisible = jest.fn();
@@ -42,6 +46,24 @@ it('no call line after the 14-day window (banner itself still shows)', async () 
   const { findByText, queryByTestId } = render(<ResumeHandoffBanner familyChildren={[child(20)]} familyShortCode="NOA123" />);
   await findByText('resumeHandoff.cta');
   expect(queryByTestId('handoff-concierge')).toBeNull();
+});
+
+it('no call line after "No thanks", or once the family has a counted win (sibling)', async () => {
+  mockConcierge.dismissed = true;
+  const a = render(<ResumeHandoffBanner familyChildren={[child(2)]} familyShortCode="NOA123" />);
+  await a.findByText('resumeHandoff.cta');
+  expect(a.queryByTestId('handoff-concierge')).toBeNull();
+  mockConcierge.dismissed = false; mockConcierge.hasFirstWin = true;
+  const b = render(<ResumeHandoffBanner familyChildren={[child(2)]} familyShortCode="NOA123" />);
+  await b.findByText('resumeHandoff.cta');
+  expect(b.queryByTestId('handoff-concierge')).toBeNull();
+});
+
+it('reports null until detection resolves, then the answer', async () => {
+  const onVisible = jest.fn();
+  render(<ResumeHandoffBanner familyChildren={[child(2)]} familyShortCode="NOA123" onVisibleChange={onVisible} />);
+  expect(onVisible.mock.calls[0][0]).toBeNull();
+  await waitFor(() => expect(onVisible).toHaveBeenLastCalledWith(true));
 });
 
 it('reports not visible once the child has activated', async () => {

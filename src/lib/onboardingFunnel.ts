@@ -97,7 +97,7 @@ export type OnboardingEventType =
   /** Parent tapped UStep8's final CTA; `method` = AccessMode if one was chosen. */
   | 'onboarding_complete_cta'
   // Concierge call offer (pkg/concierge-call). `source` = ConciergePlacement
-  // ('onboarding_complete' | 'dashboard'). Seen is deduped per app session.
+  // ('onboarding_complete' | 'dashboard' | 'handoff_banner'). Seen is deduped per app session.
   | 'concierge_offer_seen'
   | 'concierge_offer_tapped'
   | 'concierge_offer_dismissed';
