@@ -36,6 +36,7 @@ describe('shouldShowDashboardOffer', () => {
     expect(shouldShowDashboardOffer({ ...base, childCreatedAts: [] })).toBe(false);
     expect(shouldShowDashboardOffer({ ...base, isChildPreview: true })).toBe(false);
     expect(shouldShowDashboardOffer({ ...base, dismissed: true })).toBe(false);
+    expect(shouldShowDashboardOffer({ ...base, suppressed: true })).toBe(false);
     expect(shouldShowDashboardOffer({ ...base, url: '' })).toBe(false);
     expect(shouldShowDashboardOffer({ ...base, url: 'concierge.bookingLink' })).toBe(false);
   });

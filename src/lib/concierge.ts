@@ -26,7 +26,7 @@ import { logOnboardingEvent } from './onboardingFunnel';
 import { openExternalUrl } from '../platform';
 
 /** Where in the app the parent saw the offer. */
-export type ConciergePlacement = 'onboarding_complete' | 'dashboard';
+export type ConciergePlacement = 'onboarding_complete' | 'dashboard' | 'handoff_banner';
 
 /** i18n key holding the language-appropriate booking page URL. */
 export const CONCIERGE_LINK_KEY = 'concierge.bookingLink';
@@ -50,24 +50,34 @@ export interface DashboardEligibility {
   /** true once any child has a counted completion; null while unknown. */
   hasFirstWin: boolean | null;
   dismissed: boolean;
+  /** true while the resume-handoff banner is showing: it carries the offer itself. */
+  suppressed?: boolean;
   now?: number;
 }
 
 /**
- * Pure: should the dashboard card render? Unknown first-win state (null) hides
+ * Pure: should the standalone dashboard card render? (One card, Adi
+ * 2026-09-25: when ResumeHandoffBanner is visible it carries the offer as a
+ * quiet line, and this card stays hidden.) Unknown first-win state (null) hides
  * it, so a family that already has wins never sees a flash of the card.
  */
 export function shouldShowDashboardOffer(e: DashboardEligibility): boolean {
   if (!isValidConciergeUrl(e.url)) return false;
-  if (e.isChildPreview || e.dismissed) return false;
+  if (e.isChildPreview || e.dismissed || e.suppressed) return false;
   if (e.hasFirstWin !== false) return false;
-  const times = e.childCreatedAts
+  return isWithinConciergeWindow(e.childCreatedAts, e.now);
+}
+
+/** true during the first CONCIERGE_WINDOW_DAYS after the family's first child was created. */
+export function isWithinConciergeWindow(
+  childCreatedAts: readonly (string | null | undefined)[],
+  now: number = Date.now(),
+): boolean {
+  const times = childCreatedAts
     .map((s) => (s ? Date.parse(s) : NaN))
     .filter((n) => Number.isFinite(n));
   if (times.length === 0) return false;
-  const first = Math.min(...times);
-  const now = e.now ?? Date.now();
-  return now - first <= CONCIERGE_WINDOW_DAYS * DAY_MS;
+  return now - Math.min(...times) <= CONCIERGE_WINDOW_DAYS * DAY_MS;
 }
 
 const seenThisSession = new Set<string>();

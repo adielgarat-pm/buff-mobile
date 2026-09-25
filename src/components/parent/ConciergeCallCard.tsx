@@ -25,9 +25,11 @@ import {
 interface Props {
   /** created_at of the family's children (from useChildrenDashboard). */
   childCreatedAts: readonly (string | null)[];
+  /** The resume-handoff banner is showing and already carries the offer. */
+  suppressed?: boolean;
 }
 
-export const ConciergeCallCard: React.FC<Props> = ({ childCreatedAts }) => {
+export const ConciergeCallCard: React.FC<Props> = ({ childCreatedAts, suppressed = false }) => {
   const { t } = useTranslation();
   const { familyId } = useAuth();
   const { isChildPreview } = useMode();
@@ -56,7 +58,7 @@ export const ConciergeCallCard: React.FC<Props> = ({ childCreatedAts }) => {
 
   const url = t(CONCIERGE_LINK_KEY);
   const visible = shouldShowDashboardOffer({
-    url, isChildPreview, childCreatedAts, hasFirstWin, dismissed,
+    url, isChildPreview, childCreatedAts, hasFirstWin, dismissed, suppressed,
   });
 
   useEffect(() => {

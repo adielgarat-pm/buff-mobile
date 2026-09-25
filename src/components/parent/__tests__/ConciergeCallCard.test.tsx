@@ -60,3 +60,8 @@ it('stays hidden when previously dismissed, and in View-as-Child', async () => {
   const b = render(<ConciergeCallCard childCreatedAts={recent} />);
   await waitFor(() => expect(b.queryByTestId('concierge-card')).toBeNull());
 });
+
+it('stays hidden while the handoff banner carries the offer (one card)', async () => {
+  const { queryByTestId } = render(<ConciergeCallCard childCreatedAts={recent} suppressed />);
+  await waitFor(() => expect(queryByTestId('concierge-card')).toBeNull());
+});

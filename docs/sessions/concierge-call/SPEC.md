@@ -7,7 +7,8 @@ The funnel breaks before a child's first completed task; 18 of 25 churned parent
 
 ## What (target state)
 - **UStep8 (last onboarding screen):** a quiet text line + link above the community line, under the pinned "Go to Dashboard" CTA. First-time onboarding only (never in add-child flow). Never a button that competes with the main CTA.
-- **Parent dashboard card** (top of the dashboard):
+- **One card for the no-first-win family** (Adi 2026-09-25). When the existing `ResumeHandoffBanner` shows (a child with no `daily_progress` row at all), the offer rides **inside** it as a quiet line under "Send the link" (placement `handoff_banner`), and the standalone card stays hidden.
+- **Standalone parent dashboard card** (top of the dashboard, only when the banner is not showing, e.g. the family has just the onboarding seed row):
   - Shows only while the family has **no first win**, using the same counted sources as the First Win metric (`COUNTED_SOURCES_FILTER`).
   - Shows only during the first **14 days** after the family's first child was created.
   - Hidden until the first-win check and the dismissal check have both answered, so a family that already has wins never sees the card flash.
@@ -35,7 +36,7 @@ The funnel breaks before a child's first completed task; 18 of 25 churned parent
   - It is free, and the copy says so.
 - **Pillar 3:** Adi coaches the parent to do the handoff themselves; she does not do it for them (research §6 item 6). The offer fades by construction: it appears once, is gone after the first win, and is gone after 14 days.
 
-## Copy (UX-writer reviewed 2026-09-25; pending Adi approval)
+## Copy (UX-writer reviewed; approved by Adi 2026-09-25)
 | Key | EN | HE |
 |---|---|---|
 | concierge.cardTitle | Want a hand setting up BUFF? | רוצים עזרה בהגדרת BUFF? |
@@ -45,3 +46,14 @@ The funnel breaks before a child's first completed task; 18 of 25 churned parent
 | concierge.opensBrowserHint (a11y) | Opens in your browser | נפתח בדפדפן |
 | concierge.onboardingLine | Prefer to set it up together? Adi, BUFF's founder, offers a free 15-minute call. | מעדיפים להגדיר יחד? עדי, המייסדת של BUFF, זמינה לשיחה של 15 דקות, בלי עלות. |
 | concierge.onboardingCta | Book a call with Adi → | לקביעת שיחה עם עדי ← |
+
+### Handoff banner retitle (UX-writer proposal; pending Adi approval)
+Adi approved *changing* the title "{{name}} hasn't started yet" (failure framing, Pillar 2). Proposal:
+| Key | EN | HE |
+|---|---|---|
+| resumeHandoff.title | {{childName}}'s BUFF is ready | ה-BUFF של {{childName}} מוכן |
+| resumeHandoff.body | Send the link to a phone, tablet or the family computer, then do the first mission together. | שלחו את הלינק לטלפון, לטאבלט או למחשב בבית, ועשו יחד את המשימה הראשונה. |
+(Body no longer assumes the child owns a device — Keren / H9. CTA unchanged.)
+
+## Also fixed in this package
+`src/platform/openExternalUrl.web.ts`: `window.open(url, '_blank', 'noopener')` returns null by spec even when the tab opens, so the fallback ALSO navigated the app tab away — every external link on web (incl. the WhatsApp community) took the parent out of the app. Now opens normally and cuts `opener` manually. Found by the concierge web E2E.

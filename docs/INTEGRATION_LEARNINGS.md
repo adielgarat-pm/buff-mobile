@@ -43,6 +43,15 @@
 - **סטטוס:** `resolved` (docs corrected 2026-09-24). `child_first_open` logging tracked in first-win P0.
 - **קשור ל:** pkg/first-win, `docs/research/REWARD_LOOP_2026-09.md` §2.2, `docs/research/VALUE_VALIDATION_2026-09.md` §8
 
+### IN-2026-09-25-01: Web external links took the parent OUT of the app (`noopener` makes `window.open` return null)
+
+- **תאריך:** 2026-09-25
+- **מקור:** CC: pkg/concierge-call web E2E (`e2e/mocked/concierge-call.web.mjs`)
+- **תיאור:** `openExternalUrl.web.ts` called `window.open(url, '_blank', 'noopener,noreferrer')` and fell back to `window.location.href = url` when it returned null. Per the HTML spec, `noopener` makes `window.open` return null **even when the tab opens**, so every external link on web opened the new tab AND navigated the app tab away (WhatsApp community, Cal.com, any other caller).
+- **השפעה:** Fixed: open without `noopener` and set `w.opener = null` manually; fall back only when the popup is really blocked. Unit test + E2E assert the app tab stays put. Lesson: assert "the current page did not move" in any web test that opens an external link.
+- **סטטוס:** `resolved` (pkg/concierge-call)
+- **קשור ל:** `src/platform/openExternalUrl.web.ts`, `lib/community.ts`, `lib/concierge.ts`
+
 ### IN-2026-09-24-03: Mocked-Supabase Playwright on the web export: block the service worker, or writes never reach `context.route`
 
 - **תאריך:** 2026-09-24

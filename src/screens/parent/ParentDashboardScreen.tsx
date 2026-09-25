@@ -106,6 +106,9 @@ export default function ParentDashboardScreen() {
   const { profile, user, familyId, familyShortCode } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
+  // One card for the no-first-win family (pkg/concierge-call): the handoff
+  // banner carries the call offer while it shows; the standalone card otherwise.
+  const [handoffVisible, setHandoffVisible] = useState(false);
   // One-time email opt-in ask. Suppressed in View-as-Child: that session runs
   // as the parent, so the sheet would otherwise pop over the child's screen.
   const consentAsk = useMarketingConsentAsk();
@@ -645,7 +648,7 @@ export default function ParentDashboardScreen() {
       <PauseBanner />
 
       {/* ── Resume-handoff nudge (child added but never activated) ────────── */}
-      <ResumeHandoffBanner familyChildren={children} familyShortCode={familyShortCode} />
+      <ResumeHandoffBanner familyChildren={children} familyShortCode={familyShortCode} onVisibleChange={setHandoffVisible} />
 
       {/* ── Passive nudge slot (install / rate-us) — at most one at a time ── */}
       {activeNudge?.render() ?? null}
@@ -668,7 +671,7 @@ export default function ParentDashboardScreen() {
 
       {/* ── Concierge call offer (pkg/concierge-call): only for families with no
            first win yet, first 14 days; renders nothing otherwise. ── */}
-      <ConciergeCallCard childCreatedAts={children.map(c => c.created_at)} />
+      <ConciergeCallCard childCreatedAts={children.map(c => c.created_at)} suppressed={handoffVisible} />
 
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />

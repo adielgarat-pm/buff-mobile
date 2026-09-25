@@ -2,10 +2,12 @@
  * concierge-call — web verification (dashboard offer card).
  * Harness copied from first-win-p1.web.mjs (build/run identical).
  *
- * Scenario D. Onboarded parent, child created yesterday, no completions →
- * the card shows at the top of the dashboard; "Book a call" opens the Cal.com
- * page (new tab) and logs the tap; "No thanks" hides it and it stays hidden
- * after a reload. Scenario E. Same family with a completed task → no card.
+ * D. No activity → one card: the handoff banner (new title) carries the call
+ *    line; no standalone card. Booking opens Cal.com in a NEW tab and the app
+ *    tab stays put (regression for the noopener bug).
+ * F. Only the onboarding seed row → banner hidden → standalone card; book,
+ *    "No thanks", stays hidden after reload.
+ * E. A real first win → no offer anywhere.
  *
  * (first-win P1 header kept below for reference.)
  * first-win P1 — web verification (View-as-Child strip + exit confirmation).
@@ -101,7 +103,8 @@ function check(name, ok, detail) { results.push({ name, ok }); console.log(`${ok
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 
-function familyTables(hasWin) {
+const COUNTED = new Set([null, undefined, 'child_device', 'view_as_child', 'onboarding_handoff']);
+function familyTables(progressRows) {
   const parent = { id: 'parent-D', email: 'p@example.com', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: {} };
   const parentRow = { id: 'pp-D', user_id: 'parent-D', role: 'parent', family_id: 'fam-D', display_name: 'Dana', language: 'en', pro_settings: { onboarding_complete: true } };
   const childRow = { id: 'child-D', user_id: null, role: 'child', family_id: 'fam-D', display_name: 'Noa', age_group: '9-11',
@@ -110,68 +113,82 @@ function familyTables(hasWin) {
     __user: parent,
     profiles: (url) => (url.search.includes('role=eq.child') || url.search.includes('id=eq.child-D')) ? [childRow] : [parentRow],
     families: [{ id: 'fam-D', short_code: 'NOA123', name: 'D', created_at: new Date(Date.now() - 86400000).toISOString() }],
-    daily_progress: hasWin ? [{ id: 'dp1', family_id: 'fam-D', child_id: 'child-D', completed: true, source: 'child_device' }] : [],
+    // The concierge card's first-win check carries an `or=` source filter; the
+    // handoff banner's "any row ever" check doesn't. Mirror PostgREST.
+    daily_progress: (url) => url.search.includes('or=') ? progressRows.filter(r => COUNTED.has(r.source)) : progressRows,
   } };
 }
+const ROW = (source) => ({ id: 'dp-' + source, family_id: 'fam-D', child_id: 'child-D', completed: true, source });
 
-// ── D. No-win family: card, book, dismiss ─────────────────────────────────
-{
-  const { parent, tables } = familyTables(false);
+async function openDashboard(progressRows, writes) {
+  const { parent, tables } = familyTables(progressRows);
   const context = await browser.newContext({ serviceWorkers: 'block' });
-  const writes = [];
   await mockSupabase(context, tables, writes);
-  // Stub the booking page (no network in the sandbox).
   await context.route('https://cal.com/**', r => r.fulfill({ contentType: 'text/html', body: '<h1>Cal.com stub</h1>' }));
   await context.addInitScript(([k, s]) => localStorage.setItem(k, JSON.stringify(s)), [AUTH_KEY, session(parent)]);
   const page = await context.newPage();
   page.on('pageerror', e => console.log('  [pageerror]', e.message));
   await page.goto(BASE);
-  const noThanksConsent = page.getByText('No, thanks', { exact: true }).first();
-  const card = page.getByTestId('concierge-card');
-  await card.waitFor({ timeout: 20000 }).catch(() => {});
-  if (await noThanksConsent.isVisible().catch(() => false)) { await noThanksConsent.click(); await page.waitForTimeout(400); }
-  check('D1 no-win family sees the concierge card', await card.isVisible());
-  check('D2 card copy', await page.getByText('Want a hand setting up BUFF?').first().isVisible().catch(() => false));
-  await page.screenshot({ path: path.join(process.env.SHOTS ?? '.', 'concierge-D-card.png') });
+  await page.getByText(/View as child/i).first().waitFor({ timeout: 20000 }).catch(() => {});
+  const consent = page.getByText('No, thanks', { exact: true }).first();
+  if (await consent.isVisible().catch(() => false)) { await consent.click(); await page.waitForTimeout(400); }
+  await page.waitForTimeout(1500);
+  return { context, page };
+}
+
+async function checkBooking(context, page, testId, placement, writes, label) {
   const popupP = context.waitForEvent('page', { timeout: 5000 }).catch(() => null);
-  await page.getByTestId('concierge-pick').click().catch(e => console.log('  [click]', e.message.split('\n')[0]));
+  await page.getByTestId(testId).click().catch(e => console.log('  [click]', e.message.split('\n')[0]));
   const popup = await popupP;
   if (popup) await popup.waitForLoadState('domcontentloaded').catch(() => {});
-  const popupUrl = popup ? popup.url() : '';
-  check('D3 "Book a call" opens the Cal.com page', popupUrl.startsWith('https://cal.com/adi-elgarat-german-buff'), popupUrl || 'no popup');
-  await page.waitForTimeout(800);
-  check('D3b the app tab stays in the app (did not navigate to Cal.com)', !page.url().includes('cal.com'), page.url());
+  check(`${label} booking opens Cal.com in a new tab`, !!popup && popup.url().startsWith('https://cal.com/adi-elgarat-german-buff'), popup ? popup.url() : 'no popup');
+  await page.waitForTimeout(600);
+  check(`${label} the app tab stays in the app`, !page.url().includes('cal.com'), page.url());
+  check(`${label} tap logged with placement ${placement}`,
+    events(writes).some(e => e.event_type === 'concierge_offer_tapped' && e.source === placement),
+    JSON.stringify(events(writes).map(e => `${e.event_type}:${e.source}`)));
   if (popup) await popup.close().catch(() => {});
-  const ev = events(writes);
-  check('D4 seen + tapped logged with placement dashboard',
-    ev.some(e => e.event_type === 'concierge_offer_seen' && e.source === 'dashboard') &&
-    ev.some(e => e.event_type === 'concierge_offer_tapped' && e.source === 'dashboard'), JSON.stringify(ev.map(e => e.event_type)));
-  check('D4b card still visible before dismiss', await card.isVisible().catch(() => false));
-  await page.getByTestId('concierge-dismiss').click({ timeout: 5000 }).catch(e => console.log('  [dismiss click]', e.message.split('\n')[0]));
-  await page.waitForTimeout(500);
-  check('D5 "No thanks" hides the card', !(await card.isVisible().catch(() => false)));
-  await page.waitForTimeout(1000);
-  check('D6 dismissal logged', events(writes).some(e => e.event_type === 'concierge_offer_dismissed'), JSON.stringify(events(writes).map(e => `${e.event_type}:${e.source}`)));
-  await page.reload();
-  await page.getByText(/View as child/i).first().waitFor({ timeout: 20000 }).catch(() => {});
-  await page.waitForTimeout(2500);
-  await page.screenshot({ path: path.join(process.env.SHOTS ?? '.', 'concierge-D-after-reload.png') });
-  check('D7 stays hidden after reload', (await page.getByTestId('concierge-card').count()) === 0);
+}
+
+// ── D. No activity at all → ONE card: the handoff banner carries the call line
+{
+  const writes = [];
+  const { context, page } = await openDashboard([], writes);
+  check('D1 handoff banner shows with the new title', await page.getByText("Noa's BUFF is ready").first().isVisible().catch(() => false));
+  check('D2 the call line rides inside the banner', await page.getByTestId('handoff-concierge').isVisible().catch(() => false));
+  check('D3 no second (standalone) concierge card', (await page.getByTestId('concierge-card').count()) === 0);
+  await page.screenshot({ path: path.join(process.env.SHOTS ?? '.', 'concierge-D-banner.png') });
+  await checkBooking(context, page, 'handoff-concierge', 'handoff_banner', writes, 'D4');
   await context.close();
 }
 
-// ── E. Family with a first win: no card ───────────────────────────────────
+// ── F. Only the onboarding seed row → banner hidden → standalone card ──────
 {
-  const { parent, tables } = familyTables(true);
-  const context = await browser.newContext({ serviceWorkers: 'block' });
   const writes = [];
-  await mockSupabase(context, tables, writes);
-  await context.addInitScript(([k, s]) => localStorage.setItem(k, JSON.stringify(s)), [AUTH_KEY, session(parent)]);
-  const page = await context.newPage();
-  await page.goto(BASE);
+  const { context, page } = await openDashboard([ROW('onboarding_first_task')], writes);
+  const card = page.getByTestId('concierge-card');
+  check('F1 banner hidden (child has a row)', (await page.getByText("Noa's BUFF is ready").count()) === 0);
+  check('F2 standalone card shows (no counted win yet)', await card.isVisible().catch(() => false));
+  check('F3 approved card copy', await page.getByText('Want a hand setting up BUFF?').first().isVisible().catch(() => false));
+  await page.screenshot({ path: path.join(process.env.SHOTS ?? '.', 'concierge-F-card.png') });
+  await checkBooking(context, page, 'concierge-pick', 'dashboard', writes, 'F4');
+  await page.getByTestId('concierge-dismiss').click({ timeout: 5000 }).catch(e => console.log('  [dismiss]', e.message.split('\n')[0]));
+  await page.waitForTimeout(800);
+  check('F5 "No thanks" hides the card', !(await card.isVisible().catch(() => false)));
+  check('F6 dismissal logged', events(writes).some(e => e.event_type === 'concierge_offer_dismissed'));
+  await page.reload();
   await page.getByText(/View as child/i).first().waitFor({ timeout: 20000 }).catch(() => {});
-  await page.waitForTimeout(1500);
-  check('E1 family with a first win sees no card', (await page.getByTestId('concierge-card').count()) === 0);
+  await page.waitForTimeout(2500);
+  check('F7 stays hidden after reload (still in the app)', !page.url().includes('cal.com') && (await page.getByTestId('concierge-card').count()) === 0);
+  await context.close();
+}
+
+// ── E. Real first win → no offer anywhere ─────────────────────────────────
+{
+  const writes = [];
+  const { context, page } = await openDashboard([ROW('child_device')], writes);
+  check('E1 no standalone card', (await page.getByTestId('concierge-card').count()) === 0);
+  check('E2 no banner / no call line', (await page.getByTestId('handoff-concierge').count()) === 0);
   await context.close();
 }
 
