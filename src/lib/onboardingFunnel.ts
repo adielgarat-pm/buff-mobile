@@ -95,7 +95,12 @@ export type OnboardingEventType =
   /** Parent answered UStep6's "is {child} with you?" (or skipped the task). */
   | 'presence_answered'
   /** Parent tapped UStep8's final CTA; `method` = AccessMode if one was chosen. */
-  | 'onboarding_complete_cta';
+  | 'onboarding_complete_cta'
+  // Concierge call offer (pkg/concierge-call). `source` = ConciergePlacement
+  // ('onboarding_complete' | 'dashboard' | 'handoff_banner'). Seen is deduped per app session.
+  | 'concierge_offer_seen'
+  | 'concierge_offer_tapped'
+  | 'concierge_offer_dismissed';
 
 /** UStep6 answer. 'said_no' is reserved for the P2 coached handoff. */
 export type PresenceAnswer = 'together' | 'not_now' | 'said_no';

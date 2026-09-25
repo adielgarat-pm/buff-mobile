@@ -18,6 +18,7 @@ import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import { CoachTrialNote } from '../../components/parent/CoachTrialNote';
 import { ParentActivitiesEntry } from '../../components/parent/ParentActivitiesEntry';
+import { ConciergeCallCard } from '../../components/parent/ConciergeCallCard';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import MarketingConsentSheet from '../../components/parent/MarketingConsentSheet';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
@@ -105,6 +106,9 @@ export default function ParentDashboardScreen() {
   const { profile, user, familyId, familyShortCode } = useAuth();
   const { enterChildPreview, isChildPreview } = useMode();
   const { children, loading: childrenLoading, refetch } = useChildrenDashboard();
+  // One card for the no-first-win family (pkg/concierge-call): the handoff
+  // banner carries the call offer while it shows; the standalone card otherwise.
+  const [handoffVisible, setHandoffVisible] = useState<boolean | null>(null);
   // One-time email opt-in ask. Suppressed in View-as-Child: that session runs
   // as the parent, so the sheet would otherwise pop over the child's screen.
   const consentAsk = useMarketingConsentAsk();
@@ -644,7 +648,7 @@ export default function ParentDashboardScreen() {
       <PauseBanner />
 
       {/* ── Resume-handoff nudge (child added but never activated) ────────── */}
-      <ResumeHandoffBanner familyChildren={children} familyShortCode={familyShortCode} />
+      <ResumeHandoffBanner familyChildren={children} familyShortCode={familyShortCode} onVisibleChange={setHandoffVisible} />
 
       {/* ── Passive nudge slot (install / rate-us) — at most one at a time ── */}
       {activeNudge?.render() ?? null}
@@ -664,6 +668,10 @@ export default function ParentDashboardScreen() {
       {/* ── BUFF Coach trial moments (Freemium v2) — one-time, dismissible,
            parent-only; renders nothing outside the started/ending/ended days. ── */}
       <CoachTrialNote childName={firstChild?.displayName ?? ''} childId={firstChildId} />
+
+      {/* ── Concierge call offer (pkg/concierge-call): only for families with no
+           first win yet, first 14 days; renders nothing otherwise. ── */}
+      <ConciergeCallCard childCreatedAts={children.map(c => c.created_at)} suppressed={handoffVisible} refreshKey={children} />
 
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />

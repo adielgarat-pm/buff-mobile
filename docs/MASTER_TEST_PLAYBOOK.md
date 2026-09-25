@@ -1026,6 +1026,17 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 - **Expected:** Name renders in place; the line doesn't flip direction (Unicode isolates).
 - **Verdict:** ⬜
 
+### F21 — Concierge call offer (parent)
+
+**Source SPEC:** `docs/sessions/concierge-call/SPEC.md`
+**Persona:** New parent, no first win yet
+
+**F21.H1 — UStep8 quiet line** *(Hat 3)*: first-time onboarding → last screen shows "Prefer to set it up together?" + "Book a call with Adi →" above the community line; tapping opens the Cal.com page in the browser. Add-child flow: no line. **Verdict:** ⬜
+
+**F21.H2 — Dashboard card** *(Hat 3 / web mocked E2E)*: family with no completed task, child created < 14 days → card at the top of the dashboard; "Book a call" opens Cal.com; "No thanks" hides it and it stays hidden after reload. **Verdict:** ⬜ Android · web see PR
+
+**F21.E1 — Never for the child / after a win** *(Hat 3)*: View-as-Child → no card; after the first completed task → no card; child created > 14 days ago → no card. **Verdict:** ⬜
+
 ---
 
 <a name="cross-cutting"></a>

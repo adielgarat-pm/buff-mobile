@@ -1422,8 +1422,8 @@
   "inviteCard.copyBtn": "Copy",
   "inviteCard.copiedBtn": "Copied ✓",
   "inviteCard.shareMessage": "Hey! This is BUFF — my space to run my day, my way 🐺\n\n👉 Tap to join: {{joinUrl}}\n\n(If the link doesn't open: install {{installUrl}} and enter family code {{code}})",
-  "resumeHandoff.title": "{{childName}} hasn't started yet",
-  "resumeHandoff.body": "Send BUFF to {{childName}}'s device so you can do the first mission together.",
+  "resumeHandoff.title": "{{childName}}'s BUFF is ready",
+  "resumeHandoff.body": "Send the link to a phone, tablet or the family computer, then do the first mission together.",
   "resumeHandoff.cta": "Send the link",
   "resumeHandoff.shareMessage": "{{childName}}, your BUFF is ready 💪\n\n👉 Tap to join: {{joinUrl}}\n\n(If the link doesn't open: install {{installUrl}} and enter code {{code}})",
   "inviteCard.shareFallbackTitle": "Invite copied",
@@ -2275,5 +2275,13 @@
   "childTabs.exitConfirmYes": "Yes, exit",
   "childTabs.exitConfirmCancel": "Stay",
   "childTabs.previewBannerNoName": "👁 Kid view",
-  "childTabs.exitConfirmTitleNoName": "Leave this screen?"
+  "childTabs.exitConfirmTitleNoName": "Leave this screen?",
+  "concierge.bookingLink": "https://cal.com/adi-elgarat-german-buff",
+  "concierge.cardTitle": "Want a hand setting up BUFF?",
+  "concierge.cardBody": "A free 15‑minute call with Adi, BUFF's founder and mom of a teen with ADHD. We'll set BUFF up together for your family.",
+  "concierge.cardCta": "Book a call",
+  "concierge.cardDismiss": "No thanks",
+  "concierge.opensBrowserHint": "Opens in your browser",
+  "concierge.onboardingLine": "Prefer to set it up together? Adi, BUFF's founder, offers a free 15‑minute call.",
+  "concierge.onboardingCta": "Book a call with Adi →"
 }

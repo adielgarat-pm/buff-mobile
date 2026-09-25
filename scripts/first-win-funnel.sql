@@ -8,7 +8,9 @@
 --   primary    = first_win_48h among STRANGER families that created a child.
 --   secondary  = the same, child_device only (independence).
 --   stranger   = no parent with is_lifetime_access (proxy) AND not in the friend
---                list below. Adi keeps the real list OUTSIDE the repo and pastes
+--                list below AND not a concierge family (tapped the in-app call
+--                offer or booked a call — pkg/concierge-call; reported as its own
+--                'concierge' audience so founder coaching can't inflate the metric). Adi keeps the real list OUTSIDE the repo and pastes
 --                family ids into `friend_ids` locally. Never commit ids.
 --   timestamp  = least(first_task_complete event, first counted row). The event is
 --                immutable (P0 onward); the row covers pre-P0 families and old app
@@ -27,6 +29,9 @@ with params as (
 ),
 friend_ids(id) as (
   values (null::uuid)          -- paste Adi's friend family ids here, locally only
+),
+concierge_ids(id) as (
+  values (null::uuid)          -- families who BOOKED a call with Adi (from Cal.com), locally only
 ),
 
 -- ── Cohort: real families (same filter as REWARD_LOOP_2026-09.md §7) ────────
@@ -49,6 +54,11 @@ fam as (
                                         and coalesce(p.is_lifetime_access, false))
      or rf.id in (select id from friend_ids where id is not null))            as is_friend,
     exists (select 1 from profiles p where p.family_id = rf.id and p.role = 'child') as has_child,
+    -- pkg/concierge-call: founder-coached families are the H3 confound, so they
+    -- get their own audience bucket (tapped the in-app offer, or booked).
+    (exists (select 1 from onboarding_events e where e.family_id = rf.id
+                                             and e.event_type = 'concierge_offer_tapped')
+     or rf.id in (select id from concierge_ids where id is not null))         as is_concierge,
     -- first win = the earliest of (event, row). A row's completed_at can only
     -- move LATER when re-marked, never earlier, and pre-P0 families / old app
     -- builds have rows but no event, so least() is correct and coalesce() is not.
@@ -89,7 +99,9 @@ fam as (
 -- ── 1. Primary + secondary metric by signup month and friend/stranger ──────
 select
   to_char(date_trunc('month', created_at), 'YYYY-MM')                    as signup_month,
-  case when is_friend then 'friend' else 'stranger' end                  as audience,
+  case when is_friend then 'friend'
+       when is_concierge then 'concierge'
+       else 'stranger' end                                               as audience,
   count(*)                                                               as families,
   count(*) filter (where has_child)                                      as with_child,
   count(*) filter (where has_child and first_win_at <= created_at + interval '48 hours')

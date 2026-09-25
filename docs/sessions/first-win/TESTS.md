@@ -9,6 +9,8 @@
 - Timestamp source: the once-only `first_task_complete` event (P0), not the upsertable `daily_progress` row.
 - Baseline (DB, 2026-09-24, NULL-safe, stranger = no lifetime-access parent as a proxy until Adi's list exists): **2 / 19 stranger families with a child** (~11%, 95% CI ≈1–33%); by month July 2/9, Aug 0/9, Sep 0/1. All stranger families (with or without child): 2/27.
 
+> **Concierge families** (pkg/concierge-call): families who tapped the in-app call offer, or booked a call with Adi, are reported as their own `concierge` audience and are **never** counted as strangers (founder coaching = the H3 confound).
+
 ### Secondary (reported, not decisive)
 - **`first_win_48h_child`** (independence): the same, but `child_device` only. It is always reported next to the primary metric; it is not a gate, but a primary rise with a flat secondary is surfaced to Adi explicitly.
 - `child_first_open_48h`: the child app opened by the child (login or handoff).

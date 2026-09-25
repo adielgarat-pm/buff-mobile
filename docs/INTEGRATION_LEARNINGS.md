@@ -43,6 +43,15 @@
 - **סטטוס:** `resolved` (docs corrected 2026-09-24). `child_first_open` logging tracked in first-win P0.
 - **קשור ל:** pkg/first-win, `docs/research/REWARD_LOOP_2026-09.md` §2.2, `docs/research/VALUE_VALIDATION_2026-09.md` §8
 
+### IN-2026-09-25-01: Web external links took the parent OUT of the app (`noopener` makes `window.open` return null)
+
+- **תאריך:** 2026-09-25
+- **מקור:** CC: pkg/concierge-call web E2E (`e2e/mocked/concierge-call.web.mjs`)
+- **תיאור:** `openExternalUrl.web.ts` called `window.open(url, '_blank', 'noopener,noreferrer')` and fell back to `window.location.href = url` when it returned null. Per the HTML spec, `noopener` makes `window.open` return null **even when the tab opens**, so every external link on web opened the new tab AND navigated the app tab away (WhatsApp community, Cal.com, any other caller).
+- **השפעה:** Fixed: open without `noopener` and set `w.opener = null` manually; fall back only when the popup is really blocked. Unit test + E2E assert the app tab stays put. Lesson: assert "the current page did not move" in any web test that opens an external link.
+- **סטטוס:** `resolved` (pkg/concierge-call)
+- **קשור ל:** `src/platform/openExternalUrl.web.ts`, `lib/community.ts`, `lib/concierge.ts`
+
 ### IN-2026-09-24-03: Mocked-Supabase Playwright on the web export: block the service worker, or writes never reach `context.route`
 
 - **תאריך:** 2026-09-24
@@ -942,6 +951,7 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
   4. **Teen (13+) first-win path** (D3): the teen picks their reward first and writes or chooses their own first task. The guided handoff is 6–12 only.
   5. **Email reminder.** No email sender exists (only `email-unsubscribe`).
   6. **Web confirm dialog styles the confirm action as primary** (`crossAlert.web.tsx`, app-wide). In the View-as-Child exit dialog the child is the likely reader, so "Stay" should look primary. Changing it touches every dialog in the app → separate small package (UX review 2026-09-25).
+  7. **Concierge call (pkg/concierge-call):** (a) after "No thanks" there is no permanent low-key entry to book a call (UX review suggested Settings/Help) — Adi to decide; (b) Cal.com bookings are not reported back to the app (no webhook) — booked families are tagged manually via `concierge_ids` in `scripts/first-win-funnel.sql`.
 - **השפעה:** If first-win "works", it does not mean the handoff is fixed for teens, for no-device families (H9), or for parents reachable only by email.
 - **סטטוס:** `open`
 - **קשור ל:** pkg/first-win, IN-2026-09-24-01

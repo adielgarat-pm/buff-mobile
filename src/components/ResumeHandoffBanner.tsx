@@ -25,18 +25,29 @@ import { logOnboardingEvent } from '../lib/onboardingFunnel';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import type { ChildSummary } from '../hooks/useChildrenDashboard';
+import {
+  CONCIERGE_LINK_KEY, isValidConciergeUrl, isWithinConciergeWindow, logConciergeSeen, openConcierge,
+} from '../lib/concierge';
+import { useConciergeState } from '../hooks/useConciergeState';
 
 interface Props {
   /** Children already loaded by the dashboard — passed in to avoid a second fetch. */
   familyChildren: ChildSummary[];
   /** Family join code (from useAuth). Null while auth is still resolving. */
   familyShortCode: string | null;
+  /**
+   * Tells the dashboard whether the banner is showing (one card,
+   * pkg/concierge-call): null until the first detection resolves, then true/false.
+   */
+  onVisibleChange?: (visible: boolean | null) => void;
 }
 
-export default function ResumeHandoffBanner({ familyChildren, familyShortCode }: Props) {
+export default function ResumeHandoffBanner({ familyChildren, familyShortCode, onVisibleChange }: Props) {
   const { t } = useTranslation();
   const { familyId } = useAuth();
   const [unactivated, setUnactivated] = useState<ChildSummary[]>([]);
+  const [detected, setDetected] = useState(false);
+  const concierge = useConciergeState(familyId, familyChildren);
   const shownForRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -45,7 +56,7 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
     async function detectUnactivated() {
       const childIds = familyChildren.map((c) => c.childId);
       if (childIds.length === 0) {
-        if (!cancelled) setUnactivated([]);
+        if (!cancelled) { setUnactivated([]); setDetected(true); }
         return;
       }
 
@@ -61,11 +72,13 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
       if (error) {
         // Fail safe: never show a false nudge on a query error.
         setUnactivated([]);
+        setDetected(true);
         return;
       }
 
       const activated = new Set((data ?? []).map((row) => row.child_id));
       setUnactivated(familyChildren.filter((c) => !activated.has(c.childId)));
+      setDetected(true);
     }
 
     void detectUnactivated();
@@ -84,8 +97,24 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
     }
   }, [unactivated, familyId]);
 
+  const visible = !!familyShortCode && unactivated.length > 0;
+  useEffect(() => { onVisibleChange?.(detected ? visible : null); }, [detected, visible, onVisibleChange]);
+
+  // Concierge call offer (pkg/concierge-call): the same family is the audience
+  // of both, so the offer rides in this card as a quiet line instead of a second
+  // card with a competing button (Adi 2026-09-25). First 14 days only.
+  const conciergeUrl = t(CONCIERGE_LINK_KEY);
+  // Same rules as the standalone card: no counted win in the family yet and
+  // not dismissed ("No thanks" is final).
+  const showConcierge = visible && isValidConciergeUrl(conciergeUrl)
+    && concierge.hasFirstWin === false && !concierge.dismissed
+    && isWithinConciergeWindow(familyChildren.map((c) => c.created_at));
+  useEffect(() => {
+    if (showConcierge) logConciergeSeen(familyId, 'handoff_banner');
+  }, [showConcierge, familyId]);
+
   // Nothing to nudge, or no code to share yet.
-  if (!familyShortCode || unactivated.length === 0) return null;
+  if (!visible) return null;
 
   // Prompt for one child at a time — a single clear action (ADHD-friendly),
   // never a wall of nudges. The next unactivated child surfaces once this one
@@ -125,6 +154,21 @@ export default function ResumeHandoffBanner({ familyChildren, familyShortCode }:
       >
         <Text style={styles.btnText}>{t('resumeHandoff.cta')}</Text>
       </TouchableOpacity>
+      {showConcierge && (
+        <View style={styles.conciergeWrap}>
+          <Text style={[styles.conciergeLine, { color: T.textMuted }]}>{t('concierge.onboardingLine')}</Text>
+          <TouchableOpacity
+            testID="handoff-concierge"
+            onPress={() => { openConcierge({ url: conciergeUrl, placement: 'handoff_banner', familyId }); }}
+            accessibilityRole="link"
+            accessibilityLabel={t('concierge.onboardingCta')}
+            accessibilityHint={t('concierge.opensBrowserHint')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={[styles.conciergeCta, { color: T.accent }]}>{t('concierge.onboardingCta')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -156,4 +200,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  conciergeWrap: { marginTop: 14, alignItems: 'center' },
+  conciergeLine: { fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  conciergeCta: { fontSize: 14, fontWeight: '700', marginTop: 4, textAlign: 'center' },
 });
