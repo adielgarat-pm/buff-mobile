@@ -20,7 +20,7 @@
  * service account JSON.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +30,7 @@ import { usePushPromptDismiss } from '../hooks/usePushPromptDismiss';
 import { useKidLocalNotifications } from '../hooks/useKidLocalNotifications';
 import { setupNotifications } from '../lib/notificationHandler';
 import { logPushStep } from '../lib/pushTelemetry';
+import { getCurrentRoute, subscribeCurrentRoute } from '../lib/currentRoute';
 import { PushPermissionPrePrompt } from '../screens/onboarding/PushPermissionPrePrompt';
 import { PARENT_THEME as T } from '../theme';
 
@@ -58,6 +59,8 @@ export const NotificationGate: React.FC = () => {
   // Denial-recovery banner: a 'denied' user can never see the OS dialog again,
   // so without this they stay dark forever. Dismissible per session.
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  // The banner is positioned for the parent tab bar; only show it on that shell.
+  const routeName = useSyncExternalStore(subscribeCurrentRoute, getCurrentRoute, getCurrentRoute);
 
   // Run global setup once at mount
   useEffect(() => {
@@ -110,8 +113,13 @@ export const NotificationGate: React.FC = () => {
   // exist on react-native-web (would throw a TypeError) — and a browser has no
   // deep-linkable app-settings screen to route to. So suppress it on web (audit
   // M5); a web parent re-enables notifications via their browser's site settings.
+  // ParentApp only (Android run 2026-09-24): the banner sits at tab-bar height,
+  // so on onboarding screens — no tab bar, pinned footer CTAs — it landed on the
+  // Welcome / step / Complete buttons and swallowed their taps on a fresh
+  // install where the parent had declined the OS prompt.
   const showDeniedBanner =
     Platform.OS !== 'web' &&
+    routeName === 'ParentApp' &&
     profile.role === 'parent' && permission === 'denied' && !bannerDismissed;
 
   return (

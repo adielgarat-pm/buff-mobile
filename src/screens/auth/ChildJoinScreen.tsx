@@ -169,7 +169,10 @@ export default function ChildJoinScreen() {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        // Android: edge-to-edge (app.json) → no window resize for the keyboard;
+        // the code field AND Continue were hidden behind it (Android run
+        // 2026-09-24, item 8). Same as LoginScreen.
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={[styles.scroll, webAuthColumn(440)]}

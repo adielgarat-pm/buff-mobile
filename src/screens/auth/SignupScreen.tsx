@@ -98,11 +98,11 @@ export default function SignupScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: T.canvas }}
-      // Android already resizes the window for the keyboard (adjustResize, Expo
-      // default). Layering behavior="height" double-adjusts: dismissing the
-      // keyboard by tapping the marketing checkbox snapped the centered form
-      // back up, making the ✓ look like it reverted. Let native resize handle it.
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      // Android: edge-to-edge is on (app.json edgeToEdgeEnabled), so the window
+      // no longer resizes for the keyboard — "Create Account" sat behind it with
+      // the scroll already at its end (Android run 2026-09-24, item 8). Same
+      // behaviour as LoginScreen, which passed that check.
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <LanguagePicker />
       <ScrollView contentContainerStyle={[styles.scroll, webAuthColumn(400)]} keyboardShouldPersistTaps="handled">
