@@ -59,6 +59,14 @@ for (const flow of flowNames) {
         if (lastOk) console.log(`      after: ${lastOk}`);
         for (const l of (errorDetail ?? '').split('\n').filter((x) => /intercepts pointer events|waiting for|locator resolved/.test(x)).slice(-3)) console.log(`      ${l.trim()}`);
         console.log(`      url: ${c.page?.url()}`);
+        // What is on screen: tab count, visible testids, visible text.
+        const dom = await c.page?.evaluate(() => ({
+          tabs: document.querySelectorAll('[role="tab"]').length,
+          dialogs: document.querySelectorAll('[role="dialog"],[aria-modal="true"]').length,
+          testids: [...document.querySelectorAll('[data-testid]')].filter((e) => e.offsetParent !== null).map((e) => e.getAttribute('data-testid')).slice(0, 25),
+          text: (document.body?.innerText ?? '').replace(/\s+/g, ' ').slice(0, 400),
+        })).catch((e) => ({ error: e.message }));
+        console.log(`      dom: ${JSON.stringify(dom)}`);
         for (const l of c.trace.slice(-12)) console.log(`      | ${l}`);
       }
       await c.close();
