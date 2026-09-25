@@ -52,6 +52,7 @@ export class Case {
     this.checks = [];
     this.notes = [];
     this.logs = [];
+    this.trace = [];
   }
 
   async open({ sessionUser = null, extraStorage = {} } = {}) {
@@ -81,7 +82,11 @@ export class Case {
         ? r.fulfill({ status: 200, contentType: 'text/html', body: `<h1 id="external">${r.request().url()}</h1>` })
         : r.fulfill({ status: 200, contentType: r.request().resourceType() === 'script' ? 'application/javascript' : 'text/plain', body: '' }));
     this.page = await this.ctx.newPage();
-    this.page.on('console', (m) => { if (['error', 'warning'].includes(m.type())) this.logs.push(`[${m.type()}] ${m.text()}`.slice(0, 400)); });
+    this.page.on('console', (m) => {
+      if (['error', 'warning'].includes(m.type())) this.logs.push(`[${m.type()}] ${m.text()}`.slice(0, 400));
+      // App routing/auth trace, printed by run.mjs only for a failed case.
+      if (/^\[(RootNavigator|Auth|Dashboard|UStep\d)/.test(m.text())) this.trace.push(m.text().slice(0, 300));
+    });
     this.page.on('pageerror', (e) => this.logs.push(`[pageerror] ${e.message}`));
     return this.page;
   }

@@ -52,12 +52,14 @@ for (const flow of flowNames) {
       }
       const ok = !error && c.checks.every((k) => k.ok);
       const endShot = await c.shot('end');
-      results.push({ flow, vpKey, lang, ok, error, errorDetail, checks: c.checks, notes: c.notes, endShot, unhandled: [...new Set(c.db.unhandled)], logs: c.logs.slice(-15) });
+      results.push({ flow, vpKey, lang, ok, error, errorDetail, checks: c.checks, notes: c.notes, endShot, unhandled: [...new Set(c.db.unhandled)], logs: c.logs.slice(-15), trace: c.trace.slice(-40) });
       console.log(`${ok ? 'PASS' : 'FAIL'}  ${flow}  ${vpKey}  ${lang}${ok ? '' : '  → ' + (c.checks.find((k) => !k.ok)?.label ?? error)}`);
       if (!ok) {
         const lastOk = [...c.checks].reverse().find((k) => k.ok)?.label;
         if (lastOk) console.log(`      after: ${lastOk}`);
         for (const l of (errorDetail ?? '').split('\n').filter((x) => /intercepts pointer events|waiting for|locator resolved/.test(x)).slice(-3)) console.log(`      ${l.trim()}`);
+        console.log(`      url: ${c.page?.url()}`);
+        for (const l of c.trace.slice(-12)) console.log(`      | ${l}`);
       }
       await c.close();
     }
