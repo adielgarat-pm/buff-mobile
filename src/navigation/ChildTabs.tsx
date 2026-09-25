@@ -13,6 +13,7 @@ import { useMode } from '../contexts/ModeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useExperienceBand } from '../hooks/useExperienceBand';
 import { logChildFirstOpen } from '../lib/firstWinTelemetry';
+import { confirmExitPreview, isolateName } from '../lib/confirmExitPreview';
 
 import ChildDashboardScreen from '../screens/child/ChildDashboardScreen';
 import ChildTasksScreen from '../screens/child/ChildTasksScreen';
@@ -53,7 +54,7 @@ export default function ChildTabs() {
   const T               = useChildTheme();
   const insets          = useSafeAreaInsets();
   const { t }           = useTranslation();
-  const { isChildPreview, previewChildId, exitChildPreview } = useMode();
+  const { isChildPreview, previewChildId, previewChildName, exitChildPreview } = useMode();
   const { profile, familyId } = useAuth();
   const band            = useExperienceBand();
   const isTeenBand      = band === 'teen';
@@ -118,11 +119,13 @@ export default function ChildTabs() {
       {isChildPreview && (
         <TouchableOpacity
           style={[banner.strip, { paddingTop: insets.top || 12 }]}
-          onPress={exitChildPreview}
+          onPress={() => confirmExitPreview(t, previewChildName, exitChildPreview)}
           activeOpacity={0.85}
         >
-          <Text style={banner.text}>
-            {t('childTabs.previewBanner', { name: profile?.display_name ?? '' })}
+          <Text style={banner.text} numberOfLines={1}>
+            {previewChildName
+              ? t('childTabs.previewBanner', { name: isolateName(previewChildName) })
+              : t('childTabs.previewBannerNoName')}
           </Text>
           <Text style={banner.exit}>{t('childTabs.exitPreview')}</Text>
         </TouchableOpacity>
@@ -149,6 +152,6 @@ const banner = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 10,
   },
-  text:  { color: '#fff', fontWeight: '700', fontSize: 13 },
+  text:  { color: '#fff', fontWeight: '700', fontSize: 13, flexShrink: 1 },
   exit:  { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '600' },
 });

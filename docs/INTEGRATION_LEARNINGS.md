@@ -941,6 +941,7 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
   3. **First-mission card on the child dashboard (C3).** Most children never log in (IN-2026-09-24-01), so reach is low. Revisit after P0 data shows children entering.
   4. **Teen (13+) first-win path** (D3): the teen picks their reward first and writes or chooses their own first task. The guided handoff is 6–12 only.
   5. **Email reminder.** No email sender exists (only `email-unsubscribe`).
+  6. **Web confirm dialog styles the confirm action as primary** (`crossAlert.web.tsx`, app-wide). In the View-as-Child exit dialog the child is the likely reader, so "Stay" should look primary. Changing it touches every dialog in the app → separate small package (UX review 2026-09-25).
 - **השפעה:** If first-win "works", it does not mean the handoff is fixed for teens, for no-device families (H9), or for parents reachable only by email.
 - **סטטוס:** `open`
 - **קשור ל:** pkg/first-win, IN-2026-09-24-01

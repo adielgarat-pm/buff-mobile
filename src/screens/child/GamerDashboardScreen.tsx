@@ -215,7 +215,7 @@ function DashboardTaskCard({ task, onTap }: {
 export default function GamerDashboardScreen() {
   const { t }       = useTranslation();
   const { profile } = useAuth();
-  const { previewChildId, previewChildName, isChildPreview, exitChildPreview } = useMode();
+  const { previewChildId, previewChildName, isChildPreview } = useMode();
   const navigation = useNavigation<Nav>();
 
   const childId = previewChildId ?? profile?.id ?? null;
@@ -383,22 +383,8 @@ export default function GamerDashboardScreen() {
         onDismiss={() => { void markVibeDismissed(); }}
       />
       <ScrollView style={styles.canvas} contentContainerStyle={styles.content}>
-      {/* Parent preview banner — tappable exit, same contract as Pastel
-          (ChildDashboardScreen). On shared devices this is the parent's way
-          back out of the child's view. */}
-      {isChildPreview && (
-        <TouchableOpacity
-          style={[styles.previewBanner, { backgroundColor: COLORS.violet }]}
-          onPress={exitChildPreview}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel={t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}
-          testID="preview-banner"
-        >
-          <Ionicons name="eye-outline" size={16} color="#fff" />
-          <Text style={styles.previewText}>{t('gamerDashboard.previewBanner', { name: previewChildName ?? profile?.display_name ?? '' })}</Text>
-        </TouchableOpacity>
-      )}
+      {/* Preview exit lives in the ChildTabs top strip (one banner, every tab) —
+          first-win P1a, Adi 2026-09-25. */}
 
       {offRoutineActive && <OffRoutineBanner />}
 
@@ -632,15 +618,6 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingTop: 52, paddingBottom: 40 },
   loader:  { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.canvas },
 
-  previewBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 16,
-  },
-  previewText: { color: '#fff', fontSize: 13, fontWeight: '600' },
 
   headerRow: {
     flexDirection: 'row',

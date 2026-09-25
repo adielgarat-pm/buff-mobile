@@ -251,14 +251,10 @@ describe('GamerDashboardScreen — daily-loop fixes', () => {
     expect(getByTestId('streak-value').props.children).toBe(4);
   });
 
-  test('parent-preview banner is tappable and calls exitChildPreview', () => {
-    const exitChildPreview = jest.fn();
-    setHooks({ isChildPreview: true, exitChildPreview });
-
-    const { getByTestId } = render(<GamerDashboardScreen />);
-
-    fireEvent.press(getByTestId('preview-banner'));
-    expect(exitChildPreview).toHaveBeenCalledTimes(1);
+  test('no dashboard preview banner in child preview — the ChildTabs strip owns it (first-win P1a)', () => {
+    setHooks({ isChildPreview: true, exitChildPreview: jest.fn() });
+    const { queryByTestId } = render(<GamerDashboardScreen />);
+    expect(queryByTestId('preview-banner')).toBeNull();
   });
 
   test('no preview banner outside child preview', () => {

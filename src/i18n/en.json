@@ -432,7 +432,6 @@
   "parentNotifications.sosInline.text": "{{name}} wanted to share — low energy today",
   "parentNotifications.sosInline.a11y": "{{name}} sent a low-energy signal today",
   "gamerDashboard.greetingPrefix": "Hey,",
-  "gamerDashboard.previewBanner": "{{name}}'s screen",
   "gamerDashboard.successfulDays": "Successful days",
   "gamerDashboard.currentStreak": "Current streak",
   "gamerDashboard.streakStart": "Start one today",
@@ -472,7 +471,6 @@
   "buffCatch.buddy.c": "That was awesome!",
   "buffCatch.entryStats": "Best {{best}} · {{left}} left today",
   "buffCatch.entryCtaTomorrow": "Tomorrow",
-  "childDashboard.previewBanner": "👁 {{name}}'s screen — tap to exit",
   "childDashboard.greeting": "Hey,",
   "childDashboard.previewName": "Preview",
   "childDashboard.fallbackName": "Hero",
@@ -1828,7 +1826,7 @@
   "gamerRewards.boostersTitle": "Boosters from Buddy",
   "gamerRewards.boostersSubtitle": "Earn boosters by keeping your streak alive. They give you in-app perks like extra hearts or task skips.",
   "gamerRewards.comingSoon": "Coming Soon",
-  "childTabs.previewBanner": "👁 Viewing as parent — {{name}}",
+  "childTabs.previewBanner": "👁 {{name}}'s screen",
   "childTabs.exitPreview": "✕ Exit",
   "timetable.tabLabel": "Schedule",
   "timetable.title": "Schedule",
@@ -2271,5 +2269,11 @@
   "referral.onboardingErrorSelf": "You can't use your own code",
   "referral.onboardingErrorGeneric": "Something went wrong, try again",
   "referral.sheetBannerTitle": "A friend joined!",
-  "referral.sheetBannerSub": "You both get 14 days of BUFF Coach"
+  "referral.sheetBannerSub": "You both get 14 days of BUFF Coach",
+  "childTabs.exitConfirmTitle": "Leave {{name}}'s screen?",
+  "childTabs.exitConfirmBody": "This switches to the grown-up side of BUFF.",
+  "childTabs.exitConfirmYes": "Yes, exit",
+  "childTabs.exitConfirmCancel": "Stay",
+  "childTabs.previewBannerNoName": "👁 Kid view",
+  "childTabs.exitConfirmTitleNoName": "Leave this screen?"
 }
