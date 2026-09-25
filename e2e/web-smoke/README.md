@@ -11,7 +11,7 @@ Run it before merging anything that touches `src/navigation/**`,
 `src/screens/onboarding/**`.
 
 ```bash
-npx expo export -p web --output-dir /tmp/webdist           # ~1–2 min
+npx expo export -p web --clear --output-dir /tmp/webdist   # ~1–2 min; --clear: Metro's cache keeps old EXPO_PUBLIC_* values (IN-2026-09-25-03)
 node e2e/web-smoke/run.mjs --dist /tmp/webdist             # full matrix (~15 min)
 node e2e/web-smoke/run.mjs --dist /tmp/webdist --vp m390 --lang en   # quick pass (~2 min)
 node e2e/web-smoke/run.mjs --dist /tmp/webdist --flows B1,A6         # just some flows
@@ -65,6 +65,7 @@ pre-prompt modal over the flow. The pre-prompt path itself is not covered here.
 | B3 | legacy parent (children, no onboarding_complete) → Welcome (documented gap) |
 | B4 | wrong password → error, button usable |
 | B5 | session restore → Settings → Sign out → Login again → ParentApp |
+| B6 | parent session still present on /Login → signs in again as the same account → ParentApp (B5's race, deterministic) |
 | C1 | /join/CODE → prefilled → pick unlinked child → ChildApp, linked, no duplicate; reload stays signed in |
 | C2 | RoleSelection → I'm a child → code → pick linked child → ChildApp |
 | C3 | wrong family code → error |

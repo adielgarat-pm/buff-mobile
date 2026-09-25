@@ -14,6 +14,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
 import { clearOnboardingSnapshot } from '../navigation/onboardingPersistence';
+import { isFreshSignIn } from '../navigation/authTransition';
 import { resolveAcquisition } from '../lib/acquisitionCapture';
 import { logOnboardingEvent } from '../lib/onboardingFunnel';
 import i18n from '../i18n';
@@ -68,6 +69,12 @@ interface AuthContextType {
   familyId: string | null;
   familyShortCode: string | null;
   loading: boolean;
+  /**
+   * Counts fresh sign-ins (a SIGNED_IN with a new session — see
+   * isFreshSignIn). RootNavigator treats a change as an identity switch, so the
+   * same account signing in again still leaves the spent entry URL (/Login).
+   */
+  signInSeq: number;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (
     email: string,
@@ -92,6 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [familyShortCode, setFamilyShortCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signInSeq, setSignInSeq] = useState(0);
+  // Access token of the session we last saw, to tell a fresh sign-in from
+  // supabase-js re-emitting SIGNED_IN for the session it already holds.
+  const accessTokenRef = useRef<string | null>(null);
 
   const isInitialized = useRef(false);
   const fetchingProfile = useRef(false);
@@ -288,6 +299,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
 
         if (existingSession?.user) {
+          accessTokenRef.current = existingSession.access_token ?? null;
           setSession(existingSession);
           setUser(existingSession.user);
 
@@ -324,6 +336,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // SIGNED_OUT (nothing in app code calls signOut() automatically), which
       // points at a token-refresh failure rather than a missing profile.
       console.log('[Auth] onAuthStateChange:', event, 'hasSession:', !!newSession);
+
+      const nextToken = newSession?.access_token ?? null;
+      if (isFreshSignIn(event, accessTokenRef.current, nextToken)) setSignInSeq((n) => n + 1);
+      accessTokenRef.current = nextToken;
 
       setSession(newSession);
       setUser(newSession?.user ?? null);
@@ -692,6 +708,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         familyId,
         familyShortCode,
         loading,
+        signInSeq,
         signIn,
         signUp,
         signInWithGoogle,

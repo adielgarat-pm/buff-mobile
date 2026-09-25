@@ -442,6 +442,18 @@ export const flows = {
     await gate(c, 're-login → ParentApp', () => assertParentApp(c));
   },
 
+  // B5's intermittent CI failure, made deterministic (2026-09-25): the parent's
+  // session is still there when /Login loads (in B5, the reload raced the
+  // sign-out), so Login shows over the parent branch (shared-device screens).
+  // Signing in again as the SAME account must still leave the spent /Login.
+  async B6_signedIn_loginAgain_sameAccount(c) {
+    const { user } = seedOnboardedParent(c.db);
+    await c.open({ sessionUser: user });
+    await c.goto('/Login');
+    await loginAs(c, user.email, PW);
+    await gate(c, 'same account again → ParentApp (not the Login form)', () => assertParentApp(c));
+  },
+
   // ── C. child ─────────────────────────────────────────────────────────────
   async C1_joinLink_unlinkedChild(c) {
     seedOnboardedParent(c.db);

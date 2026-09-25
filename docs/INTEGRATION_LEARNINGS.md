@@ -14,6 +14,25 @@
 
 ## Implementation Notes
 
+### IN-2026-09-25-02: "Same account signs in again" was not an identity change — web-smoke B5 was a real bug, not a flake
+
+- **תאריך:** 2026-09-25
+- **מקור:** CC — web-smoke נכשל לסירוגין ב-CI (#494 runs 1–3, #497: A2 m360/he ואז B5 m390/en)
+- **תיאור:** התיקון של IN-2026-09-24-01 צורך את ה-entry URL רק כש*זהות* המשתמש משתנה. הורה שה-session שלו עדיין קיים, פותח `/Login` (Login רשום בענף ההורה בשביל shared-device) ומתחבר שוב **לאותו חשבון** — הזהות לא משתנה, ה-URL לא נצרך, וה-container שמורכב מחדש אחרי ה-loading gate חוזר ל-`/Login`: טופס Login מעל הורה מחובר. ב-B5 זה קרה כשה-reload ל-`/Login` הקדים את סיום ה-sign-out (ה-gate של הזרימה מקל מאוד), ולכן רק לפעמים. **שוחזר דטרמיניסטית** ב-flow חדש B6 (0/4 על main, 4/4 עם התיקון).
+- **התיקון:** `AuthContext.signInSeq` עולה רק על `SIGNED_IN` עם access token **חדש** (`isFreshSignIn`), ו-RootNavigator ממפתח את ה-container לפי `navIdentity(user.id, signInSeq)`. **חשוב:** supabase-js שולח `SIGNED_IN` גם ב-init ובכל חזרה לטאב (`_recoverAndRefresh`) עם אותו session — לכן ההשוואה לפי token ולא לפי event, אחרת כל refocus היה מאפס את הניווט. ריבוי טאבים: supabase-js מעביר אירועים בין טאבים (BroadcastChannel) עם אותו סוג אירוע, כך ש-refresh בטאב אחר מגיע כ-`TOKEN_REFRESHED` ומעדכן את ה-token השמור — refocus אחריו לא נספר כ-sign-in.
+- **השפעה:** Android — אותה לוגיקה (native מתעלם ממילא מה-URL בהרכבה מחדש); sign-in חוזר לאותו חשבון מתחיל עכשיו במסך הראשון של הענף, כמו החלפת משתמש. A2 (DOM ריק ב-UStep8) — לא שוחזר מקומית ולא הוסבר; אם יחזור ב-CI אחרי התיקון, זה באג נפרד.
+- **סטטוס:** `resolved` (web, CI) — `pkg/fix-signin-nav-remount`; Android לאימות במכשיר.
+- **קשור ל:** IN-2026-09-24-01, `src/navigation/authTransition.ts`, `e2e/web-smoke/flows.mjs` B6, PR #497
+
+### IN-2026-09-25-03: `expo export` reuses Metro's transform cache across `EXPO_PUBLIC_*` changes — "the local web smoke is unreliable" was a stale bundle
+
+- **תאריך:** 2026-09-25
+- **מקור:** CC — הרצת web-smoke מקומית נכשלה 0/24 ("Connection problem")
+- **תיאור:** אחרי build עם `EXPO_PUBLIC_SUPABASE_URL=http://mock.supabase.local` (ל-`e2e/mocked/*`), export רגיל הבא עדיין הטמיע את כתובת ה-mock — ה-`.env` תקין אבל ה-transform cache לא התבטל. ה-mock של web-smoke מיירט רק `*.supabase.co`, אז כל בקשה נפלה. `npx expo export -p web --clear` פותר.
+- **השפעה:** לפני הרצה מקומית של web-smoke אחרי build עם env אחר — תמיד `--clear`. בדיקה מהירה: `grep -c <project-ref> dist/_expo/static/js/web/index-*.js` > 0.
+- **סטטוס:** `resolved` (נוהל)
+- **קשור ל:** IN-2026-09-24-03, `e2e/web-smoke/README.md`
+
 ### IN-2026-09-24-01: Registering auth screens in signed-in branches turns the entry URL into a trap — "login succeeded, still on Login"
 
 - **תאריך:** 2026-09-24

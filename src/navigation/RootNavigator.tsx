@@ -20,7 +20,7 @@ import { linking } from './linking';
 import { isOnboardingRoute, snapshotBelongsTo, type OnboardingSnapshot } from './onboardingRoutes';
 import { isParentOnboarded } from './parentRouting';
 import { setCurrentRoute } from '../lib/currentRoute';
-import { identityChanged, consumeAuthEntryUrl } from './authTransition';
+import { identityChanged, consumeAuthEntryUrl, navIdentity } from './authTransition';
 import {
   ONBOARDING_PERSISTENCE_ENABLED,
   loadOnboardingSnapshot,
@@ -82,7 +82,7 @@ const ROOT_SCREEN_OPTIONS = {
 
 
 export default function RootNavigator() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signInSeq } = useAuth();
   const { viewMode }               = useMode();
 
   // Children data is only needed for parents (to determine onboarding state).
@@ -210,8 +210,10 @@ export default function RootNavigator() {
   // branch for shared devices — and a signed-in parent sat on an empty Login
   // form (bug 2026-09-24). Keyed by identity so the container always remounts
   // on a switch, starting at the new branch's first screen. A cold start
-  // (never mounted) still honours the URL.
-  const authIdentity = user?.id ?? null;
+  // (never mounted) still honours the URL. A fresh sign-in as the SAME account
+  // is a switch too (signInSeq): a signed-in parent who opened /Login and
+  // logged in again otherwise stayed on the Login form (web-smoke B5).
+  const authIdentity = navIdentity(user?.id, signInSeq ?? 0);
   const switchedIdentity = identityChanged(mountedIdentityRef.current, authIdentity);
   // Consume on sign-IN only: after a sign-out the entry path (e.g. /RoleSelection
   // from the Google picker's "Use a different account") is where the user wants

@@ -170,3 +170,30 @@ it('still keeps the existing profile when the SIGNED_IN fetch fails, and release
   await waitFor(() => expect(latest.loading).toBe(false), { timeout: 3000 });
   expect(latest.profile?.id).toBe('p1');
 });
+
+// web-smoke B5 (2026-09-25): signInSeq tells RootNavigator that the SAME account
+// signed in again, so the spent /Login entry URL is dropped. supabase-js also
+// re-emits SIGNED_IN for the session it already holds (tab refocus), which must
+// NOT count — that would reset navigation on every refocus.
+it('counts a fresh sign-in (new session) but not the re-emit for the held session', async () => {
+  await mountSignedIn();
+  expect(latest.signInSeq).toBe(0);
+
+  // Tab refocus: same session re-emitted.
+  act(() => { authCallback('SIGNED_IN', SESSION); });
+  expect(latest.signInSeq).toBe(0);
+
+  // Background refresh: new token, but not a sign-in.
+  act(() => { authCallback('TOKEN_REFRESHED', { ...SESSION, access_token: 'b' }); });
+  expect(latest.signInSeq).toBe(0);
+
+  // Same account logs in again → new session.
+  act(() => { authCallback('SIGNED_IN', { ...SESSION, access_token: 'c' }); });
+  expect(latest.signInSeq).toBe(1);
+
+  await act(async () => {
+    await new Promise((r) => setTimeout(r, 0));
+    profileFetches.forEach((d) => d.resolve({ data: PROFILE, error: null }));
+  });
+  await waitFor(() => expect(latest.loading).toBe(false));
+});
