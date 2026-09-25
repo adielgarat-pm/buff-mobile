@@ -344,12 +344,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Setting loading=true here makes RootNavigator's loader gate kick in
         // for that window. TOKEN_REFRESHED is excluded so background refreshes
         // don't flash a spinner over the live UI.
-        if (event === 'SIGNED_IN') {
+        //
+        // The gate is released ONLY by the fetch's `finally` below, so a
+        // SIGNED_IN fetch must never be skipped: if another fetch (e.g. a
+        // refreshProfile) is already in flight, the in-flight guard would drop
+        // it and leave RootNavigator on the spinner forever. The guard still
+        // dedupes TOKEN_REFRESHED, which does not raise the gate.
+        const gatesLoading = event === 'SIGNED_IN';
+        if (gatesLoading) {
           setLoading(true);
         }
-        if (!fetchingProfile.current) {
+        if (gatesLoading || !fetchingProfile.current) {
           setTimeout(async () => {
-            if (!isMounted || fetchingProfile.current) return;
+            if (!isMounted) return;
+            if (!gatesLoading && fetchingProfile.current) return;
             fetchingProfile.current = true;
 
             try {

@@ -20,7 +20,7 @@
  * service account JSON.
  */
 
-import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +60,14 @@ export const NotificationGate: React.FC = () => {
   // so without this they stay dark forever. Dismissible per session.
   const [bannerDismissed, setBannerDismissed] = useState(false);
   // The banner is positioned for the parent tab bar; only show it on that shell.
-  const routeName = useSyncExternalStore(subscribeCurrentRoute, getCurrentRoute, getCurrentRoute);
+  // useState + subscribe (same as useSafeSurface), NOT useSyncExternalStore: the
+  // route store is written from NavigationContainer.onStateChange mid-transition,
+  // and a uSES update forces a synchronous render there — a plausible trigger
+  // for the intermittent dev red box "connectAnimatedNodeToView: Animated node
+  // … does not exist" seen on onboarding transitions after #491 (Android
+  // re-run 2026-09-25). A batched update lands after the transition starts.
+  const [routeName, setRouteName] = useState<string | null>(getCurrentRoute());
+  useEffect(() => subscribeCurrentRoute(setRouteName), []);
 
   // Run global setup once at mount
   useEffect(() => {
