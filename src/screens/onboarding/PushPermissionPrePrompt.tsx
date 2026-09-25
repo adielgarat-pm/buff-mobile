@@ -21,6 +21,8 @@ import { useTranslation } from 'react-i18next';
 
 export type PushPromptAudience = 'parent' | 'kid';
 
+const DEFAULT_BUDDY_NAME = 'BUDDY';
+
 interface Props {
   visible: boolean;
   audience: PushPromptAudience;
@@ -48,7 +50,10 @@ export const PushPermissionPrePrompt: React.FC<Props> = ({
   const dismissKey =
     audience === 'parent' ? 'pushPrePrompt.parent.dismiss' : 'pushPrePrompt.kid.dismiss';
 
-  const interpolation = audience === 'kid' && buddyName ? { name: buddyName } : undefined;
+  // The kid body interpolates {{name}}; without a value i18next renders the
+  // literal "{{name}}". NotificationGate has no buddy name to pass, so fall back
+  // to "BUDDY" — the same name the kid title uses.
+  const interpolation = audience === 'kid' ? { name: buddyName || DEFAULT_BUDDY_NAME } : undefined;
 
   return (
     <Modal
