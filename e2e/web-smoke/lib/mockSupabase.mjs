@@ -26,9 +26,15 @@ const CORS = {
 
 const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 export function fakeJwt(user) {
-  const exp = Math.floor(Date.now() / 1000) + 3600 * 24 * 365;
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + 3600 * 24 * 365;
+  // Like real GoTrue, every session gets its own token (session_id): the app
+  // tells a fresh sign-in from a re-emit of the held session by the token
+  // (isFreshSignIn), and two sessions minted in the same second used to be
+  // byte-identical here (B6 flaked in CI, 2026-09-25).
   return `${b64u({ alg: 'HS256', typ: 'JWT' })}.${b64u({
-    sub: user.id, email: user.email, role: 'authenticated', aud: 'authenticated', exp,
+    sub: user.id, email: user.email, role: 'authenticated', aud: 'authenticated', iat, exp,
+    session_id: randomUUID(),
   })}.sig`;
 }
 
