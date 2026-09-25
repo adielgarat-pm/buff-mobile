@@ -43,11 +43,22 @@ for (const flow of flowNames) {
     for (const lang of langs) {
       const c = new Case({ browser, baseUrl: `http://localhost:${port}`, outDir: out, vpKey, lang, name: flow });
       let error = null;
-      try { await flows[flow](c); } catch (e) { error = e.message.split('\n')[0]; }
+      let errorDetail = null;
+      try { await flows[flow](c); } catch (e) {
+        error = e.message.split('\n')[0];
+        // Keep Playwright's call log (e.g. "<div …> intercepts pointer events")
+        // so a CI-only failure can be diagnosed from results.json / the log.
+        errorDetail = e.message.replace(/\x1b\[[0-9;]*m/g, '').slice(0, 2000);
+      }
       const ok = !error && c.checks.every((k) => k.ok);
       const endShot = await c.shot('end');
-      results.push({ flow, vpKey, lang, ok, error, checks: c.checks, notes: c.notes, endShot, unhandled: [...new Set(c.db.unhandled)], logs: c.logs.slice(-15) });
+      results.push({ flow, vpKey, lang, ok, error, errorDetail, checks: c.checks, notes: c.notes, endShot, unhandled: [...new Set(c.db.unhandled)], logs: c.logs.slice(-15) });
       console.log(`${ok ? 'PASS' : 'FAIL'}  ${flow}  ${vpKey}  ${lang}${ok ? '' : '  → ' + (c.checks.find((k) => !k.ok)?.label ?? error)}`);
+      if (!ok) {
+        const lastOk = [...c.checks].reverse().find((k) => k.ok)?.label;
+        if (lastOk) console.log(`      after: ${lastOk}`);
+        for (const l of (errorDetail ?? '').split('\n').filter((x) => /intercepts pointer events|waiting for|locator resolved/.test(x)).slice(-3)) console.log(`      ${l.trim()}`);
+      }
       await c.close();
     }
   }

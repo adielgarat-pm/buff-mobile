@@ -91,5 +91,7 @@ jobs:
         with:
           name: web-smoke-out
           path: e2e/web-smoke/.out
-          if-no-files-found: ignore
+          # `.out` is a dot-directory; upload-artifact@v4 skips hidden paths by default.
+          include-hidden-files: true
+          if-no-files-found: warn
           retention-days: 14
