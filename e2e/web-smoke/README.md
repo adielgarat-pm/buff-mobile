@@ -23,6 +23,21 @@ every check, the `fold:` notes and console errors, plus a screenshot per failure
 and one at the end of every case, in `--out` (default `e2e/web-smoke/.out/`,
 git-ignored). Exit code 1 if any case failed.
 
+## CI (`.github/workflows/web-smoke.yml`)
+
+Runs on every PR that touches `src/navigation/**`, `src/contexts/AuthContext.tsx`,
+`src/screens/auth/**`, `src/screens/onboarding/**`, `src/lib/handBack.ts`,
+`src/components/NotificationGate.tsx`, `e2e/web-smoke/**` or the workflow itself.
+Quick matrix `--vp m390,m360 --lang en,he`. Playwright comes from the existing,
+lockfile-pinned `@playwright/test` devDependency (no package.json change); only
+Chromium is installed in the job, and `PLAYWRIGHT_MODULE` points the harness at
+`node_modules/playwright`. On failure `e2e/web-smoke/.out` is uploaded as the
+`web-smoke-out` artifact; the pass/fail matrix is always written to the job summary.
+
+The harness pins `Notification.permission` to `'denied'`: its initial value
+differs between Playwright/Chromium builds, and `'default'` opens the push
+pre-prompt modal over the flow. The pre-prompt path itself is not covered here.
+
 ## Matrix
 
 | axis | values |
