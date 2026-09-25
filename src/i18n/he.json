@@ -2275,5 +2275,13 @@
   "childTabs.exitConfirmYes": "כן, לצאת",
   "childTabs.exitConfirmCancel": "נשארים",
   "childTabs.previewBannerNoName": "👁 תצוגת ילד/ה",
-  "childTabs.exitConfirmTitleNoName": "לצאת מהמסך הזה?"
+  "childTabs.exitConfirmTitleNoName": "לצאת מהמסך הזה?",
+  "concierge.bookingLink": "https://cal.com/adi-elgarat-german-buff",
+  "concierge.cardTitle": "רוצים עזרה בהגדרת BUFF?",
+  "concierge.cardBody": "שיחה של 15 דקות עם עדי, המייסדת של BUFF ואמא של נער עם ADHD. בלי עלות. נגדיר את BUFF יחד, בהתאמה למשפחה שלכם.",
+  "concierge.cardCta": "לקביעת שיחה",
+  "concierge.cardDismiss": "לא, תודה",
+  "concierge.opensBrowserHint": "נפתח בדפדפן",
+  "concierge.onboardingLine": "מעדיפים להגדיר יחד? עדי, המייסדת של BUFF, זמינה לשיחה של 15 דקות, בלי עלות.",
+  "concierge.onboardingCta": "לקביעת שיחה עם עדי ←"
 }

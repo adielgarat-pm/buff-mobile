@@ -942,6 +942,7 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
   4. **Teen (13+) first-win path** (D3): the teen picks their reward first and writes or chooses their own first task. The guided handoff is 6–12 only.
   5. **Email reminder.** No email sender exists (only `email-unsubscribe`).
   6. **Web confirm dialog styles the confirm action as primary** (`crossAlert.web.tsx`, app-wide). In the View-as-Child exit dialog the child is the likely reader, so "Stay" should look primary. Changing it touches every dialog in the app → separate small package (UX review 2026-09-25).
+  7. **Concierge call (pkg/concierge-call):** (a) after "No thanks" there is no permanent low-key entry to book a call (UX review suggested Settings/Help) — Adi to decide; (b) Cal.com bookings are not reported back to the app (no webhook) — booked families are tagged manually via `concierge_ids` in `scripts/first-win-funnel.sql`.
 - **השפעה:** If first-win "works", it does not mean the handoff is fixed for teens, for no-device families (H9), or for parents reachable only by email.
 - **סטטוס:** `open`
 - **קשור ל:** pkg/first-win, IN-2026-09-24-01

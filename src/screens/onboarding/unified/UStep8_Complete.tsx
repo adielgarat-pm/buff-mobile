@@ -29,6 +29,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
 import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
+import { CONCIERGE_LINK_KEY, isValidConciergeUrl, logConciergeSeen, openConcierge } from '../../../lib/concierge';
 import { captureRefFromUrl, getRefCode, clearRefCode } from '../../../lib/referralCapture';
 import {
   openCommunity, COMMUNITY_LINK_KEY,
@@ -232,6 +233,15 @@ export default function UStep8_Complete() {
     });
   };
 
+  // Concierge call offer (pkg/concierge-call): first-time onboarding only, a
+  // quiet line above the community one — never a button that competes with
+  // the pinned "Go to Dashboard" CTA.
+  const conciergeUrl = t(CONCIERGE_LINK_KEY);
+  const showConcierge = saved && !addChildFlow && isValidConciergeUrl(conciergeUrl);
+  useEffect(() => {
+    if (showConcierge) logConciergeSeen(profile?.family_id, 'onboarding_complete');
+  }, [showConcierge, profile?.family_id]);
+
   const showSuccessBanner  = saved && (refState === 'auto_success' || refState === 'manual_success');
   const showAlreadyBanner  = saved && refState === 'already_premium';
   const showManualInput    = saved && (refState === 'no_code' || refState === 'manual_loading');
@@ -346,6 +356,23 @@ export default function UStep8_Complete() {
               </TouchableOpacity>
             </View>
             {manualError && <Text style={styles.refManualError}>{manualError}</Text>}
+          </View>
+        )}
+
+        {/* Concierge call offer — quiet, above the community line. */}
+        {showConcierge && (
+          <View style={styles.communityWrap}>
+            <Text style={styles.communityLine}>{t('concierge.onboardingLine')}</Text>
+            <TouchableOpacity
+              testID="onb8-concierge"
+              onPress={() => { openConcierge({ url: conciergeUrl, placement: 'onboarding_complete', familyId: profile?.family_id }); }}
+              accessibilityRole="link"
+              accessibilityLabel={t('concierge.onboardingCta')}
+              accessibilityHint={t('concierge.opensBrowserHint')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.communityCta}>{t('concierge.onboardingCta')}</Text>
+            </TouchableOpacity>
           </View>
         )}
 

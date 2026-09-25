@@ -18,6 +18,7 @@ import DisclaimerFooter from '../../components/DisclaimerFooter';
 import { ParentCaptureEntry } from '../../components/parent/ParentCaptureEntry';
 import { CoachTrialNote } from '../../components/parent/CoachTrialNote';
 import { ParentActivitiesEntry } from '../../components/parent/ParentActivitiesEntry';
+import { ConciergeCallCard } from '../../components/parent/ConciergeCallCard';
 import InviteChildCard from '../../components/parent/InviteChildCard';
 import MarketingConsentSheet from '../../components/parent/MarketingConsentSheet';
 import { ParentNotificationBell } from '../../components/parent/ParentNotificationBell';
@@ -664,6 +665,10 @@ export default function ParentDashboardScreen() {
       {/* ── BUFF Coach trial moments (Freemium v2) — one-time, dismissible,
            parent-only; renders nothing outside the started/ending/ended days. ── */}
       <CoachTrialNote childName={firstChild?.displayName ?? ''} childId={firstChildId} />
+
+      {/* ── Concierge call offer (pkg/concierge-call): only for families with no
+           first win yet, first 14 days; renders nothing otherwise. ── */}
+      <ConciergeCallCard childCreatedAts={children.map(c => c.created_at)} />
 
       {/* ── Parent capture entry (gated by FEATURE_PARENT_CAPTURE; null in prod) ── */}
       <ParentCaptureEntry />
