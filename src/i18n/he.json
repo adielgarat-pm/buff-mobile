@@ -432,7 +432,6 @@
   "parentNotifications.sosInline.text": "{{name}} רצה/רצתה לשתף — יום של אנרגיה נמוכה",
   "parentNotifications.sosInline.a11y": "{{name}} שלח/ה אות של אנרגיה נמוכה היום",
   "gamerDashboard.greetingPrefix": "היי,",
-  "gamerDashboard.previewBanner": "המסך של {{name}}",
   "gamerDashboard.successfulDays": "ימים מוצלחים",
   "gamerDashboard.currentStreak": "רצף נוכחי",
   "gamerDashboard.streakStart": "מתחילים אחד היום",
@@ -472,7 +471,6 @@
   "buffCatch.buddy.c": "זה היה מגניב!",
   "buffCatch.entryStats": "שיא {{best}} · נותרו {{left}} היום",
   "buffCatch.entryCtaTomorrow": "מחר",
-  "childDashboard.previewBanner": "👁 המסך של {{name}} — הקש/י ליציאה",
   "childDashboard.greeting": "היי,",
   "childDashboard.previewName": "תצוגה",
   "childDashboard.fallbackName": "גיבור/ה",
@@ -2272,9 +2270,10 @@
   "referral.onboardingErrorGeneric": "שגיאה, נסו שוב",
   "referral.sheetBannerTitle": "חבר הצטרף!",
   "referral.sheetBannerSub": "שניכם מקבלים 14 ימים של המאמן של BUFF",
-  "childTabs.previewChildFallback": "הילד/ה",
   "childTabs.exitConfirmTitle": "לצאת מהמסך של {{name}}?",
-  "childTabs.exitConfirmBody": "זה חוזר לתצוגת המבוגר.",
+  "childTabs.exitConfirmBody": "זה עובר לצד של ההורה ב-BUFF.",
   "childTabs.exitConfirmYes": "כן, לצאת",
-  "childTabs.exitConfirmCancel": "נשארים"
+  "childTabs.exitConfirmCancel": "נשארים",
+  "childTabs.previewBannerNoName": "👁 תצוגת ילד/ה",
+  "childTabs.exitConfirmTitleNoName": "לצאת מהמסך הזה?"
 }

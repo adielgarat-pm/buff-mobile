@@ -998,6 +998,34 @@ buff_focus() { "$ADB" shell dumpsys window | grep mCurrentFocus | head -1; }
 - **AC:** TRACK_5 cohort flow.
 - **Verdict:** ⬜
 
+### F20 — First Win: View-as-Child strip + first mission
+
+**Source SPEC:** `docs/sessions/first-win/REVIEW.md` §4 (P1), `docs/sessions/first-win/TESTS.md` §B P1
+**Persona:** Parent handing the phone to a child (6–12); parent previewing
+
+#### Happy
+
+**F20.H1 — Strip names the child, one banner only** *(Hat 3 / web mocked E2E `e2e/mocked/first-win-p1.web.mjs`)*
+- **Steps:** Parent dashboard → "👁 View as Child" on a child → skip the Vibe Check.
+- **Expected:** Top strip "👁 {child}'s screen · ✕ Exit" (HE: "👁 המסך של {child}"). No parent name. No second banner on HQ.
+- **Verdict:** ⬜ Android · ✅ web (2026-09-25)
+
+**F20.H2 — Exit asks first** *(Hat 3)*
+- **Steps:** Tap the strip → "Stay" → tap again → "Yes, exit".
+- **Expected:** Dialog "Leave {child}'s screen?" / "This switches to the grown-up side of BUFF." "Stay" keeps the preview; Android back also cancels; "Yes, exit" returns to the parent dashboard.
+- **Verdict:** ⬜ Android · ✅ web (2026-09-25)
+
+**F20.H3 — First mission fits the time of day** *(Hat 3)*
+- **Steps:** New signup in the evening (after 19:00) → UStep6 "We're together".
+- **Expected:** The mission card shows the evening task (e.g. screens-off / bag), not the 08:00 morning routine.
+- **Verdict:** ⬜
+
+#### Edge
+
+**F20.E1 — Hebrew UI + Latin name / English UI + Hebrew name** *(Hat 4, eyes-on)*
+- **Expected:** Name renders in place; the line doesn't flip direction (Unicode isolates).
+- **Verdict:** ⬜
+
 ---
 
 <a name="cross-cutting"></a>

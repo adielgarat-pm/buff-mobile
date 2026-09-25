@@ -432,7 +432,6 @@
   "parentNotifications.sosInline.text": "{{name}} wanted to share — low energy today",
   "parentNotifications.sosInline.a11y": "{{name}} sent a low-energy signal today",
   "gamerDashboard.greetingPrefix": "Hey,",
-  "gamerDashboard.previewBanner": "{{name}}'s screen",
   "gamerDashboard.successfulDays": "Successful days",
   "gamerDashboard.currentStreak": "Current streak",
   "gamerDashboard.streakStart": "Start one today",
@@ -472,7 +471,6 @@
   "buffCatch.buddy.c": "That was awesome!",
   "buffCatch.entryStats": "Best {{best}} · {{left}} left today",
   "buffCatch.entryCtaTomorrow": "Tomorrow",
-  "childDashboard.previewBanner": "👁 {{name}}'s screen — tap to exit",
   "childDashboard.greeting": "Hey,",
   "childDashboard.previewName": "Preview",
   "childDashboard.fallbackName": "Hero",
@@ -2272,9 +2270,10 @@
   "referral.onboardingErrorGeneric": "Something went wrong, try again",
   "referral.sheetBannerTitle": "A friend joined!",
   "referral.sheetBannerSub": "You both get 14 days of BUFF Coach",
-  "childTabs.previewChildFallback": "your child",
   "childTabs.exitConfirmTitle": "Leave {{name}}'s screen?",
-  "childTabs.exitConfirmBody": "This goes back to the grown-up view.",
+  "childTabs.exitConfirmBody": "This switches to the grown-up side of BUFF.",
   "childTabs.exitConfirmYes": "Yes, exit",
-  "childTabs.exitConfirmCancel": "Stay"
+  "childTabs.exitConfirmCancel": "Stay",
+  "childTabs.previewBannerNoName": "👁 Kid view",
+  "childTabs.exitConfirmTitleNoName": "Leave this screen?"
 }

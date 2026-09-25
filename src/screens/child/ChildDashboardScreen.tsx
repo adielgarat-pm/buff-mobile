@@ -41,7 +41,6 @@ import { LowPowerProvider, type LowPowerContextValue } from '../../contexts/LowP
 import type { RootStackParamList } from '../../navigation/types';
 import type { Task } from '../../types/task';
 import { formatNum } from '../../lib/uiLocale';
-import { confirmExitPreview } from '../../lib/confirmExitPreview';
 
 type Nav = StackNavigationProp<RootStackParamList>;
 
@@ -61,7 +60,7 @@ function PastelChildDashboard() {
   const { t }       = useTranslation();
   const navigation  = useNavigation<Nav>();
   const { profile } = useAuth();
-  const { isChildPreview, exitChildPreview, previewChildId, previewChildName } = useMode();
+  const { isChildPreview, previewChildId, previewChildName } = useMode();
   const T = useChildTheme();
 
   const childId = previewChildId ?? profile?.id ?? null;
@@ -165,17 +164,8 @@ function PastelChildDashboard() {
       <ScrollView style={{ flex: 1, backgroundColor: T.background }}
         contentContainerStyle={styles.content}>
 
-      {/* Parent preview banner */}
-      {isChildPreview && (
-        <TouchableOpacity
-          style={[styles.previewBanner, { backgroundColor: T.accent }]}
-          onPress={() => confirmExitPreview(t, previewChildName, exitChildPreview)}
-        >
-          <Text style={[styles.previewText, { color: T.primaryForeground }]}>
-            {t('childDashboard.previewBanner', { name: previewChildName ?? t('childDashboard.previewName') })}
-          </Text>
-        </TouchableOpacity>
-      )}
+      {/* Preview exit lives in the ChildTabs top strip (one banner, every tab) —
+          first-win P1a, Adi 2026-09-25. */}
 
       {offRoutineActive && !isPauseActive && <OffRoutineBanner />}
 
@@ -391,8 +381,6 @@ function DashboardActiveContent({
 const styles = StyleSheet.create({
   loader:        { flex: 1, justifyContent: 'center', alignItems: 'center' },
   content:       { padding: 20, paddingTop: 52, paddingBottom: 32 },
-  previewBanner: { borderRadius: 10, padding: 10, marginBottom: 16, alignItems: 'center' },
-  previewText:   { fontSize: 13, fontWeight: '600' },
   header:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
   greeting:      { fontSize: 14 },

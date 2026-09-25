@@ -23,9 +23,16 @@ describe('confirmExitPreview', () => {
     expect(onExit).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the fallback name when the child name is missing', () => {
+  it('uses the whole-sentence NoName title when the child name is missing', () => {
     const spy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     confirmExitPreview(t, null, jest.fn());
-    expect(spy.mock.calls[0][0]).toContain('childTabs.previewChildFallback');
+    expect(spy.mock.calls[0][0]).toBe('childTabs.exitConfirmTitleNoName');
+  });
+
+  it('isolates the name (bidi) and is cancelable on Android', () => {
+    const spy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    confirmExitPreview(t, 'נועה', jest.fn());
+    expect(spy.mock.calls[0][0]).toContain('\u2068נועה\u2069');
+    expect(spy.mock.calls[0][3]).toEqual({ cancelable: true });
   });
 });
