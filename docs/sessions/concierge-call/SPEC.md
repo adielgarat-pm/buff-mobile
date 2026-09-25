@@ -1,6 +1,6 @@
 # Concierge Call — SPEC
 
-> **Status:** direction approved by Adi 2026-09-25 ("מאשרת"). Copy pending Adi's approval (UX-writer review done). Related: `docs/sessions/first-win/` (this is a first-win lever with its own confound).
+> **Status:** direction approved by Adi 2026-09-25 ("מאשרת"). All copy UX-writer reviewed and approved by Adi 2026-09-25. Related: `docs/sessions/first-win/` (this is a first-win lever with its own confound).
 
 ## Why
 The funnel breaks before a child's first completed task; 18 of 25 churned parents left in their first session (`VALUE_VALIDATION_2026-09.md` §5). Personal outreach works (2/2), a cold survey link doesn't (0/8), and outreach email lands in spam. There have been zero stranger signups since 2026-09-14. So the offer of help lives **inside the app**, where the parent already is.
@@ -47,7 +47,7 @@ The funnel breaks before a child's first completed task; 18 of 25 churned parent
 | concierge.onboardingLine | Prefer to set it up together? Adi, BUFF's founder, offers a free 15-minute call. | מעדיפים להגדיר יחד? עדי, המייסדת של BUFF, זמינה לשיחה של 15 דקות, בלי עלות. |
 | concierge.onboardingCta | Book a call with Adi → | לקביעת שיחה עם עדי ← |
 
-### Handoff banner retitle (UX-writer proposal; pending Adi approval)
+### Handoff banner retitle (UX-writer proposal; approved by Adi 2026-09-25)
 Adi approved *changing* the title "{{name}} hasn't started yet" (failure framing, Pillar 2). Proposal:
 | Key | EN | HE |
 |---|---|---|
