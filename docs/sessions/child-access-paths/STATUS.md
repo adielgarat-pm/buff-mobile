@@ -8,7 +8,7 @@
 | Chunk 3 — View-as-Child in-flow | done · verified | 2026-08-05 | bfb2b7a | tsc 0 · **web-verified E2E** | shared_device → UStep8 CTA "בואו נתחיל עם {child}" → reset+previewChildId → dashboard enters View-as-Child. No login screen, no stuck modal. |
 | Chunk 3b — dashboard "moment" card | done · verified | 2026-08-05 | 67f9ddb | tsc 0 · **web-verified** | useChildrenDashboard selects access_mode; "🌱 הרגע של {child}" button on shared_device cards → re-enters View-as-Child. |
 | Chunk 4 — www join E2E | verified: BROKEN | 2026-08-05 | — | Chrome | `buffadhd.com/join/CODE` redirects to parent UStep1, NOT child-join. Confirms #345 DG3 / DG2 fallback. home_device card correctly stays code-only; smart-link upgrade waits for #301. |
-| Chunk 4 — day-1 local reminder | deferred | — | — | — | Native-only; needs a free emulator. Phase-2 scope. |
+| Chunk 4 — day-1 local reminder | superseded | 2026-09-26 | — | — | Replaced by a server-side evening reminder in the parent's time zone (both platforms): migration 059 + fanout `child_invite_reminder`. See IN-2026-09-26-03. |
 | Abandon re-entry card | deferred | — | — | — | Existing per-child View-as-Child button already prevents a dead-end. |
 
 ## Verification (2026-08-05, Chrome + real signup TEST3, child ZTest)

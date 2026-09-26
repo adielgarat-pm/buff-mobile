@@ -2076,6 +2076,8 @@
   "notificationFeed.row.parent_engagement": "{{name}} has been active this week — wanna see?",
   "notificationFeed.row.family_joined": "{{name}} joined the family",
   "notificationFeed.row.child_vibe_shared": "{{name}} shared how they feel: {{mood}}",
+  "notificationFeed.row.child_invite_reminder_home": "Your family code is ready. Open BUFF together with {{name}}.",
+  "notificationFeed.row.child_invite_reminder_phone": "{{name}}'s invite is ready to send.",
   "anchorRecovery.title": "Everyone needs a fresh start sometimes",
   "anchorRecovery.body.single": "Here's a gentle way to help {{name}} return.",
   "anchorRecovery.body.multi": "Here's a gentle way to help them return.",

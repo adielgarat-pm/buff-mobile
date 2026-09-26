@@ -31,6 +31,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
 import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
+import { deviceTimeZone } from '../../../lib/deviceTimeZone';
 import InviteSendPanel, { type InviteSendMode } from './InviteSendPanel';
 import { CONCIERGE_LINK_KEY, isValidConciergeUrl, logConciergeSeen, openConcierge } from '../../../lib/concierge';
 import { captureRefFromUrl, getRefCode, clearRefCode } from '../../../lib/referralCapture';
@@ -172,6 +173,16 @@ export default function UStep8_Complete() {
         console.warn('[UStep8_Complete] Parent profile update error (non-fatal):', updateErr.message);
       } else {
         console.log('[UStep8_Complete] Parent profile updated ✓');
+      }
+
+      // The parent's time zone, for the evening child-invite reminder (059).
+      // A separate best-effort write: it must never hold up or fail the
+      // onboarding_complete write above.
+      const timezone = deviceTimeZone();
+      if (timezone) {
+        void Promise.resolve(
+          supabase.from('profiles').update({ timezone } as never).eq('user_id', user.id),
+        ).catch(() => { /* non-fatal */ });
       }
 
       // Refresh auth context so RootNavigator re-evaluates isOnboarded.

@@ -14,6 +14,17 @@
 
 ## Implementation Notes
 
+### IN-2026-09-26-03: Evening child-invite reminder — server-side, in the parent's own time zone
+
+- **תאריך:** 2026-09-26
+- **מקור:** Adi — "שווה להוסיף על זה נוטיפיקציה", ואחר כך "תתאים את הזמנים לפי מקום ההתחברות של ההורה".
+- **תיאור:** "פוש יום-1" (child-access-paths DG3 / Phase 2) תוכנן כהתראה מקומית מתוזמנת במכשיר, ונדחה. התראה מקומית קיימת רק באנדרואיד (ב-web אי אפשר לתזמן כשהטאב סגור), ולכן מומש בצד השרת באותו דפוס של `activation_nudge`: cron → `notifications` → `push-notification-fanout` (Expo באנדרואיד, Web Push ב-web, ופעמון בשניהם). אזור הזמן: `profiles.timezone`, שנכתב במסך הסיום של האונבורדינג מ-`expo-localization` (שתי הפלטפורמות). ברירת מחדל: Asia/Jerusalem. ה-cron רץ כל 30 דקות, והחלון הוא 19:30–19:59 בשעון ההורה.
+- **כללים:** ילד שנוצר לפני 1–30 שעות, `access_mode` = home_device / own_phone, עוד לא הצטרף (`user_id IS NULL`); פעם אחת לכל ילד; `day1_push_optout`; מצב הפסקה; ההעדפה `notif_activation_nudges`. נבדק ב-SQL בטרנזקציה שבוטלה על ה-DB האמיתי (יום=0, ערב=1, שוב=0, opt-out=0; לא נשאר דבר).
+- **מגבלות ידועות:** (1) לחיצה על push עדיין לא מנתבת (F-2026-09-24-01 #1), אבל היעד כאן הוא הדשבורד, שהוא ממילא המסך שהאפליקציה נפתחת בו. (2) מעט הורים מחזיקים token או מנוי push (~20%), ולכן הפעמון הוא הערוץ העיקרי. (3) דיכוי ה-push ל"פעיל ב-5 הדקות האחרונות" נשען על `last_seen_at`, שלא מתעדכן ב-web (הבאג של `last_platform`, מחכה להחלטת Adi).
+- **פריסה (אחרי מיזוג):** קודם `push-notification-fanout` (כדי שיכיר את הסוג), אחר כך migration 059 (שמתחיל את ה-cron). בסדר ההפוך, שורות שייכנסו לפני שהפונקציה מכירה את הסוג יסומנו `unknown_type`, וה-cap יחסום אותן.
+- **סטטוס:** `open` עד הפריסה — `feat/child-invite-evening-reminder`.
+- **קשור ל:** `supabase/migrations/059_child_invite_evening_reminder.sql`, `src/lib/deviceTimeZone.ts`, docs/sessions/child-access-paths/SPEC.md DG3
+
 ### IN-2026-09-26-02: End of onboarding showed only a family code — the join link existed but no screen offered it
 
 - **תאריך:** 2026-09-26
