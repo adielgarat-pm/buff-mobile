@@ -174,7 +174,15 @@ export async function bumpLastSeenAt(profileId: string): Promise<boolean> {
     .eq('id', profileId);
   if (error) {
     if (__DEV__) console.warn('[pushTokens] bumpLastSeenAt failed:', error.message);
-    return false;
+    // last_seen_at drives the engagement scans and push suppression; it must not
+    // ride on the admin-only platform/country columns. A rejected platform value
+    // (the CHECK that blocked every web heartbeat until migration 060) used to
+    // drop last_seen_at with it — retry with the heartbeat alone.
+    const { error: retryError } = await supabase
+      .from('profiles')
+      .update({ last_seen_at: now })
+      .eq('id', profileId);
+    return !retryError;
   }
   return true;
 }
