@@ -14,6 +14,16 @@
 
 ## Implementation Notes
 
+### IN-2026-09-26-01: A `SIGNED_IN` relayed from another tab reset onboarding to Welcome, because a same-user `SIGNED_IN` remounted the navigator
+
+- **תאריך:** 2026-09-26
+- **מקור:** Adi — בדיקה ידנית ב-web עם חשבון Google חדש: "סיימתי אונבורדינג והחזיר אותי למסך האונבורדינג הראשון". CC שחזר ב-web smoke.
+- **תיאור:** supabase-js מעביר כל אירוע auth לכל הטאבים של אותו origin דרך `BroadcastChannel(storageKey)`, כולל `SIGNED_IN` (למשל כשטאב אחר של BUFF התחבר / נפתח מחדש). הטאב שבאמצע האונבורדינג קיבל `SIGNED_IN` **לאותו משתמש**, ושני מנגנונים הרכיבו מחדש את ה-NavigationContainer: (1) ה-loading gate של AuthContext עלה על כל `SIGNED_IN` → RootNavigator הציג spinner → ה-container ירד; (2) `signInSeq` מ-IN-2026-09-25-02 ספר כל `SIGNED_IN` עם token חדש, גם כזה שהגיע מטאב אחר → מפתח ה-container השתנה. בהרכבה מחדש ההורה נחת ב-Welcome בלי הצעת המשך (`restoredSnap` נטען רק ב-mount). ההנחה ב-IN-2026-09-25-02 ש"refresh בטאב אחר מגיע כ-`TOKEN_REFRESHED`" נכונה, אבל sign-in בטאב אחר מגיע כ-`SIGNED_IN`.
+- **התיקון:** (1) ה-gate עולה רק על `SIGNED_IN` של **זהות חדשה** (`prevUserId !== user.id`); `SIGNED_IN` לאותו משתמש מרענן את הפרופיל בשקט, כמו `TOKEN_REFRESHED`. (2) `signInSeq` עולה רק על `signIn()` מוצלח **בטאב הזה**, לא מאירוע; `isFreshSignIn` הוסר. B5/B6 (אותו חשבון מתחבר שוב מ-`/Login`) ממשיכים לעבור. Web smoke: D4 (אותו session) ו-D5 (token חדש) — 0/8 על main, 8/8 עם התיקון. הערת smoke: D1 נכשל פעם אחת מתוך 16, כי ה-reload הקדים את כתיבת ה-snapshot (debounce של 400ms), לא בגלל התיקון (אין `SIGNED_IN` ב-trace). D1 מחכה עכשיו ל-snapshot לפני ה-reload.
+- **השפעה:** Android: אין BroadcastChannel, אבל הלוגיקה משותפת. `SIGNED_IN` לאותו משתמש (session recovery) כבר לא מציג spinner. הזדהות מחדש לאותו חשבון דרך מסך Login ממשיכה להתחיל את הענף מההתחלה.
+- **סטטוס:** `resolved` (web) — `fix/same-user-signed-in-no-remount`; Android לאימות במכשיר.
+- **קשור ל:** IN-2026-09-25-02, IN-2026-09-24-01, `src/contexts/AuthContext.tsx`, `e2e/web-smoke/flows.mjs` D4/D5
+
 ### IN-2026-09-25-02: "Same account signs in again" was not an identity change — web-smoke B5 was a real bug, not a flake
 
 - **תאריך:** 2026-09-25

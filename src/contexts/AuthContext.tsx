@@ -14,7 +14,6 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { makeRedirectUri } from 'expo-auth-session';
 import { supabase } from '../integrations/supabase/client';
 import { clearOnboardingSnapshot } from '../navigation/onboardingPersistence';
-import { isFreshSignIn } from '../navigation/authTransition';
 import { resolveAcquisition } from '../lib/acquisitionCapture';
 import { logOnboardingEvent } from '../lib/onboardingFunnel';
 import i18n from '../i18n';
@@ -77,9 +76,11 @@ interface AuthContextType {
   familyShortCode: string | null;
   loading: boolean;
   /**
-   * Counts fresh sign-ins (a SIGNED_IN with a new session — see
-   * isFreshSignIn). RootNavigator treats a change as an identity switch, so the
-   * same account signing in again still leaves the spent entry URL (/Login).
+   * Counts successful signIn() calls made in THIS tab. RootNavigator treats a
+   * change as an identity switch, so the same account signing in again still
+   * leaves the spent entry URL (/Login). Not derived from SIGNED_IN: supabase-js
+   * also relays other tabs' SIGNED_IN over BroadcastChannel, which must not
+   * reset this tab's navigation (onboarding reset, Adi's web run 2026-09-26).
    */
   signInSeq: number;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -107,9 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [familyShortCode, setFamilyShortCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signInSeq, setSignInSeq] = useState(0);
-  // Access token of the session we last saw, to tell a fresh sign-in from
-  // supabase-js re-emitting SIGNED_IN for the session it already holds.
-  const accessTokenRef = useRef<string | null>(null);
+  // Auth user the app currently holds — see the SIGNED_IN gate below.
+  const userIdRef = useRef<string | null>(null);
 
   const isInitialized = useRef(false);
   const fetchingProfile = useRef(false);
@@ -306,7 +306,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!isMounted) return;
 
         if (existingSession?.user) {
-          accessTokenRef.current = existingSession.access_token ?? null;
+          userIdRef.current = existingSession.user.id;
           setSession(existingSession);
           setUser(existingSession.user);
 
@@ -344,10 +344,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // points at a token-refresh failure rather than a missing profile.
       console.log('[Auth] onAuthStateChange:', event, 'hasSession:', !!newSession);
 
-      const nextToken = newSession?.access_token ?? null;
-      if (isFreshSignIn(event, accessTokenRef.current, nextToken)) setSignInSeq((n) => n + 1);
-      accessTokenRef.current = nextToken;
 
+      const prevUserId = userIdRef.current;
+      userIdRef.current = newSession?.user?.id ?? null;
       setSession(newSession);
       setUser(newSession?.user ?? null);
 
@@ -373,7 +372,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // refreshProfile) is already in flight, the in-flight guard would drop
         // it and leave RootNavigator on the spinner forever. The guard still
         // dedupes TOKEN_REFRESHED, which does not raise the gate.
-        const gatesLoading = event === 'SIGNED_IN';
+        //
+        // Only a NEW identity raises the gate. supabase-js also emits SIGNED_IN
+        // for the user we already hold — relayed from another tab of the app
+        // over BroadcastChannel, or on session recovery. Raising the spinner
+        // then unmounts the whole NavigationContainer and a parent mid-onboarding
+        // was thrown back to Welcome with no resume offer (Adi's web run
+        // 2026-09-26, web smoke D4). Same-user SIGNED_IN refreshes silently,
+        // exactly like TOKEN_REFRESHED.
+        const gatesLoading = event === 'SIGNED_IN' && prevUserId !== newSession.user.id;
         if (gatesLoading) {
           setLoading(true);
         }
@@ -422,6 +429,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error) setSignInSeq((n) => n + 1);
     return { error };
   };
 
