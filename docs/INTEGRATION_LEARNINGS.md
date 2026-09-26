@@ -14,6 +14,16 @@
 
 ## Implementation Notes
 
+### IN-2026-09-26-04: `last_seen_at` never moved for any web user — one CHECK rejected the whole heartbeat
+
+- **תאריך:** 2026-09-26
+- **מקור:** CC — נמצא תוך כדי בדיקת האונבורדינג של Adi (0 מתוך 408 פרופילים עם ערך web ב-`last_platform`).
+- **תיאור:** `bumpLastSeenAt` כותב בעדכון אחד את `last_seen_at`, `last_platform` ו-`last_country`. ב-web הקוד כותב `android-web` / `ios-web` / `desktop-web`, כמו שהאפיון web-to-native-cta מבקש (ולוח הניהול כבר ממפה את הערכים האלה). אבל ה-CHECK שנוסף עם העמודה מתיר רק `web` / `android` / `ios`, ולכן כל העדכון נדחה. התוצאה: ל**אף** הורה ב-web לא עודכן `last_seen_at`. הסריקות של משפחות לא פעילות, החסימה של Push למי שנמצא באפליקציה (5 דקות), ולוח הניהול ראו את כל משתמשי ה-web כלא פעילים.
+- **התיקון:** migration 060 מרחיב את ה-CHECK לערכים שהאפליקציה כותבת (`web` נשאר מותר לנתונים ישנים). בנוסף, אם העדכון המלא נכשל, `bumpLastSeenAt` מנסה שוב עם `last_seen_at` בלבד, כדי שעמודה שמשמשת רק את הניהול לא תפיל שוב את ה-heartbeat. נבדק ב-SQL בטרנזקציה שבוטלה: לפני = נדחה, אחרי = מתקבל, ערך זבל = נדחה.
+- **לקח:** עמודות אנליטיקה לא צריכות לשבת באותו עדכון עם עמודה תפעולית. ו-CHECK על ערכים שהלקוח כותב צריך בדיקה ששולחת את הערכים האמיתיים של הלקוח.
+- **סטטוס:** `open` עד המיזוג והפעלת 060 — `fix/last-platform-web-values`.
+- **קשור ל:** `src/lib/pushTokens.ts`, `supabase/migrations/060_last_platform_web_values.sql`, IN-2026-09-26-03 (החסימה של התזכורת)
+
 ### IN-2026-09-26-03: Evening child-invite reminder — server-side, in the parent's own time zone
 
 - **תאריך:** 2026-09-26
