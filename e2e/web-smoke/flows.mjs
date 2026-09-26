@@ -91,7 +91,7 @@ async function fillSignup(c, email) {
 }
 
 /** Welcome → UStep1…UStep8 → ParentApp. Assumes a fresh parent on Welcome. */
-export async function walkOnboarding(c, { reloadAt = null, broadcastAt = null } = {}) {
+export async function walkOnboarding(c, { reloadAt = null, broadcastAt = null, access = 'tonight' } = {}) {
   await gate(c, 'Welcome shown', () => c.visible(c.tid('welcome-cta'), 20000));
   await ctaInView(c, 'welcome-cta', 'welcome');
   await c.tid('welcome-cta').click();
@@ -163,10 +163,43 @@ export async function walkOnboarding(c, { reloadAt = null, broadcastAt = null } 
 
   await gate(c, 'ChildAccess step shown', () => c.visible(c.tid('onb-access-own_phone')));
   await ctaInView(c, 'onb-access-shared_device', 'access-last-option');
-  await c.tid('onb-access-own_phone-secondary').click().catch(async () => c.tid('onb-access-own_phone').click());
+  if (access === 'tonight') await c.tid('onb-access-own_phone-secondary').click();
+  else await c.tid(`onb-access-${access}`).click();
 
   await gate(c, 'Complete shown', () => c.visible(c.tid('onb8-cta'), 20000));
   await ctaInView(c, 'onb8-cta', 'step8-dashboard');
+  // The invite follows the chosen path; the family code stays as the fallback
+  // (Adi's web run 2026-09-26: the screen showed only a code).
+  await gate(c, `invite panel for ${access}`, async () => {
+    await c.visible(c.tid(`invite-panel-${access}`));
+    await c.visible(c.tid('invite-code'));
+    await c.shot(`invite-${access}`);
+  });
+  if (access === 'tonight') {
+    await gate(c, 'tonight: send-now reveals the send button', async () => {
+      await c.tid('invite-send-now').click();
+      await c.visible(c.tid('invite-primary'));
+    });
+  } else {
+    // Headless Chromium has no navigator.share, like most desktop browsers:
+    // the parent picks the app. Copy is the one choice that stays in the page.
+    const sheet = await c.page.evaluate(() => typeof navigator.share === 'function');
+    await gate(c, `${access}: send the invite (share sheet: ${sheet})`, async () => {
+      await c.visible(c.tid('invite-primary'));
+      if (access === 'home_device') {
+        await c.visible(c.tid('invite-share'));
+        if (!sheet) {
+          await c.tid('invite-share').click();
+          await c.visible(c.tid('invite-via-email'));
+          await c.tid('invite-via-copy').click();
+        }
+      } else {
+        await c.tid('invite-copy').click();
+      }
+      await c.visible(c.tid('invite-sent'));
+      await c.shot(`invite-${access}-sent`);
+    });
+  }
   await gate(c, 'onboarding_complete persisted', async () => {
     const p = c.db.tables.profiles.filter((x) => x.role === 'parent').at(-1);
     if (!p?.pro_settings?.onboarding_complete) throw new Error('parent pro_settings.onboarding_complete not set');
@@ -591,6 +624,24 @@ export const flows = {
     await c.text(c.s.iAmParent).click();
     await fillSignup(c, 'adi.elgarat+e2e-othertab2@gmail.com');
     await walkOnboarding(c, { broadcastAt: 'step5-newtoken' });
+  },
+
+  async D6_invite_ownPhone(c) {
+    await c.open();
+    await c.goto('/RoleSelection');
+    await gate(c, 'RoleSelection shown', () => c.visible(c.text(c.s.iAmParent), 20000));
+    await c.text(c.s.iAmParent).click();
+    await fillSignup(c, 'adi.elgarat+e2e-invite-phone@gmail.com');
+    await walkOnboarding(c, { access: 'own_phone' });
+  },
+
+  async D7_invite_homeDevice(c) {
+    await c.open();
+    await c.goto('/RoleSelection');
+    await gate(c, 'RoleSelection shown', () => c.visible(c.text(c.s.iAmParent), 20000));
+    await c.text(c.s.iAmParent).click();
+    await fillSignup(c, 'adi.elgarat+e2e-invite-home@gmail.com');
+    await walkOnboarding(c, { access: 'home_device' });
   },
 
   async D1_reload_midOnboarding(c) {

@@ -50,7 +50,7 @@ pre-prompt modal over the flow. The pre-prompt path itself is not covered here.
 
 | id | what it proves |
 |----|----------------|
-| A1 | RoleSelection → I'm a parent → Signup → Welcome → Steps 1–5 → first task → child access → Complete → ParentApp; every CTA reachable |
+| A1 | RoleSelection → I'm a parent → Signup → Welcome → Steps 1–5 → first task → child access ("send tonight") → Complete → ParentApp; every CTA reachable |
 | A2 | same, starting with ANOTHER parent signed in on the device (#479) |
 | A3 | child signed in → Child Settings "Grown-up sign-in" → "Back to BUFF" → parent login → ParentApp → "Hand back to {name}" → card picker → child again |
 | A4 | Google buttons reachable; authorize redirect_to = origin/ |
@@ -77,6 +77,8 @@ pre-prompt modal over the flow. The pre-prompt path itself is not covered here.
 | D3 | same links with a parent signed in, then / → ParentApp |
 | D4 | parent at Step 5 gets a same-user SIGNED_IN relayed from another tab → stays on Step 5, finishes (2026-09-26) |
 | D5 | D4 with a new access token in the relayed session (the other tab's own sign-in / refresh) |
+| D6 | "On their own phone" → Complete shows the send-invite panel + code fallback; Copy link → "Sent? Nice." |
+| D7 | "Computer at home" → email-first panel; "Share another way" with no share sheet → WhatsApp / Email / Copy |
 
 ## CTA checks
 

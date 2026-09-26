@@ -106,7 +106,7 @@ export type OnboardingEventType =
 export type PresenceAnswer = 'together' | 'not_now' | 'said_no';
 
 /** How the parent tried to hand BUFF to the child's device. */
-export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'later_email';
+export type InviteMethod = 'qr' | 'https_link' | 'whatsapp' | 'copy' | 'share' | 'email' | 'later_email';
 
 /**
  * How the child accesses BUFF, chosen on ChildAccessStep. Persisted on the

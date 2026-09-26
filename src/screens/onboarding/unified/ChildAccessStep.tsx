@@ -6,9 +6,14 @@
  * (real case: Keren / איתן). This reframes to three EQUAL access paths, ordered
  * and emphasised by signup platform so an overwhelmed parent gets a sensible
  * default without any path being forced:
- *   - own_phone     → share the invite now, or "send tonight" (day-1 cohort)
- *   - home_device   → open on a home computer/tablet with the family code
+ *   - own_phone     → send the invite now, or "send tonight" (day-1 cohort)
+ *   - home_device   → open on a home computer/tablet (invite by email)
  *   - shared_device → the child taps on the parent's device (View-as-Child)
+ *
+ * A tap only records the path; the sending itself happens on UStep8_Complete
+ * (InviteSendPanel), with the child's name and what happens on their side.
+ * Opening the share sheet straight from this card gave the parent a cold sheet
+ * and then a Complete screen with nothing but a code (Adi's web run 2026-09-26).
  *
  * Chunk 2 scope: the screen, platform ordering, share + copy-code, the
  * access_mode write, and the abandon event. shared_device launches straight into
@@ -19,7 +24,6 @@
 import { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Clipboard from 'expo-clipboard';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useTranslation } from 'react-i18next';
@@ -28,10 +32,7 @@ import { PARENT_THEME as T } from '../../../theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useRTLStyles } from '../../../contexts/LanguageContext';
 import { supabase } from '../../../integrations/supabase/client';
-import { BUFF_URLS, buildJoinUrl } from '../../../lib/buffConfig';
-import { shareInvite } from '../../../lib/shareInvite';
 import { logOnboardingEvent, type AccessMode } from '../../../lib/onboardingFunnel';
-import { crossAlert } from '../../../platform/crossAlert';
 import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'ChildAccessStep'>;
@@ -51,7 +52,7 @@ export default function ChildAccessStep() {
   const { params }         = useRoute<Route>();
   const { t }              = useTranslation();
   const { isRTL }          = useRTLStyles();
-  const { familyShortCode, familyId } = useAuth();
+  const { familyId } = useAuth();
 
   useStepReachedLog('7_access', familyId);
 
@@ -79,7 +80,7 @@ export default function ChildAccessStep() {
   }, []);
 
   /** Persist the chosen mode on the child profile + log it, then advance. */
-  const choose = async (mode: AccessMode) => {
+  const choose = async (mode: AccessMode, inviteLater = false) => {
     choiceMade.current = true;
     // Best-effort: never block the flow on a write failure (family-scoped RLS).
     try {
@@ -94,63 +95,33 @@ export default function ChildAccessStep() {
       method: mode,
       childId: params.childProfileId,
     });
-    navigation.navigate('UStep8_Complete', { ...params, accessMode: mode });
-  };
-
-  // ── own_phone ──────────────────────────────────────────────────────────────
-  const shareNow = async () => {
-    const code    = familyShortCode ?? '------';
-    const message = t('onboarding.access.inviteMessage', {
-      name: params.childName,
-      code,
-      installUrl: BUFF_URLS.playStoreInstall,
-      joinUrl:    buildJoinUrl(code),
-    });
-    await shareInvite(message);   // never throws; OS sheet completion isn't reliably reported
-    void logOnboardingEvent({
-      familyId, eventType: 'invite_sent', method: 'share', childId: params.childProfileId,
-    });
-    // Honest confirmation: the link is READY to send, not verified as sent.
-    crossAlert(t('onboarding.access.shareReady'), '', [{ text: 'OK' }]);
-    void choose('own_phone');
+    navigation.navigate('UStep8_Complete', { ...params, accessMode: mode, inviteLater });
   };
 
   // "I'll send it tonight" — feeds the day-1 reminder cohort (scheduled in Chunk 4).
-  const sendTonight = () => { void choose('own_phone'); };
+  const sendTonight = () => { void choose('own_phone', true); };
 
-  // ── home_device ──────────────────────────────────────────────────────────────
-  const openOnHomeDevice = async () => {
-    const code = familyShortCode ?? '------';
-    try { await Clipboard.setStringAsync(code); } catch { /* non-fatal */ }
-    crossAlert(t('onboarding.access.card2Title'), code, [{ text: 'OK' }]);
-    void choose('home_device');
-  };
-
-  // ── shared_device ────────────────────────────────────────────────────────────
-  // Chunk 2: record + advance. Chunk 3 replaces this with an immediate
-  // View-as-Child launch (the tap becomes the handoff ritual itself).
-  const useMyDevice = () => { void choose('shared_device'); };
-
-  // Card definitions, keyed by access mode.
+  // Card definitions, keyed by access mode. shared_device: Complete resets
+  // straight into View-as-Child (the handoff ritual).
   const cards: Record<CardKey, { emoji: string; title: string; sub: string; onPress: () => void; secondary?: { label: string; onPress: () => void } }> = {
     own_phone: {
       emoji: '📱',
       title: t(`onboarding.access.card1Title${g}`),
       sub:   t('onboarding.access.card1Sub'),
-      onPress: () => { void shareNow(); },
+      onPress: () => { void choose('own_phone'); },
       secondary: { label: t('onboarding.access.card1Secondary'), onPress: sendTonight },
     },
     home_device: {
       emoji: '💻',
       title: t('onboarding.access.card2Title'),
       sub:   t('onboarding.access.card2Sub'),
-      onPress: () => { void openOnHomeDevice(); },
+      onPress: () => { void choose('home_device'); },
     },
     shared_device: {
       emoji: '👨‍👩‍👧',
       title: t('onboarding.access.card3Title'),
       sub:   t(`onboarding.access.card3Sub${g}`),
-      onPress: useMyDevice,
+      onPress: () => { void choose('shared_device'); },
     },
   };
 

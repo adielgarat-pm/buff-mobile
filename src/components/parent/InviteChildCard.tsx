@@ -7,10 +7,12 @@
  * Family-scoped, not per-child: one code joins any kid.
  *
  * Share is cross-platform via `shareInvite` (OS sheet on native, Web Share
- * API / WhatsApp on web) — the previous inline `Share.share()` was a silent
- * no-op on the web PWA, exactly the cohort this card exists for. If no share
- * surface can be presented at all, we fall back to copying the full invite
- * message to the clipboard and confirming via crossAlert, so the tap is never
+ * API on web) — the previous inline `Share.share()` was a silent no-op on the
+ * web PWA, exactly the cohort this card exists for. A browser with no share
+ * sheet gets a WhatsApp / Email / Copy choice (InviteChooser) — the child on
+ * the home computer is reached by email, not WhatsApp (2026-09-26). If the
+ * share sheet fails outright, we fall back to copying the full invite message
+ * to the clipboard and confirming via crossAlert, so the tap is never
  * invisible.
  */
 import { useState } from 'react';
@@ -18,9 +20,11 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Clipboard from 'expo-clipboard';
 import { PARENT_THEME as T } from '../../theme';
-import { BUFF_URLS, buildJoinUrl } from '../../lib/buffConfig';
+import { buildJoinUrl } from '../../lib/buffConfig';
 import { shareInvite } from '../../lib/shareInvite';
+import { hasShareSheet } from '../../lib/inviteSend';
 import { crossAlert } from '../../platform';
+import InviteChooser from '../InviteChooser';
 
 interface Props {
   /** Family join code (from useAuth). Parent renders nothing while null. */
@@ -30,15 +34,15 @@ interface Props {
 export default function InviteChildCard({ familyShortCode }: Props) {
   const { t } = useTranslation();
   const [codeCopied, setCodeCopied] = useState(false);
+  const [chooser, setChooser] = useState(false);
+
+  const joinUrl = buildJoinUrl(familyShortCode);
+  const message = t('inviteCard.shareMessage', { code: familyShortCode, joinUrl });
 
   const handleShare = async () => {
-    const message = t('inviteCard.shareMessage', {
-      code: familyShortCode,
-      joinUrl: buildJoinUrl(familyShortCode),
-      installUrl: BUFF_URLS.playStoreInstall,
-    });
+    if (!hasShareSheet()) { setChooser(true); return; }
     // Cross-platform share. Never throws; resolves false only when no share
-    // surface appeared (e.g. desktop web with the WhatsApp pop-up blocked).
+    // surface appeared.
     const shared = await shareInvite(message);
     if (!shared) {
       // Visible fallback: put the full invite message on the clipboard and
@@ -89,6 +93,15 @@ export default function InviteChildCard({ familyShortCode }: Props) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {chooser && (
+        <InviteChooser
+          message={message}
+          subject={t('inviteCard.emailSubject')}
+          copyText={joinUrl}
+          onSent={() => { /* the chooser shows its own copied state */ }}
+        />
+      )}
     </View>
   );
 }
