@@ -294,3 +294,140 @@ Created for this run and deleted afterwards: `+e2e-signup` (family "TestParentA'
 "TestKid"), `+e2e-otherB`, plus one child auth user. Post-cleanup: 0 leftover `+e2e` users,
 0 leftover families, 0 leftover Test profiles — 406 profiles / 254 families of real data untouched,
 unchanged from the previous run.
+
+---
+
+# Run 2026-09-26 — PRs #500–#503
+
+Android verification of today's auth/onboarding changes, on `main` @ `01fefcc`
+(contains #500 `6b59fdf`, #501 `99691f8`, #502 `bbe3269`, #503 `947cf4b`).
+Pixel_7 / emulator-5554, dev client + Metro :8083, production backend, English unless noted.
+Screenshots: `docs/qa/img/android-2026-09-26/`.
+
+**Part A: 9 pass · 1 partial · 0 fail.** Part B (Google) not run — see below.
+Two defects found outside the PR scope, one of them user-facing.
+
+| item | verdict | evidence |
+|---|:-:|---|
+| A1 · #500 — Step 4 survives Home + 60s | ✅ | `a1_02_after_home60.png` |
+| A1 · #500 — Step 4 survives 3 quick bg/fg cycles | ✅ | `a1_03_after_3cycles.png` |
+| A1 — finish wizard → Complete → Dashboard | ✅ | `a1_05_complete.png`, `a1_06_dashboard.png` |
+| A1 — sign out → log in → ParentApp | ✅ | `a1_07_relogin.png` |
+| A2 · #501 — Complete screen, "own phone" variant | ✅ | `a2_02_complete_phone.png` |
+| A2 · #501 — share sheet + link + post-send state | ✅ | `a2_03_sharesheet.png`, `a2_05_after_share.png`, `a2_06_gotodash_button.png` |
+| A2 · #501 — "Copy link" → "Link copied…" | ✅ | `a2_08_copylink.png` |
+| A2 · #501 — Complete screen, "home computer" variant | ⚠️ partial | `a2_11_complete_home.png`, `a2_12_email_compose.png` |
+| A2 · #501 — dashboard "Invite a child" → share sheet | ✅ | `a2_16_invite_sharesheet.png` |
+| A2 · #501 — Hebrew boy/girl wording + RTL | ✅ | `a2_17_he_boy_complete.png`, `a2_18_he_girl_complete.png` |
+| A3 · #502/#503 — timezone / last_platform / last_seen_at | ✅ | SQL below |
+| B1 — Google, brand-new BUFF user | — not run | blocked, see below |
+
+## A1 — #500, onboarding survives session re-emits ✅
+
+New parent `+e2e-a1`, child "TestKid1", stopped at Step 4/7.
+
+- Home → 60 s → reopen: **still 4 / 7**, no resume offer, not back on Welcome.
+- Three quick background/foreground cycles: **4 / 7** each time, no resume offer, no Welcome.
+
+Wizard finished through child access ("I'll send it tonight") → Complete → Dashboard. The Complete
+screen correctly showed the *tonight* variant ("Tonight works 🌙", "Your link is waiting on your
+dashboard"). Settings → Sign out → log in as `+e2e-a1` → **ParentApp dashboard**.
+
+## A2 — #501, send the invite from Complete ✅ (one part partial)
+
+**"On their own phone"** (child "TestPhone") — every required element present: title "Send TestPhone
+the invite", primary "📤 Send to TestPhone", hint "TestPhone taps the link and picks their name.
+That's it.", "Copy link", "Link not working? Family code" + `2CH5DB`, and "Go to Dashboard 🏠" as a
+**quiet text link**.
+
+Share sheet opened; its preview text was exactly:
+
+```
+Hi TestPhone 🌱
+Your BUFF is ready. Take a look whenever you feel like it.
+👉 https://buffadhd.com/join/2CH5DB
+
+(Link not opening? In BUFF, tap "I have a family code" and type 2CH5DB)
+```
+
+Nothing was sent. Back in the app: **"Sent? Nice. TestPhone can join whenever they're ready."**, the
+primary became "Send again", and "Go to Dashboard" became a **full-width button**
+(`[63,2155][1017,2296]`, vs a bare text link before). "Copy link" → **"Link copied — paste it
+anywhere"**.
+
+**"On a computer or tablet at home"** (child "TestHome") — "Open BUFF on the home computer",
+primary "✉️ Send by email", "Share another way", "Copy link", family code: all present.
+⚠️ **Partial:** "Send by email" does fire the right intent — logcat shows
+`START u0 {act=VIEW dat=mailto:… cmp=com.google.android.gm/.ComposeActivityGmailExternal}` — but
+Gmail on this emulator has no account, so it opens its "Welcome to Gmail" first-run screen and the
+compose view (subject + body) could not be seen. Android redacts the `mailto:` payload in logcat, so
+the subject could not be read from there either. Cross-checked in source instead:
+`onboarding.invite.emailSubject = "{{name}}, your BUFF is ready 🌱"` (`src/i18n/en.json:1596`) and
+`buildMailtoUrl` (`src/lib/inviteSend.ts:27`). Needs a device with a Gmail account to close.
+
+**Dashboard → "📨 Invite a child to BUFF" → "📤 Share invite"** → share sheet with
+`https://buffadhd.com/join/2CH5DB`.
+
+**Hebrew** (children "TestBoy" / בן and "TestGirl" / בת):
+
+| | hint line |
+|---|---|
+| boy | `TestBoy לוחץ על הקישור ובוחר בשם שלו. זהו.` |
+| girl | `TestGirl לוחצת על הקישור ובוחרת בשם שלה. זהו.` |
+
+Masculine vs feminine forms correct. The child-access options are gendered too ("הרגע שלו … הוא
+מסמן בעצמו" vs "הרגע שלה … היא מסמנת בעצמה"). RTL layout is clean — right-aligned text, mirrored
+card, full-width primary, "עבור/י לדשבורד 🏠" still a quiet link.
+
+## A3 — #502 / #503, data written by the app ✅
+
+Read-only SELECTs. Emulator zone: `persist.sys.timezone = GMT`.
+
+| parent | timezone | valid IANA | last_platform | last_seen_at |
+|---|---|:-:|---|---|
+| `+e2e-a1` | `GMT` | ✅ | `android` | stamped, bumped on foreground |
+| `+e2e-a2` | `GMT` | ✅ | `android` | 28 s after a foreground |
+
+`timezone` matches the emulator's zone and resolves in `pg_timezone_names`. `last_seen_at` /
+`last_platform_at` are written together on every app foreground (`bumpLastSeenAt`,
+`src/lib/pushTokens.ts:162`) — verified by backgrounding and reopening, then re-reading.
+No writes were made from the MCP session.
+
+## Part B — not run
+
+Google items (checklist 4 + 12) are still blocked: `eemmy0305@gmail.com` must be signed into
+**Chrome** on the emulator, because BUFF's Google sign-in is a web OAuth flow via
+`WebBrowser.openAuthSessionAsync` (`src/contexts/AuthContext.tsx:406`), not the Android account list.
+As of this run the emulator reports `dumpsys account → Accounts: 0` and Chrome's only Google session
+is Adi's. Part B also waits on Adi's confirmation that the earlier eemmy0305 data was deleted.
+
+## Defects found (outside PR scope)
+
+### D1 — the "notifications are off" banner covers "+ Add Child" on the dashboard · user-facing
+
+**Steps:** fresh install with notifications denied → onboard a parent → Dashboard → tap "+ Add Child".
+**Result:** nothing happens. The banner sits at `[32,2002][1049,2159]`; "+ Add Child" is at
+`[801,2126][1028,2190]`, so its centre (y≈2158) lands inside the banner and the tap is swallowed.
+Dismissing the banner makes the same tap work immediately.
+**Evidence:** `BUG_banner_over_addchild.png`. Reproduced twice, and with a `motionevent` tap too.
+#491 moved this banner to the ParentApp shell only; it still overlaps this control on the dashboard.
+
+### D2 — repeated ANRs on the dev build · likely environment, worth a second look
+
+"buff-mobile isn't responding" twice, once while filling the Signup form and once on the Hebrew
+dashboard. logcat: `ActivityManager: Completed ANR of com.buffapp.mobile in 7156ms`, with the app at
+`61% user` CPU. Both recovered only after a force-stop + relaunch; "Wait" never cleared them.
+**Evidence:** `BUG_anr2.png`. This smells like emulator/dev-bundle load rather than product code —
+it did not recur in the 7 clean onboarding passes of 2026-09-25 — but two in one session is worth
+watching.
+
+## Test data created (pending deletion)
+
+| family | code | profiles | tasks | rewards | onboarding_events | app_settings |
+|---|---|---|:-:|:-:|:-:|:-:|
+| TestParentA1's Family | `QDBBCE` | TestParentA1 (parent), TestKid1 (child) | 3 | 2 | 25 | 1 |
+| TestParentA2's Family | `2CH5DB` | TestParentA2 (parent), TestPhone, TestHome, TestBoy, TestGirl (children) | 12 | 8 | 66 | 1 |
+
+Auth users: `adi.elgarat+e2e-a1@gmail.com`, `adi.elgarat+e2e-a2@gmail.com`. `+e2e-a3` was not needed
+(the Hebrew boy/girl check reused `+e2e-a2`, as the brief specifies). 0 notifications rows.
+Deletion is held pending Adi's OK, per the brief.
