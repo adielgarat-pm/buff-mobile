@@ -4,7 +4,7 @@
  * Flows stop at the first failed *gating* check (a later step can't run), but
  * viewport checks are non-gating so one bad CTA doesn't hide the rest.
  */
-import { addUser, addFamily, addProfile } from './lib/mockSupabase.mjs';
+import { addUser, addFamily, addProfile, AUTH_STORAGE_KEY } from './lib/mockSupabase.mjs';
 
 const PW = 'Passw0rd!';
 
@@ -91,7 +91,7 @@ async function fillSignup(c, email) {
 }
 
 /** Welcome → UStep1…UStep8 → ParentApp. Assumes a fresh parent on Welcome. */
-export async function walkOnboarding(c, { reloadAt = null } = {}) {
+export async function walkOnboarding(c, { reloadAt = null, broadcastAt = null } = {}) {
   await gate(c, 'Welcome shown', () => c.visible(c.tid('welcome-cta'), 20000));
   await ctaInView(c, 'welcome-cta', 'welcome');
   await c.tid('welcome-cta').click();
@@ -115,6 +115,10 @@ export async function walkOnboarding(c, { reloadAt = null } = {}) {
   await ctaInView(c, 'onb4-continue', 'step4-5-motivators');
 
   if (reloadAt === 'step4') {
+    // The app writes the onboarding snapshot debounced (400ms); reloading the
+    // instant Step 4 renders can beat the write (D1 flaked once, 2026-09-26).
+    await c.page.waitForFunction(() => /"route":"UStep4_/.test(localStorage.getItem('buff_onboarding_nav_v1') || ''), null, { timeout: 5000 })
+      .catch(() => c.notes.push('snapshot naming Step 4 not seen before reload'));
     await c.page.reload({ waitUntil: 'domcontentloaded' });
     await gate(c, 'reload@step4 → Welcome resume offered', () => c.visible(c.tid('welcome-resume'), 20000));
     await c.tid('welcome-resume').click();
@@ -128,6 +132,23 @@ export async function walkOnboarding(c, { reloadAt = null } = {}) {
   await c.tid('onb4-continue').click();
 
   await gate(c, 'Step5 preview (saved)', () => c.visible(c.tid('onb5-continue'), 20000));
+  if (broadcastAt) {
+    // Another tab of the app (same user) emits SIGNED_IN; supabase-js relays it
+    // to this tab over BroadcastChannel(storageKey). Adi's web run 2026-09-26:
+    // the parent was thrown back to the first onboarding screen at this point.
+    // 'step5' relays the session this tab holds; 'step5-newtoken' a session
+    // with another access token (the other tab signed in / refreshed itself).
+    await c.page.evaluate(([k, newToken]) => {
+      const session = JSON.parse(localStorage.getItem(k) || 'null');
+      if (newToken) session.access_token = `${session.access_token}.othertab`;
+      new BroadcastChannel(k).postMessage({ event: 'SIGNED_IN', session });
+    }, [AUTH_STORAGE_KEY, broadcastAt === 'step5-newtoken']);
+    await c.page.waitForTimeout(2500);
+    await gate(c, 'same-user SIGNED_IN from another tab keeps the parent on Step5', async () => {
+      if (await c.tid('welcome-cta').or(c.tid('welcome-resume')).first().isVisible().catch(() => false)) throw new Error('thrown back to Welcome');
+      await c.visible(c.tid('onb5-continue'), 5000);
+    });
+  }
   await ctaInView(c, 'onb5-continue', 'step5');
   await gate(c, 'child profile created', async () => {
     const parent = c.db.tables.profiles.filter((p) => p.role === 'parent').at(-1);
@@ -554,6 +575,24 @@ export const flows = {
   },
 
   // ── D. cross-cutting ─────────────────────────────────────────────────────
+  async D4_otherTabSignedIn_midOnboarding(c) {
+    await c.open();
+    await c.goto('/RoleSelection');
+    await gate(c, 'RoleSelection shown', () => c.visible(c.text(c.s.iAmParent), 20000));
+    await c.text(c.s.iAmParent).click();
+    await fillSignup(c, 'adi.elgarat+e2e-othertab@gmail.com');
+    await walkOnboarding(c, { broadcastAt: 'step5' });
+  },
+
+  async D5_otherTabNewSession_midOnboarding(c) {
+    await c.open();
+    await c.goto('/RoleSelection');
+    await gate(c, 'RoleSelection shown', () => c.visible(c.text(c.s.iAmParent), 20000));
+    await c.text(c.s.iAmParent).click();
+    await fillSignup(c, 'adi.elgarat+e2e-othertab2@gmail.com');
+    await walkOnboarding(c, { broadcastAt: 'step5-newtoken' });
+  },
+
   async D1_reload_midOnboarding(c) {
     await c.open();
     await c.goto('/RoleSelection');

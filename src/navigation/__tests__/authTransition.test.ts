@@ -5,7 +5,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
-import { isAuthEntryPath, identityChanged, isFreshSignIn, navIdentity } from '../authTransition';
+import { isAuthEntryPath, identityChanged, navIdentity } from '../authTransition';
 
 describe('isAuthEntryPath', () => {
   it.each(['/Login', '/login', '/RoleSelection', '/Signup', '/join/ABC123', '/join/abc123/'])(
@@ -31,25 +31,6 @@ describe('identityChanged', () => {
   });
 });
 
-// web-smoke B5 (2026-09-25): a signed-in parent on /Login who logs in again as
-// the SAME account stayed on the Login form — the identity never changed, so the
-// entry URL was never spent. A fresh sign-in now bumps the navigator identity.
-describe('isFreshSignIn', () => {
-  it('a SIGNED_IN with a new session is fresh, same account included', () => {
-    expect(isFreshSignIn('SIGNED_IN', null, 'tok-a')).toBe(true);
-    expect(isFreshSignIn('SIGNED_IN', 'tok-a', 'tok-b')).toBe(true);
-  });
-  it('the re-emit for the held session (init, tab refocus) is not', () => {
-    expect(isFreshSignIn('SIGNED_IN', 'tok-a', 'tok-a')).toBe(false);
-  });
-  it('other events and missing sessions are not', () => {
-    expect(isFreshSignIn('TOKEN_REFRESHED', 'tok-a', 'tok-b')).toBe(false);
-    expect(isFreshSignIn('INITIAL_SESSION', null, 'tok-a')).toBe(false);
-    expect(isFreshSignIn('SIGNED_OUT', 'tok-a', null)).toBe(false);
-    expect(isFreshSignIn('SIGNED_IN', 'tok-a', undefined)).toBe(false);
-  });
-});
-
 describe('navIdentity', () => {
   it('signed out is null', () => {
     expect(navIdentity(null, 3)).toBeNull();
@@ -70,7 +51,7 @@ describe('RootNavigator wiring', () => {
     // sign-in only — after a sign-out the entry path is where the user wants to be
     expect(root).toMatch(/if \(switchedIdentity && authIdentity\) consumeAuthEntryUrl\(\)/);
     expect(root).toMatch(/linking=\{containerLinking\}/);
-    // the identity includes the fresh-sign-in counter (same account again = switch)
+    // the identity includes the sign-in counter (same account again = switch)
     expect(root).toMatch(/const authIdentity = navIdentity\(user\?\.id, signInSeq/);
   });
 });

@@ -75,6 +75,8 @@ pre-prompt modal over the flow. The pre-prompt path itself is not covered here.
 | D1 | A1 with a browser reload on Step 4 → resume → finish |
 | D2 | cold deep links signed out: /RoleSelection /Login /Signup /join/:code /founding-100 |
 | D3 | same links with a parent signed in, then / → ParentApp |
+| D4 | parent at Step 5 gets a same-user SIGNED_IN relayed from another tab → stays on Step 5, finishes (2026-09-26) |
+| D5 | D4 with a new access token in the relayed session (the other tab's own sign-in / refresh) |
 
 ## CTA checks
 

@@ -167,6 +167,7 @@ _84/126 cases passed · 858 checks · unmocked calls seen: table notifications, 
 **Still open (not fixed, flagged):**
 - **Legacy parent gap (B3, known — `parentRouting.ts`).** Children but no `onboarding_complete` → Welcome. Production today: **0** such non-test parents (181 not onboarded without children, 63 onboarded; `profiles` query 2026-09-24). With #482 their way through the wizard no longer dead-ends.
 - ~~**Latent spinner-forever race in AuthContext**~~ — **fixed 2026-09-25** (`pkg/auth-signed-in-loading-race`): a `SIGNED_IN` profile fetch is no longer skipped when another fetch is in flight, so its `finally` always releases the loading gate. Regression test `src/contexts/__tests__/AuthContext.loadingRace.test.tsx` (both windows: refresh before SIGNED_IN, and between SIGNED_IN and its scheduled fetch) fails on the old code. Web smoke quick pass (m390/en) 24/24.
+- ~~**Onboarding reset to Welcome on web**~~ — found by Adi's manual Google run 2026-09-26 ("finished onboarding and it threw me back to the first onboarding screen"); fix on `fix/same-user-signed-in-no-remount`. A `SIGNED_IN` for the same user, relayed from another tab over supabase-js's BroadcastChannel, raised the AuthContext loading gate and (with a new token) bumped `signInSeq`; either remounted the NavigationContainer mid-wizard. Smoke D4/D5 ❌ main (8/8) / ✅ fix (8/8). See IN-2026-09-26-01.
 - ChildAccessStep's last option starts below the fold at 360×560 — left as is (third of three, reachable by scroll; UX review).
 
 ## 4. Backend checks (Supabase MCP, read-only)
