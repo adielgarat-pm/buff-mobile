@@ -2076,6 +2076,8 @@
   "notificationFeed.row.parent_engagement": "{{name}} פעיל/ה השבוע — בא לראות?",
   "notificationFeed.row.family_joined": "{{name}} הצטרף/ה למשפחה",
   "notificationFeed.row.child_vibe_shared": "{{name}} שיתף/ה איך מרגיש/ה: {{mood}}",
+  "notificationFeed.row.child_invite_reminder_home": "קוד המשפחה מוכן. אפשר לפתוח את BUFF יחד עם {{name}}.",
+  "notificationFeed.row.child_invite_reminder_phone": "ההזמנה ל-{{name}} מוכנה לשליחה.",
   "anchorRecovery.title": "כולנו צריכים התחלה חדשה לפעמים",
   "anchorRecovery.body.single": "הנה דרך עדינה לעזור ל-{{name}} לחזור.",
   "anchorRecovery.body.multi": "הנה דרך עדינה לעזור להם לחזור.",

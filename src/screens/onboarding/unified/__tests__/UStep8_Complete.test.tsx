@@ -51,6 +51,9 @@ jest.mock('../../../../contexts/AuthContext', () => ({
   }),
 }));
 
+const mockTimeZone = jest.fn(() => 'Asia/Jerusalem' as string | null);
+jest.mock('../../../../lib/deviceTimeZone', () => ({ deviceTimeZone: () => mockTimeZone() }));
+
 jest.mock('../../../../integrations/supabase/client', () => ({
   supabase: { from: jest.fn() },
 }));
@@ -88,6 +91,7 @@ describe('UStep8_Complete', () => {
     mockedFrom.mockReset();
     mockReset.mockReset();
     mockRefreshProfile.mockClear();
+    mockTimeZone.mockReturnValue('Asia/Jerusalem');
   });
 
   test('merges the 3 onboarding keys into the parent\'s existing pro_settings', async () => {
@@ -104,7 +108,8 @@ describe('UStep8_Complete', () => {
 
     await waitFor(() => expect(mockRefreshProfile).toHaveBeenCalledWith('parent-1'));
 
-    expect(updateSpy).toHaveBeenCalledTimes(1);
+    // pro_settings merge first; the time-zone write is its own update (below).
+    expect(updateSpy).toHaveBeenCalledTimes(2);
     const payload = updateSpy.mock.calls[0][0] as { pro_settings: Record<string, unknown> };
     expect(payload.pro_settings).toEqual({
       // pre-existing keys survive
@@ -130,5 +135,28 @@ describe('UStep8_Complete', () => {
       onboarding_child_name: 'Lia',
       onboarding_child_id:   'child-1',
     });
+  });
+
+  // Evening child-invite reminder (migration 059) goes out in the parent's own
+  // time zone. The write is separate so it can never fail onboarding_complete.
+  test('stores the device time zone in a separate update, never inside pro_settings', async () => {
+    mockTimeZone.mockReturnValue('America/New_York');
+    const updateSpy = installSupabaseMock({});
+
+    render(<UStep8_Complete />);
+    await waitFor(() => expect(updateSpy).toHaveBeenCalledTimes(2));
+
+    const first = updateSpy.mock.calls[0][0] as Record<string, unknown>;
+    expect(first).not.toHaveProperty('timezone');
+    expect(updateSpy.mock.calls[1][0]).toEqual({ timezone: 'America/New_York' });
+  });
+
+  test('no time zone reported → no extra write', async () => {
+    mockTimeZone.mockReturnValue(null);
+    const updateSpy = installSupabaseMock({});
+
+    render(<UStep8_Complete />);
+    await waitFor(() => expect(mockRefreshProfile).toHaveBeenCalledWith('parent-1'));
+    expect(updateSpy).toHaveBeenCalledTimes(1);
   });
 });

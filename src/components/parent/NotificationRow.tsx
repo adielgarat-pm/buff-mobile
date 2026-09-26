@@ -40,6 +40,7 @@ function iconForType(type: string): IconName {
     case 'parent_engagement':  return 'leaf-outline';
     case 'family_joined':      return 'people-outline';
     case 'child_vibe_shared':  return 'happy-outline';
+    case 'child_invite_reminder': return 'mail-outline';
     default:                   return 'ellipse-outline';
   }
 }
@@ -72,6 +73,11 @@ function bodyForType(notification: FeedNotification, t: TFn): string {
       const mood = t(`vibeMood.${reward}`, { defaultValue: '' });
       return t('notificationFeed.row.child_vibe_shared', { name, mood });
     }
+    case 'child_invite_reminder':
+      // entity_name carries the access path the parent chose (migration 059).
+      return reward === 'home_device'
+        ? t('notificationFeed.row.child_invite_reminder_home', { name })
+        : t('notificationFeed.row.child_invite_reminder_phone', { name });
     default:
       return name;
   }

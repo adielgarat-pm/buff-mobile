@@ -65,6 +65,10 @@ export function resolveRouteAction(data: PushNotificationData): RouteAction {
       return { kind: 'parent_dashboard', childId: data.child_id };
     case 'family_joined':
       return { kind: 'parent_dashboard' };
+    case 'child_invite_reminder':
+      // Evening reminder (059) — the dashboard's "Invite a child" card is where
+      // the parent sends the link.
+      return { kind: 'parent_dashboard', childId: data.child_id };
     case 'kid_engagement':
       return { kind: 'child_dashboard' };
     case 'reward_approved':

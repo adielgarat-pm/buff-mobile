@@ -81,6 +81,7 @@ const PARENT_RECIPIENT_TYPES = new Set([
   'child_suggestion', // L7 — was unmatched → suppressed as unknown_type
   'anchor_recovery', // churned kids only (cron applies ever-active gate)
   'activation_nudge', // L8 — never-activated families (new cron)
+  'child_invite_reminder', // child-access-paths Phase 2 — one evening reminder, child not joined (059)
   'child_vibe_shared', // pkg/vibe-share-notification — kid-initiated positive twin of SOS
 ]);
 
@@ -107,6 +108,7 @@ const TYPE_TO_PREF_COLUMN: Record<string, string> = {
   child_suggestion: 'notif_parent_alerts',
   anchor_recovery: 'notif_anchor_nudges',
   activation_nudge: 'notif_activation_nudges',
+  child_invite_reminder: 'notif_activation_nudges',
   kid_engagement: 'notif_child_reminders',
   // pkg/vibe-share-notification (D3): same channel as SOS — "my child reached out to me".
   child_vibe_shared: 'notif_parent_alerts',
@@ -137,6 +139,23 @@ function copyForType(
   const name = fields.name ?? '';
   const reward = fields.reward ?? '';
   const buddy = fields.buddy_name ?? 'BUDDY';
+
+  // child_invite_reminder (059): entity_name carries the access path the parent
+  // chose. Copy says what is READY, never what hasn't happened, and never
+  // "tonight" (it may go out the next evening). No gendered verbs: the Edge
+  // runtime knows neither the parent's nor the child's gender. UX review
+  // 2026-09-26.
+  if (type === 'child_invite_reminder') {
+    const homeDevice = reward === 'home_device';
+    if (lang === 'he') {
+      return homeDevice
+        ? { title: 'ערב טוב להכיר את BUFF ביחד 🌱', body: 'קוד המשפחה מוכן. כמה דקות מול המסך, ביחד', data: {} }
+        : { title: `ההזמנה ל-${name} מוכנה 💛`, body: 'קישור וקוד משפחה, מוכנים לשליחה', data: {} };
+    }
+    return homeDevice
+      ? { title: 'A good evening to open BUFF together 🌱', body: 'Your family code is ready. A few minutes, side by side', data: {} }
+      : { title: `${name}'s invite is ready 💛`, body: 'Link and family code, ready to send', data: {} };
+  }
 
   if (lang === 'he') {
     switch (type) {
