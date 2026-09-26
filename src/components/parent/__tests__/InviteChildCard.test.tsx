@@ -7,7 +7,9 @@
  * PWA — the exact cohort (web parents) the card exists to activate. These
  * tests guard:
  *   - Share goes through the cross-platform `shareInvite` helper, NOT Share.share
- *   - The share message carries the family code + Play Store install URL
+ *   - The share message carries the family code + join link (the link itself
+ *     routes to the Play Store when BUFF isn't installed)
+ *   - No share sheet on this browser → the parent picks WhatsApp / Email / Copy
  *   - When no share surface can be presented (shareInvite → false), the tap is
  *     never invisible: the message is copied and crossAlert confirms it
  *   - When the share surface appeared (shareInvite → true), no fallback fires
@@ -19,7 +21,8 @@ import * as Clipboard from 'expo-clipboard';
 import InviteChildCard from '../InviteChildCard';
 import { shareInvite } from '../../../lib/shareInvite';
 import { crossAlert } from '../../../platform';
-import { BUFF_URLS, buildJoinUrl } from '../../../lib/buffConfig';
+import { buildJoinUrl } from '../../../lib/buffConfig';
+import { hasShareSheet } from '../../../lib/inviteSend';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────
 // Echo the key plus any interpolation vars as `key(var=val)` — lets assertions
@@ -39,6 +42,12 @@ jest.mock('../../../lib/shareInvite', () => ({
   shareInvite: jest.fn(),
 }));
 
+jest.mock('../../../lib/inviteSend', () => ({
+  hasShareSheet: jest.fn(() => true),
+  openInviteEmail: jest.fn(),
+  openInviteWhatsApp: jest.fn(),
+}));
+
 jest.mock('../../../platform', () => ({
   crossAlert: jest.fn(),
 }));
@@ -54,12 +63,14 @@ const mockedCrossAlert  = crossAlert as jest.MockedFunction<typeof crossAlert>;
 const mockedSetString   = Clipboard.setStringAsync as jest.MockedFunction<typeof Clipboard.setStringAsync>;
 
 const CODE = 'ABC123';
-const EXPECTED_MESSAGE = `inviteCard.shareMessage(code=${CODE},joinUrl=${buildJoinUrl(CODE)},installUrl=${BUFF_URLS.playStoreInstall})`;
+const EXPECTED_MESSAGE = `inviteCard.shareMessage(code=${CODE},joinUrl=${buildJoinUrl(CODE)})`;
+const mockedHasShareSheet = hasShareSheet as jest.MockedFunction<typeof hasShareSheet>;
 
 describe('InviteChildCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedShareInvite.mockResolvedValue(true);
+    mockedHasShareSheet.mockReturnValue(true);
   });
 
   test('renders the family code and the card copy', () => {
@@ -76,8 +87,7 @@ describe('InviteChildCard', () => {
     fireEvent.press(getByTestId('invite-card-share'));
 
     await waitFor(() => expect(mockedShareInvite).toHaveBeenCalledTimes(1));
-    // Message carries the family code AND the install URL (recent addition —
-    // the kid may need to install first).
+    // Message carries the family code AND the join link.
     expect(mockedShareInvite).toHaveBeenCalledWith(EXPECTED_MESSAGE);
     // The web-silent path must be gone from this component.
     expect(rawShareSpy).not.toHaveBeenCalled();
@@ -103,12 +113,25 @@ describe('InviteChildCard', () => {
 
     await waitFor(() => expect(mockedCrossAlert).toHaveBeenCalledTimes(1));
     // The whole invite message lands on the clipboard, not just the code —
-    // the parent pastes one thing and the kid gets install URL + code.
+    // the parent pastes one thing and the kid gets the link + code.
     expect(mockedSetString).toHaveBeenCalledWith(EXPECTED_MESSAGE);
     expect(mockedCrossAlert).toHaveBeenCalledWith(
       'inviteCard.shareFallbackTitle',
       'inviteCard.shareFallbackBody',
     );
+  });
+
+  test('no share sheet (desktop browser) → the parent picks WhatsApp / Email / Copy', () => {
+    mockedHasShareSheet.mockReturnValue(false);
+    const { getByTestId, queryByTestId } = render(<InviteChildCard familyShortCode={CODE} />);
+    expect(queryByTestId('invite-chooser')).toBeNull();
+
+    fireEvent.press(getByTestId('invite-card-share'));
+
+    expect(mockedShareInvite).not.toHaveBeenCalled();
+    expect(getByTestId('invite-via-whatsapp')).toBeTruthy();
+    expect(getByTestId('invite-via-email')).toBeTruthy();
+    expect(getByTestId('invite-via-copy')).toBeTruthy();
   });
 
   test('Copy button copies just the code and flips its label', async () => {

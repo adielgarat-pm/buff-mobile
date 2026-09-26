@@ -14,6 +14,16 @@
 
 ## Implementation Notes
 
+### IN-2026-09-26-02: End of onboarding showed only a family code — the join link existed but no screen offered it
+
+- **תאריך:** 2026-09-26
+- **מקור:** Adi — בדיקה ידנית ב-web: "נותן קוד משפחה אבל לא ברור איך מתחברים. רצינו קישור".
+- **תיאור:** קישור ההצטרפות (`buffadhd.com/join/CODE`, ניתוב לפי מכשיר) כבר קיים ונבדק (smoke C1), אבל: (1) "בטלפון שלו/ה" פתח את חלון השיתוף **כבר בלחיצה על הכרטיס** ב-ChildAccessStep, בלי הקשר, ואז הציג alert ‏"הלינק מוכן לשליחה"; (2) "במחשב בבית" רק העתיק את הקוד; (3) מסך הסיום הציג רק קוד, בלי קישור, בלי כפתור ובלי הסבר איפה מקלידים אותו; (4) ב-desktop בלי `navigator.share` החלופה היחידה הייתה וואטסאפ, אבל לילד במחשב הבית בדרך כלל אין וואטסאפ.
+- **התיקון:** השליחה עברה למסך הסיום (`InviteSendPanel`) לפי המסלול שנבחר: טלפון → חלון שיתוף (ההורה בוחר אפליקציה); מחשב בבית → מייל קודם (`mailto:`), ואחריו שיתוף אחר והעתקת קישור; "הערב" → בלי כפתור עד "או לשלוח עכשיו". בלי חלון שיתוף: וואטסאפ / מייל / העתקה (`InviteChooser`, גם בכרטיס בדשבורד). הקוד נשאר כגיבוי. הקופי עבר ייעוץ UX ואושר על ידי Adi. ההודעה לילד כתובה לפי מגדר, ובלי קישור התקנה נפרד (הקישור מנתב בעצמו). האירוע `invite_sent` מקבל עכשיו גם `method: 'email'`.
+- **השפעה:** Android — חלון השיתוף של המערכת תמיד זמין, ו-`mailto:` פותח את Gmail או את אפליקציית הדואר. התזכורת של "אשלח הערב" (Chunk 4) עדיין לא קיימת, ולכן הקופי לא מבטיח אותה ("הקישור מחכה לך בדשבורד").
+- **סטטוס:** `resolved` (web) — `feat/child-invite-send-on-complete`; Android לאימות במכשיר.
+- **קשור ל:** `src/screens/onboarding/unified/InviteSendPanel.tsx`, `src/lib/inviteSend.ts`, smoke D6/D7
+
 ### IN-2026-09-26-01: A `SIGNED_IN` relayed from another tab reset onboarding to Welcome, because a same-user `SIGNED_IN` remounted the navigator
 
 - **תאריך:** 2026-09-26

@@ -7,6 +7,8 @@
  *  2. Calls refreshProfile so RootNavigator re-evaluates isOnboarded
  *  3. Shows a "Go to Dashboard" button once saved — works for both
  *     first-time onboarding and add-child flows.
+ *  4. Own phone / home computer: sends the child the invite (InviteSendPanel);
+ *     the family code is its fallback.
  *
  * Referral paths:
  *  AUTO  — code captured from ?ref= URL (web) or stored (Android) → redeemed silently in saveAll
@@ -29,6 +31,7 @@ import { supabase } from '../../../integrations/supabase/client';
 import DisclaimerFooter from '../../../components/DisclaimerFooter';
 import { useStepReachedLog } from '../../../hooks/useStepReachedLog';
 import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
+import InviteSendPanel, { type InviteSendMode } from './InviteSendPanel';
 import { CONCIERGE_LINK_KEY, isValidConciergeUrl, logConciergeSeen, openConcierge } from '../../../lib/concierge';
 import { captureRefFromUrl, getRefCode, clearRefCode } from '../../../lib/referralCapture';
 import {
@@ -67,7 +70,17 @@ export default function UStep8_Complete() {
   // with an already-onboarded parent, and must not re-pitch the community.
   const [addChildFlow,   setAddChildFlow]   = useState(false);
   const [communitySeen,  setCommunitySeen]  = useState(true);
+  const [inviteSent,     setInviteSent]     = useState(false);
   const hasSaved = useRef(false);
+
+  // The child's own phone or the home computer: sending the invite is this
+  // screen's job (InviteSendPanel). Until something was sent, "Go to Dashboard"
+  // steps back to a quiet link (still pinned, never hidden).
+  const inviteMode: InviteSendMode | null =
+    params.accessMode === 'home_device' ? 'home_device'
+    : params.accessMode === 'own_phone' ? (params.inviteLater ? 'tonight' : 'own_phone')
+    : null;
+  const quietDashboardCta = !!inviteMode && inviteMode !== 'tonight' && !inviteSent && !!familyShortCode;
 
   useStepReachedLog('8_complete', profile?.family_id);
 
@@ -277,8 +290,21 @@ export default function UStep8_Complete() {
         </Text>
         <Text style={styles.sub}>{t('onboarding.complete.sub')}</Text>
 
-        {/* Family code card — purple, prominent, always shown */}
-        {familyShortCode && (
+        {/* Send the invite (own phone / home computer) — the code is its fallback. */}
+        {familyShortCode && inviteMode && (
+          <InviteSendPanel
+            mode={inviteMode}
+            childName={params.childName}
+            gender={params.gender}
+            code={familyShortCode}
+            familyId={profile?.family_id}
+            childId={params.childProfileId}
+            onSent={() => setInviteSent(true)}
+          />
+        )}
+
+        {/* Family code card — the other paths (shared device, no choice made) */}
+        {familyShortCode && !inviteMode && (
           <View style={styles.codeCard}>
             <Text style={styles.codeLabel}>{t('onboarding.complete.familyCode')}</Text>
             <Text style={styles.code}>{familyShortCode}</Text>
@@ -400,7 +426,7 @@ export default function UStep8_Complete() {
         <View style={styles.footer}>
           <TouchableOpacity
             testID="onb8-cta"
-            style={styles.dashboardBtn}
+            style={quietDashboardCta ? styles.dashboardLink : styles.dashboardBtn}
             onPress={() => {
               void logOnboardingEvent({
                 familyId: profile?.family_id, eventType: 'onboarding_complete_cta',
@@ -422,7 +448,7 @@ export default function UStep8_Complete() {
             }}
             activeOpacity={0.85}
           >
-            <Text style={styles.dashboardBtnText}>
+            <Text style={quietDashboardCta ? styles.dashboardLinkText : styles.dashboardBtnText}>
               {params.accessMode === 'shared_device'
                 ? t('onboarding.complete.startTogether', { name: params.childName })
                 : t('onboarding.complete.cta')}
@@ -468,6 +494,8 @@ const styles = StyleSheet.create({
   footer:           { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 16, backgroundColor: T.bg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: T.cardBorder },
   dashboardBtn:     { width: '100%', backgroundColor: T.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   dashboardBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  dashboardLink:     { width: '100%', paddingVertical: 12, alignItems: 'center' },
+  dashboardLinkText: { color: T.accent, fontSize: 15, fontWeight: '600' },
 
   // Referral banners — BUFF purple tones (auto_success, manual_success, already_premium)
   refBanner:     { width: '100%', backgroundColor: '#EEEDFE', borderRadius: 12, padding: 14, marginTop: 16, borderWidth: 1, borderColor: '#AFA9EC', alignItems: 'center' },

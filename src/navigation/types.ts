@@ -26,8 +26,9 @@ type UWithMotivator   = UWithChallenges & { motivators: string[] };
 type UWithPreview     = UWithMotivator  & { childProfileId: string };  // set after Preview saves
 // child-access-paths: replaces the old { hasPhone: boolean }. accessMode is
 // optional because the parent can leave ChildAccessStep without choosing
-// (abandon path). UStep8_Complete does not read it — see mapping note below.
-type UWithAccess      = UWithPreview    & { accessMode?: AccessMode };
+// (abandon path). UStep8_Complete reads it (and inviteLater, the "I'll send it
+// tonight" choice) to shape its invite panel.
+type UWithAccess      = UWithPreview    & { accessMode?: AccessMode; inviteLater?: boolean };
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ export type RootStackParamList = {
   // child-access-paths: "how will {child} use BUFF?" — 3 equal access paths,
   // replaced the old "does the child have a phone?" step (UStep7_Phone).
   ChildAccessStep:     UWithPreview;     // receives childProfileId from Preview
-  UStep8_Complete:     UWithAccess;      // only updates parent profile + refreshes auth (does not read accessMode)
+  UStep8_Complete:     UWithAccess;      // marks onboarding complete; accessMode/inviteLater shape the invite panel
 
   // ── Main app (nested navigators) ─────────────────────────────────────
   ParentApp: NavigatorScreenParams<ParentTabsParamList> | undefined;
