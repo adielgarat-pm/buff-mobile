@@ -14,6 +14,16 @@
 
 ## Implementation Notes
 
+### IN-2026-09-30-01: Web Push never delivered — the `VAPID_PUBLIC_KEY` secret was malformed
+
+- **תאריך:** 2026-09-26 (נמצא) / 2026-09-30 (תיקון)
+- **מקור:** CC — בבדיקת תזכורת הערב (IN-2026-09-26-03) ה-push להורה עם מנוי web נרשם `all_dead`. בלוגים של `push-notification-fanout`: `[webpush] setVapidDetails failed: Vapid public key should be 65 bytes long when decoded`.
+- **תיאור:** הסוד `VAPID_PUBLIC_KEY` בפונקציות של Supabase לא מפוענח למפתח P-256 תקין (65 בתים). לכן `setVapidDetails` נכשל, ו**כל** Web Push הסתיים באפס (13 מנויים, 7 מהם של Adi). המפתח באפליקציה (`app.json` `extra.vapidPublicKey`) תקין (87 תווים, 65 בתים), ואיתו נוצרו כל המנויים. Expo push (אנדרואיד) לא מושפע.
+- **התיקון:** הפונקציה מנרמלת את הסודות (מרכאות, רווחים, base64 רגיל ← base64url), ומשתמשת בסוד הציבורי רק אם הוא מפתח תקין. אחרת היא חוזרת למפתח של האפליקציה (`APP_VAPID_PUBLIC_KEY`), כי מנוי קשור למפתח שאיתו נוצר. אותו PR גם מכניס ל-main את `teen_task_added`, שרץ ב-production מאז 6d91925 אבל לא היה ב-main.
+- **מה שעדיין לא ידוע:** אם `VAPID_PRIVATE_KEY` אינו המפתח הפרטי של אותו זוג, שירות ה-push ידחה (403), ויהיה צורך לייצר זוג חדש (`app.json` + סודות). בדיקת Push אמיתית למנוי של Adi תכריע.
+- **סטטוס:** `open` עד המיזוג, הפריסה ובדיקת ה-push — `fix/web-push-vapid-key`.
+- **קשור ל:** `supabase/functions/push-notification-fanout/index.ts`, IN-2026-09-26-03
+
 ### IN-2026-09-26-04: `last_seen_at` never moved for any web user — one CHECK rejected the whole heartbeat
 
 - **תאריך:** 2026-09-26
