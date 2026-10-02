@@ -83,6 +83,7 @@ const PARENT_RECIPIENT_TYPES = new Set([
   'activation_nudge', // L8 — never-activated families (new cron)
   'child_invite_reminder', // child-access-paths Phase 2 — one evening reminder, child not joined (059)
   'child_vibe_shared', // pkg/vibe-share-notification — kid-initiated positive twin of SOS
+  'teen_task_added', // pkg/teen-autonomy — teen self-authored a task; FYI to parent (they can price it)
 ]);
 
 const KID_RECIPIENT_TYPES = new Set(['kid_engagement', 'reward_approved']);
@@ -112,6 +113,8 @@ const TYPE_TO_PREF_COLUMN: Record<string, string> = {
   kid_engagement: 'notif_child_reminders',
   // pkg/vibe-share-notification (D3): same channel as SOS — "my child reached out to me".
   child_vibe_shared: 'notif_parent_alerts',
+  // pkg/teen-autonomy: reuse the parent-alerts channel (Adi 2026-09-04).
+  teen_task_added: 'notif_parent_alerts',
 };
 
 const SUPPRESSION_WINDOW_MS = 5 * 60 * 1000;
@@ -167,6 +170,9 @@ function copyForType(
         return { title: `${name} רוצה לממש פרס`, body: reward, data: {} };
       case 'child_suggestion':
         return { title: `${name} רוצה להציע משהו 💡`, body: reward, data: {} };
+      case 'teen_task_added':
+        // pkg/teen-autonomy — teen self-authored a task; declarative FYI.
+        return { title: `${name} הוסיף/ה משימה 📝`, body: reward, data: {} };
       case 'parent_engagement':
         return { title: `${name} פעיל/ה השבוע`, body: 'בא לראות?', data: {} };
       case 'family_joined':
@@ -197,6 +203,9 @@ function copyForType(
       return { title: `${name} wants to redeem a reward`, body: reward, data: {} };
     case 'child_suggestion':
       return { title: `${name} has a suggestion 💡`, body: reward, data: {} };
+    case 'teen_task_added':
+      // pkg/teen-autonomy — teen self-authored a task; declarative FYI.
+      return { title: `${name} added a task 📝`, body: reward, data: {} };
     case 'parent_engagement':
       return { title: `${name} has been active this week`, body: 'Wanna see?', data: {} };
     case 'family_joined':
@@ -219,10 +228,53 @@ function copyForType(
 
 // ─── Web Push dispatch (VAPID) ──────────────────────────────────────────
 
+// The public key the web app subscribes with (app.json expo.extra.vapidPublicKey).
+// A browser subscription is bound to the key it was created with, so the push
+// must be signed for exactly this key. Public by design — safe to keep in code.
+const APP_VAPID_PUBLIC_KEY = 'BKu7_rNEcpXoi94OA1rGQmz3AY8ab1vsjHOhUwlZs-kdaddkRB4TladLo-VpVSs5wqskoQbw1S9-1cQR6mPt4YA';
+
+/**
+ * Secrets are pasted by hand; tolerate the usual damage (surrounding quotes,
+ * whitespace/newlines, standard base64 instead of base64url, '=' padding).
+ */
+function normalizeVapidKey(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const key = raw.trim().replace(/^['"]|['"]$/g, '').replace(/\s+/g, '')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return key || null;
+}
+
+function decodedLength(b64url: string): number {
+  try {
+    return atob(b64url.replace(/-/g, '+').replace(/_/g, '/')).length;
+  } catch {
+    return -1;
+  }
+}
+
+/**
+ * The VAPID_PUBLIC_KEY secret was malformed in production ("should be 65 bytes
+ * long when decoded", 2026-09-26), which made EVERY web push fail. Use the
+ * secret only when it is a valid uncompressed P-256 key (65 bytes); otherwise
+ * fall back to the app's key, which every existing subscription was made with.
+ */
+function resolveVapidPublicKey(raw: string | undefined): string {
+  const fromEnv = normalizeVapidKey(raw);
+  if (fromEnv && decodedLength(fromEnv) === 65) {
+    if (fromEnv !== APP_VAPID_PUBLIC_KEY) {
+      console.warn('[webpush] VAPID_PUBLIC_KEY secret differs from the app key — subscriptions made with the app key will reject these pushes');
+    }
+    return fromEnv;
+  }
+  console.warn('[webpush] VAPID_PUBLIC_KEY secret missing or malformed — using the app key');
+  return APP_VAPID_PUBLIC_KEY;
+}
+
 /**
  * Send a Web Push notification to all of a recipient's browser subscriptions.
  * VAPID credentials are read from Supabase secrets at runtime:
- *   VAPID_PUBLIC_KEY  — base64url-encoded P-256 public key
+ *   VAPID_PUBLIC_KEY  — base64url-encoded P-256 public key (validated; falls back
+ *                       to APP_VAPID_PUBLIC_KEY — see resolveVapidPublicKey)
  *   VAPID_PRIVATE_KEY — base64url-encoded P-256 private key
  *   VAPID_EMAIL       — mailto: contact for the push service (e.g. mailto:adi@buffadhd.com)
  *
@@ -236,12 +288,12 @@ async function sendWebPushNotifications(
 ): Promise<number> {
   if (subscriptions.length === 0) return 0;
 
-  const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY');
-  const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY');
+  const vapidPublicKey = resolveVapidPublicKey(Deno.env.get('VAPID_PUBLIC_KEY'));
+  const vapidPrivateKey = normalizeVapidKey(Deno.env.get('VAPID_PRIVATE_KEY'));
   const vapidEmail = Deno.env.get('VAPID_EMAIL') ?? 'mailto:adi@buffadhd.com';
 
-  if (!vapidPublicKey || !vapidPrivateKey) {
-    console.error('[webpush] VAPID_PUBLIC_KEY or VAPID_PRIVATE_KEY not set');
+  if (!vapidPrivateKey) {
+    console.error('[webpush] VAPID_PRIVATE_KEY not set');
     return 0;
   }
 
