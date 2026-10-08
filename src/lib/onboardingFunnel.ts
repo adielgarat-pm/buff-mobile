@@ -100,7 +100,11 @@ export type OnboardingEventType =
   // ('onboarding_complete' | 'dashboard' | 'handoff_banner'). Seen is deduped per app session.
   | 'concierge_offer_seen'
   | 'concierge_offer_tapped'
-  | 'concierge_offer_dismissed';
+  | 'concierge_offer_dismissed'
+  // Join-link parent guard (2026-10-08). A signed-in parent opening the join
+  // link sees "this is for your kid's device" first; `variant` = 'keep' | 'switch'.
+  // join_page_viewed (above) carries variant 'parent_guard' when it was shown.
+  | 'join_parent_guard_choice';
 
 /** UStep6 answer. 'said_no' is reserved for the P2 coached handoff. */
 export type PresenceAnswer = 'together' | 'not_now' | 'said_no';
