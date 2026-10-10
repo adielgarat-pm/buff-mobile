@@ -93,6 +93,13 @@ describe('ChildJoinScreen parent guard', () => {
     expect(queryByTestId('join-parent-guard')).toBeNull();
   });
 
+  it('in-app entry with no link code (Welcome "my kid joins here") skips the guard', () => {
+    mockRouteParams = undefined;
+    const { queryByTestId, getByText } = render(<ChildJoinScreen />);
+    expect(queryByTestId('join-parent-guard')).toBeNull();
+    expect(getByText('auth.familyCodeLabel')).toBeTruthy();
+  });
+
   it('a signed-out visitor sees the code step as before', () => {
     mockProfile = null;
     const { queryByTestId, getByText } = render(<ChildJoinScreen />);

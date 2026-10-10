@@ -586,6 +586,10 @@ export const flows = {
     const { user } = seedOnboardedParent(c.db);
     await c.open({ sessionUser: user });
     await c.goto('/join/TSTFAM');
+    // Parent session + join link → the guard asks first (2026-10-10, family c717);
+    // the shared-device path continues through "Switch".
+    await gate(c, 'join link with parent signed in → guard', () => c.visible(c.tid('join-parent-guard'), 20000));
+    await c.tid('join-guard-switch').click();
     await gate(c, 'join link resolves with parent signed in', () => c.visible(c.page.getByPlaceholder(c.s.codePh), 20000));
     await c.page.getByText(c.s.continue, { exact: true }).last().click();
     await gate(c, 'child card shown', () => c.visible(c.text('TestKid')));
@@ -679,11 +683,14 @@ export const flows = {
       ['/RoleSelection', () => c.text(c.s.iAmParent)],
       ['/Login', () => c.text(c.s.google)],
       ['/Signup', () => c.page.getByPlaceholder(c.s.email)],
-      ['/join/TSTFAM', () => c.page.getByPlaceholder(c.s.codePh)],
+      // Join link + parent session → the guard first (2026-10-10, family c717).
+      ['/join/TSTFAM', () => c.tid('join-parent-guard')],
     ]) {
       await c.goto(p);
       await c.check(`deep link ${p} with parent session`, () => c.visible(loc(), 20000));
     }
+    await c.tid('join-guard-switch').click();
+    await c.check('guard → Switch → family code step', () => c.visible(c.page.getByPlaceholder(c.s.codePh), 20000));
     await c.goto('/');
     await c.check('/ with parent session → ParentApp', () => assertParentApp(c));
   },

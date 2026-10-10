@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-10-10-01: #506 merged while web-smoke was still running — it was red, and merge = production OTA
+
+- **תאריך:** 2026-10-10
+- **מקור:** CC — post-merge check of PR #506 (`be54d6d`).
+- **תיאור:** `web-smoke` takes ~16 min; the PR was merged while it was still running, and it finished red (16/116: A10, C5, C6, D3). `ota-auto` published the production OTA at 15:33 anyway, because it gates only on the `CI` workflow on main, not on `web-smoke`. Two failures were real regressions of my change: (1) removing "Sign Up" from grown-up Login broke a NEW parent signing up on a shared device (A10, a 2026-09-24 fix); (2) the guard fired on in-app entries to ChildJoin (Welcome "my kid joins here", C6) with "this link…" copy where no link existed. C5/D3 were stale expectations of the intended new behaviour. Neither the three reviews (architect/UX/PM) nor the unit tests caught (1) — the e2e suite did.
+- **השפעה:** Fix: guard only when a link brought a code; Sign Up restored. Rules: (a) never merge before `web-smoke` is green — merge = release; (b) before removing an affordance, grep `e2e/` for flows that use it. Proposal for Adi: make `web-smoke` a required check, or gate `ota-auto` on it.
+- **סטטוס:** `open` until the fix ships.
+- **קשור ל:** PR #506, `e2e/web-smoke/flows.mjs`, `.github/workflows/ota-auto.yml`
+
 ### IN-2026-10-08-01: A parent who taps their own child's join link is silently switched into the kid's session
 
 - **תאריך:** 2026-10-08

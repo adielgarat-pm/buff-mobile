@@ -202,25 +202,25 @@ export default function LoginScreen() {
             : <Text style={styles.googleBtnText}>{t('auth.continueWithGoogle')}</Text>}
         </TouchableOpacity>
 
-        {/* Grown-up sign-in is a RETURNING parent (2026-10-10, family c717): the
-            role-choice hint and "Sign Up" sent them into a re-signup → 422
-            "already registered". Point them back to their own sign-in method. */}
+        {/* Grown-up sign-in is usually a RETURNING parent (2026-10-10, family
+            c717): the role-choice hint pushed them toward a re-signup → 422
+            "already registered", so point them back to their own method.
+            "Sign Up" stays — a NEW parent on a shared device signs up from
+            here (A10, Android run 2026-09-24). */}
         <Text style={styles.googleHint}>
           {grownUp ? t('auth.grownUpSameMethod') : t('auth.googleRoleSelection')}
         </Text>
 
-        {!grownUp && (
-          // Sign up link — fully translated
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Signup')}
-            style={styles.signupRow}
-          >
-            <Text style={styles.signupText}>
-              {t('auth.noAccount')}{' '}
-              <Text style={styles.signupLink}>{t('auth.signup')}</Text>
-            </Text>
-          </TouchableOpacity>
-        )}
+        {/* Sign up link — fully translated */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Signup')}
+          style={styles.signupRow}
+        >
+          <Text style={styles.signupText}>
+            {t('auth.noAccount')}{' '}
+            <Text style={styles.signupLink}>{t('auth.signup')}</Text>
+          </Text>
+        </TouchableOpacity>
 
         {grownUp && navigation.canGoBack() && (
           <TouchableOpacity
