@@ -42,6 +42,9 @@ export function useWelcomeBack() {
   useEffect(() => {
     if (!settings?.family_id) return;
     if (checkedRef.current) return; // run once per mount
+    // Claim the run BEFORE any await: setting this after the awaits let every
+    // re-render in between start another check + write (write loop, 2026-10-08).
+    checkedRef.current = true;
 
     (async () => {
       try {
@@ -66,7 +69,6 @@ export function useWelcomeBack() {
 
         // Always record activity (this also resets the absence timer)
         await recordChildActivity();
-        checkedRef.current = true;
       } catch (err) {
         console.warn('[useWelcomeBack] check error (non-fatal):', err);
       }
