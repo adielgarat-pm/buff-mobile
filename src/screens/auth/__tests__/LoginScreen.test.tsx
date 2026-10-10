@@ -193,12 +193,13 @@ describe('isNetworkAuthError classification', () => {
 describe('LoginScreen grown-up mode (returning parent from the kid view)', () => {
   afterEach(() => { mockRouteParams = undefined; });
 
-  test('hides "Sign Up" and the role-choice hint, shows the same-method hint', () => {
+  test('swaps the role-choice hint for the same-method hint, keeps Sign Up for a new parent', () => {
     mockRouteParams = { grownUp: true };
     const utils = render(<LoginScreen />);
-    expect(utils.queryByText('auth.signup')).toBeNull();
     expect(utils.queryByText('auth.googleRoleSelection')).toBeNull();
     expect(utils.getByText('auth.grownUpSameMethod')).toBeTruthy();
+    // A NEW parent on a shared device signs up from here (web-smoke A10).
+    expect(utils.getByText('auth.signup')).toBeTruthy();
   });
 
   test('normal login still offers Sign Up', () => {

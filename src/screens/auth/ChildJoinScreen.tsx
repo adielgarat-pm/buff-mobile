@@ -42,13 +42,17 @@ export default function ChildJoinScreen() {
   const navigation                 = useNavigation<Nav>();
   const { params }                 = useRoute<Route>();
 
-  // A signed-in parent who opens the join link on THEIR OWN phone (tapping the
+  // A signed-in parent who opens the join LINK on their own phone (tapping the
   // invite they just shared) used to be silently swapped into the kid's session
   // and lose the parent app (churn case 2026-10-07, family c717). Picking a
-  // child still works on a shared device — this only asks first. Hand-back
-  // (autoFind) is already an explicit parent → kid switch, so it skips this.
+  // child still works on a shared device — this only asks first.
+  // Only a link carries a code: in-app entries (Welcome "my kid joins here",
+  // RoleSelection "I'm a child", the Google picker) are a deliberate choice on
+  // this device and skip the guard, as does hand-back (autoFind).
   const parentSession = profile?.role === 'parent';
-  const [guardOpen, setGuardOpen] = useState(parentSession && !params?.autoFind);
+  const [guardOpen, setGuardOpen] = useState(
+    parentSession && !!params?.code && !params?.autoFind,
+  );
 
   // join_page_viewed was defined but never logged, so this screen was invisible
   // in the funnel. Only a signed-in visitor has the family scope RLS needs.
