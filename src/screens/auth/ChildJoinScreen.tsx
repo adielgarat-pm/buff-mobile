@@ -15,6 +15,7 @@ import { stableChildCreds, legacyChildCreds } from '../../utils/childAuth';
 import { PASTEL_MODE } from '../../theme/modes';
 import type { RootStackParamList } from '../../navigation/types';
 import { webAuthColumn } from './authLayout';
+import { logOnboardingEvent } from '../../lib/onboardingFunnel';
 
 type Nav   = StackNavigationProp<RootStackParamList, 'ChildJoin'>;
 type Route = RouteProp<RootStackParamList, 'ChildJoin'>;
@@ -37,9 +38,47 @@ interface ChildCard {
 
 export default function ChildJoinScreen() {
   const { t }                      = useTranslation();
-  const { signIn, refreshProfile } = useAuth();
+  const { signIn, refreshProfile, profile } = useAuth();
   const navigation                 = useNavigation<Nav>();
   const { params }                 = useRoute<Route>();
+
+  // A signed-in parent who opens the join link on THEIR OWN phone (tapping the
+  // invite they just shared) used to be silently swapped into the kid's session
+  // and lose the parent app (churn case 2026-10-07, family c717). Picking a
+  // child still works on a shared device — this only asks first. Hand-back
+  // (autoFind) is already an explicit parent → kid switch, so it skips this.
+  const parentSession = profile?.role === 'parent';
+  const [guardOpen, setGuardOpen] = useState(parentSession && !params?.autoFind);
+
+  // join_page_viewed was defined but never logged, so this screen was invisible
+  // in the funnel. Only a signed-in visitor has the family scope RLS needs.
+  useEffect(() => {
+    void logOnboardingEvent({
+      familyId:  profile?.family_id,
+      eventType: 'join_page_viewed',
+      source:    params?.autoFind ? 'hand_back' : 'join_screen',
+      variant:   guardOpen ? 'parent_guard' : null,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Back to the parent's own home (first screen of the current branch). A cold
+  // start from the link has no back stack, and RoleSelection would offer a
+  // signed-in parent "create account" again (the 422 re-signup, same family).
+  const backToParent = () => {
+    const home = navigation.getState().routeNames[0] as keyof RootStackParamList;
+    navigation.reset({ index: 0, routes: [{ name: home }] });
+  };
+
+  const chooseGuard = (choice: 'keep' | 'switch') => {
+    void logOnboardingEvent({
+      familyId:  profile?.family_id,
+      eventType: 'join_parent_guard_choice',
+      variant:   choice,
+    });
+    if (choice === 'keep') backToParent();
+    else setGuardOpen(false);
+  };
 
   // Pre-fill from buff://join/:code deep link. React Navigation makes params
   // available synchronously at mount when arriving via a deep link.
@@ -161,7 +200,11 @@ export default function ChildJoinScreen() {
       {/* Back link */}
       <TouchableOpacity
         style={styles.backBtn}
-        onPress={() => (step === 'pick' ? setStep('code') : navigation.navigate('RoleSelection'))}
+        onPress={() => {
+          if (step === 'pick') setStep('code');
+          else if (parentSession) backToParent();
+          else navigation.navigate('RoleSelection');
+        }}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
         <Text style={styles.backText}>{t('auth.back')}</Text>
@@ -189,7 +232,23 @@ export default function ChildJoinScreen() {
             <Text style={styles.logoWordmark}>BUFF</Text>
           </View>
 
-          {step === 'code' ? (
+          {guardOpen ? (
+            <View testID="join-parent-guard">
+              <Text style={styles.pickHeader}>{t('auth.joinParentGuardTitle')}</Text>
+              <Text style={styles.helpText}>
+                {t('auth.joinParentGuardBody', { name: profile?.display_name ?? '' })}
+              </Text>
+
+              <TouchableOpacity testID="join-guard-keep" style={styles.btn} onPress={() => chooseGuard('keep')}>
+                <Text style={styles.btnText}>{t('auth.joinParentGuardKeep')}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity testID="join-guard-switch" style={styles.guardSwitch} onPress={() => chooseGuard('switch')}>
+                <Text style={styles.guardSwitchText}>{t('auth.joinParentGuardSwitch')}</Text>
+                <Text style={styles.guardSwitchHint}>{t('auth.joinParentGuardSwitchHint')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : step === 'code' ? (
             <>
               <Text style={styles.helpText}>{t('auth.childJoinSub')}</Text>
 
@@ -324,4 +383,8 @@ const styles = StyleSheet.create({
   btn:         { backgroundColor: ACCENT, borderRadius: 14, paddingVertical: 18, alignItems: 'center' },
   btnDisabled: { opacity: 0.6 },
   btnText:     { color: '#fff', fontSize: 17, fontWeight: '800' },
+
+  guardSwitch:     { alignItems: 'center', paddingVertical: 16, marginTop: 8 },
+  guardSwitchText: { color: ACCENT, fontSize: 15, fontWeight: '700' },
+  guardSwitchHint: { color: TEXT_MUTED, fontSize: 13, marginTop: 4, textAlign: 'center' },
 });

@@ -14,6 +14,24 @@
 
 ## Implementation Notes
 
+### IN-2026-10-08-01: A parent who taps their own child's join link is silently switched into the kid's session
+
+- **תאריך:** 2026-10-08
+- **מקור:** CC — ניתוח משתמשת חדשה שנתקעה (family `c717…`, Android, RS), auth + edge logs.
+- **תיאור:** Since the shared-device fix (bug 2026-09-17), `ChildJoin` is registered in the signed-in parent branches. An Android App Link (`buffadhd.com/join/:code`) opened on the PARENT's own phone lands there; picking the child signs in with the child's creds and replaces the parent session with no prompt. Family c717: `invite_sent` 21:01:07 → child account created 21:01:54 from the same IP, 8 s after the parent's last request; the parent session never refreshed again and the next open (next day) was the kid view. Earlier the same evening Back on ChildJoin led a signed-in parent to RoleSelection → "create account" → 422 `user_already_exists`. `join_page_viewed` was defined but never logged, so none of this was visible in the funnel.
+- **השפעה:** Fixed in `child-join-parent-guard` chunk A: guard for a parent session (keep / switch), hand-back (`autoFind`) skips it, Back sends a parent home, telemetry added. Only 1 family in production had both `invite_sent` and a child join recorded at the time, so the frequency is unknown — the new events will measure it.
+- **סטטוס:** `open` until device + web verification.
+- **קשור ל:** `src/screens/auth/ChildJoinScreen.tsx`, `src/navigation/RootNavigator.tsx` (sharedDeviceAuthScreens), `docs/sessions/child-join-parent-guard/STATUS.md`
+
+### IN-2026-10-08-02: RLS turns a child's app_settings UPDATE into a silent 204 no-op — and the effect that sent it looped
+
+- **תאריך:** 2026-10-08
+- **מקור:** CC — same analysis; ~75–90 `PATCH app_settings` in ~4 s from one child open, row unchanged.
+- **תיאור:** (1) `app_settings` writes are parent-only under RLS. PostgREST returns 204 for an UPDATE that matches 0 rows, so the child's `last_child_activity` stamp "succeeded" and never wrote. The 21 non-null values in production were written by PARENTS in child preview. Result: the 3-day Welcome Back modal could never fire for a real child. (2) `useWelcomeBack` set `checkedRef` only after its awaits, and `recordChildActivity` changed identity on every optimistic `setSettings`, so each re-render started another check + write until the first PATCH returned.
+- **השפעה:** Fixed in chunk B: `record_child_activity()` SECURITY DEFINER RPC (migration 061 — child-only, own family, 5-min throttle; parents no-op), stable callback, `checkedRef` claimed before any await. Regression test fails on the old code (6 writes) and passes on the new (1). Lesson: a 204 from PostgREST UPDATE proves nothing about rows written — check `count` or read back when RLS might filter.
+- **סטטוס:** `open` until device + web verification.
+- **קשור ל:** `src/hooks/useAppSettings.ts`, `src/components/WelcomeBackModal.tsx`, `supabase/migrations/061_record_child_activity_rpc.sql`
+
 ### IN-2026-09-30-01: Web Push never delivered — the `VAPID_PUBLIC_KEY` secret was malformed
 
 - **תאריך:** 2026-09-26 (נמצא) / 2026-09-30 (תיקון)

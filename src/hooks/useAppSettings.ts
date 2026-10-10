@@ -191,22 +191,25 @@ export function useAppSettings() {
     return { error: null };
   }, [familyId, settings, refetch]);
 
-  /** Update last_child_activity to now (used by child screens). */
+  /**
+   * Stamp last_child_activity (used by child screens). Goes through the
+   * record_child_activity RPC (migration 061): app_settings writes are
+   * parent-only under RLS, so a direct UPDATE from a child silently matched 0
+   * rows. The RPC no-ops for parents (child preview) and throttles to 5 min.
+   *
+   * Deliberately NOT optimistic and NOT dependent on `settings`: the old
+   * optimistic setSettings gave this callback a new identity on every call,
+   * which re-ran useWelcomeBack's effect and fired ~90 PATCHes per child open
+   * (family c717, 2026-10-08). Realtime delivers the real value when it lands.
+   */
   const recordChildActivity = useCallback(async (): Promise<void> => {
     if (!familyId) return;
-
-    const now = new Date().toISOString();
-
-    // Optimistic
-    if (settings) {
-      setSettings({ ...settings, last_child_activity: now });
+    try {
+      await supabase.rpc('record_child_activity');
+    } catch {
+      /* best-effort: an older backend without 061 must not break the screen */
     }
-
-    await supabase
-      .from('app_settings')
-      .update({ last_child_activity: now } as never)
-      .eq('family_id', familyId);
-  }, [familyId, settings]);
+  }, [familyId]);
 
   /**
    * Set a notification preference column for the family. Optimistic + rollback.

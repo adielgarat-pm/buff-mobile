@@ -189,3 +189,22 @@ describe('isNetworkAuthError classification', () => {
     expect(isNetworkAuthError(error as Parameters<typeof isNetworkAuthError>[0])).toBe(expected);
   });
 });
+
+describe('LoginScreen grown-up mode (returning parent from the kid view)', () => {
+  afterEach(() => { mockRouteParams = undefined; });
+
+  test('hides "Sign Up" and the role-choice hint, shows the same-method hint', () => {
+    mockRouteParams = { grownUp: true };
+    const utils = render(<LoginScreen />);
+    expect(utils.queryByText('auth.signup')).toBeNull();
+    expect(utils.queryByText('auth.googleRoleSelection')).toBeNull();
+    expect(utils.getByText('auth.grownUpSameMethod')).toBeTruthy();
+  });
+
+  test('normal login still offers Sign Up', () => {
+    mockRouteParams = undefined;
+    const utils = render(<LoginScreen />);
+    expect(utils.getByText('auth.signup')).toBeTruthy();
+    expect(utils.getByText('auth.googleRoleSelection')).toBeTruthy();
+  });
+});

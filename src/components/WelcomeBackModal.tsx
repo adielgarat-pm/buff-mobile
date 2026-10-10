@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { useAppSettings } from '../hooks/useAppSettings';
 import { useChildTheme } from '../contexts/ThemeContext';
+import { useMode } from '../contexts/ModeContext';
 
 const SHOWN_FLAG_KEY = (familyId: string) => `buff_welcome_back_shown_${familyId}`;
 const ABSENCE_THRESHOLD_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
@@ -35,13 +36,20 @@ const ABSENCE_THRESHOLD_MS = 3 * 24 * 60 * 60 * 1000; // 3 days
  */
 export function useWelcomeBack() {
   const { isPauseActive, lastChildActivity, settings, recordChildActivity } = useAppSettings();
+  // A parent previewing the child view is not the child coming back: no modal,
+  // and no "shown" flag written on the parent's device.
+  const { isChildPreview } = useMode();
   const [visible, setVisible] = useState(false);
   const prevPausedRef         = useRef<boolean | null>(null);
   const checkedRef            = useRef(false);
 
   useEffect(() => {
     if (!settings?.family_id) return;
+    if (isChildPreview) return;
     if (checkedRef.current) return; // run once per mount
+    // Claim the run BEFORE any await: setting this after the awaits let every
+    // re-render in between start another check + write (write loop, 2026-10-08).
+    checkedRef.current = true;
 
     (async () => {
       try {
@@ -66,14 +74,13 @@ export function useWelcomeBack() {
 
         // Always record activity (this also resets the absence timer)
         await recordChildActivity();
-        checkedRef.current = true;
       } catch (err) {
         console.warn('[useWelcomeBack] check error (non-fatal):', err);
       }
     })();
 
     prevPausedRef.current = isPauseActive;
-  }, [settings?.family_id, isPauseActive, lastChildActivity, recordChildActivity]);
+  }, [settings?.family_id, isPauseActive, lastChildActivity, recordChildActivity, isChildPreview]);
 
   const dismiss = async () => {
     setVisible(false);
