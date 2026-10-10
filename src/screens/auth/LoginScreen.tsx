@@ -202,18 +202,25 @@ export default function LoginScreen() {
             : <Text style={styles.googleBtnText}>{t('auth.continueWithGoogle')}</Text>}
         </TouchableOpacity>
 
-        <Text style={styles.googleHint}>{t('auth.googleRoleSelection')}</Text>
+        {/* Grown-up sign-in is a RETURNING parent (2026-10-10, family c717): the
+            role-choice hint and "Sign Up" sent them into a re-signup → 422
+            "already registered". Point them back to their own sign-in method. */}
+        <Text style={styles.googleHint}>
+          {grownUp ? t('auth.grownUpSameMethod') : t('auth.googleRoleSelection')}
+        </Text>
 
-        {/* Sign up link — fully translated */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Signup')}
-          style={styles.signupRow}
-        >
-          <Text style={styles.signupText}>
-            {t('auth.noAccount')}{' '}
-            <Text style={styles.signupLink}>{t('auth.signup')}</Text>
-          </Text>
-        </TouchableOpacity>
+        {!grownUp && (
+          // Sign up link — fully translated
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Signup')}
+            style={styles.signupRow}
+          >
+            <Text style={styles.signupText}>
+              {t('auth.noAccount')}{' '}
+              <Text style={styles.signupLink}>{t('auth.signup')}</Text>
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {grownUp && navigation.canGoBack() && (
           <TouchableOpacity

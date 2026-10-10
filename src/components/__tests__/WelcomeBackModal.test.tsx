@@ -15,6 +15,8 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k: string) => k }) }));
 jest.mock('../../contexts/ThemeContext', () => ({ useChildTheme: () => ({}) }));
+let mockPreview = false;
+jest.mock('../../contexts/ModeContext', () => ({ useMode: () => ({ isChildPreview: mockPreview }) }));
 
 const mockRecord = jest.fn().mockResolvedValue(undefined);
 let mockState: { lastChildActivity: string | null; recordChildActivity: () => Promise<void> };
@@ -29,6 +31,7 @@ jest.mock('../../hooks/useAppSettings', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockPreview = false;
   mockState = { lastChildActivity: null, recordChildActivity: mockRecord };
 });
 
@@ -59,5 +62,14 @@ describe('useWelcomeBack', () => {
     const { result } = renderHook(() => useWelcomeBack());
     await waitFor(() => expect(mockRecord).toHaveBeenCalledTimes(1));
     expect(result.current.visible).toBe(false);
+  });
+
+  it('stays silent and writes nothing while a parent previews the child view', async () => {
+    mockPreview = true;
+    mockState.lastChildActivity = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
+    const { result } = renderHook(() => useWelcomeBack());
+    await new Promise((r) => setTimeout(r, 20));
+    expect(result.current.visible).toBe(false);
+    expect(mockRecord).not.toHaveBeenCalled();
   });
 });

@@ -6,6 +6,8 @@ Ad-hoc fix package (no SPEC). Origin: production churn analysis of family `c717�
 |---|---|---|---|---|---|
 | A — ChildJoin parent-session guard, Back → parent home, `join_page_viewed` + `join_parent_guard_choice` telemetry, invite hint copy | code done; device/web verification pending | 2026-10-08 | `5af4c0a` | jest 154 suites / 1268 pass, tsc clean | IN-2026-10-08-01 |
 | B — `useWelcomeBack` write loop + `record_child_activity` RPC (migration 061, applied to production 2026-10-10) | code done; device/web verification pending | 2026-10-10 | _this commit_ | jest 156 suites / 1274 pass, tsc clean; SQL role-simulation pass (rolled back) | IN-2026-10-08-02 |
+| R0 — migration 062: `smart_insight_feedback` parent-only family SELECT + grant; `record_insight_vote` requires a parent of the child's family, anon revoked, 5-arg overload dropped | **written, NOT applied** — Supabase `apply_migration` timed out 3× (2026-10-10); verified nothing applied, no locks | 2026-10-10 | _this commit_ | pending SQL role simulation | — |
+| R1 — guard copy (Adi-approved), "Menu → Grown-up sign-in" hint, grown-up Login hides Sign Up + role hint, invite hint "not yours", Welcome Back silent in parent preview | code done; device/web verification pending | 2026-10-10 | _this commit_ | jest 156 suites / 1277 pass, tsc clean | — |
 
 ## Values Check (implemented behavior)
 

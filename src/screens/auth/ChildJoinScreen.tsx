@@ -234,10 +234,10 @@ export default function ChildJoinScreen() {
 
           {guardOpen ? (
             <View testID="join-parent-guard">
-              <Text style={styles.pickHeader}>
-                {t('auth.joinParentGuardTitle', { name: profile?.display_name ?? '' })}
+              <Text style={styles.pickHeader}>{t('auth.joinParentGuardTitle')}</Text>
+              <Text style={styles.helpText}>
+                {t('auth.joinParentGuardBody', { name: profile?.display_name ?? '' })}
               </Text>
-              <Text style={styles.helpText}>{t('auth.joinParentGuardBody')}</Text>
 
               <TouchableOpacity testID="join-guard-keep" style={styles.btn} onPress={() => chooseGuard('keep')}>
                 <Text style={styles.btnText}>{t('auth.joinParentGuardKeep')}</Text>
