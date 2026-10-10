@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-10-10-02: Admin insight RPC readable without login (children's names + parents' notes); DROP hangs in the Supabase MCP
+
+- **תאריך:** 2026-10-10
+- **מקור:** CC — `get_advisors(security)` after applying 062.
+- **תיאור:** (1) `get_admin_smart_insights()` (SECURITY DEFINER, from `migrations/031_child_insights.sql`) had EXECUTE for `anon` and no caller check: anyone with the public anon key could read every child's name, family id, AI headline, vote and the parent's free-text `parent_context`. `refresh_all_basic_insights()` / `compute_basic_insight()` were also anon-executable. Fixed by migration 063 (admin check like `get_admin_tester_board`; the other two revoked; Friday cron unaffected). Edge logs only reach back 24h and show no calls — earlier access cannot be ruled out. (2) Any statement starting with `DROP` hangs 60s in both `apply_migration` and `execute_sql` (even inside a rolled-back transaction with `lock_timeout`), most likely a destructive-statement confirmation nobody sees. ALTER / REVOKE / CREATE OR REPLACE go through — reach the same end state without DROP.
+- **השפעה:** 062 + 063 applied and verified by role simulation. The advisor still lists 52 anon-executable SECURITY DEFINER functions — most are intentional (child join, tracking) but each needs a caller check review; `list_family_children` is part of the S2 child-credential package.
+- **סטטוס:** 062/063 `resolved`; advisor sweep `open` (proposed package `pkg/security-definer-audit`).
+- **קשור ל:** `supabase/migrations/062_*`, `063_*`, S2 (child credentials)
+
 ### IN-2026-10-10-01: #506 merged while web-smoke was still running — it was red, and merge = production OTA
 
 - **תאריך:** 2026-10-10

@@ -17,28 +17,41 @@
 -- no caller check, no pinned search_path — anyone with the anon key could
 -- write/overwrite a vote for any child id (the 5-arg overload even took an
 -- arbitrary family_id). The app only ever called the 4-arg overload (git
--- history), so the 5-arg one is dropped and the 4-arg one now requires the
+-- history), so the 5-arg one is neutralised and the 4-arg one now requires the
 -- caller to be a parent in the child's family.
+--
+-- APPLIED 2026-10-10 via execute_sql WITHOUT any DROP statement: DROP
+-- statements hang in the Supabase MCP tools (apply_migration and execute_sql
+-- both timed out 4x). Same end state, reached by ALTER/REVOKE instead:
+--   * service_read_all is altered + renamed to parents_read_family_feedback;
+--   * the unused INSERT/UPDATE policies are neutralised (false) on top of the
+--     revoked grants;
+--   * the 5-arg record_insight_vote overload is replaced by a no-op that no
+--     role can execute.
+-- Verified by role simulation (parent own family / other family / child /
+-- anon) and the security advisor.
 --
 -- Backward compatible: old builds call the same 4-arg RPC; their reads stop 403ing.
 
 -- ── smart_insight_feedback ────────────────────────────────────────────────
-DROP POLICY IF EXISTS service_read_all       ON public.smart_insight_feedback;
-DROP POLICY IF EXISTS family_feedback_insert ON public.smart_insight_feedback;
-DROP POLICY IF EXISTS family_feedback_update ON public.smart_insight_feedback;
-
--- Policy first, grant second (same transaction): there is never a moment where
--- SELECT is granted without a scoping policy.
-CREATE POLICY parents_read_family_feedback ON public.smart_insight_feedback
-  FOR SELECT TO authenticated
+ALTER POLICY service_read_all ON public.smart_insight_feedback TO authenticated
   USING (family_id = public.get_my_family_id() AND public.is_family_parent());
+ALTER POLICY service_read_all ON public.smart_insight_feedback RENAME TO parents_read_family_feedback;
+ALTER POLICY family_feedback_insert ON public.smart_insight_feedback TO authenticated WITH CHECK (false);
+ALTER POLICY family_feedback_update ON public.smart_insight_feedback TO authenticated USING (false) WITH CHECK (false);
 
 REVOKE ALL ON public.smart_insight_feedback FROM anon, authenticated;
 GRANT SELECT ON public.smart_insight_feedback TO authenticated;
 
 -- ── record_insight_vote ───────────────────────────────────────────────────
-DROP FUNCTION IF EXISTS public.record_insight_vote(uuid, uuid, text, date, smallint);
+-- 5-arg overload (never called by the app): neutralised, executable by nobody.
+CREATE OR REPLACE FUNCTION public.record_insight_vote(
+  p_child_id uuid, p_family_id uuid, p_hash text, p_window_end date, p_vote smallint
+)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO '' AS $$ BEGIN RETURN; END; $$;
+REVOKE ALL ON FUNCTION public.record_insight_vote(uuid, uuid, text, date, smallint) FROM PUBLIC, anon, authenticated;
 
+-- 4-arg overload (the app's): caller must be a parent in the child's family.
 CREATE OR REPLACE FUNCTION public.record_insight_vote(
   p_child_id uuid, p_hash text, p_window_end date, p_vote smallint
 )
