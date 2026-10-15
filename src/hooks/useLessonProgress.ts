@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -94,7 +95,7 @@ export function useLessonProgress(date: string, childId: string | null) {
     if (!familyId || !childId) return;
 
     const channel = supabase
-      .channel(`lesson-progress-${familyId}-${childId}-${date}-${Date.now()}`)
+      .channel(uniqueTopic(`lesson-progress-${familyId}-${childId}-${date}`))
       .on(
         'postgres_changes',
         {

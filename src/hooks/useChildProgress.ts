@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useCallback, useContext } from 'react';
 import { AppState } from 'react-native';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import { ModeContext } from '../contexts/ModeContext';
 import { Task } from '../types/task';
@@ -180,7 +181,7 @@ export function useChildProgress() {
     if (!familyId) return;
 
     const channel = supabase
-      .channel(`children-progress-${familyId}-${Date.now()}`)
+      .channel(uniqueTopic(`children-progress-${familyId}`))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'daily_progress'  }, () => fetchChildrenProgress())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lesson_progress' }, () => fetchChildrenProgress())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'credit_vault'    }, () => fetchChildrenProgress())
@@ -338,7 +339,7 @@ export function useChildData(childId: string | null) {
     if (!familyId || !childId) return;
 
     const channel = supabase
-      .channel(`child-tasks-${childId}-${Date.now()}`)
+      .channel(uniqueTopic(`child-tasks-${childId}`))
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tasks', filter: `family_id=eq.${familyId}` },

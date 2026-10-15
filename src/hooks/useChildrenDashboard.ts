@@ -9,6 +9,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import { isTaskInActivePlan } from '../utils/offRoutineUtils';
 import { localDayKey } from '../lib/dayKey';
@@ -176,13 +177,8 @@ export function useChildrenDashboard() {
 
   useEffect(() => {
     if (!familyId) return;
-    // Use a unique channel name each time to avoid "cannot add postgres_changes
-    // callbacks after subscribe()" — which happens when the old channel isn't
-    // fully removed before this effect re-runs (removeChannel is async).
-    // Date.now() alone can collide on a same-millisecond effect re-run (React dev
-    // double-invoke) → supabase returns the already-subscribed channel → ".on()
-    // after subscribe()" throws. A random suffix makes the topic truly unique.
-    const channelName = `children-dashboard-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    // Unique topic per effect run — see src/lib/realtimeTopic.ts.
+    const channelName = uniqueTopic('children-dashboard');
     const channel = supabase
       .channel(channelName)
       // Re-fetch when a child profile is inserted (e.g. end of onboarding flow)

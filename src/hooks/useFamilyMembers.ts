@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 
 export interface FamilyMember {
@@ -71,7 +72,7 @@ export function useFamilyMembers() {
     if (!familyId) return;
 
     const channel = supabase
-      .channel(`family-members-${familyId}-${Date.now()}`)
+      .channel(uniqueTopic(`family-members-${familyId}`))
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles', filter: `family_id=eq.${familyId}` },

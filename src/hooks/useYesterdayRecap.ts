@@ -19,6 +19,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import { useAppSettings } from './useAppSettings';
 import {
@@ -120,7 +121,7 @@ export function useYesterdayRecap(): UseYesterdayRecapResult {
   useEffect(() => {
     if (!familyId) return;
 
-    const channelName = `yesterday-recap-${familyId}-${Date.now()}`;
+    const channelName = uniqueTopic(`yesterday-recap-${familyId}`);
     const channel = supabase
       .channel(channelName)
       .on(
