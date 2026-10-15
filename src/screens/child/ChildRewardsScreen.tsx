@@ -187,10 +187,10 @@ function PastelChildRewards() {
 
       {/* Header — balance and label are separate Text elements (no concatenation) */}
       <View style={styles.header}>
-        <Text style={[styles.title, { color: T.primary }]}>{t('childRewards.title')}</Text>
+        <Text style={[styles.title, { color: T.primaryText }]}>{t('childRewards.title')}</Text>
         <View style={[styles.walletBadge, { backgroundColor: T.card, borderColor: T.border }]}>
           <Text style={styles.walletIcon}>⚡</Text>
-          <Text style={[styles.walletAmount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
+          <Text style={[styles.walletAmount, { color: T.buffText }]}>{formatNum(totalBalance)}</Text>
           <Text style={[styles.walletLabel, { color: T.mutedForeground }]}>{t('childRewards.walletLabel')}</Text>
         </View>
       </View>
@@ -276,14 +276,14 @@ function PastelChildRewards() {
                     />
                   </View>
                   {!canAfford && (
-                    <Text style={[styles.toGoText, { color: T.primary }]}>
+                    <Text style={[styles.toGoText, { color: T.primaryText }]}>
                       {t('childRewards.toGo', { count: formatNum(reward.credits_needed - totalBalance) })}
                     </Text>
                   )}
                 </View>
                 {pending ? (
                   <View style={styles.pendingCol}>
-                    <Text style={[styles.pendingLabel, { color: T.primary }]} numberOfLines={2}>
+                    <Text style={[styles.pendingLabel, { color: T.primaryText }]} numberOfLines={2}>
                       {pending.status === 'discussing'
                         ? t('childRewards.discussingLabel')
                         : t('childRewards.pendingLabel')}
@@ -358,8 +358,8 @@ function PastelChildRewards() {
           {/* Use accent (not primary): in the Mint theme `primary` is a very pale
               lavender that reads as disabled on the white card. accent is the
               visible interactive purple. */}
-          <Ionicons name="add" size={18} color={T.accent} />
-          <Text style={[styles.suggestText, { color: T.accent }]}>{t('childSuggest.reward.cta')}</Text>
+          <Ionicons name="add" size={18} color={T.accentText} />
+          <Text style={[styles.suggestText, { color: T.accentText }]}>{t('childSuggest.reward.cta')}</Text>
         </TouchableOpacity>
       </View>
 

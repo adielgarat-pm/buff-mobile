@@ -49,7 +49,13 @@ export interface ChildThemeColors {
   card:              string; // card / surface background
   primary:           string; // main interactive colour (buttons, highlights)
   primaryForeground: string; // text on top of primary
+  // TEXT-ONLY variants. `primary` / `accent` / `buff` can be light FILL colours
+  // (Mint primary is pale lavender #E9D5FF) that are near-invisible as text on
+  // the background or a card. Use these whenever the colour paints text or an
+  // icon; keep the base tokens for fills, borders and progress bars.
+  primaryText:       string; // headings / labels in the primary hue
   accent:            string; // secondary interactive / decorative
+  accentText:        string; // text / icon in the accent hue
   muted:             string; // subtle background (tags, chips)
   mutedForeground:   string; // secondary / placeholder text
   border:            string; // dividers, card outlines
@@ -58,6 +64,7 @@ export interface ChildThemeColors {
   warning:           string; // caution ⚠️
   // ── BUFF-specific tokens ───────────────────────────────────────────────────
   buff:              string; // ⚡ Buffs currency colour
+  buffText:          string; // ⚡ Buffs amounts rendered as text
   streak:            string; // 🔥 streak counter colour
   reward:            string; // ⭐ shop / reward colour
   shadow:            string; // rgba — card shadow / neon glow
@@ -89,7 +96,9 @@ const MINT: ChildThemeColors = {
   card:              '#FFFFFF',
   primary:           '#E9D5FF', // hsl(270,67%,92%)
   primaryForeground: '#5B3FAF', // hsl(258,50%,40%)
+  primaryText:       '#5B3FAF', // = primaryForeground; readable on background + card
   accent:            '#C084FC', // hsl(258,73%,76%)
+  accentText:        '#7C3AED', // brand VIOLET_ACCENT; readable on background + card
   muted:             '#D1FAE5', // hsl(142,40%,90%)
   mutedForeground:   '#606672', // hsl(220,9%,40%)
   border:            '#BBF7D0', // hsl(142,30%,85%)
@@ -98,6 +107,7 @@ const MINT: ChildThemeColors = {
   warning:           '#F59E0B', // hsl(38,70%,60%)
 
   buff:              '#C084FC', // hsl(258,73%,76%) — matches accent
+  buffText:          '#7C3AED', // = accentText
   streak:            '#F87171', // hsl(0,80%,75%)
   reward:            '#C084FC', // hsl(258,73%,76%)
   shadow:            'rgba(192, 132, 252, 0.2)',
@@ -130,7 +140,9 @@ const GAMER: ChildThemeColors = {
   card:              '#1E2436', // hsl(230,20%,16%)
   primary:           '#22D3EE', // hsl(185,80%,55%) — cyan
   primaryForeground: '#111827', // hsl(230,25%,10%)
+  primaryText:       '#22D3EE', // = primary (already readable on dark)
   accent:            '#A855F7', // hsl(270,70%,65%) — purple
+  accentText:        '#A855F7', // = accent
   muted:             '#252B3B', // hsl(230,15%,20%)
   mutedForeground:   '#7F8EA3', // hsl(210,10%,55%)
   border:            '#2A3145', // hsl(230,15%,22%)
@@ -139,6 +151,7 @@ const GAMER: ChildThemeColors = {
   warning:           '#F59E0B', // hsl(38,80%,55%)
 
   buff:              '#22D3EE', // hsl(185,80%,55%) — cyan = primary
+  buffText:          '#22D3EE', // = buff
   streak:            '#F97316', // hsl(15,90%,60%)  — orange
   reward:            '#A855F7', // hsl(270,70%,65%) — purple = accent
   shadow:            'rgba(34, 211, 238, 0.3)', // neon cyan glow

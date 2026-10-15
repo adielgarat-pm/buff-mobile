@@ -73,6 +73,7 @@ interface CatchPalette {
   textMuted:  string;
   accent:     string; // primary action / normal buff
   accentText: string;
+  scoreText:  string; // score numbers drawn as text on canvas / surface
   golden:     string; // golden buff
   border:     string;
 }
@@ -85,6 +86,7 @@ const GAMER_PALETTE: CatchPalette = {
   textMuted:  '#A78BFA',
   accent:     '#A8E63E',
   accentText: '#1a1636',
+  scoreText:  '#A8E63E', // = accent (readable on dark canvas)
   golden:     '#FFD54A',
   border:     'rgba(255,255,255,0.10)',
 };
@@ -96,6 +98,7 @@ const MINT_PALETTE: CatchPalette = {
   textMuted:  '#606672',
   accent:     '#C084FC',
   accentText: '#FFFFFF',
+  scoreText:  '#7C3AED', // accent #C084FC is ~2.2:1 as text on mint; this is >=4.5:1
   golden:     '#F59E0B',
   border:     '#BBF7D0',
 };
@@ -257,7 +260,7 @@ export default function BuffCatchScreen() {
 
         {phase === 'playing' ? (
           <View style={styles.hud}>
-            <Text style={[styles.hudScore, { color: P.accent }]}>{score}</Text>
+            <Text style={[styles.hudScore, { color: P.scoreText }]}>{score}</Text>
             <View style={[styles.timerPill, { backgroundColor: P.surface, borderColor: P.border }]}>
               <Ionicons name="time-outline" size={14} color={P.textMuted} />
               <Text style={[styles.timerText, { color: P.text }]}>{timeLeft}s</Text>
@@ -325,7 +328,7 @@ export default function BuffCatchScreen() {
       {phase === 'done' && (
         <View style={styles.center}>
           <Text style={styles.bigEmoji}>{result?.isNewBest ? '🏆' : '🎉'}</Text>
-          <Text style={[styles.doneScore, { color: P.accent }]}>{score}</Text>
+          <Text style={[styles.doneScore, { color: P.scoreText }]}>{score}</Text>
           <Text style={[styles.ready, { color: P.textMuted }]}>{t('buffCatch.roundScore')}</Text>
 
           {result?.isNewBest ? (

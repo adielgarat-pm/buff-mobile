@@ -142,7 +142,7 @@ export function PhaseTaskCard({ task, onComplete, onUncomplete, hapticsEnabled =
           >
             {task.title}
           </Text>
-          <Text style={[styles.credits, { color: task.completed ? T.buff : T.mutedForeground }]}>
+          <Text style={[styles.credits, { color: task.completed ? T.buffText : T.mutedForeground }]}>
             +{task.credits}
           </Text>
         </View>

@@ -57,9 +57,9 @@ jest.mock('../../../contexts/ThemeContext', () => ({
   useTheme: () => ({ themeName: 'gamer', setTheme: jest.fn() }),
   useChildTheme: () => ({
     background: '#1a1636', card: '#2D2546', border: '#333',
-    primary: '#A8E63E', primaryForeground: '#000',
+    primary: '#A8E63E', primaryForeground: '#000', primaryText: '#A8E63E',
     foreground: '#fff', mutedForeground: '#A78BFA',
-    accent: '#A8E63E', muted: '#444', buff: '#A8E63E',
+    accent: '#A8E63E', accentText: '#A8E63E', muted: '#444', buff: '#A8E63E', buffText: '#A8E63E',
   }),
   CHILD_THEMES: {
     mint:  { card: '#fff', primary: '#0a0', accent: '#0a0', success: '#0a0', foreground: '#000', mutedForeground: '#666', border: '#ccc', primaryForeground: '#fff' },

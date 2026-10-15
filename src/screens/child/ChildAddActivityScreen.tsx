@@ -180,7 +180,7 @@ export default function ChildAddActivityScreen() {
             style={[styles.input, { flex: 1, color: T.foreground, borderColor: T.border, backgroundColor: T.card }]}
           />
           <TouchableOpacity onPress={addItem} style={styles.addItemBtn}>
-            <Ionicons name="add" size={22} color={T.primary} />
+            <Ionicons name="add" size={22} color={T.primaryText} />
           </TouchableOpacity>
         </View>
       </ScrollView>

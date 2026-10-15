@@ -53,7 +53,7 @@ export function PhaseProgressCircle({ phase, completed, total, earnedCredits, to
         {/* Center label */}
         <View style={styles.center}>
           <Text style={styles.icon}>{phase.icon}</Text>
-          <Text style={[styles.fraction, { color: isComplete ? T.primary : T.foreground }]}>
+          <Text style={[styles.fraction, { color: isComplete ? T.primaryText : T.foreground }]}>
             {completed}/{total}
           </Text>
         </View>
@@ -66,7 +66,7 @@ export function PhaseProgressCircle({ phase, completed, total, earnedCredits, to
 
       {isComplete && (
         <View style={[styles.badge, { backgroundColor: T.primary + '33' }]}>
-          <Text style={[styles.badgeText, { color: T.primary }]}>✓ Phase Complete!</Text>
+          <Text style={[styles.badgeText, { color: T.primaryText }]}>✓ Phase Complete!</Text>
         </View>
       )}
     </View>

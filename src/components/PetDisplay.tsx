@@ -276,7 +276,7 @@ export function PetDisplay({
       {/* ── Egg crack message ─────────────────────────────────────────────── */}
       {!!crackMessage && (
         <View style={[styles.bubble, { backgroundColor: T.primary + '22', borderColor: T.primary + '44' }]}>
-          <Text style={[styles.bubbleText, { color: T.primary }]}>{crackMessage}</Text>
+          <Text style={[styles.bubbleText, { color: T.primaryText }]}>{crackMessage}</Text>
         </View>
       )}
 
@@ -330,7 +330,7 @@ export function PetDisplay({
             { opacity: celebOpacity, backgroundColor: T.primary + '22', borderColor: T.primary + '44' },
           ]}
         >
-          <Text style={[styles.bubbleText, { color: T.primary }]}>
+          <Text style={[styles.bubbleText, { color: T.primaryText }]}>
             {t('pet.celebrationCoach')}
           </Text>
         </Animated.View>

@@ -284,7 +284,7 @@ export default function PackingCard({ childId, defaultTomorrowExpanded = false }
           <Text style={[styles.title, { color: T.foreground }]}>{t('camp.cardTitle')}</Text>
           <Text style={[styles.sub, { color: T.mutedForeground }]}>{t('camp.cardSub')}</Text>
         </View>
-        <Ionicons name="bag-handle-outline" size={22} color={T.primary} />
+        <Ionicons name="bag-handle-outline" size={22} color={T.primaryText} />
       </View>
 
       {loading ? (
@@ -299,8 +299,8 @@ export default function PackingCard({ childId, defaultTomorrowExpanded = false }
       )}
 
       <TouchableOpacity style={styles.addMine} onPress={() => navigation.navigate('ChildAddActivity')} activeOpacity={0.7}>
-        <Ionicons name="add" size={18} color={T.primary} />
-        <Text style={[styles.addMineText, { color: T.primary }]}>{t('camp.addMine')}</Text>
+        <Ionicons name="add" size={18} color={T.primaryText} />
+        <Text style={[styles.addMineText, { color: T.primaryText }]}>{t('camp.addMine')}</Text>
       </TouchableOpacity>
     </View>
   );
