@@ -270,6 +270,16 @@ export default function RootNavigator() {
               component={BuffCatchScreen}
               options={{ headerShown: false }}
             />
+            {/* PackingCard "+ Add my own" (HQ + Gear tab). The child writes
+                its own row — allowed by RLS "Children can add their own
+                activities" (migrations/027). Was registered only in the
+                parent branch (View-as-Child), so on the child's own login
+                the tap was a silent no-op. */}
+            <Stack.Screen
+              name="ChildAddActivity"
+              component={ChildAddActivityScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
             {/* "Grown-up sign-in" from Child Settings (shared device): the
                 child UI has no logout by design, so this is the parent's way
                 in. The child session is replaced only when the parent's
