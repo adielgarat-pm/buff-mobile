@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import type { Timetable } from '../types/timetable';
 
@@ -106,7 +107,7 @@ export function useTimetable(childId: string | null) {
     if (!familyId) return;
 
     const channel = supabase
-      .channel(`timetable-${familyId}-${childId ?? 'family'}-${Date.now()}`)
+      .channel(uniqueTopic(`timetable-${familyId}-${childId ?? 'family'}`))
       .on(
         'postgres_changes',
         {

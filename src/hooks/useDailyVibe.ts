@@ -22,6 +22,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getTodayKey,
@@ -88,7 +89,7 @@ export function useDailyVibe(childId: string | null) {
     if (!familyId || !childId) return;
 
     const channel = supabase
-      .channel(`child-vibes-${childId}-${Date.now()}`)
+      .channel(uniqueTopic(`child-vibes-${childId}`))
       .on(
         'postgres_changes',
         {

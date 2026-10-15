@@ -18,15 +18,10 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import { isPauseActive as derivePauseActive } from '../utils/pauseUtils';
 
-// Monotonic counter → each realtime channel gets a guaranteed-unique topic name.
-// Date.now() alone can collide when an effect re-runs within the same millisecond
-// (React dev double-invoke / fast familyId change): supabase then returns the
-// already-subscribed channel, so the chained .on() runs "after subscribe()" and
-// throws — which crashes (white-screens) the mounting screen. A counter can't collide.
-let realtimeChannelSeq = 0;
 
 export interface AppSettings {
   id: string;
@@ -107,7 +102,7 @@ export function useAppSettings() {
     if (!familyId) return;
 
     const channel = supabase
-      .channel(`app-settings-${familyId}-${Date.now()}-${++realtimeChannelSeq}`)
+      .channel(uniqueTopic(`app-settings-${familyId}`))
       .on(
         'postgres_changes',
         {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import { coerceWeekdays, type Activity, type ActivityWeekday, type NewActivity } from '../types/activities';
 
@@ -124,7 +125,7 @@ export function useActivities(childId: string | null) {
     if (!familyId) return;
 
     const channel = supabase
-      .channel(`activities-${familyId}-${childId ?? 'none'}-${Date.now()}`)
+      .channel(uniqueTopic(`activities-${familyId}-${childId ?? 'none'}`))
       .on(
         'postgres_changes',
         {

@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../integrations/supabase/client';
+import { uniqueTopic } from '../lib/realtimeTopic';
 import { useAuth } from '../contexts/AuthContext';
 import { isVisibleInFeed } from '../lib/notificationClass';
 
@@ -90,7 +91,7 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
 
   // Realtime channel per family — guarded against Strict-Mode double-mount
   // and against Supabase's name-cached channel registry by using a unique
-  // suffix per effect invocation.
+  // topic per effect invocation.
   //
   // Why this matters (BUG-2026-05-23-01):
   //   - Previously the channel name was just `parent-feed-${familyId}`
@@ -105,7 +106,7 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
   //     useAnchorRecoveryPrompts), which made the collision deterministic.
   //
   // Fix shape:
-  //   1. Channel name includes a per-mount random suffix → each effect
+  //   1. Channel name is uniqueTopic() (src/lib/realtimeTopic.ts) → each effect
   //      invocation gets a brand-new registry entry; no name collision
   //      with stale entries still waiting for async removal.
   //   2. `refetch` is read via a ref instead of being in the effect's
@@ -115,10 +116,8 @@ export function useNotificationsFeed(): UseNotificationsFeedResult {
 
   useEffect(() => {
     if (!familyId) return;
-    // Random 6-char suffix — generated once per effect invocation
-    const suffix = Math.random().toString(36).slice(2, 8);
     const channel = supabase
-      .channel(`parent-feed-${familyId}-${suffix}`)
+      .channel(uniqueTopic(`parent-feed-${familyId}`))
       .on(
         'postgres_changes',
         {
