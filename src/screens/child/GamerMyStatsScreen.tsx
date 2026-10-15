@@ -62,7 +62,10 @@ export default function GamerMyStatsScreen() {
   const childId = previewChildId ?? profile?.id ?? null;
   const { relationship, loading: buddyLoading, refetch: refetchBuddy } = useBuddyRelationship(childId);
   useFocusEffect(useCallback(() => { refetchBuddy(); }, [refetchBuddy]));
-  const { stats, loading: statsLoading }        = useChildBuddyStats(childId);
+  const { stats, loading: statsLoading, error: statsError, refetch: refetchStats } = useChildBuddyStats(childId);
+  // Refetch counts on focus too, so a teen who just finished a task sees the
+  // new total instead of the number from when the tab first mounted.
+  useFocusEffect(useCallback(() => { refetchStats(); }, [refetchStats]));
   const { gifts, loading: giftsLoading, refetch: refetchGifts, useGift } = useChildBuddyGifts(childId);
   const { isPauseActive } = useAppSettings();
   const welcomeBack = useWelcomeBack();
@@ -103,8 +106,11 @@ export default function GamerMyStatsScreen() {
   // backfill when the first successful day lands.
   const level = (relationship?.friendship_level ?? 1) as BuddyRelationship['friendship_level'];
   const successfulDays = relationship?.successful_days_count ?? 0;
-  const daysTogether   = stats?.daysTogether   ?? 0;
-  const tasksCompleted = stats?.tasksCompleted ?? 0;
+  // A failed counts fetch with nothing cached renders a dash, not a confident
+  // "0" (a fetch error is not "you did nothing").
+  const statsUnavailable = !stats && !!statsError;
+  const daysTogether   = statsUnavailable ? '—' : String(stats?.daysTogether   ?? 0);
+  const tasksCompleted = statsUnavailable ? '—' : String(stats?.tasksCompleted ?? 0);
 
   const progress = progressToNextLevel(successfulDays, level);
 
@@ -119,7 +125,7 @@ export default function GamerMyStatsScreen() {
       <View style={styles.statsGrid}>
         <StatCard
           label={t('gamerMyStats.statDaysTogether')}
-          value={String(daysTogether)}
+          value={daysTogether}
           accent
         />
         <StatCard
@@ -128,7 +134,7 @@ export default function GamerMyStatsScreen() {
         />
         <StatCard
           label={t('gamerMyStats.statTasksCompleted')}
-          value={String(tasksCompleted)}
+          value={tasksCompleted}
         />
       </View>
 

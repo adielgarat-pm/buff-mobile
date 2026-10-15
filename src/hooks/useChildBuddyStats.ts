@@ -9,8 +9,13 @@
  *   - daysTogether    = COUNT(buddy_daily_check rows WHERE tasks_completed >= 1)
  *                       (one row per child per day; uniqueness guaranteed by
  *                       the schema constraint UNIQUE(child_profile_id, check_date))
- *   - tasksCompleted  = COUNT(daily_progress rows WHERE completed=true AND
- *                       revoked_at IS NULL)  — lifetime totals
+ *   - tasksCompleted  = COUNT(daily_progress rows WHERE child_id = childId AND
+ *                       completed=true AND revoked_at IS NULL) — lifetime totals
+ *
+ * The child column name differs per table: buddy_daily_check uses
+ * `child_profile_id`, daily_progress uses `child_id`. Querying
+ * daily_progress.child_profile_id 400s in PostgREST (column does not exist),
+ * which failed the whole Promise.all and left the Stats tab at 0.
  *
  * Both queries fire in parallel via Promise.all. `count: 'exact', head: true`
  * means Supabase returns only the count, not the rows themselves — efficient
@@ -50,7 +55,7 @@ export function useChildBuddyStats(childId: string | null) {
         supabase
           .from('daily_progress')
           .select('*', { count: 'exact', head: true })
-          .eq('child_profile_id', childId)
+          .eq('child_id', childId)
           .eq('completed', true)
           .is('revoked_at', null),
       ]);
