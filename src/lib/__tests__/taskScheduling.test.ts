@@ -1,7 +1,7 @@
 import type { Task } from '../../types/task';
 import {
   isTaskVisibleOn, toDateKey, countVisibleTasks,
-  scheduledDaysInWindow, completionRateOverWindow,
+  scheduledDaysInWindow, completionRateOverWindow, insightWindowForTask,
 } from '../taskScheduling';
 
 function task(partial: Partial<Task>): Task {
@@ -196,5 +196,46 @@ describe('completion rate over a window — parent insights denominator (M7)', (
     const r = completionRateOverWindow(monOnly, WEEK, false, done);
     expect(r!.completedDays).toBe(0);
     expect(r!.rate).toBe(0);
+  });
+});
+
+describe('insightWindowForTask — day-0 false "struggling" card', () => {
+  // Window as useParentInsights builds it: today first, 7 local days back.
+  const TODAY = '2026-06-14';
+  const DATES = [
+    '2026-06-14', '2026-06-13', '2026-06-12', '2026-06-11',
+    '2026-06-10', '2026-06-09', '2026-06-08',
+  ];
+  const daily = { scheduleDays: undefined };
+
+  function rate(createdAtKey: string | null, done: string[]) {
+    const completed = new Set(done);
+    const w = insightWindowForTask(DATES, TODAY, createdAtKey, completed.has(TODAY));
+    return completionRateOverWindow(daily, w, false, completed);
+  }
+
+  test('task created today and done today → 100%, not 14%', () => {
+    const r = rate(TODAY, [TODAY]);
+    expect(r).not.toBeNull();
+    expect(r!.scheduledDays).toBe(1);
+    expect(r!.rate).toBe(100);
+  });
+
+  test('task created today, not done yet → excluded (null), not 0%', () => {
+    expect(rate(TODAY, [])).toBeNull();
+  });
+
+  test('task created 3 days ago, done 1 of its 3 past days (today pending) → 33%', () => {
+    const r = rate('2026-06-11', ['2026-06-12']);
+    expect(r!.scheduledDays).toBe(3); // 11, 12, 13 — not today, not before creation
+    expect(r!.completedDays).toBe(1);
+    expect(r!.rate).toBeCloseTo(33.33, 1);
+  });
+
+  test('legacy task with no created_at → all 7 days minus today-not-done', () => {
+    expect(insightWindowForTask(DATES, TODAY, null, false)).toEqual(DATES.slice(1));
+    expect(insightWindowForTask(DATES, TODAY, undefined, true)).toEqual(DATES);
+    const r = rate(null, ['2026-06-13']);
+    expect(r!.scheduledDays).toBe(6);
   });
 });
