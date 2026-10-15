@@ -1460,6 +1460,20 @@ Built (`pkg/acquisition-attribution`, branch): `families.acquisition_source/acqu
 
 ## Lessons
 
+### Lesson 2026-10-15 — No error boundary meant any throw blanked the whole app; and on web, the fallback itself collapsed to 0px
+
+**Symptom:** The web-smoke blank-screen investigation (2026-10-14) found that one uncaught render/effect error (e.g. the realtime `cannot add postgres_changes callbacks ... after subscribe()` throw in `useFamilyMembers`) unmounted the entire tree: on web `#root` went empty, a blank white page with no way back. `grep -rn ErrorBoundary App.tsx src` returned nothing; `Sentry.wrap(App)` adds profiling/touch tracking, NOT a boundary.
+
+**Fix (`pkg/root-error-boundary`):** `RootErrorBoundary` (`Sentry.ErrorBoundary`) wraps every provider in `App.tsx`, with a context-free fallback and a platform-split `restartApp` (web reload / native `reloadOnce` → dev `DevSettings.reload` → remount).
+
+**Surprise (web):** the first fallback rendered as a 68px strip at the top of a black page. React Navigation's stack injects `body { height: calc(var(--vh) * 100) }` and only keeps `--vh` updated while the navigator is mounted — once the navigator crashes, `--vh` is `0px`, `<body>` is 0 tall, and every `flex: 1` ancestor collapses. The fallback now sizes itself from `useWindowDimensions().height` on web.
+
+**Pattern to watch:** (1) Anything that renders when the navigator is NOT mounted (fallbacks, pre-nav gates, splash) can't rely on `flex: 1` filling the page on web; size it from the window. (2) Fallback UI must not read app contexts — the provider may be what crashed. (3) In dev, LogBox still shows the red box over a caught error; dismiss it to see the real fallback.
+
+**FLAGs opened:** 🚩 The `useFamilyMembers` realtime throw itself is not fixed. The boundary only stops it from blanking the app; it may recur after "Try again".
+
+---
+
 ### Lesson 2026-07-29 — A client-supplied gate field is never "minor", and every SECURITY DEFINER RPC needs a membership check
 
 **Symptom:** The parent-surface panel flagged that the AI 402 gate skipped for `platform==='web'` — a body field any Android client can set. Scoping the fix (with an adversarial Fable review) turned one known-minor spoof into four bigger holes: `parse-schedule` accepted the **public anon key** (verify_jwt passes for it) with no gate and no cap — unlimited Sonnet-vision on our Anthropic key, open to strangers; `upsert_smart_insight` was EXECUTE-granted to `authenticated` with no membership check — cross-family insight writes + counter inflation; `get_smart_insight_state` leaked `parent_context` for any child UUID; and `capture_runs` RLS was FOR ALL, so a parent could DELETE their rows and reset the taste/daily counters forever.
