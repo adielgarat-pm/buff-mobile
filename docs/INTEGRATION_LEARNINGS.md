@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-10-15-01: Realtime "cannot add postgres_changes callbacks after subscribe()" was never StrictMode — Date.now() topics collide across two live hook instances
+
+- **תאריך:** 2026-10-15
+- **מקור:** CC — root-cause of the throw that blanked web in the 2026-10-14 smoke (PR #509 added the error boundary, not the fix).
+- **תיאור:** `supabase.channel(topic)` returns the already-registered channel for a topic (it stays registered until the server acks the leave), and `.on('postgres_changes')` throws on a joining/joined channel. 11 hooks built topics as `prefix-${Date.now()}`, unique only per millisecond. `ParentDashboardScreen` calls `useSubscription` AND renders `CoachTrialNote` → `useFamilyTrial` → `useSubscription`, so two `useFamilyMembers` instances run their effects back-to-back in one commit, usually in the same ms → instance #2 gets #1's channel → throw. Intermittent by nature (depends on ms timing). Earlier fixes (PR #68, `89ab9cc7`) blamed StrictMode, but the app has no StrictMode wrapper, and a StrictMode cleanup sets the old channel to `leaving` synchronously, so `.on()` would not throw anyway.
+- **השפעה:** New `src/lib/realtimeTopic.ts` (`uniqueTopic()` = time + module counter); all 11 `.channel()` sites use it. Rule: never build a realtime topic by hand — call `uniqueTopic()`. `useLessonProgress` is not imported anywhere (dead code).
+- **סטטוס:** `resolved` (`pkg/realtime-unique-topics`). Signed-in parent-dashboard check on device/web pending Adi (CC can't sign in).
+- **קשור ל:** PR #509 (root error boundary), PR #68, `src/lib/__tests__/realtimeTopic.test.ts`
+
 ### IN-2026-10-10-02: Admin insight RPC readable without login (children's names + parents' notes); DROP hangs in the Supabase MCP
 
 - **תאריך:** 2026-10-10
