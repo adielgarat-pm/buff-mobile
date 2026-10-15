@@ -19,8 +19,9 @@
  */
 import type { ReactNode } from 'react';
 import * as Sentry from '@sentry/react-native';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Platform, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 
 import i18n from '../i18n';
 import { LAVENDER_BG, VIOLET_ACCENT, VIOLET_DEEP, WHITE } from '../theme/palette';
@@ -28,15 +29,23 @@ import { restartApp } from '../lib/restartApp';
 
 export function RootErrorFallback({ resetError }: { resetError: () => void }) {
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const dir = i18n.dir();
 
   return (
     <View
       style={[
         styles.screen,
+        // Web: React Navigation's stack sizes <body> from a --vh var it only
+        // updates while mounted. Once the navigator has crashed, --vh is 0 and
+        // every flex:1 ancestor collapses — size the fallback from the window.
+        Platform.OS === 'web' && { minHeight: height },
         { paddingTop: insets.top + 24, paddingBottom: Math.max(insets.bottom, 20) + 24, direction: dir },
       ]}
     >
+      {/* The crashed tree may have left a light (white) status bar; the
+          fallback is always on lavender, so force dark icons. */}
+      <StatusBar style="dark" />
       <View style={styles.content}>
         <Text style={styles.title} accessibilityRole="header">
           {i18n.t('errorBoundary.title')}
