@@ -2315,5 +2315,8 @@
   "concierge.cardDismiss": "לא, תודה",
   "concierge.opensBrowserHint": "נפתח בדפדפן",
   "concierge.onboardingLine": "מעדיפים להגדיר יחד? עדי, המייסדת של BUFF, זמינה לשיחה של 15 דקות, בלי עלות.",
-  "concierge.onboardingCta": "לקביעת שיחה עם עדי ←"
+  "concierge.onboardingCta": "לקביעת שיחה עם עדי ←",
+  "errorBoundary.title": "משהו נתקע אצלנו",
+  "errorBoundary.body": "זה לא בגלל משהו שעשיתם. בואו נתחיל מחדש.",
+  "errorBoundary.cta": "ננסה שוב"
 }

@@ -4,6 +4,7 @@
  * Provider order (outer → inner, each reads from its parent):
  *   SafeAreaProvider         — inset measurements (must wrap everything)
  *     GestureHandlerRootView — gesture system
+ *     RootErrorBoundary      — Sentry boundary + calm fallback; context-free
  *       LanguageProvider     — i18n + RTL (must be outermost so ALL children
  *                               can call useTranslation() and useLanguage())
  *       AuthProvider         — Supabase auth, profile, session
@@ -41,6 +42,7 @@ import { GlobalConfetti }                from './src/components/GlobalConfetti';
 import { GlobalRewardPop }               from './src/components/GlobalRewardPop';
 import { AlertHost }                     from './src/platform';
 import { OtaRestartToast }               from './src/components/OtaRestartToast';
+import { RootErrorBoundary }             from './src/components/RootErrorBoundary';
 import { initRevenueCat }                from './src/services/purchaseService';
 import { NotificationGate }              from './src/components/NotificationGate';
 import { useVersionGate }                 from './src/hooks/useVersionGate';
@@ -238,6 +240,9 @@ function App() {
             column so it doesn't stretch full-bleed on desktop/tablet browsers.
             On native this is a flex:1 passthrough (no visual change). */}
         <View style={styles.shell}>
+        {/* Catches any uncaught render/effect error (incl. inside the providers
+            below) and shows a calm "Try again" screen instead of a blank app. */}
+        <RootErrorBoundary>
         <LanguageProvider>
         <AuthProvider>
           <RevenueCatInit />
@@ -250,6 +255,7 @@ function App() {
           </ModeProvider>
         </AuthProvider>
         </LanguageProvider>
+        </RootErrorBoundary>
         </View>
       </GestureHandlerRootView>
     </SafeAreaProvider>

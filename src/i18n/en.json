@@ -2315,5 +2315,8 @@
   "concierge.cardDismiss": "No thanks",
   "concierge.opensBrowserHint": "Opens in your browser",
   "concierge.onboardingLine": "Prefer to set it up together? Adi, BUFF's founder, offers a free 15‑minute call.",
-  "concierge.onboardingCta": "Book a call with Adi →"
+  "concierge.onboardingCta": "Book a call with Adi →",
+  "errorBoundary.title": "Something got stuck on our side",
+  "errorBoundary.body": "It's not anything you did. Let's start again.",
+  "errorBoundary.cta": "Try again"
 }
