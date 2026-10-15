@@ -14,7 +14,7 @@
 import { useState } from 'react';
 import {
   View, Text, Modal, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, KeyboardAvoidingView, Platform,
+  ActivityIndicator, KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { ChildSuggestion, SuggestionKind } from '../../hooks/useChildSuggestions';
@@ -75,7 +75,7 @@ export function SuggestModal({ visible, kind, palette, onClose, onSubmit }: Sugg
     <Modal visible={visible} transparent animationType="slide" onRequestClose={close}>
       <KeyboardAvoidingView
         style={[styles.overlay, { backgroundColor: palette.overlay }]}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior="padding"
       >
         <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={close} />
         <View style={[styles.sheet, { backgroundColor: palette.surface }]}>

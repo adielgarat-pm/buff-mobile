@@ -810,7 +810,7 @@ export default function TimetableScreen() {
     const lineCount = pasteText.split('\n').filter(l => l.trim()).length;
     return (
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.container, { backgroundColor: T.bg }]}
       >
         <View style={[styles.header, headerPad]}>
@@ -821,6 +821,10 @@ export default function TimetableScreen() {
           <View style={{ width: 24 }} />
         </View>
 
+        {/* Natural height when there's room (same layout as before); shrinks and
+            scrolls when the Android keyboard shrinks the KAV, so the footer
+            button stays above the keyboard. */}
+        <ScrollView style={{ flexGrow: 0, flexShrink: 1 }} keyboardShouldPersistTaps="handled">
         <Text style={[styles.chooseSubtitle, { color: T.textMuted }]}>
           {t('timetable.pasteSubtitle')}
         </Text>
@@ -855,6 +859,7 @@ export default function TimetableScreen() {
           ]}
           textAlignVertical="top"
         />
+        </ScrollView>
 
         <View style={[styles.reviewFooter, footerPad, { borderTopColor: T.cardBorder }]} testID="timetable-footer-paste">
           <TouchableOpacity onPress={() => setMode('choose')} style={styles.outlineBtn}>
@@ -906,7 +911,7 @@ export default function TimetableScreen() {
 
     return (
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.container, { backgroundColor: T.bg }]}
       >
         {/* Header */}
@@ -1159,7 +1164,7 @@ export default function TimetableScreen() {
 
     return (
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.container, { backgroundColor: T.bg }]}
       >
         <View style={[styles.header, headerPad]}>
