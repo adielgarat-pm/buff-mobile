@@ -106,3 +106,56 @@ describe.each(cases)('branch %s — screen %s', (branchId, screenName, file) => 
     expect({ key, registered: branch.names.has(target) }).toEqual({ key, registered: true });
   });
 });
+
+/**
+ * Child app: every navigate target used by a child screen (or by PackingCard,
+ * which renders on the child HQ + Gear tab) must resolve from EVERY branch
+ * that mounts the child app (ChildApp → ChildTabs): the child's own login
+ * (branch 3) and a parent's View-as-Child (branch 4). A target resolves if it
+ * is a root-stack screen in that branch or a ChildTabs tab. Bug 2026-10-15:
+ * PackingCard's "+ Add my own" → ChildAddActivity was registered only in
+ * branch 4, so it did nothing on a kid's own login.
+ */
+const childTabsSrc = read('navigation/ChildTabs.tsx');
+const childTabNames = new Set(
+  [...childTabsSrc.matchAll(/<Tab\.Screen\s+name="(\w+)"/g)].map((m) => m[1]),
+);
+
+function walkTsx(dir: string): string[] {
+  return fs.readdirSync(path.join(SRC, dir), { withFileTypes: true }).flatMap((e) => {
+    const rel = `${dir}/${e.name}`;
+    if (e.isDirectory()) return e.name === '__tests__' ? [] : walkTsx(rel);
+    return e.name.endsWith('.tsx') ? [rel] : [];
+  });
+}
+
+const CHILD_APP_FILES = ['components/PackingCard.tsx', ...walkTsx('screens/child')];
+const childAppBranches = branches.filter((b) => b.names.has('ChildApp'));
+
+describe('child app navigate targets', () => {
+  it('finds the child-app branches and ChildTabs tabs', () => {
+    expect(childAppBranches.map((b) => b.id[0])).toEqual(['3', '4']);
+    expect(childTabNames.has('ChildBagPrep')).toBe(true);
+  });
+
+  it('PackingCard "+ Add my own" route is registered on the child\'s own login', () => {
+    const child = branches.find((b) => b.id.startsWith('3'))!;
+    expect(targetsOf('components/PackingCard.tsx')).toContain('ChildAddActivity');
+    expect(child.names.has('ChildAddActivity')).toBe(true);
+  });
+
+  const childCases: [string, string, string][] = [];
+  for (const b of childAppBranches) {
+    for (const f of CHILD_APP_FILES) {
+      for (const t of targetsOf(f)) childCases.push([b.id, f, t]);
+    }
+  }
+
+  it.each(childCases)('branch %s — %s → %s is registered', (branchId, file, target) => {
+    const branch = branches.find((b) => b.id === branchId)!;
+    const key = `${path.basename(file, '.tsx')}→${target}@${branchId[0]}`;
+    if (ALLOWED[key]) return;
+    const registered = branch.names.has(target) || childTabNames.has(target);
+    expect({ key, registered }).toEqual({ key, registered: true });
+  });
+});
