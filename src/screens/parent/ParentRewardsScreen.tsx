@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   ActivityIndicator, Modal, TextInput,
-  KeyboardAvoidingView, Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { crossAlert } from '../../platform';
@@ -630,7 +630,7 @@ export default function ParentRewardsScreen() {
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeModal} />
           <View style={[styles.sheet, { backgroundColor: T.card }]}>
