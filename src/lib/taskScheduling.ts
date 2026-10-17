@@ -98,6 +98,29 @@ export function scheduledDaysInWindow(
 }
 
 /**
+ * Trim the insight window (`dates`, local 'YYYY-MM-DD') to the days a task can
+ * fairly be rated on:
+ *  - drop days BEFORE the task existed (`createdAtKey`, its local creation day);
+ *    when `createdAtKey` is null/undefined (legacy row) all days are kept;
+ *  - drop TODAY unless the task is already completed today — the day isn't over,
+ *    so a not-yet-done task is not a miss.
+ * Without this, a brand-new family (one task done together on day 0) was rated
+ * on 6 pre-existence days + today's not-yet-due tasks and saw a false
+ * "struggling" hero card (e.g. "14% · Morning Routine Challenge").
+ */
+export function insightWindowForTask(
+  dates: string[],
+  todayKey: string,
+  createdAtKey: string | null | undefined,
+  completedToday: boolean,
+): string[] {
+  return dates.filter(dk =>
+    (!createdAtKey || dk >= createdAtKey) &&
+    (dk !== todayKey || completedToday),
+  );
+}
+
+/**
  * Completion rate (0–100) for `task` across the window, or `null` when the task
  * was never scheduled in it (so it's excluded from averages rather than counted
  * as 0%). Denominator = days actually SCHEDULED (not a fixed number); numerator =
