@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Phase, getPhaseForTime, PHASES } from '../types/phase';
 import type { TaskCategory } from '../types/task';
 import type { InsightFraming } from '../utils/insightFraming';
-import { completionRateOverWindow, toDateKey } from '../lib/taskScheduling';
+import { completionRateOverWindow, insightWindowForTask, toDateKey } from '../lib/taskScheduling';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -152,6 +152,7 @@ export function useParentInsights(childId: string | null) {
         d.setDate(d.getDate() - i);
         dates.push(toDateKey(d));
       }
+      const todayKey = dates[0];
 
       const { data: tasksData } = await supabase
         .from('tasks')
@@ -204,13 +205,21 @@ export function useParentInsights(childId: string | null) {
             .filter(p => p.task_id === task.id && p.completed)
             .map(p => p.date as string),
         );
+        // Only rate days the task existed on, and skip today unless it's
+        // already done (the day isn't over). Day-0 false "struggling" fix.
+        const rateWindow = insightWindowForTask(
+          dates,
+          todayKey,
+          task.created_at ? toDateKey(new Date(task.created_at)) : null,
+          completedDates.has(todayKey),
+        );
         const stats = completionRateOverWindow(
           {
             scheduleDays:  task.schedule_days ?? undefined,
             hideOnWeekend: task.hide_on_weekend ?? undefined,
             dueDate:       task.due_date ?? undefined,
           },
-          dates,
+          rateWindow,
           fridayEnabled,
           completedDates,
         );
