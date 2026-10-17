@@ -173,7 +173,7 @@ function PastelChildDashboard() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: T.mutedForeground }]}>{t('childDashboard.greeting')}</Text>
-          <Text style={[styles.name, { color: T.primary }]}>
+          <Text style={[styles.name, { color: T.primaryText }]}>
             {isChildPreview
               ? (previewChildName ?? t('childDashboard.previewName'))
               : (profile?.display_name ?? t('childDashboard.fallbackName'))} ⚡
@@ -193,7 +193,7 @@ function PastelChildDashboard() {
       {/* Buffs total (from credit_vault) — visible even during pause to reassure */}
       <View style={[styles.buffsCard, { backgroundColor: T.card, borderColor: T.border, shadowColor: T.shadow }]}>
         <Text style={[styles.buffsLabel, { color: T.mutedForeground }]}>{t('childDashboard.totalBuffs')}</Text>
-        <Text style={[styles.buffsCount, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
+        <Text style={[styles.buffsCount, { color: T.buffText }]}>{formatNum(totalBalance)}</Text>
         <Text style={[styles.buffsHint, { color: T.mutedForeground }]}>{t('childDashboard.spendHint')}</Text>
       </View>
 
@@ -280,7 +280,7 @@ function DashboardActiveContent({
     glow:        T.shadow,
     checkBorder: T.accent,
     title:       T.foreground,
-    credits:     T.buff,
+    credits:     T.buffText,
     label:       T.primaryForeground, // #5B3FAF — strong, readable label
     link:        T.primaryForeground,
     done:        T.success,
@@ -291,7 +291,7 @@ function DashboardActiveContent({
       <View style={[styles.fuelCard, { backgroundColor: T.card, borderColor: T.border }]}>
         <View style={styles.fuelHeader}>
           <Text style={[styles.fuelLabel, { color: T.foreground }]}>{t('childDashboard.focusFuel')}</Text>
-          <Text style={[styles.fuelPct, { color: atGoal ? T.success : T.primary }]}>
+          <Text style={[styles.fuelPct, { color: atGoal ? T.success : T.primaryText }]}>
             {Math.min(doneTasks, goalCount)}/{goalCount}
           </Text>
         </View>
@@ -363,7 +363,7 @@ function DashboardActiveContent({
         {[
           { id: 'done',  emoji: '✅', value: doneTasks,              label: t('childDashboard.statDone'),  color: T.success },
           { id: 'left',  emoji: '⏳', value: totalTasks - doneTasks, label: t('childDashboard.statLeft'),  color: T.foreground },
-          { id: 'buffs', emoji: '⚡', value: totalBalance,           label: t('childDashboard.statBuffs'), color: T.buff },
+          { id: 'buffs', emoji: '⚡', value: totalBalance,           label: t('childDashboard.statBuffs'), color: T.buffText },
         ].map(stat => (
           <View key={stat.id}
             style={[styles.statCard, { backgroundColor: T.card, borderColor: T.border }]}

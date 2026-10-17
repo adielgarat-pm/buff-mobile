@@ -109,7 +109,7 @@ export default function ChildSettingsScreen() {
         </TouchableOpacity>
       )}
 
-      <Text style={[styles.pageTitle, { color: T.primary }]}>{t('childSettings.menuTitle')}</Text>
+      <Text style={[styles.pageTitle, { color: T.primaryText }]}>{t('childSettings.menuTitle')}</Text>
 
       {/* Profile card */}
       <View style={[styles.profileCard, { backgroundColor: T.card, borderColor: T.border }]}>
@@ -118,7 +118,7 @@ export default function ChildSettingsScreen() {
           <Text style={[styles.profileName,  { color: T.foreground }]}>
             {childDisplayName}
           </Text>
-          <Text style={[styles.profileBuffs, { color: T.buff }]}>
+          <Text style={[styles.profileBuffs, { color: T.buffText }]}>
             {formatNum(totalBalance)} {t('childSettings.buffsSuffix')}
           </Text>
         </View>

@@ -145,9 +145,9 @@ function PastelChildTasks() {
     <SafeAreaView style={[styles.root, { backgroundColor: T.background }]} edges={['top']}>
       {/* ── Header ───────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <Text style={[styles.heading, { color: T.primary }]}>{t('child.heading.quests')}</Text>
+        <Text style={[styles.heading, { color: T.primaryText }]}>{t('child.heading.quests')}</Text>
         <View style={[styles.buffBadge, { backgroundColor: T.card, borderColor: T.border }]}>
-          <Text style={[styles.buffEarned, { color: T.buff }]}>{formatNum(totalBalance)}</Text>
+          <Text style={[styles.buffEarned, { color: T.buffText }]}>{formatNum(totalBalance)}</Text>
           <Text style={[styles.buffSep,    { color: T.mutedForeground }]}>{t('childTasks.buffsSuffix')}</Text>
         </View>
       </View>
@@ -170,7 +170,7 @@ function PastelChildTasks() {
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: isActive ? T.primary : T.mutedForeground },
+                  { color: isActive ? T.primaryText : T.mutedForeground },
                 ]}
               >
                 {i18n.language === 'he' ? p.shortLabelHe : p.shortLabel}
@@ -213,8 +213,8 @@ function PastelChildTasks() {
             {/* Use accent (not primary): in the Mint theme `primary` is a very pale
                 lavender that reads as disabled on the white card. accent is the
                 visible interactive purple. */}
-            <Ionicons name="add" size={18} color={T.accent} />
-            <Text style={[styles.suggestText, { color: T.accent }]}>{t('childSuggest.task.cta')}</Text>
+            <Ionicons name="add" size={18} color={T.accentText} />
+            <Text style={[styles.suggestText, { color: T.accentText }]}>{t('childSuggest.task.cta')}</Text>
           </TouchableOpacity>
         </View>
 

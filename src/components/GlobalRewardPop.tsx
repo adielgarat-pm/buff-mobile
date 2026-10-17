@@ -61,7 +61,7 @@ export function GlobalRewardPop() {
     <RewardPop
       key={evt.key}
       credits={evt.credits}
-      color={T.buff}
+      color={T.buffText}
       top={height * 0.32}
       onDone={() => setEvt(null)}
     />
