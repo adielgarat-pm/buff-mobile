@@ -28,6 +28,8 @@ _**Live store build: 1.8.6 (versionCode 76)** — EAS production AAB `def32e8d` 
 
 **Riding the next train — AFTER vc59 (merged post-`6710cbb`, NOT in any build):**
 
+> ✅ **Shipped via OTA — 2026-10-17.** Auto-OTA (production, android runtime `3cbb73db` = vc76) published `72dfe50` (#511 #515) then `f024230` (#512 #513 #514). Auto-OTA guard works again (runs 39005159721 / 39005359932). #517 = server-side (migration 064 applied). Device cold-start check = Adi checklist.
+
 | Date merged | PR / Commit | Type | Change (one-liner) | Lane | User-facing? | Flow Suite |
 |---|---|---|---|---|---|---|
 | 2026-10-17 | #514 / `f024230` | fix | **"Add my own" did nothing on a kid's own login** — `ChildAddActivity` registered in the child-login navigator branch (was parent/View-as-Child only); navigate-target test extended to child screens + PackingCard. Live RLS confirms child insert allowed. | OTA | yes | F16 activities · F5 child |
