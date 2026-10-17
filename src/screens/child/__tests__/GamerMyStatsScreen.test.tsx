@@ -211,6 +211,22 @@ describe('GamerMyStatsScreen', () => {
     expect(getByText('gamerMyStats.progressToNextLevel:2')).toBeTruthy();
   });
 
+  test('stats fetch error renders a dash, not a confident 0', () => {
+    setHooks({ relationship: null, gifts: [] });
+    mockedUseStats.mockReturnValue({
+      stats: null,
+      loading: false,
+      error: new Error('fetch failed'),
+      refetch: jest.fn(),
+    } as any);
+
+    const { getAllByText } = render(<GamerMyStatsScreen />);
+
+    // Days Together + Tasks Completed show "—"; Successful Days (separate hook) stays 0.
+    expect(getAllByText('—').length).toBe(2);
+    expect(getAllByText('0').length).toBe(1);
+  });
+
   test('L5 hides the progress bar', () => {
     setHooks({ relationship: { ...baseRelationship, friendship_level: 5, successful_days_count: 120 } });
 
