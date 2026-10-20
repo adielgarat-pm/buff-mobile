@@ -1,4 +1,4 @@
-import { childRewardRedeemed, relativeTime } from '@/lib/cohort'
+import { childLastActivity, childRewardRedeemed, relativeTime } from '@/lib/cohort'
 import { challengeLabel, motivatorLabel } from '@/lib/labels'
 import { onboardingDiff } from '@/lib/onboardingDiff'
 import type { TesterChild, TesterFamily, TesterParent } from '@/lib/types'
@@ -114,7 +114,7 @@ function ChildSection({ child }: { child: TesterChild }) {
           <ChildDeviceChips child={child} />
         </div>
         <div className="text-xs text-muted-foreground">
-          {child.completions_total} completions · last {relativeTime(child.last_active)}
+          {child.completions_total} completions · last {relativeTime(childLastActivity(child))}
         </div>
       </div>
 
