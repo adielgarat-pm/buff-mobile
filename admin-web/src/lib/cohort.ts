@@ -43,16 +43,66 @@ export function totalCompletions(f: TesterFamily): number {
   return f.children.reduce((n, c) => n + c.completions_total, 0)
 }
 
-/** Most recent completion timestamp across the family, or null. */
+/** Most recent sign of life across the family — a completed task, an app open
+ *  (last_seen_at) or a login (last_sign_in_at), whichever is latest. Opening the
+ *  app counts as activity, not only finishing a task (Adi, 2026-10-20). */
 export function lastActive(f: TesterFamily): Date | null {
   let max: number | null = null
+  const bump = (iso: string | null | undefined) => {
+    if (!iso) return
+    const t = new Date(iso).getTime()
+    if (!Number.isNaN(t) && (max === null || t > max)) max = t
+  }
   for (const c of f.children) {
-    if (c.last_active) {
-      const t = new Date(c.last_active).getTime()
-      if (max === null || t > max) max = t
-    }
+    bump(c.last_active)
+    bump(c.last_seen_at)
+    bump(c.last_sign_in_at)
+  }
+  for (const p of f.parents ?? []) {
+    bump(p.last_seen_at)
+    bump(p.last_sign_in_at)
   }
   return max === null ? null : new Date(max)
+}
+
+/** Latest app-open / login across the whole family (opens + logins only, NOT
+ *  completions). Lets us tell "opened recently but completed nothing" apart
+ *  from a truly dormant family. Caveat: shared-device kids stamp the parent's
+ *  profile, and web opens were unreliable before migration 060 — so this is
+ *  strongest for own-device kids and parents. */
+export function lastOpen(f: TesterFamily): Date | null {
+  let max: number | null = null
+  const bump = (iso: string | null | undefined) => {
+    if (!iso) return
+    const t = new Date(iso).getTime()
+    if (!Number.isNaN(t) && (max === null || t > max)) max = t
+  }
+  for (const c of f.children) {
+    bump(c.last_seen_at)
+    bump(c.last_sign_in_at)
+  }
+  for (const p of f.parents ?? []) {
+    bump(p.last_seen_at)
+    bump(p.last_sign_in_at)
+  }
+  return max === null ? null : new Date(max)
+}
+
+/** True when someone in the family opened the app or logged in within `days`. */
+export function openedWithin(f: TesterFamily, days: number, now = Date.now()): boolean {
+  const o = lastOpen(f)
+  return o !== null && now - o.getTime() <= days * DAY
+}
+
+/** A single child's latest sign of life: completion, app open, or login. */
+export function childLastActivity(c: TesterChild): string | null {
+  let max: number | null = null
+  for (const iso of [c.last_active, c.last_seen_at, c.last_sign_in_at]) {
+    if (!iso) continue
+    const t = new Date(iso).getTime()
+    if (!Number.isNaN(t) && (max === null || t > max)) max = t
+  }
+  return max === null ? null : new Date(max).toISOString()
 }
 
 /** Completions in the last `days` days across the whole family. */
@@ -86,7 +136,12 @@ export function flagOf(f: TesterFamily, now = Date.now()): Flag {
   if (totalTasks(f) === 0 && ageMs > DAY) return 'stuck'
 
   const completed = totalCompletions(f) > 0
-  if (!completed) return 'not_started' // engaged but never completed anything
+  if (!completed) {
+    // Engaged (has tasks) but no completion yet. If someone opened the app or
+    // logged in recently, they ARE using it — surface that distinctly from a
+    // truly dormant family. Does not affect the completion-based funnel KPI.
+    return openedWithin(f, 7, now) ? 'opened_no_tasks' : 'not_started'
+  }
 
   // Has completed before — green if recent, yellow if gone quiet.
   if (completionsWithin(f, 3, now) > 0) return 'active'
@@ -95,7 +150,7 @@ export function flagOf(f: TesterFamily, now = Date.now()): Flag {
 
 // ---- 14-day retention grid (per-tester window) ----------------------------
 
-export type RetentionCell = 'hit' | 'miss' | 'future'
+export type RetentionCell = 'hit' | 'miss' | 'na'
 
 /** Sum of completions per calendar date across all children. */
 function completionsByDate(f: TesterFamily): Map<string, number> {
@@ -113,27 +168,33 @@ function isoDate(ms: number): string {
 }
 
 /**
- * 14 cells starting from the family's signup date (per-tester window).
- * 'hit' = had >=1 completion that day, 'miss' = none, 'future' = day not reached.
+ * 14 cells for the trailing window ending today (rolling), so the strip lines
+ * up with the "Active (7d)" badge instead of showing each family's first two
+ * weeks forever. 'hit' = >=1 completion that day, 'miss' = none, 'na' = a day
+ * before the family signed up. Only task completions have per-day history —
+ * app-opens/logins aren't stored per day, so they can't light a cell (the
+ * row-level "Last active" and the 🔵 "Opened, no tasks" flag carry that signal).
  */
 export function retentionCells(f: TesterFamily, len = 14, now = Date.now()): RetentionCell[] {
   const byDate = completionsByDate(f)
-  const start = new Date(f.created_at)
-  const startMs = Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate())
-  const todayIso = isoDate(now)
+  const signup = new Date(f.created_at)
+  const signupIso = isoDate(
+    Date.UTC(signup.getUTCFullYear(), signup.getUTCMonth(), signup.getUTCDate()),
+  )
+  const today = new Date(now)
+  const endMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
   const cells: RetentionCell[] = []
   for (let i = 0; i < len; i++) {
-    const dayIso = isoDate(startMs + i * DAY)
-    if (dayIso > todayIso) cells.push('future')
+    const dayIso = isoDate(endMs - (len - 1 - i) * DAY)
+    if (dayIso < signupIso) cells.push('na')
     else cells.push((byDate.get(dayIso) ?? 0) > 0 ? 'hit' : 'miss')
   }
   return cells
 }
 
-/** Which day-of-window the tester is on (1-based, capped at len). */
-export function dayInWindow(f: TesterFamily, len = 14, now = Date.now()): number {
-  const elapsed = Math.floor((now - new Date(f.created_at).getTime()) / DAY) + 1
-  return Math.min(Math.max(elapsed, 1), len)
+/** Whole days since the family signed up (0 on the signup day). */
+export function ageInDays(f: TesterFamily, now = Date.now()): number {
+  return Math.max(0, Math.floor((now - new Date(f.created_at).getTime()) / DAY))
 }
 
 // ---- misc -----------------------------------------------------------------
@@ -182,7 +243,13 @@ export function exactStageCounts(families: TesterFamily[], now = Date.now()): Re
 
 /** How many families carry each attention flag. */
 export function flagCounts(families: TesterFamily[], now = Date.now()): Record<Flag, number> {
-  const c: Record<Flag, number> = { active: 0, churn_risk: 0, not_started: 0, stuck: 0 }
+  const c: Record<Flag, number> = {
+    active: 0,
+    churn_risk: 0,
+    opened_no_tasks: 0,
+    not_started: 0,
+    stuck: 0,
+  }
   for (const f of families) c[flagOf(f, now)]++
   return c
 }

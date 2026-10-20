@@ -19,6 +19,7 @@ export function StageBadge({ stage }: { stage: Stage }) {
 const FLAG_META: Record<Flag, { label: string; dot: string; className: string }> = {
   active: { label: 'Active', dot: '🟢', className: 'text-emerald-700' },
   churn_risk: { label: 'Churn risk', dot: '🟡', className: 'text-amber-700' },
+  opened_no_tasks: { label: 'Opened, no tasks', dot: '🔵', className: 'text-sky-700' },
   not_started: { label: 'Not started', dot: '⚪', className: 'text-gray-500' },
   stuck: { label: 'Stuck', dot: '🔴', className: 'text-red-700' },
 }

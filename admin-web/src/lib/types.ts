@@ -135,5 +135,6 @@ export type Entitlement = 'paying' | 'trial' | 'expired' | 'lifetime' | null
 /** Funnel stage a family has reached (highest one). */
 export type Stage = 'signed_up' | 'activated' | 'engaged' | 'active'
 
-/** Attention-triage flag for the CRM column. */
-export type Flag = 'active' | 'churn_risk' | 'not_started' | 'stuck'
+/** Attention-triage flag for the CRM column. 'opened_no_tasks' = someone opened
+ *  the app / logged in recently but the child has completed no tasks yet. */
+export type Flag = 'active' | 'churn_risk' | 'opened_no_tasks' | 'not_started' | 'stuck'

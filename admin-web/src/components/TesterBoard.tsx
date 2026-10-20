@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useTesterBoard } from '@/hooks/useTesterBoard'
 import {
+  ageInDays,
   childCount,
   childProposedTasks,
-  dayInWindow,
   entitlementCounts,
   entitlementOf,
   exactStageCounts,
@@ -34,6 +34,7 @@ const STAGE_ORDER: { key: Stage; label: string }[] = [
 const FLAG_ORDER: { key: Flag; label: string; dot: string }[] = [
   { key: 'stuck', label: 'Stuck', dot: '🔴' },
   { key: 'not_started', label: 'Not started', dot: '⚪' },
+  { key: 'opened_no_tasks', label: 'Opened, no tasks', dot: '🔵' },
   { key: 'churn_risk', label: 'Churn risk', dot: '🟡' },
   { key: 'active', label: 'Active', dot: '🟢' },
 ]
@@ -360,7 +361,7 @@ export function TesterBoardView({
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-muted-foreground">
                     {relativeTime(f.created_at)}
-                    <div className="text-xs text-gray-400">day {dayInWindow(f)}/14</div>
+                    <div className="text-xs text-gray-400">{ageInDays(f)}d old</div>
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap items-center gap-1">
@@ -424,7 +425,9 @@ export function TesterBoardView({
 
       <p className="text-xs text-muted-foreground">
         Cohort = families that completed mobile onboarding ({families.length} shown). The 14-day
-        strip starts from each tester's signup date.
+        strip is the last 14 days (ending today); green = the child completed a task that day.
+        Opening the app without completing a task shows as 🔵 "Opened, no tasks" and moves "Last
+        active", but isn't tracked per day — so it never lights a strip square.
       </p>
 
       {selected && <FamilyModal family={selected} onClose={() => setSelected(null)} />}
