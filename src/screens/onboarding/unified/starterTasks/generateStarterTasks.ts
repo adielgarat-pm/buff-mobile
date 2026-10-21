@@ -237,7 +237,7 @@ function generateRoutine(
 ): GeneratedTask[] | null {
   const mainDomain = domainForChallenge(input.mainChallenge);
   if (mainDomain === null) return null;
-  const routine = ROUTINES[MOMENT_FOR_DOMAIN[mainDomain]];
+  const routine = ROUTINES[input.moment ?? MOMENT_FOR_DOMAIN[mainDomain]];
 
   const additionalDomains = new Set(
     (input.additionalChallenges ?? [])
