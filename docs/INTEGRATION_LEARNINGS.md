@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-10-21-01: The notification bell is family-wide, so "notify every parent" can't mean one row per parent
+
+- **תאריך:** 2026-10-21
+- **מקור:** CC — pkg/anchor-routine-onboarding M1 (migration 065).
+- **תיאור:** The plan was for every parent to get the reward-request notification. But `useNotificationsFeed` reads `notifications` by `family_id`, not `parent_id`, and the fanout pushes only to `parent_id`. One row per parent would therefore show up twice in every parent's bell. The old trigger also picked `role='parent' LIMIT 1` with no ORDER BY and no `is_deleted` filter: in Hadas Cohen's family (active 10/20) the pick could land on the deleted profile `hadasvc`.
+- **השפעה:** 065 keeps one row and picks the recipient: a live parent with a push channel (device_tokens / push_subscriptions) first, then the most recently seen. Real push to every parent needs a fanout change (fan out to every family parent for a type), which is a separate package. Related caveat: `kid_joined` = the child profile got an auth user, not necessarily on the child's own device (IN-2026-10-08-01: a parent who taps the link on their own phone also creates the child's account).
+- **סטטוס:** `resolved` (065 applied 2026-10-21); fanout-to-all-parents is open as an idea.
+- **קשור ל:** `supabase/migrations/065_kid_joined_and_redemption_notify.sql`, `src/hooks/useNotificationsFeed.ts`, `supabase/functions/push-notification-fanout/index.ts`
+
 ### IN-2026-10-15-01: Realtime "cannot add postgres_changes callbacks after subscribe()" was never StrictMode — Date.now() topics collide across two live hook instances
 
 - **תאריך:** 2026-10-15
