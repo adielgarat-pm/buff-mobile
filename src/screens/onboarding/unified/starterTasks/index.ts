@@ -13,6 +13,8 @@ export { STARTER_TASK_LIBRARY, TASK_BY_ID } from './taskLibrary';
 export { CHALLENGE_TO_DOMAIN, domainForChallenge } from './challengeMap';
 export { DEFAULT_GENERATOR_CONFIG, resolveConfig } from './generatorConfig';
 export { TIME_OF_DAY_TO_HHMM, DOMAIN_TO_CATEGORY, hhmmFor, categoryFor } from './timeOfDay';
+export { ROUTINES, MOMENT_FOR_DOMAIN, addMinutes } from './routines';
+export type { RoutineDef, RoutineMoment } from './routines';
 export type {
   AgeBand,
   SexLean,

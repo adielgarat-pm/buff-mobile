@@ -16,9 +16,10 @@
  *   leaned task when one exists → cap → map to GeneratedTask.
  */
 import { ONBOARDING_CONFIG } from '../../../../config/onboardingConfig';
-import type { GenerateInput, GeneratedTask, GeneratorConfig, LearnedScores, SexLean, StarterTaskDef } from './types';
+import type { Domain, GenerateInput, GeneratedTask, GeneratorConfig, LearnedScores, SexLean, StarterTaskDef } from './types';
 import type { AgeGroup, Gender } from '../onboardingData';
-import { STARTER_TASK_LIBRARY } from './taskLibrary';
+import { STARTER_TASK_LIBRARY, TASK_BY_ID } from './taskLibrary';
+import { MOMENT_FOR_DOMAIN, ROUTINES, addMinutes } from './routines';
 import { domainForChallenge } from './challengeMap';
 import { resolveConfig } from './generatorConfig';
 import { categoryFor, hhmmFor } from './timeOfDay';
@@ -125,6 +126,12 @@ export function generateStarterTasks(input: GenerateInput): GeneratedTask[] {
     scoreTask(t, lean, ageBand, input.gender, learned, config);
   const comparator = makeComparator(scoreOf);
 
+  if (config.shape === 'routine') {
+    const routine = generateRoutine(input, config, scoreOf);
+    if (routine) return routine;
+    // Pool too small for this age/challenge → the mixed list below.
+  }
+
   const chosen: GeneratedTask[] = [];
   const seen = new Set<string>();
 
@@ -213,6 +220,61 @@ export function generateStarterTasks(input: GenerateInput): GeneratedTask[] {
     return fallbackTasks(ageBand, config);
   }
   return capped;
+}
+
+/**
+ * Routine shape: one moment (from the main challenge's domain), the best
+ * `routineSize` slots of that moment's routine, emitted in slot order with
+ * times spaced from the routine's start. Per slot, the best-scoring eligible
+ * alternative wins (so lean/age variants of the same step never both appear).
+ * Returns null when fewer than `routineMin` slots have an eligible task, or the
+ * main challenge is unknown — the caller then falls back to the mixed list.
+ */
+function generateRoutine(
+  input: GenerateInput,
+  config: GeneratorConfig,
+  scoreOf: (t: StarterTaskDef) => number,
+): GeneratedTask[] | null {
+  const mainDomain = domainForChallenge(input.mainChallenge);
+  if (mainDomain === null) return null;
+  const routine = ROUTINES[MOMENT_FOR_DOMAIN[mainDomain]];
+
+  const additionalDomains = new Set(
+    (input.additionalChallenges ?? [])
+      .filter((c) => c && c !== input.mainChallenge)
+      .map(domainForChallenge)
+      .filter((d): d is Domain => d !== null),
+  );
+  const routineScore = (t: StarterTaskDef): number =>
+    scoreOf(t) +
+    (t.domain === mainDomain
+      ? config.routineMainDomainBonus
+      : additionalDomains.has(t.domain)
+        ? config.routineAdditionalDomainBonus
+        : 0);
+  const comparator = makeComparator(routineScore);
+
+  // Best eligible alternative per slot, remembering the slot's position.
+  const picks: { slot: number; task: StarterTaskDef }[] = [];
+  routine.slots.forEach((ids, slot) => {
+    const best = ids
+      .map((id) => TASK_BY_ID[id])
+      .filter((t): t is StarterTaskDef => !!t && t.enabled && t.ageBands.includes(input.ageGroup))
+      .sort(comparator)[0];
+    if (best) picks.push({ slot, task: best });
+  });
+  if (picks.length < config.routineMin) return null;
+
+  const kept = [...picks]
+    .sort((a, b) => comparator(a.task, b.task))
+    .slice(0, config.routineSize)
+    .sort((a, b) => a.slot - b.slot);
+
+  const source = `routine:${routine.moment}`;
+  return kept.map(({ task }, i) => ({
+    ...toGeneratedTask(task, source),
+    time: addMinutes(routine.start, i * routine.spacingMin),
+  }));
 }
 
 /** Re-derive a chosen task's library score for the swap comparison. */
