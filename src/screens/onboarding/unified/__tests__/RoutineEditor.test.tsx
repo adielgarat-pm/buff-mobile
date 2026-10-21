@@ -41,6 +41,8 @@ jest.mock('../../../../integrations/supabase/client', () => {
 });
 
 import { RoutineEditor } from '../RoutineEditor';
+import { pickLang } from '../../../../lib/i18nString';
+import type { I18nString } from '../onboardingData';
 
 const rows = [
   { id: 'a', title: 'Get dressed', time: '07:00' },
@@ -54,8 +56,8 @@ const regenerate = jest.fn(() => [
   { id: 'g1', title: { en: 'Pack bag', he: 'תיק' }, buff_value: 20, timeOfDay: 'evening', time: '19:30', category: 'organization', domain: 3, sexLean: 'both', evidenceTag: 'x', source: 'routine:evening' },
   { id: 'g2', title: { en: 'Clothes', he: 'בגדים' }, buff_value: 20, timeOfDay: 'evening', time: '19:40', category: 'self-care', domain: 1, sexLean: 'both', evidenceTag: 'x', source: 'routine:evening' },
 ]) as never;
-const buildTaskRows = jest.fn((list: { title: { en: string }; time: string }[]) =>
-  list.map((t) => ({ assigned_to: 'kid-1', title: t.title.en, time: t.time })));
+const buildTaskRows = jest.fn((list: { title: I18nString; time: string }[]) =>
+  list.map((t) => ({ assigned_to: 'kid-1', title: pickLang(t.title, 'en'), time: t.time })));
 
 const renderEditor = () => render(
   <RoutineEditor
