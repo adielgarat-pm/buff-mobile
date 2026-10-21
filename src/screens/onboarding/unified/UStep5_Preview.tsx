@@ -25,7 +25,9 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../integrations/supabase/client';
 import { calcRewardCreditsDefault } from './onboardingData';
 import { buildSeedRewards } from './seedRewards';
-import { generateStarterTasks } from './starterTasks';
+import { generateStarterTasks, type GeneratedTask, type RoutineMoment } from './starterTasks';
+import { RoutineEditor } from './RoutineEditor';
+import type { RoutineRow } from './routineEdit';
 import { isTeenAgeGroup } from '../../../lib/activities/childMode';
 import { pickLang, bilingualForDb, resolveChildLang } from '../../../lib/i18nString';
 import { logOnboardingEvent } from '../../../lib/onboardingFunnel';
@@ -61,6 +63,9 @@ export default function UStep5_Preview() {
 
   const [saveErr,        setSaveErr]        = useState<string | null>(null);
   const [childProfileId, setChildProfileId] = useState<string | null>(null);
+  // The saved task rows, set only when THIS screen inserted them — the routine
+  // editor (M3) edits these by id. Null → the read-only cards below.
+  const [savedRows, setSavedRows] = useState<RoutineRow[] | null>(null);
   const hasSaved = useRef(false);
   // Consecutive save-failure counter. After repeated failures (e.g. a persistent
   // RLS/network fault on the tasks insert) we surface a "continue anyway" escape
@@ -75,13 +80,30 @@ export default function UStep5_Preview() {
   // shape 'routine' (pkg/anchor-routine-onboarding M2): one fixed routine at one
   // moment, steps spaced from one start time — the pattern every long-term
   // active family shares (docs/research/SUSTAINED_FAMILIES_2026-10-20.md).
-  const tasks = generateStarterTasks({
+  const generateFor = (moment?: RoutineMoment) => generateStarterTasks({
     ageGroup:             params.ageGroup,
     gender:               params.gender,
     mainChallenge:        params.mainChallenge,
     additionalChallenges: params.additionalChallenges,
     config:               { shape: 'routine' },
+    moment,
   });
+  const tasks = generateFor();
+  // 'routine:<moment>' when the routine shape applied; mixed fallback → null.
+  const initialMoment = tasks[0]?.source.startsWith('routine:')
+    ? (tasks[0].source.slice('routine:'.length) as RoutineMoment)
+    : null;
+
+  const buildTaskRows = (list: GeneratedTask[], childId: string) => list.map((t) => ({
+    family_id:     familyId,
+    assigned_to:   childId,
+    title:         pickLang(t.title, childLang),
+    category:      t.category,
+    time:          t.time,
+    credits:       t.buff_value,
+    icon:          '⭐',
+    schedule_days: [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Sat); parent can narrow per task
+  }));
 
   // Seed rewards from EVERY selected motivator (see seedRewards.ts — shared
   // with Edit focus). This only INSERTS seed rewards; it never touches
@@ -277,16 +299,7 @@ export default function UStep5_Preview() {
       // timeOfDay) and category. We only translate the title into the CHILD's
       // language (childLang, from their name script) — not the app locale — so
       // each child gets tasks in their own language.
-      const taskRows = tasks.map((t) => ({
-        family_id:     familyId,
-        assigned_to:   id,
-        title:         pickLang(t.title, childLang),
-        category:      t.category,
-        time:          t.time,
-        credits:       t.buff_value,
-        icon:          '⭐',
-        schedule_days: [0, 1, 2, 3, 4, 5, 6], // default: every day (incl. Sat); parent can narrow per task
-      }));
+      const taskRows = buildTaskRows(tasks, id);
       console.log(`${TAG} [2/3] Task rows (${taskRows.length}):`, JSON.stringify(taskRows.map(r => `${r.time} ${r.title}`)));
 
       // Idempotency: skip if the child already has tasks. saveAll re-runs on
@@ -302,9 +315,10 @@ export default function UStep5_Preview() {
       if (existingTaskCount && existingTaskCount > 0) {
         console.log(`${TAG} [2/3] Child already has ${existingTaskCount} task(s) — skipping insert (idempotent)`);
       } else {
-        const { error: tasksErr } = await supabase
+        const { data: insertedTasks, error: tasksErr } = await supabase
           .from('tasks')
-          .insert(taskRows as never);
+          .insert(taskRows as never)
+          .select('id, title, time');
 
         if (tasksErr) {
           // FATAL: the onboarding contract is that every child gets starter tasks.
@@ -314,6 +328,7 @@ export default function UStep5_Preview() {
           throw new Error(tasksErr.message);
         }
         console.log(`${TAG} [2/3] Tasks insert SUCCESS`);
+        if (insertedTasks && insertedTasks.length > 0) setSavedRows(insertedTasks as RoutineRow[]);
         // Funnel: starter tasks generated for this child. `variant` carries the
         // stated pain (pkg/parent-ia-and-aha Phase 1) so the AHA trophy-task
         // mapping is queryable from the event log directly — the profile keeps
@@ -425,6 +440,7 @@ export default function UStep5_Preview() {
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         <Text style={[styles.heading, isRTL && styles.textRight]}>
           {t('onboarding.step5.title', { name: params.childName })}
@@ -456,7 +472,17 @@ export default function UStep5_Preview() {
           {t('onboarding.step5.missions')}
         </Text>
 
-        {tasks.map((task, i) => (
+        {savedRows && childProfileId ? (
+          <RoutineEditor
+            familyId={familyId}
+            childId={childProfileId}
+            initialRows={savedRows}
+            initialMoment={initialMoment}
+            isRTL={isRTL}
+            regenerate={(m) => generateFor(m)}
+            buildTaskRows={(list) => buildTaskRows(list, childProfileId)}
+          />
+        ) : tasks.map((task, i) => (
           <Animated.View
             key={task.id}
             style={[

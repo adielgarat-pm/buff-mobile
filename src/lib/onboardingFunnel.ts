@@ -104,7 +104,10 @@ export type OnboardingEventType =
   // Join-link parent guard (2026-10-08). A signed-in parent opening the join
   // link sees "this is for your kid's device" first; `variant` = 'keep' | 'switch'.
   // join_page_viewed (above) carries variant 'parent_guard' when it was shown.
-  | 'join_parent_guard_choice';
+  | 'join_parent_guard_choice'
+  // pkg/anchor-routine-onboarding M3: the parent edited the routine in the
+  // Step 5 preview. `variant` = 'title' | 'time' | 'remove' | 'moment'.
+  | 'routine_edited';
 
 /** UStep6 answer. 'said_no' is reserved for the P2 coached handoff. */
 export type PresenceAnswer = 'together' | 'not_now' | 'said_no';

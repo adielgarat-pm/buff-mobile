@@ -121,6 +121,9 @@ export interface GenerateInput {
   config?: Partial<GeneratorConfig>;
   /** Phase-3 learned re-weighting; defaults to empty (no-op). */
   learned?: LearnedScores;
+  /** Routine shape only: force this moment instead of the main challenge's
+   *  (the parent switched it in the preview). */
+  moment?: 'morning' | 'afternoon' | 'evening';
 }
 
 /** A generated task, carrying everything the save layer needs. */
