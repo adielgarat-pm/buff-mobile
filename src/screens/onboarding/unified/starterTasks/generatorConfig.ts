@@ -19,6 +19,13 @@ export const DEFAULT_GENERATOR_CONFIG: GeneratorConfig = {
   dedupeAcrossChallenges: true, // §8.4
   sexLeanBonus: 2,
   oppositeLeanPenalty: -1,      // deprioritized, not excluded (§0.3 guardrail)
+  // Routine shape (pkg/anchor-routine-onboarding M2). Default stays 'mixed' so
+  // Edit Focus is unchanged; onboarding opts in with { shape: 'routine' }.
+  shape: 'mixed',
+  routineSize: 5,
+  routineMin: 4,
+  routineMainDomainBonus: 3,
+  routineAdditionalDomainBonus: 1,
 };
 
 export function resolveConfig(

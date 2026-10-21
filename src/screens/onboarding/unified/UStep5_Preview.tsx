@@ -72,11 +72,15 @@ export default function UStep5_Preview() {
   // (STARTER_TASKS_BY_CHALLENGE.slice + TASK_TIMES[index]). Each task carries its
   // own time (from timeOfDay → HH:MM) and category, fixing the bug where list
   // position decided the clock time. Deterministic — see starterTasks/.
+  // shape 'routine' (pkg/anchor-routine-onboarding M2): one fixed routine at one
+  // moment, steps spaced from one start time — the pattern every long-term
+  // active family shares (docs/research/SUSTAINED_FAMILIES_2026-10-20.md).
   const tasks = generateStarterTasks({
     ageGroup:             params.ageGroup,
     gender:               params.gender,
     mainChallenge:        params.mainChallenge,
     additionalChallenges: params.additionalChallenges,
+    config:               { shape: 'routine' },
   });
 
   // Seed rewards from EVERY selected motivator (see seedRewards.ts — shared

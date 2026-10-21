@@ -95,6 +95,20 @@ export interface GeneratorConfig {
   sexLeanBonus: number;
   /** Score penalty for an opposite-lean task (kept eligible, deprioritized). */
   oppositeLeanPenalty: number;
+  /**
+   * 'mixed' = top tasks per challenge, each at its own time-of-day bucket.
+   * 'routine' = one fixed routine at one moment, steps spaced from one start
+   * time (routines.ts). Falls back to 'mixed' when the routine pool is too small.
+   */
+  shape: 'mixed' | 'routine';
+  /** Steps in a routine (shape 'routine'). */
+  routineSize: number;
+  /** Fewer eligible routine steps than this → fall back to 'mixed'. */
+  routineMin: number;
+  /** Score bonus for a routine step from the main challenge's domain. */
+  routineMainDomainBonus: number;
+  /** Score bonus for a routine step from an additional challenge's domain. */
+  routineAdditionalDomainBonus: number;
 }
 
 /** Input to the generator — everything known at onboarding. */
@@ -121,6 +135,7 @@ export interface GeneratedTask {
   domain: Domain;
   sexLean: SexLean;
   evidenceTag: string;
-  /** Which challenge slot produced it — 'main' or the additional challenge id. */
+  /** Which challenge slot produced it — 'main' or the additional challenge id
+   *  ('routine:<moment>' for routine-shaped output). */
   source: string;
 }
