@@ -14,6 +14,15 @@
 
 ## Implementation Notes
 
+### IN-2026-10-21-02: `waitFor(() => expect(el).toBeNull())` can time out by itself — the failure message is the slow part
+
+- **תאריך:** 2026-10-21
+- **מקור:** CC — `pkg/fix-flaky-concierge-test`, after `ConciergeCallCard` "re-checks the first win… (refreshKey)" failed on every full jest run but passed alone.
+- **תיאור:** The mocked count query resolves at once, but logging showed it landed ~2.4s after the rerender. Each failed retry of `expect(queryByTestId(...)).toBeNull()` pretty-prints the whole RN host element, `_fiber` tree included. That's synchronous and takes seconds on a loaded machine, so it blocks the event loop past waitFor's 1s timeout before the state update can commit. `testTimeout: 30000` doesn't help, because waitFor has its own 1s default. It only bites when the element is still mounted on the first check (waiting for something to disappear). Waits for something to appear, or that pass on the first try, never format anything.
+- **השפעה:** Fixed with `waitForElementToBeRemoved(() => queryByTestId(...))`, which retries with a prebuilt error. Rule: to wait for an element to disappear, use `waitForElementToBeRemoved`, never `waitFor` + `toBeNull()`.
+- **סטטוס:** `resolved` (full suite green 3/3).
+- **קשור ל:** `src/components/parent/__tests__/ConciergeCallCard.test.tsx`, `jest.config.js` (testTimeout note)
+
 ### IN-2026-10-21-01: The notification bell is family-wide, so "notify every parent" can't mean one row per parent
 
 - **תאריך:** 2026-10-21

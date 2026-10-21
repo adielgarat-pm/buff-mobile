@@ -1,4 +1,4 @@
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react-native';
 
 const mockMode = { isChildPreview: false };
 jest.mock('../../../contexts/ModeContext', () => ({ useMode: () => mockMode }));
@@ -74,5 +74,11 @@ it('re-checks the first win when the dashboard refetches (refreshKey) and then h
   await findByTestId('concierge-card');
   mockCount.value = 1;
   rerender(<ConciergeCallCard childCreatedAts={recent} refreshKey={{}} />);
-  await waitFor(() => expect(queryByTestId('concierge-card')).toBeNull());
+  // Not waitFor(() => expect(...).toBeNull()): while the card is still mounted,
+  // every failed retry pretty-prints the whole host element (its _fiber tree),
+  // which takes seconds on a loaded full-suite run and blocks the event loop past
+  // waitFor's 1s budget before the re-check's state update can land. This
+  // helper's retry throws a prebuilt error, so the wait stays cheap.
+  await waitForElementToBeRemoved(() => queryByTestId('concierge-card'));
+  expect(queryByTestId('concierge-card')).toBeNull();
 });
