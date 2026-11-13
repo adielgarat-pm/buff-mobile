@@ -24,7 +24,7 @@
 
 קראנו לזה BUFF. הרעיון: להיות לצד הילד ולא במקומו, עד שהוא כבר לא צריך אותנו. מ"מצב שוטר" ל"מצב מאמן".
 
-זה חינם לכל המשפחה: ילדים ומשימות בלי הגבלה, פרסים אמיתיים שהילד בוחר, ו-Pause לשבועות שהשגרה מתפרקת. בלי פרסומות. (האפשרות היחידה בתשלום היא מאמן AI להורים: ‎$9.99 לחודש או ‎$59.99 לשנה, מתחדש עד שמבטלים.)
+זה חינם לכל המשפחה: ילדים ומשימות בלי הגבלה, פרסים אמיתיים שהילד בוחר, ו-Pause לשבועות שהשגרה מתפרקת. בלי פרסומות.
 
 באנדרואיד: https://play.google.com/store/apps/details?id=com.buffapp.mobile
 בדפדפן: [LINK]
@@ -51,7 +51,7 @@ Somewhere in Itay's diagnosis I recognized myself. Never formally diagnosed, but
 
 We called it BUFF. The idea: be next to your kid, not instead of them, until they don't need us anymore. From cop mode to coach mode.
 
-It's free for the whole family: unlimited kids and tasks, real rewards your kid chooses, and a Pause for the weeks when routine falls apart. No ads. (The only paid part is an optional AI coach for parents: $9.99/month or $59.99/year, renews until you cancel.)
+It's free for the whole family: unlimited kids and tasks, real rewards your kid chooses, and a Pause for the weeks when routine falls apart. No ads.
 
 Android: https://play.google.com/store/apps/details?id=com.buffapp.mobile
 Web: [LINK]
@@ -66,7 +66,7 @@ What's the morning sentence you can't stand hearing yourself say? I'd love to re
 - Opens with the three nagging questions: a recognizable hook parents feel in the first line, no "I'm excited to announce".
 - Concrete details (gamer skin, 83 in chemistry, Emi's bag and lunch) instead of slogans.
 - Honest framing of Adi's own ADHD ("never formally diagnosed", per FOUNDER_STORY notes).
-- Pricing line complies with BUFF_FAQ Q18: price + auto-renewal stated, no "100% free".
+- Pricing line REMOVED (2026-11-13, Adi): the paid AI coach isn't relevant to ~99% of readers. To re-add after ratings build up, restore: "(The only paid part is an optional AI coach for parents: $9.99/month or $59.99/year, renews until you cancel.)" (HE: "(האפשרות היחידה בתשלום היא מאמן AI להורים: ‎$9.99 לחודש או ‎$59.99 לשנה, מתחדש עד שמבטלים.)"). Any future mention must state price + auto-renewal (BUFF_FAQ Q18).
 
 **What was weak, fixed:**
 | Issue | Fix |
